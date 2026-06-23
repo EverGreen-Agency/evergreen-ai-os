@@ -1,0 +1,23 @@
+{
+  "client_id": "cliente_template",
+  "company_name": "Nome da Empresa Modelo",
+  "website": "https://www.exemplo.com.br",
+  "niche": "Serviços B2B",
+  "brand_voice": {
+    "tone": "Executivo, direto e resolutivo",
+    "vocabulary": ["Crescimento", "Escala", "LTV"],
+    "forbidden_words": ["Barato", "Promocional", "Garantido"]
+  },
+  "purchased_services": [
+    "Growth",
+    "Social Media",
+    "CRM Setup"
+  ],
+  "main_contacts": [
+    {
+      "name": "João Silva",
+      "role": "CEO",
+      "email": "joao@exemplo.com.br"
+    }
+  ]
+}
