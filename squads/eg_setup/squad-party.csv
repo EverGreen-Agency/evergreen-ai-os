@@ -1,0 +1,6 @@
+agent_name,role,file_path
+analista_onboarding,Analista de Onboarding,squads/eg_setup/agents/analista_onboarding.agent.md
+arquiteto_clickup,Arquiteto ClickUp,squads/eg_setup/agents/arquiteto_clickup.agent.md
+especialista_kommo,Especialista Kommo,squads/eg_setup/agents/especialista_kommo.agent.md
+especialista_kits,Especialista em Kits,squads/eg_setup/agents/especialista_kits.agent.md
+gerente_cs,Gerente CS,squads/eg_setup/agents/gerente_cs.agent.md
