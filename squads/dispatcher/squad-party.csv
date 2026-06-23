@@ -1,0 +1,2 @@
+agent_name,role,file_path
+roteador,Roteador de Squads,squads/dispatcher/agents/roteador.agent.md

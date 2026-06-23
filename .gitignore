@@ -1,5 +1,6 @@
-node_modules/
+node_modules
 .DS_Store
-dashboard/node_modules/
+*.bak
+dashboard/node_modules
 dashboard/dist/
 dashboard/.env
