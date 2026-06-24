@@ -1,0 +1,4 @@
+agent_name,role,file_path
+especificador,Especificador (SDD),squads/eg_engenharia/agents/especificador.agent.md
+arquiteto_decisor,Arquiteto de Decisões (ADR),squads/eg_engenharia/agents/arquiteto_decisor.agent.md
+scaffolder,Scaffolder,squads/eg_engenharia/agents/scaffolder.agent.md

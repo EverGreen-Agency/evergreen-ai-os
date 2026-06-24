@@ -1,0 +1,19 @@
+name: "Engenharia EG (SDD + ADR)"
+version: "1.0"
+description: "Squad de desenvolvimento de projetos de CLIENTE via Spec-Driven Development. Recebe um brief, produz uma spec.md (o contrato), registra as decisões de stack como ADRs (consultando o Banco de Stack), e gera o scaffold do repo + árvore de tarefas. Cada decisão técnica tem um porquê escrito. Artefatos de decisão moram em _opensquad/_memory/clients/<id>/engenharia/."
+
+pipeline:
+  - id: step_spec
+    agent: especificador
+    description: "Recebe o brief do cliente. Faz as perguntas que faltam (uma onda, não um muro) e produz a spec.md: objetivo, escopo, requisitos funcionais e não-funcionais, critérios de aceite e o que está FORA de escopo. A spec é o contrato — apresenta ao usuário para aprovação antes de prosseguir."
+    interactive: true
+
+  - id: step_decisoes
+    agent: arquiteto_decisor
+    description: "A partir da spec aprovada, decide a stack consultando o Banco de Stack (só Adopt/Trial sem bandeira; Assess é experimento explícito). Para cada escolha relevante (linguagem, framework, arquitetura, padrão de dados) escreve um ADR: contexto → opções → escolha → consequência. Se promover uma tech Trial→Adopt, atualiza o stack.json. Apresenta os ADRs para aprovação."
+    interactive: true
+
+  - id: step_scaffold
+    agent: scaffolder
+    description: "Com spec + ADRs aprovados, gera o esqueleto do repositório do projeto (estrutura de pastas, arquivos base, README) e a árvore de tarefas quebrada por componente/feature, pronta para virar tarefas no ClickUp (Kickoff Técnico). Cada task referencia a seção da spec que a originou."
+    interactive: false

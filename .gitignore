@@ -4,3 +4,18 @@ node_modules
 dashboard/node_modules
 dashboard/dist/
 dashboard/.env
+
+# Variáveis globais (chaves de IA, ClickUp da EG)
+.env
+
+# Sessões de browser persistentes (cookies/login do Playwright)
+_opensquad/_browser_profile/
+
+# Estado de runtime dos squads (lido pelo dashboard, regenerado a cada run)
+squads/*/state.json
+_opensquad/logs/
+
+# Configs reais de cliente (tokens Kommo/Ads, dados sensíveis).
+# Mantém versionado apenas o molde _template/ e o README da carteira.
+_opensquad/_memory/clients/*/
+!_opensquad/_memory/clients/_template/
