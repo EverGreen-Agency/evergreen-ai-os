@@ -1,2 +1,2 @@
-agent_name,role,file_path
-arquiteto,Arquiteto / Guardião,squads/eg_guardiao/agents/arquiteto.agent.md
+agent_name,role,displayName,icon,file_path
+arquiteto,Arquiteto / Guardião,Guardião,🛡️,./agents/arquiteto.agent.md

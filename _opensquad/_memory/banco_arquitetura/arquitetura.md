@@ -53,7 +53,7 @@ evergreen-ai-os/
 - **Entrada única:** skill `/opensquad` (em `.claude/skills/opensquad`). Roteia create / run / edit / skills.
 - **Anatomia de um squad** (`squads/<nome>/`):
   - `squad.yaml` — pipeline (lista de steps; cada step tem `agent`, `description`, `interactive`).
-  - `squad-party.csv` — elenco: `agent_name,role,file_path`.
+  - `squad-party.csv` — elenco: `agent_name,role,displayName,icon,file_path` (formato canônico do runner; `file_path` relativo `./agents/<id>.agent.md`).
   - `agents/<nome>.agent.md` — persona + regras de cada agente.
   - `_memory/memories.md` — memória do squad entre execuções.
   - `state.json` — (em runtime) estado lido pelo dashboard.

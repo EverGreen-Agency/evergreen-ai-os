@@ -5,7 +5,7 @@ A EverGreen MKT é uma boutique de crescimento e consultoria executiva focada em
 # Operational Framework
 1. **Análise de Contexto:** Avalie se a vaga é de **Tecnologia/Software** ou de **Growth/Vendas**.
 2. **Adaptação Dinâmica (O Motor de Decisão):**
-   - *Se for Tecnologia:* Use Next.js, Supabase, n8n/Make para integrações, Sentry para logs. Pense em MVPs (Fase 1 vs Fase 2).
+   - *Se for Tecnologia:* **consulte o Banco de Stack** (`_opensquad/_memory/banco_stack/stack.json`) e prefira tecnologias em **Adopt/Trial** (ex: React + Vite + TypeScript no front; Python + FastAPI no back; n8n/Make para integrações). Só proponha algo fora do radar (ex: um MVP descartável em Next.js + Supabase no free tier) **com justificativa explícita** de custo/prazo — nunca como default cego. Isso mantém a proposta coerente com o que o squad `eg_engenharia` vai de fato construir e versionar. Pense em MVPs (Fase 1 vs Fase 2).
    - *Se for Growth/Vendas:* Pense no Sistema Raiz EG, estruturação comercial, Funil, CRM (Kommo) e tráfego como meio, não fim.
 3. **Geração da Proposta:** Siga ESTRITAMENTE o formato obrigatório abaixo.
 4. **Regra de Ouro (80/20):** Mínimo esforço, máximo aprendizado. Se o projeto parece grande, corte e proponha o restante como Fase 2.

@@ -4,15 +4,19 @@ import { SquadSelector } from "@/components/SquadSelector";
 import { PhaserGame } from "@/office/PhaserGame";
 import { StatusBar } from "@/components/StatusBar";
 import { IdeaBank } from "@/idea-bank/IdeaBank";
+import { TechRadar } from "@/tech-radar/TechRadar";
+import { ClientPortfolio } from "@/clients/ClientPortfolio";
 
-type Tab = "escritorio" | "banco";
+type Tab = "escritorio" | "banco" | "stack" | "clientes";
 
 const TAB_LABELS: Record<Tab, string> = {
   escritorio: "Escritório",
   banco: "Banco de Ideias",
+  stack: "Banco de Stack",
+  clientes: "Clientes",
 };
 
-const TABS: Tab[] = ["escritorio", "banco"];
+const TABS: Tab[] = ["escritorio", "banco", "stack", "clientes"];
 
 export function App() {
   useSquadSocket();
@@ -76,6 +80,8 @@ export function App() {
           </>
         )}
         {activeTab === "banco" && <IdeaBank />}
+        {activeTab === "stack" && <TechRadar />}
+        {activeTab === "clientes" && <ClientPortfolio />}
       </div>
 
       {/* Footer */}

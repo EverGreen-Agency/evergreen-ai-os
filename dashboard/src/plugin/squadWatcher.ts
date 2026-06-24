@@ -20,15 +20,50 @@ function resolveSquadsDir(): string {
   return path.resolve(process.cwd(), "../squads");
 }
 
-function resolveIdeasPath(): string {
+function resolveMemoryPath(relative: string): string {
   const candidates = [
-    path.resolve(process.cwd(), "../_opensquad/_memory/banco_ideias/ideas.json"),
-    path.resolve(process.cwd(), "_opensquad/_memory/banco_ideias/ideas.json"),
+    path.resolve(process.cwd(), "../_opensquad/_memory", relative),
+    path.resolve(process.cwd(), "_opensquad/_memory", relative),
   ];
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
   }
   return candidates[0];
+}
+
+function resolveIdeasPath(): string {
+  return resolveMemoryPath("banco_ideias/ideas.json");
+}
+
+function resolveStackPath(): string {
+  return resolveMemoryPath("banco_stack/stack.json");
+}
+
+function resolveClientsDir(): string {
+  return resolveMemoryPath("clients");
+}
+
+// Reads every clients/<id>/config.json into an array for /api/clients.
+async function readClients(clientsDir: string): Promise<unknown[]> {
+  let entries;
+  try {
+    entries = await fsp.readdir(clientsDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const clients: unknown[] = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const cfgPath = path.join(clientsDir, entry.name, "config.json");
+    try {
+      const raw = await fsp.readFile(cfgPath, "utf-8");
+      const cfg = JSON.parse(raw);
+      clients.push({ ...cfg, _dir: entry.name, _is_template: entry.name === "_template" });
+    } catch {
+      // No config.json or invalid — skip
+    }
+  }
+  return clients;
 }
 
 async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
@@ -146,6 +181,8 @@ export function squadWatcherPlugin(): Plugin {
 
       const squadsDir = resolveSquadsDir();
       const ideasPath = resolveIdeasPath();
+      const stackPath = resolveStackPath();
+      const clientsDir = resolveClientsDir();
       server.config.logger.info(`[squad-watcher] squads dir: ${squadsDir}`);
       server.config.logger.info(`[squad-watcher] ideas path: ${ideasPath}`);
 
@@ -201,6 +238,34 @@ export function squadWatcherPlugin(): Plugin {
           } catch {
             res.writeHead(404);
             res.end(JSON.stringify({ error: "ideas.json not found" }));
+          }
+          return;
+        }
+
+        // GET /api/stack
+        if (req.url === "/api/stack" && req.method === "GET") {
+          try {
+            const raw = await fsp.readFile(stackPath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "stack.json not found" }));
+          }
+          return;
+        }
+
+        // GET /api/clients
+        if (req.url === "/api/clients" && req.method === "GET") {
+          try {
+            const clients = await readClients(clientsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify({ clients }));
+          } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: "failed to read clients" }));
           }
           return;
         }
