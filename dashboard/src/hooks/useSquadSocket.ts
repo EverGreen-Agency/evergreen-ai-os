@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSquadStore } from "@/store/useSquadStore";
+import { useIdeaStore } from "@/store/useIdeaStore";
 import type { WsMessage } from "@/types/state";
 
 const RECONNECT_BASE_MS = 1000;
@@ -15,6 +16,7 @@ export function useSquadSocket() {
   const setSnapshot = useSquadStore((s) => s.setSnapshot);
   const updateSquadState = useSquadStore((s) => s.updateSquadState);
   const setSquadInactive = useSquadStore((s) => s.setSquadInactive);
+  const setIdeas = useIdeaStore((s) => s.setIdeas);
 
   useEffect(() => {
     let disposed = false;
@@ -33,6 +35,9 @@ export function useSquadSocket() {
           break;
         case "SQUAD_INACTIVE":
           setSquadInactive(msg.squad);
+          break;
+        case "IDEAS_UPDATE":
+          setIdeas(msg.ideas);
           break;
       }
     }
@@ -131,5 +136,5 @@ export function useSquadSocket() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [setConnected, setSnapshot, updateSquadState, setSquadInactive]);
+  }, [setConnected, setSnapshot, updateSquadState, setSquadInactive, setIdeas]);
 }

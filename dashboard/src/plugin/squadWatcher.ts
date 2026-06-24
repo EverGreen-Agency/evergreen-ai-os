@@ -11,13 +11,24 @@ import type { SquadInfo, SquadState, WsMessage } from "../types/state";
 
 function resolveSquadsDir(): string {
   const candidates = [
-    path.resolve(process.cwd(), "../squads"),  // started from dashboard/
-    path.resolve(process.cwd(), "squads"),     // started from project root
+    path.resolve(process.cwd(), "../squads"),
+    path.resolve(process.cwd(), "squads"),
   ];
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
   }
-  return path.resolve(process.cwd(), "../squads"); // default (will be created on demand)
+  return path.resolve(process.cwd(), "../squads");
+}
+
+function resolveIdeasPath(): string {
+  const candidates = [
+    path.resolve(process.cwd(), "../_opensquad/_memory/banco_ideias/ideas.json"),
+    path.resolve(process.cwd(), "_opensquad/_memory/banco_ideias/ideas.json"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
 }
 
 async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
@@ -134,7 +145,9 @@ export function squadWatcherPlugin(): Plugin {
       }
 
       const squadsDir = resolveSquadsDir();
+      const ideasPath = resolveIdeasPath();
       server.config.logger.info(`[squad-watcher] squads dir: ${squadsDir}`);
+      server.config.logger.info(`[squad-watcher] ideas path: ${ideasPath}`);
 
       // Create WebSocket server with noServer to avoid intercepting Vite's HMR
       const wss = new WebSocketServer({ noServer: true });
@@ -162,17 +175,77 @@ export function squadWatcherPlugin(): Plugin {
         server.config.logger.error(`[squad-watcher] failed to create squads dir: ${err.message}`);
       });
 
-      // REST API fallback — serves snapshot over HTTP for polling clients
+      // REST API — snapshot + ideas endpoints
       server.middlewares.use(async (req, res, next) => {
-        if (req.url !== "/api/snapshot") return next();
+        // GET /api/snapshot
+        if (req.url === "/api/snapshot" && req.method === "GET") {
+          try {
+            const snapshot = await buildSnapshot(squadsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify(snapshot));
+          } catch {
+            res.writeHead(500);
+            res.end("Internal Server Error");
+          }
+          return;
+        }
+
+        // GET /api/ideas
+        if (req.url === "/api/ideas" && req.method === "GET") {
+          try {
+            const raw = await fsp.readFile(ideasPath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "ideas.json not found" }));
+          }
+          return;
+        }
+
+        // POST /api/ideas — write updated ideas array back to ideas.json
+        if (req.url === "/api/ideas" && req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+          req.on("end", async () => {
+            try {
+              const payload = JSON.parse(body) as { ideas: unknown[] };
+              const existing = JSON.parse(await fsp.readFile(ideasPath, "utf-8"));
+              const updated = {
+                ...existing,
+                updated_at: new Date().toISOString().split("T")[0],
+                ideas: payload.ideas,
+              };
+              await fsp.writeFile(ideasPath, JSON.stringify(updated, null, 2), "utf-8");
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ ok: true }));
+            } catch (err) {
+              res.writeHead(500);
+              res.end(JSON.stringify({ error: String(err) }));
+            }
+          });
+          return;
+        }
+
+        next();
+      });
+
+      // Watch ideas.json for changes from the Curador
+      const ideasWatcher = chokidarWatch(ideasPath, {
+        ignoreInitial: true,
+        awaitWriteFinish: { stabilityThreshold: 400, pollInterval: 50 },
+      });
+      ideasWatcher.on("change", async () => {
         try {
-          const snapshot = await buildSnapshot(squadsDir);
-          res.setHeader("Content-Type", "application/json");
-          res.setHeader("Cache-Control", "no-cache");
-          res.end(JSON.stringify(snapshot));
+          const raw = await fsp.readFile(ideasPath, "utf-8");
+          const bank = JSON.parse(raw);
+          if (Array.isArray(bank?.ideas)) {
+            broadcast(wss, { type: "IDEAS_UPDATE", ideas: bank.ideas });
+          }
         } catch {
-          res.writeHead(500);
-          res.end("Internal Server Error");
+          // Partial write — next event will have the complete file
         }
       });
 
@@ -226,6 +299,7 @@ export function squadWatcherPlugin(): Plugin {
 
       server.httpServer.on("close", () => {
         watcher.close();
+        ideasWatcher.close();
       });
     },
   };

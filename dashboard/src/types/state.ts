@@ -1,3 +1,5 @@
+import type { Idea } from "./idea";
+
 // state.json structure — matches Pipeline Runner output
 export interface AgentDesk {
   col: number;
@@ -60,4 +62,5 @@ export interface SquadInfo {
 export type WsMessage =
   | { type: "SNAPSHOT"; squads: SquadInfo[]; activeStates: Record<string, SquadState> }
   | { type: "SQUAD_UPDATE"; squad: string; state: SquadState }
-  | { type: "SQUAD_INACTIVE"; squad: string };
+  | { type: "SQUAD_INACTIVE"; squad: string }
+  | { type: "IDEAS_UPDATE"; ideas: Idea[] };
