@@ -1,0 +1,14 @@
+name: "Guardião / Arquiteto EG"
+version: "1.0"
+description: "Squad de autovigilância da estrutura. O Arquiteto recebe uma ideia ou projeto INTERNO (nunca de cliente) e o audita contra o Banco de Arquitetura: o que já existe cobre isso? precisa de squad novo ou de estender um existente? a stack proposta é permitida? respeita os princípios da casa? Saída é um parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). Corpus: _opensquad/_memory/banco_arquitetura/arquitetura.md."
+
+pipeline:
+  - id: step_auditoria
+    agent: arquiteto
+    description: "Recebe o item a auditar (ideia/projeto interno). Carrega o Banco de Arquitetura, o catálogo de squads, o Banco de Stack e o Banco de Ideias. Roda os 4 gates (squad / integração / stack / princípios) e emite um parecer estruturado com veredito e recomendação. Pede ao usuário o que fazer com o parecer."
+    interactive: true
+
+  - id: step_registro
+    agent: arquiteto
+    description: "Com aprovação do usuário, aplica a consequência do parecer: registra/atualiza ideia no Banco de Ideias (via formato do Curador), e/ou propõe atualização do Banco de Arquitetura. Só escreve com aprovação explícita. Confirma o que foi gravado."
+    interactive: false
