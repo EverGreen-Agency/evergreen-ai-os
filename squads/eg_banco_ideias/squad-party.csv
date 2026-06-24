@@ -1,0 +1,2 @@
+agent_name,role,file_path
+curador,Curador de Ideias,squads/eg_banco_ideias/agents/curador.agent.md

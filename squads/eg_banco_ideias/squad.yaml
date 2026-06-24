@@ -1,0 +1,14 @@
+name: "Banco de Ideias EG"
+version: "1.0"
+description: "Squad de curadoria do funil de ideias da EverGreen. O Curador recebe ideias cruas, checa contra o banco existente (nova / duplicada / variação), enriquece com horizonte, categoria e conexões, e persiste no ideas.json. Fonte da verdade: _opensquad/_memory/banco_ideias/ideas.json."
+
+pipeline:
+  - id: step_triagem
+    agent: curador
+    description: "Recebe a ideia crua do usuário, carrega o banco e classifica: nova, duplicada de uma existente, ou variação a fundir. Propõe title, desc, category, horizon e conexões (depends_on / enables). Apresenta o veredito e pede confirmação."
+    interactive: true
+
+  - id: step_registro
+    agent: curador
+    description: "Com a aprovação do usuário, escreve o registro no ideas.json (nova ideia, fusão ou mudança de estágio) e regenera a view markdown ideas.md. Confirma o que foi gravado."
+    interactive: false
