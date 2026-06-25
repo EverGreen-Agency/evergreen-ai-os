@@ -144,7 +144,10 @@ function SquadMap({ squads }: { squads: SquadInfo[] }) {
               {sq.code}
             </div>
             {sq.description && (
-              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.4 }}>
+              <div
+                title={sq.description}
+                style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.4, maxHeight: "4.2em", overflow: "hidden" }}
+              >
                 {sq.description}
               </div>
             )}
