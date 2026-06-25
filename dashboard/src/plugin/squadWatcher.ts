@@ -35,6 +35,10 @@ function resolveIdeasPath(): string {
   return resolveMemoryPath("banco_ideias/ideas.json");
 }
 
+function resolveArchPath(): string {
+  return resolveMemoryPath("banco_arquitetura/arquitetura.md");
+}
+
 function resolveStackPath(): string {
   return resolveMemoryPath("banco_stack/stack.json");
 }
@@ -183,6 +187,7 @@ export function squadWatcherPlugin(): Plugin {
       const ideasPath = resolveIdeasPath();
       const stackPath = resolveStackPath();
       const clientsDir = resolveClientsDir();
+      const archPath = resolveArchPath();
       server.config.logger.info(`[squad-watcher] squads dir: ${squadsDir}`);
       server.config.logger.info(`[squad-watcher] ideas path: ${ideasPath}`);
 
@@ -266,6 +271,21 @@ export function squadWatcherPlugin(): Plugin {
           } catch {
             res.writeHead(500);
             res.end(JSON.stringify({ error: "failed to read clients" }));
+          }
+          return;
+        }
+
+        // GET /api/architecture — returns arquitetura.md + live squad scan
+        if (req.url === "/api/architecture" && req.method === "GET") {
+          try {
+            const md = await fsp.readFile(archPath, "utf-8").catch(() => "");
+            const squads = await discoverSquads(squadsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify({ md, squads }));
+          } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: "failed to read architecture" }));
           }
           return;
         }

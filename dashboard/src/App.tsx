@@ -6,17 +6,19 @@ import { StatusBar } from "@/components/StatusBar";
 import { IdeaBank } from "@/idea-bank/IdeaBank";
 import { TechRadar } from "@/tech-radar/TechRadar";
 import { ClientPortfolio } from "@/clients/ClientPortfolio";
+import { ArchitectureView } from "@/architecture/ArchitectureView";
 
-type Tab = "escritorio" | "banco" | "stack" | "clientes";
+type Tab = "escritorio" | "banco" | "stack" | "arquitetura" | "clientes";
 
 const TAB_LABELS: Record<Tab, string> = {
-  escritorio: "Escritório",
-  banco: "Banco de Ideias",
-  stack: "Banco de Stack",
-  clientes: "Clientes",
+  escritorio:  "Escritório",
+  banco:       "Banco de Ideias",
+  stack:       "Banco de Stack",
+  arquitetura: "Arquitetura",
+  clientes:    "Clientes",
 };
 
-const TABS: Tab[] = ["escritorio", "banco", "stack", "clientes"];
+const TABS: Tab[] = ["escritorio", "banco", "stack", "arquitetura", "clientes"];
 
 export function App() {
   useSquadSocket();
@@ -81,6 +83,7 @@ export function App() {
         )}
         {activeTab === "banco" && <IdeaBank />}
         {activeTab === "stack" && <TechRadar />}
+        {activeTab === "arquitetura" && <ArchitectureView />}
         {activeTab === "clientes" && <ClientPortfolio />}
       </div>
 

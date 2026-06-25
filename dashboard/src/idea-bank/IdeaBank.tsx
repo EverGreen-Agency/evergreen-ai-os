@@ -417,25 +417,44 @@ function IdeaEditForm({ idea, onSave, onCancel }: { idea: Idea; onSave: (i: Idea
           onChange={(e) => field("horizon", e.target.value as Horizon)}
           style={styles.editSelect}
         >
-          {(["NOW","MEDIUM","LONG","NEW_COMPANY",""] as Horizon[]).map((h) => (
-            <option key={h} value={h}>{h || "— horizonte —"}</option>
-          ))}
+          <option value="">— sem horizonte —</option>
+          <option value="NOW">Agora</option>
+          <option value="MEDIUM">Médio Prazo</option>
+          <option value="LONG">Longo Prazo</option>
+          <option value="NEW_COMPANY">Empresa Nova</option>
         </select>
       </div>
       <input
         value={draft.source}
         onChange={(e) => field("source", e.target.value)}
-        placeholder="Fonte / origem"
+        placeholder="Fonte / referência"
         style={styles.editInput}
       />
+      <div style={{ display: "flex", gap: 6 }}>
+        <input
+          value={draft.depends_on.join(", ")}
+          onChange={(e) => setDraft((d) => ({ ...d, depends_on: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }))}
+          placeholder="Depende de (IDs separados por vírgula)"
+          style={{ ...styles.editInput, fontSize: 10 }}
+          title="IDs das ideias das quais esta depende"
+        />
+        <input
+          value={draft.enables.join(", ")}
+          onChange={(e) => setDraft((d) => ({ ...d, enables: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }))}
+          placeholder="Habilita (IDs separados por vírgula)"
+          style={{ ...styles.editInput, fontSize: 10 }}
+          title="IDs das ideias que esta ideia desbloqueia"
+        />
+      </div>
       <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
         <button
+          type="button"
           onClick={() => onSave(draft)}
           style={{ ...styles.actionBtn, color: "#3ac97b", borderColor: "#3ac97b55", flex: 1 }}
         >
           Salvar
         </button>
-        <button onClick={onCancel} style={{ ...styles.actionBtn, flex: 1 }}>
+        <button type="button" onClick={onCancel} style={{ ...styles.actionBtn, flex: 1 }}>
           Cancelar
         </button>
       </div>
