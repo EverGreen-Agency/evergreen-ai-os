@@ -7,10 +7,10 @@ import type { Ring, Quadrant, Tech, StackRadar } from "@/types/stack";
 const RINGS: Ring[] = ["adopt", "trial", "assess", "hold"];
 
 const RING_META: Record<Ring, { label: string; color: string; hint: string }> = {
-  adopt:  { label: "Adopt",  color: "#3ac97b", hint: "Padrão da casa — usar sem pensar." },
-  trial:  { label: "Trial",  color: "#ffab00", hint: "Testando agora em projeto real; vale apostar." },
-  assess: { label: "Assess", color: "#8fb4a3", hint: "Vale investigar, sem compromisso. Experimento." },
-  hold:   { label: "Hold",   color: "#ff6b5c", hint: "Evitar começar algo novo com isso." },
+  adopt:  { label: "Adotar",   color: "#3ac97b", hint: "Padrão da casa — usar sem pensar duas vezes." },
+  trial:  { label: "Em Teste", color: "#ffab00", hint: "Testando em projeto real agora; vale apostar." },
+  assess: { label: "Avaliar",  color: "#8fb4a3", hint: "Vale investigar, sem compromisso. Ainda é experimento." },
+  hold:   { label: "Evitar",   color: "#ff6b5c", hint: "Não começar nada novo com isso. Substituir quando der." },
 };
 
 const QUADRANT_LABEL: Record<Quadrant, string> = {

@@ -1,19 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { CSSProperties } from "react";
 import { useIdeaStore } from "@/store/useIdeaStore";
-import type { Idea, Stage } from "@/types/idea";
+import type { Idea, Stage, Horizon, Category } from "@/types/idea";
 
 // ── config ──────────────────────────────────────────────────────────────────
 
 const STAGES: Stage[] = ["capture", "evaluation", "processing", "project", "company"];
 
 // Column labels are PT (printed on the front); keys are the English enum values.
-const STAGE_META: Record<Stage, { label: string; color: string }> = {
-  capture:    { label: "Captura",      color: "#8888a0" },
-  evaluation: { label: "Avaliação",    color: "#ffab00" },
-  processing: { label: "Em Progresso", color: "#00d4ff" },
-  project:    { label: "Projeto",      color: "#00e676" },
-  company:    { label: "Empresa Nova", color: "#a855f7" },
+const STAGE_META: Record<Stage, { label: string; color: string; hint: string }> = {
+  capture:    { label: "Captura",      color: "#8888a0", hint: "Ideia bruta — acabou de surgir. Falta avaliar se vale o esforço." },
+  evaluation: { label: "Avaliação",    color: "#ffab00", hint: "Em análise — decidindo se vira projeto ou fica no horizonte futuro." },
+  processing: { label: "Em Progresso", color: "#00d4ff", hint: "Em construção — squad ativo ou artefato sendo criado agora." },
+  project:    { label: "Projeto",      color: "#00e676", hint: "Entregue e em uso — funciona em produção ou uso real." },
+  company:    { label: "Empresa Nova", color: "#a855f7", hint: "Virou produto ou spin-off — transformação de negócio." },
 };
 
 const CAT_COLOR: Record<string, string> = {
@@ -74,6 +74,7 @@ export function IdeaBank() {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Initial load
   useEffect(() => {
@@ -98,6 +99,13 @@ export function IdeaBank() {
     const updated = ideas.map((i) => i.id === idea.id ? { ...i, archived: !i.archived } : i);
     setIdeas(updated);
     await writeIdeas(updated);
+  }, [ideas, setIdeas]);
+
+  const saveEdit = useCallback(async (updated: Idea) => {
+    const next = ideas.map((i) => i.id === updated.id ? updated : i);
+    setIdeas(next);
+    setEditingId(null);
+    await writeIdeas(next);
   }, [ideas, setIdeas]);
 
   const q = search.toLowerCase();
@@ -173,13 +181,16 @@ export function IdeaBank() {
           const { label, color } = STAGE_META[stage];
           return (
             <div key={stage} style={styles.column}>
-              <div style={{ borderTop: `2px solid ${color}`, paddingTop: 8, marginBottom: 10 }}>
+              <div style={{ borderTop: `2px solid ${color}`, paddingTop: 8, marginBottom: 4 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color, textTransform: "uppercase" }}>
                   {label}
                 </span>
                 <span style={{ marginLeft: 6, fontSize: 11, color: "var(--text-secondary)" }}>
                   {cards.length}
                 </span>
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text-secondary)", marginBottom: 10, lineHeight: 1.4 }}>
+                {STAGE_META[stage].hint}
               </div>
               <div style={styles.cardList}>
                 {cards.length === 0 && (
@@ -188,16 +199,19 @@ export function IdeaBank() {
                   </div>
                 )}
                 {cards.map((idea) => (
-                  <IdeaCard
-                    key={idea.id}
-                    idea={idea}
-                    ideas={ideas}
-                    stage={stage}
-                    expanded={expandedId === idea.id}
-                    onToggle={() => setExpandedId(expandedId === idea.id ? null : idea.id)}
-                    onMove={moveStage}
-                    onArchive={toggleArchive}
-                  />
+                  editingId === idea.id
+                    ? <IdeaEditForm key={idea.id} idea={idea} onSave={saveEdit} onCancel={() => setEditingId(null)} />
+                    : <IdeaCard
+                        key={idea.id}
+                        idea={idea}
+                        ideas={ideas}
+                        stage={stage}
+                        expanded={expandedId === idea.id}
+                        onToggle={() => setExpandedId(expandedId === idea.id ? null : idea.id)}
+                        onMove={moveStage}
+                        onArchive={toggleArchive}
+                        onEdit={() => { setEditingId(idea.id); setExpandedId(null); }}
+                      />
                 ))}
               </div>
             </div>
@@ -218,9 +232,10 @@ interface CardProps {
   onToggle: () => void;
   onMove: (idea: Idea, dir: 1 | -1) => void;
   onArchive: (idea: Idea) => void;
+  onEdit: () => void;
 }
 
-function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive }: CardProps) {
+function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive, onEdit }: CardProps) {
   const catColor = CAT_COLOR[idea.category] ?? "#8888a0";
   const stageIdx = STAGES.indexOf(stage);
   const hasPrev = stageIdx > 0;
@@ -339,6 +354,12 @@ function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive }:
               </button>
             )}
             <button
+              onClick={onEdit}
+              style={{ ...styles.actionBtn, color: "#ffab00", borderColor: "#ffab0044" }}
+            >
+              ✎ Editar
+            </button>
+            <button
               onClick={() => onArchive(idea)}
               style={{ ...styles.actionBtn, marginLeft: "auto" }}
             >
@@ -347,6 +368,77 @@ function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive }:
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── edit form ─────────────────────────────────────────────────────────────────
+
+function IdeaEditForm({ idea, onSave, onCancel }: { idea: Idea; onSave: (i: Idea) => void; onCancel: () => void }) {
+  const [draft, setDraft] = useState<Idea>({ ...idea });
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { titleRef.current?.focus(); }, []);
+
+  const field = (key: keyof Idea, value: string | boolean) =>
+    setDraft((d) => ({ ...d, [key]: value }));
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{ ...styles.card, borderColor: "#ffab0055", display: "flex", flexDirection: "column", gap: 8 }}
+    >
+      <input
+        ref={titleRef}
+        value={draft.title}
+        onChange={(e) => field("title", e.target.value)}
+        placeholder="Título"
+        style={{ ...styles.editInput, fontWeight: 600 }}
+      />
+      <textarea
+        value={draft.desc}
+        onChange={(e) => field("desc", e.target.value)}
+        placeholder="Descrição"
+        rows={4}
+        style={{ ...styles.editInput, resize: "vertical", lineHeight: 1.5 }}
+      />
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <select
+          value={draft.category}
+          onChange={(e) => field("category", e.target.value as Category)}
+          style={styles.editSelect}
+        >
+          {(["Squad","Cockpit","Feature","Service","Infra","Commercial"] as Category[]).map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <select
+          value={draft.horizon}
+          onChange={(e) => field("horizon", e.target.value as Horizon)}
+          style={styles.editSelect}
+        >
+          {(["NOW","MEDIUM","LONG","NEW_COMPANY",""] as Horizon[]).map((h) => (
+            <option key={h} value={h}>{h || "— horizonte —"}</option>
+          ))}
+        </select>
+      </div>
+      <input
+        value={draft.source}
+        onChange={(e) => field("source", e.target.value)}
+        placeholder="Fonte / origem"
+        style={styles.editInput}
+      />
+      <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+        <button
+          onClick={() => onSave(draft)}
+          style={{ ...styles.actionBtn, color: "#3ac97b", borderColor: "#3ac97b55", flex: 1 }}
+        >
+          Salvar
+        </button>
+        <button onClick={onCancel} style={{ ...styles.actionBtn, flex: 1 }}>
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }
@@ -435,5 +527,27 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid var(--border)",
     background: "transparent",
     color: "var(--text-secondary)",
+  },
+  editInput: {
+    background: "var(--bg-primary)",
+    border: "1px solid var(--border)",
+    borderRadius: 4,
+    padding: "5px 8px",
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontFamily: "inherit",
+    width: "100%",
+    boxSizing: "border-box" as const,
+    outline: "none",
+  },
+  editSelect: {
+    background: "var(--bg-primary)",
+    border: "1px solid var(--border)",
+    borderRadius: 4,
+    padding: "4px 6px",
+    color: "var(--text-primary)",
+    fontSize: 11,
+    fontFamily: "inherit",
+    cursor: "pointer",
   },
 };
