@@ -126,40 +126,60 @@ function inlineRender(text: string): React.ReactNode {
 
 // ── squad map (live scan) ─────────────────────────────────────────────────────
 
+function SquadMapCard({ sq }: { sq: SquadInfo }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div
+      style={{ ...s.squadCard, cursor: sq.description ? "pointer" : "default" }}
+      onClick={() => sq.description && setExpanded((v) => !v)}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <span style={{ fontSize: 20 }}>{sq.icon}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>
+            {sq.name}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace", marginTop: 1 }}>
+            {sq.code}
+          </div>
+        </div>
+        {sq.description && (
+          <span style={{ fontSize: 10, color: "var(--text-secondary)", flexShrink: 0 }}>
+            {expanded ? "▲" : "▼"}
+          </span>
+        )}
+      </div>
+      {sq.description && (
+        <div style={{
+          fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5,
+          maxHeight: expanded ? "none" : "3.3em",
+          overflow: "hidden",
+          borderTop: "1px solid var(--border)",
+          paddingTop: 6,
+        }}>
+          {sq.description}
+        </div>
+      )}
+      {sq.agents.length > 0 && (
+        <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 3 }}>
+          {sq.agents.map((a) => (
+            <span key={a} style={s.agentBadge}>{a}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SquadMap({ squads }: { squads: SquadInfo[] }) {
   return (
     <div style={s.squadMap}>
       <h2 style={s.h2}>Mapa de Squads (ao vivo)</h2>
       <p style={{ ...s.p, color: "var(--text-secondary)", fontSize: 11 }}>
-        Derivado do filesystem — atualizado a cada reload.
+        Derivado do filesystem — clique num card para expandir a descrição.
       </p>
       <div style={s.squadGrid}>
-        {squads.map((sq) => (
-          <div key={sq.code} style={s.squadCard}>
-            <div style={{ fontSize: 18, marginBottom: 4 }}>{sq.icon}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>
-              {sq.name}
-            </div>
-            <div style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace" }}>
-              {sq.code}
-            </div>
-            {sq.description && (
-              <div
-                title={sq.description}
-                style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.4, maxHeight: "4.2em", overflow: "hidden" }}
-              >
-                {sq.description}
-              </div>
-            )}
-            {sq.agents.length > 0 && (
-              <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 3 }}>
-                {sq.agents.map((a) => (
-                  <span key={a} style={s.agentBadge}>{a}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+        {squads.map((sq) => <SquadMapCard key={sq.code} sq={sq} />)}
       </div>
     </div>
   );
