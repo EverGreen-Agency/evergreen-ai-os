@@ -127,12 +127,8 @@ function inlineRender(text: string): React.ReactNode {
 // ── squad map (live scan) ─────────────────────────────────────────────────────
 
 function SquadMapCard({ sq }: { sq: SquadInfo }) {
-  const [expanded, setExpanded] = useState(false);
   return (
-    <div
-      style={{ ...s.squadCard, cursor: sq.description ? "pointer" : "default" }}
-      onClick={() => sq.description && setExpanded((v) => !v)}
-    >
+    <div style={s.squadCard}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
         <span style={{ fontSize: 20 }}>{sq.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -143,17 +139,10 @@ function SquadMapCard({ sq }: { sq: SquadInfo }) {
             {sq.code}
           </div>
         </div>
-        {sq.description && (
-          <span style={{ fontSize: 10, color: "var(--text-secondary)", flexShrink: 0 }}>
-            {expanded ? "▲" : "▼"}
-          </span>
-        )}
       </div>
       {sq.description && (
         <div style={{
-          fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5,
-          maxHeight: expanded ? "none" : "3.3em",
-          overflow: "hidden",
+          fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.6,
           borderTop: "1px solid var(--border)",
           paddingTop: 6,
         }}>
