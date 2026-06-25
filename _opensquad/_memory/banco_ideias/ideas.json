@@ -27,8 +27,8 @@
     },
     {
       "id": "guardiao-arquiteto",
-      "title": "Guardião / Arquiteto",
-      "desc": "IA de autovigilância. Audita ideia/projeto INTERNO contra nossa arquitetura. Gate: 'precisa de squad novo ou já existe um?'.",
+      "title": "Arquiteto (autovigilância)",
+      "desc": "CONSTRUÍDO (squad eg_arquiteto). IA de autovigilância que audita ideia/projeto INTERNO LENDO O REPO AO VIVO (escaneia squads/, stack.json, .mcp.json, código) — não um inventário congelado. 4 gates: squad / integração / stack / princípios. Consultivo, HITL. O Cartógrafo foi descartado por redundância: o Arquiteto lê o repo direto.",
       "stage": "processing",
       "horizon": "NOW",
       "category": "Squad",
@@ -43,7 +43,7 @@
     {
       "id": "banco-arquitetura",
       "title": "Banco de Arquitetura",
-      "desc": "Inventário detalhado das nossas ferramentas e estrutura (repo + ClickUp + Kommo + plataformas). Corpus do Guardião.",
+      "desc": "Guarda o PORQUÊ da estrutura — identidade, princípios de engenharia e decisões arquiteturais. NÃO é mais espelho do filesystem: o inventário (squads/stack/integrações) o Arquiteto lê do repo ao vivo. Aba Arquitetura no dashboard mostra o doc + Mapa de Squads ao vivo.",
       "stage": "processing",
       "horizon": "NOW",
       "category": "Infra",
@@ -103,7 +103,7 @@
     {
       "id": "codegraph",
       "title": "Adoção do CodeGraph",
-      "desc": "MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Guardião. Camada de código do Banco de Arquitetura.",
+      "desc": "MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Arquiteto. Aceleraria a leitura ao vivo do repo em projetos grandes; hoje o Arquiteto usa Glob/Grep/Read direto.",
       "stage": "evaluation",
       "horizon": "MEDIUM",
       "category": "Infra",
@@ -150,7 +150,7 @@
     {
       "id": "tag-ativacao",
       "title": "Tag de Ativação / Gatilho de Desenvolvimento",
-      "desc": "Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Guardião identifica que pode começar, dispara o squad responsável — SOB aprovação humana (HITL). Não só software: qualquer demanda. Disparo automático full depende do hub-chat.",
+      "desc": "Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Arquiteto identifica que pode começar, dispara o squad responsável — SOB aprovação humana (HITL). Não só software: qualquer demanda. Disparo automático full depende do hub-chat.",
       "stage": "capture",
       "horizon": "MEDIUM",
       "category": "Cockpit",
@@ -864,7 +864,7 @@
     {
       "id": "idea-bank-auto",
       "title": "Banco de Ideias auto-atualizável",
-      "desc": "Banco se atualizar sozinho: Curador captura ideias de fontes (conversas, transcrições, áudio WhatsApp) e registra automaticamente, sob curadoria. 100% automático só com o hub-chat + canal de entrada. Núcleo HITL fica de pé.",
+      "desc": "Banco se atualizar sozinho, principalmente os ESTÁGIOS (hoje o humano move os cards). Reconciliador lê sinais de realidade — existência do artefato (pasta/arquivo do squad), status no ClickUp, ou merge no repo do cliente — e propõe mudança de estágio. Só a metade 'já foi construído?' automatiza; 'a gente liga pra isso?' (capture↔evaluation) fica humano. Captura automática de novas ideias é a outra face.",
       "stage": "capture",
       "horizon": "MEDIUM",
       "category": "Cockpit",

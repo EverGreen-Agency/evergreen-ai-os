@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import type { DragEvent } from "react";
 import type { CSSProperties } from "react";
 import { useIdeaStore } from "@/store/useIdeaStore";
 import type { Idea, Stage, Horizon, Category } from "@/types/idea";
@@ -27,7 +28,7 @@ const CAT_COLOR: Record<string, string> = {
 
 // Category descriptions — tooltip on badges and filters (PT, shown on the front).
 const CAT_DESC: Record<string, string> = {
-  Squad:      "Time de agentes com pipeline próprio (ex: eg_setup, Curador, Guardião).",
+  Squad:      "Time de agentes com pipeline próprio (ex: eg_setup, Curador, Arquiteto).",
   Cockpit:    "Interface / painel de controle — onde o humano opera (dashboard, abas, carteira).",
   Feature:    "Funcionalidade pontual dentro de um squad ou do sistema (ex: SLA Watchdog).",
   Service:    "Oferta vendável ao cliente — um entregável comercial (ex: Auditoria AI-First).",
@@ -75,6 +76,8 @@ export function IdeaBank() {
   const [showArchived, setShowArchived] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<Stage | null>(null);
 
   // Initial load
   useEffect(() => {
@@ -97,6 +100,13 @@ export function IdeaBank() {
 
   const toggleArchive = useCallback(async (idea: Idea) => {
     const updated = ideas.map((i) => i.id === idea.id ? { ...i, archived: !i.archived } : i);
+    setIdeas(updated);
+    await writeIdeas(updated);
+  }, [ideas, setIdeas]);
+
+  const moveToStage = useCallback(async (idea: Idea, targetStage: Stage) => {
+    if (idea.stage === targetStage) return;
+    const updated = ideas.map((i) => i.id === idea.id ? { ...i, stage: targetStage } : i);
     setIdeas(updated);
     await writeIdeas(updated);
   }, [ideas, setIdeas]);
@@ -179,6 +189,7 @@ export function IdeaBank() {
         {STAGES.map((stage) => {
           const cards = byStage(stage);
           const { label, color } = STAGE_META[stage];
+          const isDropTarget = dragOverStage === stage && draggedId !== null;
           return (
             <div key={stage} style={styles.column}>
               <div style={{ borderTop: `2px solid ${color}`, paddingTop: 8, marginBottom: 4 }}>
@@ -192,10 +203,35 @@ export function IdeaBank() {
               <div style={{ fontSize: 10, color: "var(--text-secondary)", marginBottom: 10, lineHeight: 1.4 }}>
                 {STAGE_META[stage].hint}
               </div>
-              <div style={styles.cardList}>
-                {cards.length === 0 && (
+              <div
+                style={{
+                  ...styles.cardList,
+                  outline: isDropTarget ? `2px dashed ${color}66` : "2px solid transparent",
+                  borderRadius: 6,
+                  background: isDropTarget ? `${color}0a` : undefined,
+                  transition: "outline 0.1s, background 0.1s",
+                  minHeight: 48,
+                }}
+                onDragOver={(e: DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverStage(stage); }}
+                onDragLeave={() => setDragOverStage(null)}
+                onDrop={(e: DragEvent) => {
+                  e.preventDefault();
+                  if (draggedId) {
+                    const idea = ideas.find((i) => i.id === draggedId);
+                    if (idea) moveToStage(idea, stage);
+                  }
+                  setDraggedId(null);
+                  setDragOverStage(null);
+                }}
+              >
+                {cards.length === 0 && !isDropTarget && (
                   <div style={{ fontSize: 11, color: "var(--text-secondary)", fontStyle: "italic", padding: "4px 0" }}>
                     —
+                  </div>
+                )}
+                {isDropTarget && cards.length === 0 && (
+                  <div style={{ fontSize: 11, color, fontStyle: "italic", padding: "4px 0", opacity: 0.7 }}>
+                    Soltar aqui
                   </div>
                 )}
                 {cards.map((idea) => (
@@ -207,10 +243,13 @@ export function IdeaBank() {
                         ideas={ideas}
                         stage={stage}
                         expanded={expandedId === idea.id}
+                        dragging={draggedId === idea.id}
                         onToggle={() => setExpandedId(expandedId === idea.id ? null : idea.id)}
                         onMove={moveStage}
                         onArchive={toggleArchive}
                         onEdit={() => { setEditingId(idea.id); setExpandedId(null); }}
+                        onDragStart={() => setDraggedId(idea.id)}
+                        onDragEnd={() => { setDraggedId(null); setDragOverStage(null); }}
                       />
                 ))}
               </div>
@@ -229,13 +268,16 @@ interface CardProps {
   ideas: Idea[];
   stage: Stage;
   expanded: boolean;
+  dragging: boolean;
   onToggle: () => void;
   onMove: (idea: Idea, dir: 1 | -1) => void;
   onArchive: (idea: Idea) => void;
   onEdit: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
 }
 
-function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive, onEdit }: CardProps) {
+function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, onArchive, onEdit, onDragStart, onDragEnd }: CardProps) {
   const catColor = CAT_COLOR[idea.category] ?? "#8888a0";
   const stageIdx = STAGES.indexOf(stage);
   const hasPrev = stageIdx > 0;
@@ -247,11 +289,17 @@ function IdeaCard({ idea, ideas, stage, expanded, onToggle, onMove, onArchive, o
 
   return (
     <div
+      draggable
       onClick={onToggle}
+      onDragStart={(e: DragEvent<HTMLDivElement>) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
+      onDragEnd={onDragEnd}
       style={{
         ...styles.card,
         borderColor: expanded ? `${catColor}55` : "var(--border)",
-        opacity: idea.archived ? 0.45 : 1,
+        opacity: dragging ? 0.35 : (idea.archived ? 0.45 : 1),
+        cursor: dragging ? "grabbing" : "grab",
+        transform: dragging ? "scale(0.97)" : undefined,
+        transition: "opacity 0.1s, transform 0.1s, border-color 0.12s",
       }}
     >
       {/* Title row */}
