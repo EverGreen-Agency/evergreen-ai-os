@@ -1,4 +1,5 @@
 name: "Engenharia EG (SDD + ADR)"
+icon: "⚙️"
 version: "1.0"
 description: "Squad de desenvolvimento de projetos de CLIENTE via Spec-Driven Development. Recebe um brief, produz uma spec.md (o contrato), registra as decisões de stack como ADRs (consultando o Banco de Stack), e gera o scaffold do repo + árvore de tarefas. Cada decisão técnica tem um porquê escrito. Artefatos de decisão moram em _opensquad/_memory/clients/<id>/engenharia/."
 

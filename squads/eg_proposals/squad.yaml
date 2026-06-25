@@ -1,4 +1,5 @@
 name: "Propostas Comerciais EG"
+icon: "📝"
 version: "1.0"
 description: "Recebe uma oportunidade (vaga de plataforma freelance, brief ou descrição) e gera uma proposta comercial EG altamente conversiva. Scout extrai as dores e o contexto; Closer escreve a proposta no formato e tom da EverGreen. É reativo: você traz a oportunidade. A geração de LISTAS de prospecção é do squad eg_prospector."
 

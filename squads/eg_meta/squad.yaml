@@ -1,4 +1,5 @@
 name: "Meta — Auto-melhoria dos Squads"
+icon: "🔧"
 version: "1.0"
 description: "Fecha o loop de aprendizado: lê o que um squad acumulou em memories.md (e o histórico de runs) e PROPÕE refinos nos .agent.md daquele squad — apresentando um diff para aprovação humana. Nunca reescreve prompt sozinho (Write/Read barrier). É o squad que melhora os outros squads."
 

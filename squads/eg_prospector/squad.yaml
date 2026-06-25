@@ -1,4 +1,5 @@
 name: "Prospector EG"
+icon: "🎯"
 version: "1.0"
 description: "O caçador de verdade: a partir do ICP da EverGreen, gera LISTAS de leads B2B qualificados usando fontes de dados reais (MCPs Apollo/Lusha/Clay/Vibe Prospecting), enriquece, faz score de fit vs. ICP e entrega lista pronta para o outbound (Kommo) ou para o eg_proposals. Topo de funil. Não confundir com eg_proposals (que converte UMA oportunidade em proposta)."
 

@@ -14,13 +14,15 @@ export function SquadCard({ squad, state, isSelected, onSelect }: SquadCardProps
 
   return (
     <button
+      type="button"
       onClick={onSelect}
+      title={squad.description || squad.name}
       style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: 8,
         width: "100%",
-        padding: "10px 12px",
+        padding: "9px 12px",
         border: "none",
         borderLeft: isSelected ? "3px solid var(--accent-cyan)" : "3px solid transparent",
         background: isSelected ? "var(--bg-secondary)" : "transparent",
@@ -33,12 +35,29 @@ export function SquadCard({ squad, state, isSelected, onSelect }: SquadCardProps
       }}
     >
       <StatusBadge status={status} />
-      <span style={{ marginRight: 4 }}>{squad.icon}</span>
-      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {squad.name}
-      </span>
+      <span style={{ marginTop: 1 }}>{squad.icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          fontSize: 12, fontWeight: isSelected ? 600 : 400,
+        }}>
+          {squad.name}
+        </div>
+        {squad.description && (
+          <div style={{
+            fontSize: 10, color: "var(--text-secondary)", lineHeight: 1.4,
+            marginTop: 2,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          } as React.CSSProperties}>
+            {squad.description}
+          </div>
+        )}
+      </div>
       {state?.step && (
-        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+        <span style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 2, flexShrink: 0 }}>
           {state.step.current}/{state.step.total}
         </span>
       )}

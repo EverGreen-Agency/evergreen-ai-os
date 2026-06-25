@@ -87,15 +87,29 @@ async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
     const yamlPath = path.join(squadsDir, entry.name, "squad.yaml");
     try {
       const raw = await fsp.readFile(yamlPath, "utf-8");
-      const parsed = parseYaml(raw);
-      const s = parsed?.squad;
-      if (s) {
+      const parsed = parseYaml(raw) as Record<string, unknown>;
+      // Support both canonical `squad:` wrapper and flat root-level format
+      const s = (parsed?.squad ?? parsed) as Record<string, unknown>;
+      if (s && typeof s === "object") {
+        // Derive agent list: explicit agents field OR infer from pipeline steps
+        let agents: string[] = [];
+        if (Array.isArray(s.agents)) {
+          agents = (s.agents as unknown[]).filter((a): a is string => typeof a === "string");
+        } else if (Array.isArray(s.pipeline)) {
+          const seen = new Set<string>();
+          for (const step of s.pipeline as Record<string, unknown>[]) {
+            if (typeof step?.agent === "string" && !seen.has(step.agent)) {
+              seen.add(step.agent);
+              agents.push(step.agent);
+            }
+          }
+        }
         squads.push({
           code: typeof s.code === "string" ? s.code : entry.name,
           name: typeof s.name === "string" ? s.name : entry.name,
           description: typeof s.description === "string" ? s.description : "",
           icon: typeof s.icon === "string" ? s.icon : "\u{1F4CB}",
-          agents: Array.isArray(s.agents) ? (s.agents as unknown[]).filter((a): a is string => typeof a === "string") : [],
+          agents,
         });
         continue;
       }

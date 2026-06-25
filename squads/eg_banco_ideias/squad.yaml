@@ -1,4 +1,5 @@
 name: "Banco de Ideias EG"
+icon: "💡"
 version: "1.0"
 description: "Squad de curadoria do funil de ideias da EverGreen. O Curador recebe ideias cruas, checa contra o banco existente (nova / duplicada / variação), enriquece com horizonte, categoria e conexões, e persiste no ideas.json. Fonte da verdade: _opensquad/_memory/banco_ideias/ideas.json."
 

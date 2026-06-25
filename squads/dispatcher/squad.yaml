@@ -1,4 +1,5 @@
 name: "Dispatcher / Triagem"
+icon: "🔀"
 version: "1.0"
 description: "Squad reativo que analisa solicitações livres do usuário, identifica o contexto e inicia automaticamente o squad apropriado para executar a tarefa."
 

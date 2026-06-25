@@ -1,4 +1,5 @@
 name: "Guardião / Arquiteto EG"
+icon: "🛡️"
 version: "1.0"
 description: "Squad de autovigilância da estrutura. O Arquiteto recebe uma ideia ou projeto INTERNO (nunca de cliente) e o audita contra o Banco de Arquitetura: o que já existe cobre isso? precisa de squad novo ou de estender um existente? a stack proposta é permitida? respeita os princípios da casa? Saída é um parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). Corpus: _opensquad/_memory/banco_arquitetura/arquitetura.md."
 
