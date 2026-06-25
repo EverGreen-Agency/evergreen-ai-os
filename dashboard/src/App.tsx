@@ -38,8 +38,8 @@ export function App() {
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-primary)" }}>
-          opensquad
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-primary)" }}>
+          EverGreen <span style={{ color: "var(--accent-green)" }}>AI OS</span>
         </span>
 
         {/* Tabs */}

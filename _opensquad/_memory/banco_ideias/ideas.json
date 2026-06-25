@@ -1,64 +1,881 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-24",
+  "updated_at": "2026-06-25",
   "note": "Source of truth for the EG Idea Bank. Seeded from EG_Roadmap_Tecnologia_e_Oportunidades.md and EG_Biblioteca_de_Referencia_Skills_e_Plugins.md. Old roadmap horizons were DISCARDED (empty 'horizon' = to be redefined). The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front).",
-  "stages": ["capture","evaluation","processing","project","company"],
+  "stages": [
+    "capture",
+    "evaluation",
+    "processing",
+    "project",
+    "company"
+  ],
   "ideas": [
-    {"id":"banco-ideias","title":"Banco de Ideias","desc":"Esta ferramenta. Curador faz intake/dedup/conexão das ideias; tela no dashboard lê o banco real.","stage":"processing","horizon":"NOW","category":"Cockpit","origin":"internal","archived":false,"depends_on":[],"enables":["hub-chat-dispatcher"],"source":"sessão jun/2026 + Roadmap §5.13"},
-    {"id":"guardiao-arquiteto","title":"Guardião / Arquiteto","desc":"IA de autovigilância. Audita ideia/projeto INTERNO contra nossa arquitetura. Gate: 'precisa de squad novo ou já existe um?'.","stage":"processing","horizon":"NOW","category":"Squad","origin":"internal","archived":false,"depends_on":["banco-arquitetura"],"enables":[],"source":"sessão jun/2026 + Biblioteca §7 (ai-firstify)"},
-    {"id":"banco-arquitetura","title":"Banco de Arquitetura","desc":"Inventário detalhado das nossas ferramentas e estrutura (repo + ClickUp + Kommo + plataformas). Corpus do Guardião.","stage":"processing","horizon":"NOW","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":["guardiao-arquiteto"],"source":"sessão jun/2026"},
-    {"id":"squad-engenharia","title":"Squad de Engenharia (SDD + ADR)","desc":"Projetos de cliente: brief → spec.md (SDD) → ADRs do porquê de cada escolha → scaffold de repo → sub-agentes por task.","stage":"processing","horizon":"NOW","category":"Squad","origin":"internal","archived":false,"depends_on":["banco-stack"],"enables":[],"source":"sessão jun/2026 + Roadmap §2 (Kickoff Técnico)"},
-    {"id":"banco-stack","title":"Banco de Stack","desc":"Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar). Entrada da Engenharia; ADRs são a saída.","stage":"processing","horizon":"MEDIUM","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":["squad-engenharia"],"source":"sessão jun/2026"},
-    {"id":"carteira-clientes","title":"Carteira de Clientes","desc":"Plano de controle ativo: por cliente, serviços/tags, configs ClickUp/Kommo, log. Provisiona o ClickUp. Fala com o eg_setup.","stage":"processing","horizon":"MEDIUM","category":"Cockpit","origin":"internal","archived":false,"depends_on":["squad-onboarding"],"enables":[],"source":"sessão jun/2026 + Roadmap §5.14"},
-    {"id":"codegraph","title":"Adoção do CodeGraph","desc":"MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Guardião. Camada de código do Banco de Arquitetura.","stage":"evaluation","horizon":"MEDIUM","category":"Infra","origin":"external","archived":false,"depends_on":[],"enables":["banco-arquitetura"],"source":"sessão jun/2026 (github.com/colbymchenry/codegraph)"},
-    {"id":"hub-chat-dispatcher","title":"Hub: chat = dispatcher","desc":"Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno.","stage":"capture","horizon":"MEDIUM","category":"Cockpit","origin":"internal","archived":false,"depends_on":["dispatcher"],"enables":["tag-ativacao"],"source":"sessão jun/2026"},
-    {"id":"squad-hunter","title":"Squad de Propostas (eg_proposals)","desc":"CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).","stage":"processing","horizon":"NOW","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["multi-plataforma-freelance"],"source":"sessão Gemini jun/2026 + sessão jun/2026"},
-    {"id":"tag-ativacao","title":"Tag de Ativação / Gatilho de Desenvolvimento","desc":"Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Guardião identifica que pode começar, dispara o squad responsável — SOB aprovação humana (HITL). Não só software: qualquer demanda. Disparo automático full depende do hub-chat.","stage":"capture","horizon":"MEDIUM","category":"Cockpit","origin":"internal","archived":false,"depends_on":["hub-chat-dispatcher"],"enables":[],"source":"sessão jun/2026"},
-    {"id":"auto-melhoria-squads","title":"Auto-melhoria dos Squads","desc":"Meta-rotina que lê os memories.md pós-run e propõe refino dos .agent.md (com revisão humana — Write/Read barrier). Parcialmente já existe: o runner atualiza memories.md após cada run. Evolução = fechar o loop até o prompt.","stage":"capture","horizon":"MEDIUM","category":"Feature","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"sessão jun/2026"},
-    {"id":"multi-plataforma-freelance","title":"Captação multi-plataforma de propostas","desc":"Ingestão de vagas de Upwork/freelancermap/Malt/Contra/etc. MVP semi-manual (cola URL ou texto — a maioria não tem API e bloqueia scraper). Fase 2: RSS de buscas salvas (Upwork) → n8n → webhook do Opensquad.","stage":"capture","horizon":"MEDIUM","category":"Feature","origin":"internal","archived":false,"depends_on":["squad-hunter"],"enables":[],"source":"sessão Gemini jun/2026"},
-    {"id":"squad-reunioes","title":"Squad Análise de Reuniões","desc":"Transcrição → SPICED, pendências, rascunho pra CRM. Era o bake-off de frameworks.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["loop-pos-call"],"source":"Roadmap §2"},
-    {"id":"squad-propostas","title":"Squad de Propostas","desc":"Oportunidade → qualificação fit vs. ICP → rascunho de proposta padrão EG. Consolidado em squad-hunter (Closer).","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["squad-hunter"],"source":"Roadmap §2"},
-    {"id":"squad-prospector","title":"Squad Prospector (eg_prospector)","desc":"CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping.","stage":"processing","horizon":"NOW","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["icebreaker"],"source":"Roadmap §2 + sessão jun/2026"},
-    {"id":"squad-relatorios","title":"Squad Relatórios de Cliente","desc":"Meta/Google/Kommo → narrativa do relatório. Squad escreve; BI exibe os números.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":["vector-store"],"enables":["squad-raiox"],"source":"Roadmap §2"},
-    {"id":"squad-onboarding","title":"Squad Onboarding / Kommo / ClickUp","desc":"Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Parcialmente já existe (eg_setup).","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["carteira-clientes"],"source":"Roadmap §2 + squad eg_setup"},
-    {"id":"squad-kickoff","title":"Squad Kickoff Técnico","desc":"Escopo aprovado → árvore de tarefas ClickUp + esqueleto de repo GitHub. Possível overlap com squad-engenharia.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §2"},
-    {"id":"squad-raiox","title":"Squad Raio-X Automatizado","desc":"Coleta dados do cliente → 3 pilares (Oferta/Demanda/Conversão) → score e relatório de gargalo.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":["squad-relatorios"],"enables":[],"source":"Roadmap §2"},
-    {"id":"squad-criativos","title":"Squad de Criativos","desc":"Matéria-prima: roteiros, variações A/B de copy.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §2 (LONGO)"},
-    {"id":"squad-trafego","title":"Otimização de Tráfego (HITL)","desc":"Assistido, nunca autônomo em verba (Write/Read barrier).","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §2 (LONGO)"},
-    {"id":"squad-seo-geo","title":"Squad SEO / GEO","desc":"Frente de busca orgânica e generativa.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §2 (LONGO)"},
-    {"id":"squad-voz-cliente","title":"Squad de Voz do Cliente","desc":"Minera feedback de múltiplas fontes → temas com contagem → prioridade. Alimenta Dossiê e RAG.","stage":"capture","horizon":"","category":"Squad","origin":"internal","archived":false,"depends_on":[],"enables":["dossie-provas"],"source":"Roadmap §7.1"},
-    {"id":"log-audio-wpp","title":"Log de áudio via WhatsApp","desc":"Equipe manda áudio pós-reunião/otimização → transcreve, identifica cliente, injeta nota no card ClickUp/CRM.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §3.1"},
-    {"id":"sla-watchdog","title":"SLA Watchdog (WhatsApp)","desc":"Monitora grupos com cliente; se ninguém responde dentro do SLA, alerta Guilherme/Eduardo.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §3.2"},
-    {"id":"esteira-onboarding","title":"Esteira de Onboarding Automatizada","desc":"Contrato fechado → cria workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":["squad-onboarding"],"enables":[],"source":"Roadmap §3.3"},
-    {"id":"dossie-provas","title":"Dossiê de Provas de Confiança","desc":"Agente semanal varre GA4/Ads → cataloga vitórias reais auditadas → alimenta propostas e RAG.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":[],"enables":["vector-store"],"source":"Roadmap §3.4"},
-    {"id":"health-score","title":"Health Score por Dados","desc":"Cruza frequência de contato × performance. CPA sobe + 15d sem call → tarefa 'Alerta de Risco'.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":["dossie-provas"],"enables":[],"source":"Roadmap §3.5"},
-    {"id":"icebreaker","title":"Icebreaker de Prospecção","desc":"Varre site/LinkedIn do prospect → mini Raio-X personalizado → cold outreach com valor antes do pitch.","stage":"capture","horizon":"","category":"Feature","origin":"internal","archived":false,"depends_on":["squad-prospector"],"enables":[],"source":"Roadmap §3.6"},
-    {"id":"maquina-completa","title":"Máquina Completa (upsell de infra)","desc":"Tráfego → qualificação WhatsApp → lead agendado no Kommo. Vende processo comercial, não 'anúncio'.","stage":"capture","horizon":"","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §3.7"},
-    {"id":"loop-pos-call","title":"Loop de retroalimentação pós-call","desc":"Call termina → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam RAG.","stage":"capture","horizon":"","category":"Feature","origin":"external","archived":false,"depends_on":["squad-reunioes"],"enables":[],"source":"Roadmap §3.9 (Kelvin Cleto)"},
-    {"id":"segundo-cerebro","title":"Segundo Cérebro integrado (AI OS)","desc":"LLM plugado em Drive/ClickUp/Kommo/transcrições/propostas — contexto 360º em tempo real.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":["vector-store"],"enables":[],"source":"Roadmap §3.8"},
-    {"id":"vector-store","title":"Vector store EG (pgvector)","desc":"Corpus: propostas, Raio-X, transcrições, cases. rag_search(query, client_id) com isolamento. Timestamps + decay.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":["segundo-cerebro"],"source":"Roadmap §4"},
-    {"id":"context-decay","title":"Context Decay","desc":"Toda entrada do vector store com timestamp + peso de recência. Metodologia antiga se invalida sozinha.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":["vector-store"],"enables":[],"source":"Roadmap §4"},
-    {"id":"llm-agnostic","title":"Camada LLM-agnostic","desc":"Roteamento (LiteLLM/OpenRouter) entre squads e provedores. Trocar de modelo = uma linha.","stage":"capture","horizon":"","category":"Infra","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §4"},
-    {"id":"client-config-auto","title":"Geração automática de client_config","desc":"Squad de onboarding lê 1ª reunião → gera client_config.yaml. Config da EG permanece manual.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":["squad-onboarding"],"enables":["carteira-clientes"],"source":"Roadmap §4"},
-    {"id":"pesquisa-academica","title":"Pesquisa acadêmica aplicada","desc":"Aplicar conceitos de fronteira (MoA, ensembling) ao trabalho de cliente mais rápido que concorrentes.","stage":"capture","horizon":"","category":"Service","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.1"},
-    {"id":"ensemble-juiz","title":"Ensemble + Juiz (Mixture of Agents)","desc":"Painel de modelos paralelos + sintetizador juiz na etapa de julgamento crítico. Só na etapa cara.","stage":"capture","horizon":"","category":"Infra","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.2"},
-    {"id":"forward-deployed","title":"Forward Deployed AI","desc":"Modelos open-source na infra do cliente p/ setores de privacidade severa. DNA de outra empresa.","stage":"capture","horizon":"NEW_COMPANY","category":"Service","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.3"},
-    {"id":"cockpit-produto","title":"Cockpit interno → produto","desc":"Produtizar o cockpit como SaaS vertical p/ agências/consultorias. Só após validado internamente.","stage":"capture","horizon":"","category":"Service","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.4"},
-    {"id":"precificacao-valor","title":"Precificação por valor/eficiência","desc":"Setup alto + fee de estratégia. Não cobrar por hora quando a IA automatiza 70%.","stage":"capture","horizon":"","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.5"},
-    {"id":"service-as-software","title":"Service-as-a-Software (oferta invisível)","desc":"Vender Growth operado por máquina interna invisível. Tecnologia é bastidor, narrativa é crescimento.","stage":"capture","horizon":"","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.6"},
-    {"id":"ai-cmo-mrr","title":"AI-CMO como justificativa de MRR","desc":"Fee não é manutenção de robô — é aluguel do cérebro estratégico. Argumento central de retenção.","stage":"capture","horizon":"","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.7"},
-    {"id":"dogfooding","title":"Dogfooding","desc":"Rodar 100% da operação EG nos próprios squads antes de vender. Princípio inegociável.","stage":"capture","horizon":"NOW","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.8"},
-    {"id":"fabrica-back-front","title":"Fábrica: backoffice vs. frontoffice","desc":"IA massacra o backoffice (contratos, ClickUp, relatórios). Humano foca julgamento e fechamento.","stage":"capture","horizon":"","category":"Commercial","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.9"},
-    {"id":"change-management","title":"Change Management no cliente","desc":"Playbook que mostra que a IA tira o trabalho braçal, não o emprego. Reduz churn por sabotagem.","stage":"capture","horizon":"","category":"Service","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.10 (skill /learn)"},
-    {"id":"vibe-building","title":"Vibe Building (blocos reutilizáveis)","desc":"Blocos instanciáveis (qualificador WA, dashboard GA4, qualificador CRM) em vez de reescrever do zero.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.11"},
-    {"id":"auditoria-ai-first","title":"Auditoria de Prontidão AI-First","desc":"Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).","stage":"capture","horizon":"","category":"Service","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.12"},
-    {"id":"prospec-wpp-evolution","title":"Prospecção WhatsApp (Evolution API)","desc":"API não-oficial em VPS p/ outbound frio, chip fleet aquecido. Oficial Meta só no inbound.","stage":"capture","horizon":"","category":"Feature","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.15 (Kelvin)"},
-    {"id":"voip-qualificacao","title":"VoIP inteligente de qualificação","desc":"Agente de voz (ElevenLabs+Twilio) qualifica por telefone. Mais barato que SDR, mais conversão que e-mail.","stage":"capture","horizon":"","category":"Service","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.16"},
-    {"id":"ia-adapta-cliente","title":"Princípio: IA se adapta ao cliente","desc":"Nunca substituir o legado do cliente. A IA entra via API, extrai, age, sai. Reduz fricção de venda.","stage":"capture","horizon":"","category":"Commercial","origin":"external","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §5.17"},
-    {"id":"stack-memoria-zep","title":"Segundo Cérebro — stack de memória (Zep)","desc":"Zep como camada de retenção longa sobre o pgvector. Fase 1.5 do RAG.","stage":"capture","horizon":"","category":"Infra","origin":"external","archived":false,"depends_on":["vector-store"],"enables":[],"source":"Roadmap §5.18"},
-    {"id":"skill-brand-eg","title":"Skill brand-guidelines-EG","desc":"Aplica identidade EG (musgo/menta/baunilha, Helvetica Neue) a qualquer artefato. Evolui o eg_style.js.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §7.4 / Biblioteca §3"},
-    {"id":"skill-squad-creator","title":"Skill squad-creator-EG","desc":"Scaffolda um squad novo (estrutura, prompts-papel, config, DoD). O scaffolder virando skill formal.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §7.4 / Biblioteca §1"},
-    {"id":"eg-mcp-tools","title":"eg-mcp-tools (MCP padronizado)","desc":"Servidores MCP (clickup_writer, kommo_writer) reutilizáveis, com annotations de risco = Write/Read barrier.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":[],"enables":[],"source":"Roadmap §7.4 / Biblioteca §2"},
-    {"id":"skill-raiox","title":"Skill raio-x-skill","desc":"Aplica a metodologia Raio-X (3 pilares, scoring) a dados de um cliente/prospect.","stage":"capture","horizon":"","category":"Infra","origin":"internal","archived":false,"depends_on":["squad-relatorios"],"enables":[],"source":"Roadmap §7.4"}
+    {
+      "id": "banco-ideias",
+      "title": "Banco de Ideias",
+      "desc": "Esta ferramenta. Curador faz intake/dedup/conexão das ideias; tela no dashboard lê o banco real.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "hub-chat-dispatcher"
+      ],
+      "source": "sessão jun/2026 + Roadmap §5.13"
+    },
+    {
+      "id": "guardiao-arquiteto",
+      "title": "Guardião / Arquiteto",
+      "desc": "IA de autovigilância. Audita ideia/projeto INTERNO contra nossa arquitetura. Gate: 'precisa de squad novo ou já existe um?'.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "banco-arquitetura"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 + Biblioteca §7 (ai-firstify)"
+    },
+    {
+      "id": "banco-arquitetura",
+      "title": "Banco de Arquitetura",
+      "desc": "Inventário detalhado das nossas ferramentas e estrutura (repo + ClickUp + Kommo + plataformas). Corpus do Guardião.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "guardiao-arquiteto"
+      ],
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "squad-engenharia",
+      "title": "Squad de Engenharia (SDD + ADR)",
+      "desc": "Projetos de cliente: brief → spec.md (SDD) → ADRs do porquê de cada escolha → scaffold de repo → sub-agentes por task.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "banco-stack"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 + Roadmap §2 (Kickoff Técnico)"
+    },
+    {
+      "id": "banco-stack",
+      "title": "Banco de Stack",
+      "desc": "Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar). Entrada da Engenharia; ADRs são a saída.",
+      "stage": "processing",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "squad-engenharia"
+      ],
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "carteira-clientes",
+      "title": "Carteira de Clientes",
+      "desc": "Plano de controle ativo: por cliente, serviços/tags, configs ClickUp/Kommo, log. Provisiona o ClickUp. Fala com o eg_setup.",
+      "stage": "processing",
+      "horizon": "MEDIUM",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-onboarding"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 + Roadmap §5.14"
+    },
+    {
+      "id": "codegraph",
+      "title": "Adoção do CodeGraph",
+      "desc": "MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Guardião. Camada de código do Banco de Arquitetura.",
+      "stage": "evaluation",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "banco-arquitetura"
+      ],
+      "source": "sessão jun/2026 (github.com/colbymchenry/codegraph)"
+    },
+    {
+      "id": "hub-chat-dispatcher",
+      "title": "Hub: chat = dispatcher",
+      "desc": "Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "dispatcher"
+      ],
+      "enables": [
+        "tag-ativacao"
+      ],
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "squad-hunter",
+      "title": "Squad de Propostas (eg_proposals)",
+      "desc": "CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "multi-plataforma-freelance"
+      ],
+      "source": "sessão Gemini jun/2026 + sessão jun/2026"
+    },
+    {
+      "id": "tag-ativacao",
+      "title": "Tag de Ativação / Gatilho de Desenvolvimento",
+      "desc": "Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Guardião identifica que pode começar, dispara o squad responsável — SOB aprovação humana (HITL). Não só software: qualquer demanda. Disparo automático full depende do hub-chat.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "hub-chat-dispatcher"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "auto-melhoria-squads",
+      "title": "Auto-melhoria dos Squads (eg_meta)",
+      "desc": "CONSTRUÍDO. Squad eg_meta: lê o memories.md + runs de um squad-alvo e PROPÕE diff nos .agent.md dele; aplica só o aprovado (HITL). Fecha o loop: o runner já captura aprendizados; o eg_meta os vira melhoria de prompt.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "multi-plataforma-freelance",
+      "title": "Captação multi-plataforma de propostas",
+      "desc": "Ingestão de vagas de Upwork/freelancermap/Malt/Contra/etc. MVP semi-manual (cola URL ou texto — a maioria não tem API e bloqueia scraper). Fase 2: RSS de buscas salvas (Upwork) → n8n → webhook do Opensquad.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-hunter"
+      ],
+      "enables": [],
+      "source": "sessão Gemini jun/2026"
+    },
+    {
+      "id": "squad-reunioes",
+      "title": "Squad Análise de Reuniões",
+      "desc": "Transcrição → SPICED, pendências, rascunho pra CRM. Era o bake-off de frameworks.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "loop-pos-call"
+      ],
+      "source": "Roadmap §2"
+    },
+    {
+      "id": "squad-propostas",
+      "title": "Squad de Propostas",
+      "desc": "Oportunidade → qualificação fit vs. ICP → rascunho de proposta padrão EG. Consolidado em squad-hunter (Closer).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "squad-hunter"
+      ],
+      "source": "Roadmap §2"
+    },
+    {
+      "id": "squad-prospector",
+      "title": "Squad Prospector (eg_prospector)",
+      "desc": "CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "icebreaker"
+      ],
+      "source": "Roadmap §2 + sessão jun/2026"
+    },
+    {
+      "id": "squad-relatorios",
+      "title": "Squad Relatórios de Cliente",
+      "desc": "Meta/Google/Kommo → narrativa do relatório. Squad escreve; BI exibe os números.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "vector-store"
+      ],
+      "enables": [
+        "squad-raiox"
+      ],
+      "source": "Roadmap §2"
+    },
+    {
+      "id": "squad-onboarding",
+      "title": "Squad Onboarding / Kommo / ClickUp",
+      "desc": "Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Parcialmente já existe (eg_setup).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "carteira-clientes"
+      ],
+      "source": "Roadmap §2 + squad eg_setup"
+    },
+    {
+      "id": "squad-kickoff",
+      "title": "Squad Kickoff Técnico",
+      "desc": "Escopo aprovado → árvore de tarefas ClickUp + esqueleto de repo GitHub. Possível overlap com squad-engenharia.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §2"
+    },
+    {
+      "id": "squad-raiox",
+      "title": "Squad Raio-X Automatizado",
+      "desc": "Coleta dados do cliente → 3 pilares (Oferta/Demanda/Conversão) → score e relatório de gargalo.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-relatorios"
+      ],
+      "enables": [],
+      "source": "Roadmap §2"
+    },
+    {
+      "id": "squad-criativos",
+      "title": "Squad de Criativos",
+      "desc": "Matéria-prima: roteiros, variações A/B de copy.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §2 (LONGO)"
+    },
+    {
+      "id": "squad-trafego",
+      "title": "Otimização de Tráfego (HITL)",
+      "desc": "Assistido, nunca autônomo em verba (Write/Read barrier).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §2 (LONGO)"
+    },
+    {
+      "id": "squad-seo-geo",
+      "title": "Squad SEO / GEO",
+      "desc": "Frente de busca orgânica e generativa.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §2 (LONGO)"
+    },
+    {
+      "id": "squad-voz-cliente",
+      "title": "Squad de Voz do Cliente",
+      "desc": "Minera feedback de múltiplas fontes → temas com contagem → prioridade. Alimenta Dossiê e RAG.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "dossie-provas"
+      ],
+      "source": "Roadmap §7.1"
+    },
+    {
+      "id": "log-audio-wpp",
+      "title": "Log de áudio via WhatsApp",
+      "desc": "Equipe manda áudio pós-reunião/otimização → transcreve, identifica cliente, injeta nota no card ClickUp/CRM.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §3.1"
+    },
+    {
+      "id": "sla-watchdog",
+      "title": "SLA Watchdog (WhatsApp)",
+      "desc": "Monitora grupos com cliente; se ninguém responde dentro do SLA, alerta Guilherme/Eduardo.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §3.2"
+    },
+    {
+      "id": "esteira-onboarding",
+      "title": "Esteira de Onboarding Automatizada",
+      "desc": "Contrato fechado → cria workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-onboarding"
+      ],
+      "enables": [],
+      "source": "Roadmap §3.3"
+    },
+    {
+      "id": "dossie-provas",
+      "title": "Dossiê de Provas de Confiança",
+      "desc": "Agente semanal varre GA4/Ads → cataloga vitórias reais auditadas → alimenta propostas e RAG.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "vector-store"
+      ],
+      "source": "Roadmap §3.4"
+    },
+    {
+      "id": "health-score",
+      "title": "Health Score por Dados",
+      "desc": "Cruza frequência de contato × performance. CPA sobe + 15d sem call → tarefa 'Alerta de Risco'.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "dossie-provas"
+      ],
+      "enables": [],
+      "source": "Roadmap §3.5"
+    },
+    {
+      "id": "icebreaker",
+      "title": "Icebreaker de Prospecção",
+      "desc": "Varre site/LinkedIn do prospect → mini Raio-X personalizado → cold outreach com valor antes do pitch.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-prospector"
+      ],
+      "enables": [],
+      "source": "Roadmap §3.6"
+    },
+    {
+      "id": "maquina-completa",
+      "title": "Máquina Completa (upsell de infra)",
+      "desc": "Tráfego → qualificação WhatsApp → lead agendado no Kommo. Vende processo comercial, não 'anúncio'.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §3.7"
+    },
+    {
+      "id": "loop-pos-call",
+      "title": "Loop de retroalimentação pós-call",
+      "desc": "Call termina → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam RAG.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [
+        "squad-reunioes"
+      ],
+      "enables": [],
+      "source": "Roadmap §3.9 (Kelvin Cleto)"
+    },
+    {
+      "id": "segundo-cerebro",
+      "title": "Segundo Cérebro integrado (AI OS)",
+      "desc": "LLM plugado em Drive/ClickUp/Kommo/transcrições/propostas — contexto 360º em tempo real.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "vector-store"
+      ],
+      "enables": [],
+      "source": "Roadmap §3.8"
+    },
+    {
+      "id": "vector-store",
+      "title": "Vector store EG (pgvector)",
+      "desc": "Corpus: propostas, Raio-X, transcrições, cases. rag_search(query, client_id) com isolamento. Timestamps + decay.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "segundo-cerebro"
+      ],
+      "source": "Roadmap §4"
+    },
+    {
+      "id": "context-decay",
+      "title": "Context Decay",
+      "desc": "Toda entrada do vector store com timestamp + peso de recência. Metodologia antiga se invalida sozinha.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "vector-store"
+      ],
+      "enables": [],
+      "source": "Roadmap §4"
+    },
+    {
+      "id": "llm-agnostic",
+      "title": "Camada LLM-agnostic",
+      "desc": "Roteamento (LiteLLM/OpenRouter) entre squads e provedores. Trocar de modelo = uma linha.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §4"
+    },
+    {
+      "id": "client-config-auto",
+      "title": "Geração automática de client_config",
+      "desc": "Squad de onboarding lê 1ª reunião → gera client_config.yaml. Config da EG permanece manual.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-onboarding"
+      ],
+      "enables": [
+        "carteira-clientes"
+      ],
+      "source": "Roadmap §4"
+    },
+    {
+      "id": "pesquisa-academica",
+      "title": "Pesquisa acadêmica aplicada",
+      "desc": "Aplicar conceitos de fronteira (MoA, ensembling) ao trabalho de cliente mais rápido que concorrentes.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Service",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.1"
+    },
+    {
+      "id": "ensemble-juiz",
+      "title": "Ensemble + Juiz (Mixture of Agents)",
+      "desc": "Painel de modelos paralelos + sintetizador juiz na etapa de julgamento crítico. Só na etapa cara.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.2"
+    },
+    {
+      "id": "forward-deployed",
+      "title": "Forward Deployed AI",
+      "desc": "Modelos open-source na infra do cliente p/ setores de privacidade severa. DNA de outra empresa.",
+      "stage": "capture",
+      "horizon": "NEW_COMPANY",
+      "category": "Service",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.3"
+    },
+    {
+      "id": "cockpit-produto",
+      "title": "Cockpit interno → produto",
+      "desc": "Produtizar o cockpit como SaaS vertical p/ agências/consultorias. Só após validado internamente.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.4"
+    },
+    {
+      "id": "precificacao-valor",
+      "title": "Precificação por valor/eficiência",
+      "desc": "Setup alto + fee de estratégia. Não cobrar por hora quando a IA automatiza 70%.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.5"
+    },
+    {
+      "id": "service-as-software",
+      "title": "Service-as-a-Software (oferta invisível)",
+      "desc": "Vender Growth operado por máquina interna invisível. Tecnologia é bastidor, narrativa é crescimento.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.6"
+    },
+    {
+      "id": "ai-cmo-mrr",
+      "title": "AI-CMO como justificativa de MRR",
+      "desc": "Fee não é manutenção de robô — é aluguel do cérebro estratégico. Argumento central de retenção.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.7"
+    },
+    {
+      "id": "dogfooding",
+      "title": "Dogfooding",
+      "desc": "Rodar 100% da operação EG nos próprios squads antes de vender. Princípio inegociável.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.8"
+    },
+    {
+      "id": "fabrica-back-front",
+      "title": "Fábrica: backoffice vs. frontoffice",
+      "desc": "IA massacra o backoffice (contratos, ClickUp, relatórios). Humano foca julgamento e fechamento.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.9"
+    },
+    {
+      "id": "change-management",
+      "title": "Change Management no cliente",
+      "desc": "Playbook que mostra que a IA tira o trabalho braçal, não o emprego. Reduz churn por sabotagem.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Service",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.10 (skill /learn)"
+    },
+    {
+      "id": "vibe-building",
+      "title": "Vibe Building (blocos reutilizáveis)",
+      "desc": "Blocos instanciáveis (qualificador WA, dashboard GA4, qualificador CRM) em vez de reescrever do zero.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.11"
+    },
+    {
+      "id": "auditoria-ai-first",
+      "title": "Auditoria de Prontidão AI-First",
+      "desc": "Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Service",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.12"
+    },
+    {
+      "id": "prospec-wpp-evolution",
+      "title": "Prospecção WhatsApp (Evolution API)",
+      "desc": "API não-oficial em VPS p/ outbound frio, chip fleet aquecido. Oficial Meta só no inbound.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.15 (Kelvin)"
+    },
+    {
+      "id": "voip-qualificacao",
+      "title": "VoIP inteligente de qualificação",
+      "desc": "Agente de voz (ElevenLabs+Twilio) qualifica por telefone. Mais barato que SDR, mais conversão que e-mail.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Service",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.16"
+    },
+    {
+      "id": "ia-adapta-cliente",
+      "title": "Princípio: IA se adapta ao cliente",
+      "desc": "Nunca substituir o legado do cliente. A IA entra via API, extrai, age, sai. Reduz fricção de venda.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §5.17"
+    },
+    {
+      "id": "stack-memoria-zep",
+      "title": "Segundo Cérebro — stack de memória (Zep)",
+      "desc": "Zep como camada de retenção longa sobre o pgvector. Fase 1.5 do RAG.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "external",
+      "archived": false,
+      "depends_on": [
+        "vector-store"
+      ],
+      "enables": [],
+      "source": "Roadmap §5.18"
+    },
+    {
+      "id": "skill-brand-eg",
+      "title": "Skill brand-guidelines-EG",
+      "desc": "Aplica identidade EG (musgo/menta/baunilha, Helvetica Neue) a qualquer artefato. Evolui o eg_style.js.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §7.4 / Biblioteca §3"
+    },
+    {
+      "id": "skill-squad-creator",
+      "title": "Skill squad-creator-EG",
+      "desc": "Scaffolda um squad novo (estrutura, prompts-papel, config, DoD). O scaffolder virando skill formal.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §7.4 / Biblioteca §1"
+    },
+    {
+      "id": "eg-mcp-tools",
+      "title": "eg-mcp-tools (MCP padronizado)",
+      "desc": "Servidores MCP (clickup_writer, kommo_writer) reutilizáveis, com annotations de risco = Write/Read barrier.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "Roadmap §7.4 / Biblioteca §2"
+    },
+    {
+      "id": "skill-raiox",
+      "title": "Skill raio-x-skill",
+      "desc": "Aplica a metodologia Raio-X (3 pilares, scoring) a dados de um cliente/prospect.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-relatorios"
+      ],
+      "enables": [],
+      "source": "Roadmap §7.4"
+    },
+    {
+      "id": "idea-detail-edit",
+      "title": "Editar ideias + ver detalhe / 1 doc por ideia",
+      "desc": "No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez de só o JSON. Modal de edição é o caminho v1.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "banco-ideias"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 (feedback Eduardo)"
+    },
+    {
+      "id": "banco-arquitetura-tab",
+      "title": "Aba Banco de Arquitetura no dashboard",
+      "desc": "Renderizar o arquitetura.md (e o catálogo de squads) numa aba, para ver/navegar a estrutura viva. Hoje o Banco de Arquitetura existe só como markdown, sem tela.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "banco-arquitetura"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 (feedback Eduardo)"
+    },
+    {
+      "id": "clients-clickup-sync",
+      "title": "Carteira ↔ ClickUp (puxar pastas, sincronizar cards)",
+      "desc": "A aba Clientes puxa as pastas/listas reais do ClickUp e cria/atualiza cards a partir do config.json (diff desejado vs. real), sob aprovação (Write/Read barrier). É a Carteira virando plano de controle de verdade.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "carteira-clientes",
+        "squad-onboarding"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 (feedback Eduardo)"
+    },
+    {
+      "id": "banks-portability",
+      "title": "Portabilidade dos bancos (não ser refém do opensquad)",
+      "desc": "Os bancos (ideias/stack/arquitetura) são arquivos JSON/MD portáveis, mas vivem dentro de _opensquad/. Avaliar mover para um diretório de dados top-level (ex: knowledge/ ou data/) p/ desacoplar do framework. Decisão: arquivos > BD (portabilidade + git).",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "sessão jun/2026 (feedback Eduardo)"
+    },
+    {
+      "id": "idea-bank-auto",
+      "title": "Banco de Ideias auto-atualizável",
+      "desc": "Banco se atualizar sozinho: Curador captura ideias de fontes (conversas, transcrições, áudio WhatsApp) e registra automaticamente, sob curadoria. 100% automático só com o hub-chat + canal de entrada. Núcleo HITL fica de pé.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "hub-chat-dispatcher",
+        "log-audio-wpp"
+      ],
+      "enables": [],
+      "source": "sessão jun/2026 (feedback Eduardo)"
+    }
   ]
 }
