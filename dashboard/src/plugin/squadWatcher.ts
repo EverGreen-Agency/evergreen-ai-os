@@ -261,6 +261,28 @@ export function squadWatcherPlugin(): Plugin {
           return;
         }
 
+        // GET /api/ideas/doc?id=xxx
+        if (req.url?.startsWith("/api/ideas/doc") && req.method === "GET") {
+          try {
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const id = url.searchParams.get("id");
+            if (!id || /[^a-zA-Z0-9_-]/.test(id)) {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: "invalid id" }));
+              return;
+            }
+            const docPath = resolveMemoryPath(`banco_ideias/docs/${id}.md`);
+            const raw = await fsp.readFile(docPath, "utf-8");
+            res.setHeader("Content-Type", "text/plain");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "doc not found" }));
+          }
+          return;
+        }
+
         // GET /api/stack
         if (req.url === "/api/stack" && req.method === "GET") {
           try {

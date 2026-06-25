@@ -1,0 +1,155 @@
+ID: hub-chat-dispatcher
+TITLE: Hub: chat = dispatcher
+CATEGORY: Cockpit
+DESC: Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno.
+---
+ID: tag-ativacao
+TITLE: Tag de Ativação / Gatilho de Desenvolvimento
+CATEGORY: Cockpit
+DESC: Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Arquiteto identifica que pode começar, dispara o squad responsável — SOB aprovação humana (HITL). Não só software: qualquer demanda. Disparo automático full depende do hub-chat.
+---
+ID: multi-plataforma-freelance
+TITLE: Captação multi-plataforma de propostas
+CATEGORY: Feature
+DESC: Ingestão de vagas de Upwork/freelancermap/Malt/Contra/etc. MVP semi-manual (cola URL ou texto — a maioria não tem API e bloqueia scraper). Fase 2: RSS de buscas salvas (Upwork) → n8n → webhook do Opensquad.
+---
+ID: log-audio-wpp
+TITLE: Log de áudio via WhatsApp
+CATEGORY: Feature
+DESC: Equipe manda áudio pós-reunião/otimização → transcreve, identifica cliente, injeta nota no card ClickUp/CRM.
+---
+ID: sla-watchdog
+TITLE: SLA Watchdog (WhatsApp)
+CATEGORY: Feature
+DESC: Monitora grupos com cliente; se ninguém responde dentro do SLA, alerta Guilherme/Eduardo.
+---
+ID: esteira-onboarding
+TITLE: Esteira de Onboarding Automatizada
+CATEGORY: Feature
+DESC: Contrato fechado → cria workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas.
+---
+ID: dossie-provas
+TITLE: Dossiê de Provas de Confiança
+CATEGORY: Feature
+DESC: Agente semanal varre GA4/Ads → cataloga vitórias reais auditadas → alimenta propostas e RAG.
+---
+ID: health-score
+TITLE: Health Score por Dados
+CATEGORY: Feature
+DESC: Cruza frequência de contato × performance. CPA sobe + 15d sem call → tarefa 'Alerta de Risco'.
+---
+ID: icebreaker
+TITLE: Icebreaker de Prospecção
+CATEGORY: Feature
+DESC: Varre site/LinkedIn do prospect → mini Raio-X personalizado → cold outreach com valor antes do pitch.
+---
+ID: maquina-completa
+TITLE: Máquina Completa (upsell de infra)
+CATEGORY: Commercial
+DESC: Tráfego → qualificação WhatsApp → lead agendado no Kommo. Vende processo comercial, não 'anúncio'.
+---
+ID: loop-pos-call
+TITLE: Loop de retroalimentação pós-call
+CATEGORY: Feature
+DESC: Call termina → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam RAG.
+---
+ID: pesquisa-academica
+TITLE: Pesquisa acadêmica aplicada
+CATEGORY: Service
+DESC: Aplicar conceitos de fronteira (MoA, ensembling) ao trabalho de cliente mais rápido que concorrentes.
+---
+ID: forward-deployed
+TITLE: Forward Deployed AI
+CATEGORY: Service
+DESC: Modelos open-source na infra do cliente p/ setores de privacidade severa. DNA de outra empresa.
+---
+ID: cockpit-produto
+TITLE: Cockpit interno → produto
+CATEGORY: Service
+DESC: Produtizar o cockpit como SaaS vertical p/ agências/consultorias. Só após validado internamente.
+---
+ID: precificacao-valor
+TITLE: Precificação por valor/eficiência
+CATEGORY: Commercial
+DESC: Setup alto + fee de estratégia. Não cobrar por hora quando a IA automatiza 70%.
+---
+ID: service-as-software
+TITLE: Service-as-a-Software (oferta invisível)
+CATEGORY: Commercial
+DESC: Vender Growth operado por máquina interna invisível. Tecnologia é bastidor, narrativa é crescimento.
+---
+ID: ai-cmo-mrr
+TITLE: AI-CMO como justificativa de MRR
+CATEGORY: Commercial
+DESC: Fee não é manutenção de robô — é aluguel do cérebro estratégico. Argumento central de retenção.
+---
+ID: dogfooding
+TITLE: Dogfooding
+CATEGORY: Commercial
+DESC: Rodar 100% da operação EG nos próprios squads antes de vender. Princípio inegociável.
+---
+ID: fabrica-back-front
+TITLE: Fábrica: backoffice vs. frontoffice
+CATEGORY: Commercial
+DESC: IA massacra o backoffice (contratos, ClickUp, relatórios). Humano foca julgamento e fechamento.
+---
+ID: change-management
+TITLE: Change Management no cliente
+CATEGORY: Service
+DESC: Playbook que mostra que a IA tira o trabalho braçal, não o emprego. Reduz churn por sabotagem.
+---
+ID: auditoria-ai-first
+TITLE: Auditoria de Prontidão AI-First
+CATEGORY: Service
+DESC: Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).
+---
+ID: prospec-wpp-evolution
+TITLE: Prospecção WhatsApp (Evolution API)
+CATEGORY: Feature
+DESC: API não-oficial em VPS p/ outbound frio, chip fleet aquecido. Oficial Meta só no inbound.
+---
+ID: voip-qualificacao
+TITLE: VoIP inteligente de qualificação
+CATEGORY: Service
+DESC: Agente de voz (ElevenLabs+Twilio) qualifica por telefone. Mais barato que SDR, mais conversão que e-mail.
+---
+ID: ia-adapta-cliente
+TITLE: Princípio: IA se adapta ao cliente
+CATEGORY: Commercial
+DESC: Nunca substituir o legado do cliente. A IA entra via API, extrai, age, sai. Reduz fricção de venda.
+---
+ID: idea-detail-edit
+TITLE: Editar ideias + ver detalhe / 1 doc por ideia
+CATEGORY: Cockpit
+DESC: No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez de só o JSON. Modal de edição é o caminho v1.
+---
+ID: banco-arquitetura-tab
+TITLE: Aba Banco de Arquitetura no dashboard
+CATEGORY: Cockpit
+DESC: Renderizar o arquitetura.md (e o catálogo de squads) numa aba, para ver/navegar a estrutura viva. Hoje o Banco de Arquitetura existe só como markdown, sem tela.
+---
+ID: clients-clickup-sync
+TITLE: Carteira ↔ ClickUp (puxar pastas, sincronizar cards)
+CATEGORY: Feature
+DESC: A aba Clientes puxa as pastas/listas reais do ClickUp e cria/atualiza cards a partir do config.json (diff desejado vs. real), sob aprovação (Write/Read barrier). É a Carteira virando plano de controle de verdade.
+---
+ID: idea-bank-auto
+TITLE: Banco de Ideias auto-atualizável
+CATEGORY: Cockpit
+DESC: Banco se atualizar sozinho, principalmente os ESTÁGIOS (hoje o humano move os cards). Reconciliador lê sinais de realidade — existência do artefato (pasta/arquivo do squad), status no ClickUp, ou merge no repo do cliente — e propõe mudança de estágio. Só a metade 'já foi construído?' automatiza; 'a gente liga pra isso?' (capture↔evaluation) fica humano. Captura automática de novas ideias é a outra face.
+---
+ID: matriz-risco-comercial
+TITLE: Matriz de Risco Comercial (Lead Scoring)
+CATEGORY: Commercial
+DESC: Framework quantitativo (Severidade x Probabilidade) para qualificar leads e projetos, decidindo matematicamente se a EG aceita, recusa ou escala o negócio.
+---
+ID: estrutura-modal-briefing
+TITLE: Estrutura Modal de Briefing
+CATEGORY: Feature
+DESC: Padronização de síntese da IA em 3 modos operacionais (Daily, Topic, Incident) garantindo consumo ultra-rápido e focado pelos founders.
+---
+ID: clickup-direct-injector
+TITLE: ClickUp Direct Injector (Client Insights)
+CATEGORY: Feature
+DESC: Ferramenta para squads analíticos enviarem ideias de campanha diretamente para a pasta do cliente no ClickUp, pulando o banco de ideias da EG.
+---

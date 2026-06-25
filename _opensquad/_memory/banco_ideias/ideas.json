@@ -876,6 +876,101 @@
       ],
       "enables": [],
       "source": "sessão jun/2026 (feedback Eduardo)"
+    },
+    {
+      "id": "filosofia-visual-eg",
+      "title": "Filosofia Visual EG (Manifesto de Design)",
+      "desc": "Manifesto estético que traduz a marca EG em regras visuais rígidas (espaço, cor, composição) para garantir que qualquer material gerado por IA tenha padrão boutique.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "skill-brand-eg",
+        "idea-detail-edit"
+      ],
+      "source": "Biblioteca de Referência (/canvas-design)"
+    },
+    {
+      "id": "web-artifacts-builder",
+      "title": "Web Artifacts Builder (Motor de UI Rica)",
+      "desc": "Padrão frontend (React/Vite/Tailwind) com regras anti-slop para a IA gerar Hub, Cockpit e Landing Pages sem cara de template genérico.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "cockpit-produto",
+        "banco-ideias-visual",
+        "idea-detail-edit"
+      ],
+      "source": "Biblioteca de Referência (/web-artifacts-builder)"
+    },
+    {
+      "id": "matriz-risco-comercial",
+      "title": "Matriz de Risco Comercial (Lead Scoring)",
+      "desc": "Framework quantitativo (Severidade x Probabilidade) para qualificar leads e projetos, decidindo matematicamente se a EG aceita, recusa ou escala o negócio.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "squad-hunter",
+        "squad-prospector"
+      ],
+      "source": "Biblioteca de Referência (/legal-risk-assessment)"
+    },
+    {
+      "id": "estrutura-modal-briefing",
+      "title": "Estrutura Modal de Briefing",
+      "desc": "Padronização de síntese da IA em 3 modos operacionais (Daily, Topic, Incident) garantindo consumo ultra-rápido e focado pelos founders.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "squad-reunioes",
+        "dossie-provas"
+      ],
+      "source": "Biblioteca de Referência (/legal /brief)"
+    },
+    {
+      "id": "handoff-assincrono-inboxes",
+      "title": "Arquitetura de Handoff Assíncrono (Inboxes)",
+      "desc": "Padrão arquitetural (Pub/Sub) onde squads não se chamam diretamente. Geram outputs em Inboxes para o Dispatcher rotear, evitando acoplamento.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "hub-chat-dispatcher"
+      ],
+      "enables": [],
+      "source": "Sessão jun/2026 (Refinamento de Arquitetura)"
+    },
+    {
+      "id": "clickup-direct-injector",
+      "title": "ClickUp Direct Injector (Client Insights)",
+      "desc": "Ferramenta para squads analíticos enviarem ideias de campanha diretamente para a pasta do cliente no ClickUp, pulando o banco de ideias da EG.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-reunioes"
+      ],
+      "enables": [],
+      "source": "Sessão jun/2026 (Refinamento de Arquitetura)"
     }
   ]
 }

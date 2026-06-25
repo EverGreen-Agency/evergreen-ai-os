@@ -78,6 +78,7 @@ export function IdeaBank() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<Stage | null>(null);
+  const [readingDocId, setReadingDocId] = useState<string | null>(null);
 
   // Initial load
   useEffect(() => {
@@ -248,6 +249,7 @@ export function IdeaBank() {
                         onMove={moveStage}
                         onArchive={toggleArchive}
                         onEdit={() => { setEditingId(idea.id); setExpandedId(null); }}
+                        onReadDoc={() => setReadingDocId(idea.id)}
                         onDragStart={() => setDraggedId(idea.id)}
                         onDragEnd={() => { setDraggedId(null); setDragOverStage(null); }}
                       />
@@ -257,6 +259,13 @@ export function IdeaBank() {
           );
         })}
       </div>
+      {readingDocId && (
+        <DocModal
+          id={readingDocId}
+          title={ideas.find((i) => i.id === readingDocId)?.title ?? ""}
+          onClose={() => setReadingDocId(null)}
+        />
+      )}
     </div>
   );
 }
@@ -273,11 +282,12 @@ interface CardProps {
   onMove: (idea: Idea, dir: 1 | -1) => void;
   onArchive: (idea: Idea) => void;
   onEdit: () => void;
+  onReadDoc: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }
 
-function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, onArchive, onEdit, onDragStart, onDragEnd }: CardProps) {
+function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, onArchive, onEdit, onReadDoc, onDragStart, onDragEnd }: CardProps) {
   const catColor = CAT_COLOR[idea.category] ?? "#8888a0";
   const stageIdx = STAGES.indexOf(stage);
   const hasPrev = stageIdx > 0;
@@ -406,6 +416,12 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
               style={{ ...styles.actionBtn, color: "#ffab00", borderColor: "#ffab0044" }}
             >
               ✎ Editar
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onReadDoc(); }}
+              style={{ ...styles.actionBtn, color: "#a855f7", borderColor: "#a855f744" }}
+            >
+              📄 Ler Detalhes
             </button>
             <button
               onClick={() => onArchive(idea)}
@@ -553,8 +569,8 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "flex-start",
   },
   column: {
-    width: 256,
-    minWidth: 256,
+    flex: 1,
+    minWidth: 260,
     display: "flex",
     flexDirection: "column",
     maxHeight: "100%",
@@ -618,3 +634,69 @@ const styles: Record<string, CSSProperties> = {
     cursor: "pointer",
   },
 };
+
+// ── doc modal ─────────────────────────────────────────────────────────────────
+
+function DocModal({ id, title, onClose }: { id: string; title: string; onClose: () => void }) {
+  const [doc, setDoc] = useState<string>("Carregando documento...");
+
+  useEffect(() => {
+    fetch(`/api/ideas/doc?id=${id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.text();
+      })
+      .then((text) => setDoc(text))
+      .catch(() => setDoc("Este documento ainda não foi gerado pelo Curador.\n\nA ideia possui apenas o rascunho (descrição)."));
+  }, [id]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+        background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 999, padding: 20
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "var(--bg-primary)",
+          border: "1px solid var(--border)",
+          borderRadius: 8, width: 600, maxWidth: "100%", maxHeight: "90vh",
+          display: "flex", flexDirection: "column",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+        }}
+      >
+        <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontWeight: 600, fontSize: 14 }}>{title}</span>
+          <button onClick={onClose} style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: 16 }}>×</button>
+        </div>
+        <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
+          <MarkdownViewer text={doc} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MarkdownViewer({ text }: { text: string }) {
+  // Very simple regex parser for basic markdown elements
+  let html = text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") // escape HTML
+    .replace(/^### (.*$)/gim, '<h3 style="margin-top:20px;margin-bottom:8px;font-size:14px;color:var(--text-primary);">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 style="margin-top:24px;margin-bottom:12px;font-size:16px;color:var(--text-primary); border-bottom:1px solid var(--border); padding-bottom:4px;">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 style="margin-top:0px;margin-bottom:16px;font-size:20px;color:#00d4ff;">$1</h1>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    .replace(/`(.*?)`/gim, '<code style="background:var(--bg-secondary);padding:2px 4px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
+    .replace(/^\> (.*$)/gim, '<blockquote style="border-left:3px solid #ffab00;margin:10px 0;padding-left:10px;color:var(--text-secondary);">$1</blockquote>')
+    .replace(/\n\n/gim, '</p><p style="margin-bottom:12px;line-height:1.6;font-size:13px;color:var(--text-secondary);">')
+    .replace(/\n/gim, '<br />');
+
+  html = `<p style="margin-bottom:12px;line-height:1.6;font-size:13px;color:var(--text-secondary);">${html}</p>`;
+
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}

@@ -1,0 +1,50 @@
+ID: banco-ideias
+TITLE: Banco de Ideias
+CATEGORY: Cockpit
+DESC: Esta ferramenta. Curador faz intake/dedup/conexão das ideias; tela no dashboard lê o banco real.
+--------------------
+ID: guardiao-arquiteto
+TITLE: Arquiteto (autovigilância)
+CATEGORY: Squad
+DESC: CONSTRUÍDO (squad eg_arquiteto). IA de autovigilância que audita ideia/projeto INTERNO LENDO O REPO AO VIVO (escaneia squads/, stack.json, .mcp.json, código) — não um inventário congelado. 4 gates: squad / integração / stack / princípios. Consultivo, HITL. O Cartógrafo foi descartado por redundância: o Arquiteto lê o repo direto.
+--------------------
+ID: banco-arquitetura
+TITLE: Banco de Arquitetura
+CATEGORY: Infra
+DESC: Guarda o PORQUÊ da estrutura — identidade, princípios de engenharia e decisões arquiteturais. NÃO é mais espelho do filesystem: o inventário (squads/stack/integrações) o Arquiteto lê do repo ao vivo. Aba Arquitetura no dashboard mostra o doc + Mapa de Squads ao vivo.
+--------------------
+ID: squad-engenharia
+TITLE: Squad de Engenharia (SDD + ADR)
+CATEGORY: Squad
+DESC: Projetos de cliente: brief → spec.md (SDD) → ADRs do porquê de cada escolha → scaffold de repo → sub-agentes por task.
+--------------------
+ID: banco-stack
+TITLE: Banco de Stack
+CATEGORY: Infra
+DESC: Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar). Entrada da Engenharia; ADRs são a saída.
+--------------------
+ID: carteira-clientes
+TITLE: Carteira de Clientes
+CATEGORY: Cockpit
+DESC: Plano de controle ativo: por cliente, serviços/tags, configs ClickUp/Kommo, log. Provisiona o ClickUp. Fala com o eg_setup.
+--------------------
+ID: codegraph
+TITLE: Adoção do CodeGraph
+CATEGORY: Infra
+DESC: MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Arquiteto. Aceleraria a leitura ao vivo do repo em projetos grandes; hoje o Arquiteto usa Glob/Grep/Read direto.
+--------------------
+ID: squad-hunter
+TITLE: Squad de Propostas (eg_proposals)
+CATEGORY: Squad
+DESC: CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).
+--------------------
+ID: auto-melhoria-squads
+TITLE: Auto-melhoria dos Squads (eg_meta)
+CATEGORY: Feature
+DESC: CONSTRUÍDO. Squad eg_meta: lê o memories.md + runs de um squad-alvo e PROPÕE diff nos .agent.md dele; aplica só o aprovado (HITL). Fecha o loop: o runner já captura aprendizados; o eg_meta os vira melhoria de prompt.
+--------------------
+ID: squad-prospector
+TITLE: Squad Prospector (eg_prospector)
+CATEGORY: Squad
+DESC: CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping.
+--------------------
