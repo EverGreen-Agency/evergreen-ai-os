@@ -289,6 +289,30 @@ export function squadWatcherPlugin(): Plugin {
           return;
         }
 
+        // POST /api/stack — write updated stack back to stack.json
+        if (req.url === "/api/stack" && req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+          req.on("end", async () => {
+            try {
+              const payload = JSON.parse(body) as { techs: unknown[] };
+              const existing = JSON.parse(await fsp.readFile(stackPath, "utf-8"));
+              const updated = {
+                ...existing,
+                updated_at: new Date().toISOString().split("T")[0],
+                techs: payload.techs,
+              };
+              await fsp.writeFile(stackPath, JSON.stringify(updated, null, 2), "utf-8");
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ ok: true }));
+            } catch (err) {
+              res.writeHead(500);
+              res.end(JSON.stringify({ error: String(err) }));
+            }
+          });
+          return;
+        }
+
         // GET /api/architecture — returns arquitetura.md + live squad scan
         if (req.url === "/api/architecture" && req.method === "GET") {
           try {
