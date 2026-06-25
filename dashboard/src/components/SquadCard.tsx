@@ -45,13 +45,13 @@ export function SquadCard({ squad, state, isSelected, onSelect }: SquadCardProps
         </div>
         {squad.description && (
           <div style={{
-            fontSize: 10, color: "var(--text-secondary)", lineHeight: 1.4,
+            fontSize: 10,
+            color: "var(--text-secondary)",
+            lineHeight: 1.35,
             marginTop: 2,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
+            maxHeight: "2.7em",
             overflow: "hidden",
-          } as React.CSSProperties}>
+          }}>
             {squad.description}
           </div>
         )}
