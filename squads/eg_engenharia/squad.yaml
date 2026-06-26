@@ -1,12 +1,12 @@
 name: "Engenharia EG (SDD + ADR)"
 icon: "⚙️"
 version: "1.0"
-description: "Squad de desenvolvimento de projetos de CLIENTE via Spec-Driven Development. Recebe um brief, produz uma spec.md (o contrato), registra as decisões de stack como ADRs (consultando o Banco de Stack), e gera o scaffold do repo + árvore de tarefas. Cada decisão técnica tem um porquê escrito. Artefatos de decisão moram em _opensquad/_memory/clients/<id>/engenharia/."
+description: "Squad de desenvolvimento via Spec-Driven Development, para projetos de CLIENTE ou INTERNOS da EG (dogfooding). Recebe um brief de cliente OU uma ideia madura do Banco de Ideias em stage `project` (interno), produz uma spec.md (o contrato), registra as decisões de stack como ADRs (consultando o Banco de Stack), e gera o scaffold do repo + árvore de tarefas. Cada decisão técnica tem um porquê escrito. O alvo (`target`: client/internal) é CONFIGURAÇÃO: muda só de onde vem o brief e onde moram os artefatos — NUNCA o grau de autonomia. Os gates de aprovação (spec, ADRs) são HITL para os dois. Artefatos: cliente em _opensquad/_memory/clients/<id>/engenharia/; interno em _opensquad/_memory/engenharia/<id>/."
 
 pipeline:
   - id: step_spec
     agent: especificador
-    description: "Recebe o brief do cliente. Faz as perguntas que faltam (uma onda, não um muro) e produz a spec.md: objetivo, escopo, requisitos funcionais e não-funcionais, critérios de aceite e o que está FORA de escopo. A spec é o contrato — apresenta ao usuário para aprovação antes de prosseguir."
+    description: "Recebe o brief — de cliente, ou a ideia interna do Banco (docs/<id>.md, stage `project`). Faz as perguntas que faltam (uma onda, não um muro) e produz a spec.md: objetivo, escopo, requisitos funcionais e não-funcionais, critérios de aceite e o que está FORA de escopo. A spec é o contrato — apresenta ao usuário para aprovação antes de prosseguir."
     interactive: true
 
   - id: step_decisoes

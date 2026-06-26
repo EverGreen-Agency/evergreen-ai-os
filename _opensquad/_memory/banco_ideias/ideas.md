@@ -21,13 +21,8 @@ Atualizado em: 2026-06-25
 
 - **Squad Análise de Reuniões** (squad-reunioes)
   - Categoria: Squad | Horizonte: A redefinir
-  - Depende de: Nenhuma | Habilita: loop-pos-call
-  - Descrição: Transcrição → SPICED, pendências, rascunho pra CRM. Era o bake-off de frameworks.
-
-- **Squad de Propostas** (squad-propostas)
-  - Categoria: Squad | Horizonte: A redefinir
-  - Depende de: Nenhuma | Habilita: squad-hunter
-  - Descrição: Oportunidade → qualificação fit vs. ICP → rascunho de proposta padrão EG. Consolidado em squad-hunter (Closer).
+  - Depende de: Nenhuma | Habilita: Nenhuma
+  - Descrição: Transcrição → SPICED, pendências, rascunho pra CRM. Absorve o loop pós-call (origem Kelvin Cleto): fim da call → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam o RAG. Era o bake-off de frameworks.
 
 - **Squad Relatórios de Cliente** (squad-relatorios)
   - Categoria: Squad | Horizonte: A redefinir
@@ -37,7 +32,7 @@ Atualizado em: 2026-06-25
 - **Squad Onboarding / Kommo / ClickUp** (squad-onboarding)
   - Categoria: Squad | Horizonte: A redefinir
   - Depende de: Nenhuma | Habilita: carteira-clientes
-  - Descrição: Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Parcialmente já existe (eg_setup).
+  - Descrição: Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Absorve a esteira de onboarding: contrato fechado → workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas. Parcialmente já existe (eg_setup).
 
 - **Squad Kickoff Técnico** (squad-kickoff)
   - Categoria: Squad | Horizonte: A redefinir
@@ -79,11 +74,6 @@ Atualizado em: 2026-06-25
   - Depende de: Nenhuma | Habilita: Nenhuma
   - Descrição: Monitora grupos com cliente; se ninguém responde dentro do SLA, alerta Guilherme/Eduardo.
 
-- **Esteira de Onboarding Automatizada** (esteira-onboarding)
-  - Categoria: Feature | Horizonte: A redefinir
-  - Depende de: squad-onboarding | Habilita: Nenhuma
-  - Descrição: Contrato fechado → cria workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas.
-
 - **Dossiê de Provas de Confiança** (dossie-provas)
   - Categoria: Feature | Horizonte: A redefinir
   - Depende de: Nenhuma | Habilita: vector-store
@@ -98,16 +88,6 @@ Atualizado em: 2026-06-25
   - Categoria: Feature | Horizonte: A redefinir
   - Depende de: squad-prospector | Habilita: Nenhuma
   - Descrição: Varre site/LinkedIn do prospect → mini Raio-X personalizado → cold outreach com valor antes do pitch.
-
-- **Máquina Completa (upsell de infra)** (maquina-completa)
-  - Categoria: Commercial | Horizonte: A redefinir
-  - Depende de: Nenhuma | Habilita: Nenhuma
-  - Descrição: Tráfego → qualificação WhatsApp → lead agendado no Kommo. Vende processo comercial, não 'anúncio'.
-
-- **Loop de retroalimentação pós-call** (loop-pos-call)
-  - Categoria: Feature | Horizonte: A redefinir
-  - Depende de: squad-reunioes | Habilita: Nenhuma
-  - Descrição: Call termina → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam RAG.
 
 - **Segundo Cérebro integrado (AI OS)** (segundo-cerebro)
   - Categoria: Infra | Horizonte: A redefinir
@@ -331,7 +311,7 @@ Atualizado em: 2026-06-25
 - **Squad de Propostas (eg_proposals)** (squad-hunter)
   - Categoria: Squad | Horizonte: NOW
   - Depende de: Nenhuma | Habilita: multi-plataforma-freelance
-  - Descrição: CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).
+  - Descrição: CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Consolida o antigo squad-propostas (qualificação fit vs. ICP + rascunho de proposta padrão EG). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).
 
 - **Auto-melhoria dos Squads (eg_meta)** (auto-melhoria-squads)
   - Categoria: Feature | Horizonte: NOW
@@ -350,4 +330,3 @@ Atualizado em: 2026-06-25
 ## Estágio: COMPANY
 
 *Nenhuma ideia neste estágio.*
-

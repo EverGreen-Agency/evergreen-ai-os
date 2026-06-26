@@ -16,3 +16,6 @@
 - Horizontes do roadmap antigo foram descartados; `horizonte: ""` significa "a redefinir".
 - ConexÃµes (`depends_on` / `enables`) sÃ£o o mecanismo anti-redundÃ¢ncia â€” prioridade sobre categoria.
 - Schema em inglÃªs (chaves + valores enum: stage capture/evaluation/processing/project/company; horizon NOW/MEDIUM/LONG/NEW_COMPANY); `title`/`desc`/`source` ficam em PT (conteÃºdo).
+
+## Changelog de Otimizações
+- [2026-06-25] otimização: Atualização do curador para gerar descrições profundas e criar/atualizar documentação em .md (/docs/) para ideias complexas. (evidência: memórias acumuladas de profundidade e uso de /docs/)

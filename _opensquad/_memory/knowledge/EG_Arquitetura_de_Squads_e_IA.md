@@ -13,7 +13,7 @@ Antes de qualquer ferramenta, cinco princípios que não se quebram:
 
 2. **Cliente é configuração, não arquitetura.** Voz, tom, regras de negócio, chaves de API e contexto de cada cliente vivem em arquivos de configuração (JSON/banco), carregados por ID. O código do squad é o mesmo para todos.
 
-3. **Separação dura entre squad interno e squad de entrega.** Interno opera processos da EG (pode ter mais autonomia). De entrega opera para o cliente (autonomia mínima, sempre com revisão humana antes de qualquer output sair). O grau de autonomia é inversamente proporcional ao impacto de um erro.
+3. **Autonomia proporcional ao raio de impacto — não ao tipo de squad.** O quanto um agente age sozinho é definido pelo *impacto de um erro daquela ação*, não por quem o squad serve. Ação que toca sistema vivo de cliente (ads, CRM, e-mail) = autonomia mínima + HITL, sempre. Ação de baixo impacto (rascunho/leitura interna) = mais autonomia. Um **mesmo squad pode servir interno e cliente** via configuração (squad é por função — princípio #1); o que muda por execução são dois mostradores independentes: **autonomia** (pelo raio de impacto) e **isolamento** (contexto/chaves por `client_id`). "Interno × entrega" é atalho mental, não regra de fatiar squads.
 
 4. **Código para dados, LLM para raciocínio.** Não escreva lógica complexa de if/else no Python quando bastaria ajustar o prompt; e não tente resolver com prompt o que um código simples de manipulação de JSON resolve melhor. Automação (n8n/Make) são os trilhos; agentes são os nós cognitivos.
 

@@ -135,7 +135,7 @@
     {
       "id": "squad-hunter",
       "title": "Squad de Propostas (eg_proposals)",
-      "desc": "CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).",
+      "desc": "CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Consolida o antigo squad-propostas (qualificação fit vs. ICP + rascunho de proposta padrão EG). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).",
       "stage": "processing",
       "horizon": "NOW",
       "category": "Squad",
@@ -193,31 +193,14 @@
     {
       "id": "squad-reunioes",
       "title": "Squad Análise de Reuniões",
-      "desc": "Transcrição → SPICED, pendências, rascunho pra CRM. Era o bake-off de frameworks.",
+      "desc": "Transcrição → SPICED, pendências, rascunho pra CRM. Absorve o loop pós-call (origem Kelvin Cleto): fim da call → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam o RAG. Era o bake-off de frameworks.",
       "stage": "capture",
       "horizon": "",
       "category": "Squad",
       "origin": "internal",
       "archived": false,
       "depends_on": [],
-      "enables": [
-        "loop-pos-call"
-      ],
-      "source": "Roadmap §2"
-    },
-    {
-      "id": "squad-propostas",
-      "title": "Squad de Propostas",
-      "desc": "Oportunidade → qualificação fit vs. ICP → rascunho de proposta padrão EG. Consolidado em squad-hunter (Closer).",
-      "stage": "capture",
-      "horizon": "",
-      "category": "Squad",
-      "origin": "internal",
-      "archived": false,
-      "depends_on": [],
-      "enables": [
-        "squad-hunter"
-      ],
+      "enables": [],
       "source": "Roadmap §2"
     },
     {
@@ -255,7 +238,7 @@
     {
       "id": "squad-onboarding",
       "title": "Squad Onboarding / Kommo / ClickUp",
-      "desc": "Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Parcialmente já existe (eg_setup).",
+      "desc": "Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Absorve a esteira de onboarding: contrato fechado → workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas. Parcialmente já existe (eg_setup).",
       "stage": "capture",
       "horizon": "",
       "category": "Squad",
@@ -376,21 +359,6 @@
       "source": "Roadmap §3.2"
     },
     {
-      "id": "esteira-onboarding",
-      "title": "Esteira de Onboarding Automatizada",
-      "desc": "Contrato fechado → cria workspace ClickUp + DoDs padrão + pasta Drive + msg de boas-vindas.",
-      "stage": "capture",
-      "horizon": "",
-      "category": "Feature",
-      "origin": "internal",
-      "archived": false,
-      "depends_on": [
-        "squad-onboarding"
-      ],
-      "enables": [],
-      "source": "Roadmap §3.3"
-    },
-    {
       "id": "dossie-provas",
       "title": "Dossiê de Provas de Confiança",
       "desc": "Agente semanal varre GA4/Ads → cataloga vitórias reais auditadas → alimenta propostas e RAG.",
@@ -434,34 +402,6 @@
       ],
       "enables": [],
       "source": "Roadmap §3.6"
-    },
-    {
-      "id": "maquina-completa",
-      "title": "Máquina Completa (upsell de infra)",
-      "desc": "Tráfego → qualificação WhatsApp → lead agendado no Kommo. Vende processo comercial, não 'anúncio'.",
-      "stage": "capture",
-      "horizon": "",
-      "category": "Commercial",
-      "origin": "internal",
-      "archived": false,
-      "depends_on": [],
-      "enables": [],
-      "source": "Roadmap §3.7"
-    },
-    {
-      "id": "loop-pos-call",
-      "title": "Loop de retroalimentação pós-call",
-      "desc": "Call termina → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeções retroalimentam RAG.",
-      "stage": "capture",
-      "horizon": "",
-      "category": "Feature",
-      "origin": "external",
-      "archived": false,
-      "depends_on": [
-        "squad-reunioes"
-      ],
-      "enables": [],
-      "source": "Roadmap §3.9 (Kelvin Cleto)"
     },
     {
       "id": "segundo-cerebro",
@@ -825,7 +765,7 @@
       "horizon": "MEDIUM",
       "category": "Cockpit",
       "origin": "internal",
-      "archived": false,
+      "archived": true,
       "depends_on": [
         "banco-arquitetura"
       ],

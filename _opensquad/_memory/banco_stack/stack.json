@@ -91,7 +91,7 @@
       "id": "fastapi",
       "name": "FastAPI",
       "quadrant": "frameworks",
-      "ring": "assess",
+      "ring": "adopt",
       "note": "Candidato a padrão de API Python para projetos de cliente (async, typing, OpenAPI grátis). Avaliar contra alternativas no 1º projeto via ADR.",
       "adr": "",
       "source": "sessão jun/2026"
@@ -100,7 +100,7 @@
       "id": "nextjs",
       "name": "Next.js",
       "quadrant": "frameworks",
-      "ring": "assess",
+      "ring": "adopt",
       "note": "NÃO usar no dashboard (não há SSR/SEO/deploy público). Reconsiderar só se 'cockpit interno → produto' virar SaaS público.",
       "adr": "",
       "source": "sessão jun/2026"
@@ -145,7 +145,7 @@
       "id": "n8n",
       "name": "n8n",
       "quadrant": "tools",
-      "ring": "assess",
+      "ring": "adopt",
       "note": "Orquestração externa via webhook (auto-hospedado, opcional). Slot já existe no .env. Avaliar onde compensa vs. squad nativo.",
       "adr": "",
       "source": ".env.example"
@@ -163,7 +163,7 @@
       "id": "openai",
       "name": "OpenAI",
       "quadrant": "platforms-infra",
-      "ring": "trial",
+      "ring": "adopt",
       "note": "Segundo cérebro / fallback e tarefas específicas. Slot no .env.",
       "adr": "",
       "source": ".env (OPENAI_API_KEY)"
@@ -172,7 +172,7 @@
       "id": "gemini",
       "name": "Google Gemini",
       "quadrant": "platforms-infra",
-      "ring": "assess",
+      "ring": "adopt",
       "note": "Terceiro modelo, avaliar em tarefas multimodais/contexto longo. Slot no .env.",
       "adr": "",
       "source": ".env (GEMINI_API_KEY)"
@@ -217,7 +217,7 @@
       "id": "evolution-api",
       "name": "Evolution API",
       "quadrant": "platforms-infra",
-      "ring": "assess",
+      "ring": "adopt",
       "note": "WhatsApp não-oficial para prospecção/log de áudio. Mapeado no Banco de Ideias. Avaliar risco de bloqueio.",
       "adr": "",
       "source": "banco_ideias: prospeccao-wpp"

@@ -113,6 +113,13 @@ Before starting execution:
 
 ## Execution Rules
 
+### Mandatory Grounding (Anti-Hallucination)
+
+**CRITICAL RULE**: Before an agent gives a verdict, validates an idea, or generates technical documentation, it **MUST** use an IDE tool (like `grep_search`, `list_dir`, or running a script) to verify the codebase reality. 
+- You CANNOT assume a feature doesn't exist just because it's not in the prompt context.
+- Evidence Check: You must log what files/directories you checked before proceeding to the actual step output.
+- If no grounding tools are used, the step fails for Hallucination Risk.
+
 ### Agent Loading (for inline and subagent steps)
 
 Before executing any step that references an agent:
