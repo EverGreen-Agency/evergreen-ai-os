@@ -1,0 +1,24 @@
+name: "Anúncios Meta (Vídeo)"
+version: "1.0"
+description: "Squad para criar e analisar anúncios gravados (vídeo) para Meta (Instagram e Facebook). Vai do briefing estratégico ao roteiro com shot list e variações para teste, revisa contra as políticas do Meta e a voz da EverGreen, e depois analisa a performance da campanha para gerar a próxima iteração."
+
+pipeline:
+  - id: step_briefing
+    agent: estrategista_anuncios
+    description: "Coleta o briefing (cliente, oferta, público, objetivo de campanha) e define os ângulos de comunicação a testar. Confirma a estratégia com o usuário antes de seguir."
+    interactive: true
+
+  - id: step_roteiros
+    agent: roteirista_video
+    description: "Com base nos ângulos aprovados, escreve os roteiros dos anúncios gravados para Meta (hook de 3s, corpo, CTA), com shot list e 2-3 variações para teste A/B. Apresenta ao usuário para aprovação."
+    interactive: true
+
+  - id: step_revisao
+    agent: revisor_anuncios
+    description: "Revisa os roteiros contra as políticas de anúncios do Meta e as regras de marca da EverGreen. Marca cada peça como APROVADA ou com ajustes obrigatórios."
+    interactive: false
+
+  - id: step_analise
+    agent: analista_performance
+    description: "Fase de análise (após veicular): recebe as métricas da campanha no Meta, diagnostica o gargalo (criativo, oferta ou saturação) e recomenda a próxima iteração de criativo."
+    interactive: true
