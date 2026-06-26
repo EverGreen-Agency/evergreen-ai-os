@@ -1,0 +1,5 @@
+agent_name,role,file_path
+estrategista_anuncios,Estrategista de Anúncios,squads/ads_meta/agents/estrategista_anuncios.agent.md
+roteirista_video,Roteirista de Vídeo,squads/ads_meta/agents/roteirista_video.agent.md
+revisor_anuncios,Revisor de Anúncios,squads/ads_meta/agents/revisor_anuncios.agent.md
+analista_performance,Analista de Performance,squads/ads_meta/agents/analista_performance.agent.md
