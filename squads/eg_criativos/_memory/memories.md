@@ -1,4 +1,4 @@
-# Squad Memory: Anúncios Meta (Vídeo)
+# Squad Memory: Criativos de Anúncio (eg_criativos) — config atual: Meta/vídeo
 
 ## Estilo de Escrita
 - Roteiros em PT-BR falado e natural (UGC), não institucional.

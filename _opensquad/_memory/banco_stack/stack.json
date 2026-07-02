@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-25",
+  "updated_at": "2026-07-01",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",
@@ -73,7 +73,7 @@
       "id": "zustand",
       "name": "Zustand",
       "quadrant": "frameworks",
-      "ring": "adopt",
+      "ring": "assess",
       "note": "Store global sem boilerplate. Fit para estado simples em tempo real (squads, ideias).",
       "adr": "",
       "source": "dashboard/"
@@ -109,7 +109,7 @@
       "id": "playwright",
       "name": "Playwright",
       "quadrant": "tools",
-      "ring": "adopt",
+      "ring": "assess",
       "note": "Automação de browser com sessão persistente. Base do Sherlock e de coletas. Via MCP.",
       "adr": "",
       "source": ".mcp.json"
@@ -118,7 +118,7 @@
       "id": "ws-chokidar",
       "name": "ws + chokidar",
       "quadrant": "tools",
-      "ring": "adopt",
+      "ring": "assess",
       "note": "WebSocket + file watcher do dashboard. Tempo real sobre arquivos (state.json, ideas.json).",
       "adr": "",
       "source": "dashboard/plugin/"
@@ -230,6 +230,15 @@
       "note": "Stack de memória de longo prazo para agentes. Mapeado no Banco de Ideias. Comparar com solução própria sobre pgvector.",
       "adr": "",
       "source": "banco_ideias: stack-memoria-zep"
+    },
+    {
+      "name": "Data For SEO",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "",
+      "adr": "",
+      "source": "",
+      "id": "data-for-seo"
     }
   ]
 }

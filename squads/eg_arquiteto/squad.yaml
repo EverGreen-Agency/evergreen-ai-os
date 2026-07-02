@@ -1,9 +1,14 @@
 name: "Arquiteto EG"
 icon: "🛡️"
 version: "1.0"
-description: "Autovigilância da estrutura. O Arquiteto recebe uma ideia ou projeto INTERNO (nunca de cliente) e o audita LENDO O REPO AO VIVO — escaneia squads/, stack.json, .mcp.json e o código real (não um inventário congelado). Roda 4 gates: já existe squad que cobre? precisa de integração nova? a stack é permitida? respeita os princípios da casa? Saída é parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). O arquitetura.md guarda só o 'porquê' (princípios e decisões); o 'o quê' ele lê do código."
+description: "Avaliação de ideia/projeto INTERNO (nunca de cliente) em DUAS lentes: NEGÓCIO (Avaliador — deveria existir? é 10x? monetiza?) roda primeiro, depois ESTRUTURA (Guardião/Arquiteto — cabe? reaproveita/integra/assina/constrói?). O Guardião audita LENDO O REPO AO VIVO — escaneia squads/, stack.json, .mcp.json e o código real (não um inventário congelado). Roda 5 gates: squad / integração / stack / princípios / alavancagem (build vs buy vs reuse). Saída é parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). O arquitetura.md guarda só o 'porquê'; o 'o quê' ele lê do código."
 
 pipeline:
+  - id: step_negocio
+    agent: avaliador_negocios
+    description: "Avalia o MÉRITO de negócio do item interno (deveria existir?) por duas lentes — primeiros princípios (Musk) e oferta/valor (Hormozi). Veredito CONSTRUIR/CORTAR/SIMPLIFICAR/ADIAR + a ONE THING. Corta enfeite ANTES da auditoria técnica."
+    interactive: true
+
   - id: step_auditoria
     agent: arquiteto
     description: "Recebe o item a auditar (ideia/projeto interno). Escaneia o repo ao vivo: lista squads/ e lê os squad.yaml, lê stack.json, .mcp.json e o que mais for relevante (Glob/Grep/Read). Lê os princípios no arquitetura.md. Roda os 4 gates (squad / integração / stack / princípios) e emite um parecer estruturado com veredito e recomendação. Pede ao usuário o que fazer com o parecer."

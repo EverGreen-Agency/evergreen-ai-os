@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0",
-  "updated_at": "2026-06-25",
-  "note": "Source of truth for the EG Idea Bank. Seeded from EG_Roadmap_Tecnologia_e_Oportunidades.md and EG_Biblioteca_de_Referencia_Skills_e_Plugins.md. Old roadmap horizons were DISCARDED (empty 'horizon' = to be redefined). The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front).",
+  "schema_version": "1.1",
+  "updated_at": "2026-07-01",
+  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front). Schema v1.1 added optional fields: part_of (umbrella idea id — composition, not a dependency), readiness (free text: external gates that unblock starting — market/team/money/KPIs), clickup (bool: flagged to become a ClickUp card, HITL).",
   "stages": [
     "capture",
     "evaluation",
@@ -10,6 +10,51 @@
     "company"
   ],
   "ideas": [
+    {
+      "id": "tech-scout",
+      "title": "Tech Scout (radar de ferramentas)",
+      "desc": "Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra EG. Complemento OUTBOUND do Arquiteto: o Arquiteto responde 'pra esta necessidade, o que temos/compramos?'; o Scout traz 'olha essa ferramenta nova que a comunidade está usando'. Propõe entradas no Banco de Stack (Tech Radar) e no Banco de Ideias — HITL, nunca adota sozinho. Reaproveita a máquina do Sherlock (já lê YouTube/X via browser); muda o assunto: ferramentas tech, não perfis de conteúdo.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "banco-stack"
+      ],
+      "source": "sessão jul/2026"
+    },
+    {
+      "id": "ads-api-skills",
+      "title": "Skills de Ads (Meta + Google)",
+      "desc": "Skills p/ ligar as APIs de anúncio ao eg_criativos: meta_ads (Marketing API) e google_ads (Google Ads API). Dão 'olhos' ao Analista de Performance (puxar métricas: hook rate, CTR, CPA, ROAS, frequência). Leitura livre; QUALQUER escrita (pausar campanha, mexer verba) é HITL. Tokens por client_id (conta de anúncio do cliente), nunca no .env global. Sem MCP pronto no catálogo → skill script/mcp a construir (Trilho B).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-criativos"
+      ],
+      "enables": [
+        "squad-trafego"
+      ],
+      "source": "sessão jul/2026"
+    },
+    {
+      "id": "business-evaluator",
+      "title": "Avaliador de Negócios (mentalidade Musk/Hormozi)",
+      "desc": "CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o Guardião (técnico). Duas lentes: PRIMEIROS PRINCÍPIOS (Musk: problema-raiz? deletável? 10x? trava real? MVP) e OFERTA/VALOR (Hormozi: negócio ou custo? equação de valor; monetiza? alavancagem?). Veredito CONSTRUIR/CORTAR/SIMPLIFICAR/ADIAR + a ONE THING, matando scope creep antes da spec. HITL.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "sessão jul/2026"
+    },
     {
       "id": "banco-ideias",
       "title": "Banco de Ideias",
@@ -103,9 +148,9 @@
     {
       "id": "codegraph",
       "title": "Adoção do CodeGraph",
-      "desc": "MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Arquiteto. Aceleraria a leitura ao vivo do repo em projetos grandes; hoje o Arquiteto usa Glob/Grep/Read direto.",
-      "stage": "evaluation",
-      "horizon": "MEDIUM",
+      "desc": "ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; este repo indexado (.codegraph/ gitignored); skill em skills/codegraph/. Ferramentas: codegraph_explore, codegraph_node. Consumidor: Gate de Alavancagem do Arquiteto — valor maior é CROSS-REPO (rodar codegraph init nos outros projetos da EG p/ avaliar a mega plataforma contra tudo que já fizemos).",
+      "stage": "processing",
+      "horizon": "NOW",
       "category": "Infra",
       "origin": "external",
       "archived": false,
@@ -280,10 +325,10 @@
     },
     {
       "id": "squad-criativos",
-      "title": "Squad de Criativos",
-      "desc": "Matéria-prima: roteiros, variações A/B de copy.",
-      "stage": "capture",
-      "horizon": "",
+      "title": "Squad de Criativos (eg_criativos)",
+      "desc": "CONSTRUÍDO (squad eg_criativos). Criativos de anúncio pago: briefing/ângulos → roteiros + variações A/B → revisão (política da plataforma + marca EG) → análise de performance (loop criar→medir→melhorar). Plataforma/formato = parâmetro; config atual Meta/vídeo. Materializa esta ideia + a metade de análise de squad-trafego.",
+      "stage": "processing",
+      "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
       "archived": false,

@@ -1,8 +1,18 @@
 # Banco de Ideias EG
 
-Atualizado em: 2026-06-25
+Atualizado em: 2026-07-01
 
 ## Estágio: CAPTURE
+
+- **Tech Scout (radar de ferramentas)** (tech-scout)
+  - Categoria: Squad | Horizonte: A redefinir
+  - Depende de: Nenhuma | Habilita: banco-stack
+  - Descrição: Garimpa proativamente YouTube/Reddit/X/HN/GitHub por MCPs/APIs/ferramentas novas relevantes. Complemento outbound do Arquiteto; propõe entradas no Banco de Stack e de Ideias (HITL). Reaproveita a máquina do Sherlock.
+
+- **Skills de Ads (Meta + Google)** (ads-api-skills)
+  - Categoria: Infra | Horizonte: A redefinir
+  - Depende de: squad-criativos | Habilita: squad-trafego
+  - Descrição: meta_ads (Marketing API) + google_ads (Google Ads API) p/ o Analista puxar métricas. Leitura livre; escrita HITL; tokens por client_id. Skill a construir (Trilho B).
 
 - **Hub: chat = dispatcher** (hub-chat-dispatcher)
   - Categoria: Cockpit | Horizonte: MEDIUM
@@ -43,11 +53,6 @@ Atualizado em: 2026-06-25
   - Categoria: Squad | Horizonte: A redefinir
   - Depende de: squad-relatorios | Habilita: Nenhuma
   - Descrição: Coleta dados do cliente → 3 pilares (Oferta/Demanda/Conversão) → score e relatório de gargalo.
-
-- **Squad de Criativos** (squad-criativos)
-  - Categoria: Squad | Horizonte: A redefinir
-  - Depende de: Nenhuma | Habilita: Nenhuma
-  - Descrição: Matéria-prima: roteiros, variações A/B de copy.
 
 - **Otimização de Tráfego (HITL)** (squad-trafego)
   - Categoria: Squad | Horizonte: A redefinir
@@ -271,10 +276,7 @@ Atualizado em: 2026-06-25
 
 ## Estágio: EVALUATION
 
-- **Adoção do CodeGraph** (codegraph)
-  - Categoria: Infra | Horizonte: MEDIUM
-  - Depende de: Nenhuma | Habilita: banco-arquitetura
-  - Descrição: MCP que indexa o repo (tree-sitter + SQLite) e dá mapa de código ao Arquiteto. Aceleraria a leitura ao vivo do repo em projetos grandes; hoje o Arquiteto usa Glob/Grep/Read direto.
+*Nenhuma ideia neste estágio.*
 
 ## Estágio: PROCESSING
 
@@ -322,6 +324,21 @@ Atualizado em: 2026-06-25
   - Categoria: Squad | Horizonte: NOW
   - Depende de: Nenhuma | Habilita: icebreaker
   - Descrição: CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping.
+
+- **Squad de Criativos (eg_criativos)** (squad-criativos)
+  - Categoria: Squad | Horizonte: NOW
+  - Depende de: Nenhuma | Habilita: Nenhuma
+  - Descrição: CONSTRUÍDO (squad eg_criativos). Criativos de anúncio pago: briefing/ângulos → roteiros + variações A/B → revisão (política da plataforma + marca EG) → análise de performance. Plataforma/formato = parâmetro; config atual Meta/vídeo. Materializa esta ideia + a metade de análise de squad-trafego.
+
+- **Avaliador de Negócios (Musk/Hormozi)** (business-evaluator)
+  - Categoria: Squad | Horizonte: NOW
+  - Depende de: Nenhuma | Habilita: Nenhuma
+  - Descrição: CONSTRUÍDO (agente avaliador_negocios no eg_arquiteto). Lente de negócio (primeiros princípios Musk + oferta/valor Hormozi); veredito CONSTRUIR/CORTAR/SIMPLIFICAR/ADIAR + a ONE THING. Roda antes da auditoria técnica.
+
+- **Adoção do CodeGraph** (codegraph)
+  - Categoria: Infra | Horizonte: NOW
+  - Depende de: Nenhuma | Habilita: banco-arquitetura
+  - Descrição: ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; repo indexado; skill em skills/codegraph/. Ferramentas: codegraph_explore, codegraph_node. Valor maior é cross-repo p/ a avaliação da mega plataforma.
 
 ## Estágio: PROJECT
 

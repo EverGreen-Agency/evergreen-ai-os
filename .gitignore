@@ -1,6 +1,9 @@
 node_modules
 .DS_Store
 *.bak
+
+# Índice local do CodeGraph (regenerado por repo; não versionar)
+.codegraph/
 dashboard/node_modules
 dashboard/dist/
 dashboard/.env

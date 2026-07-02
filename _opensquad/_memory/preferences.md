@@ -2,5 +2,5 @@
 
 - **User Name:** Eduardo
 - **Output Language:** Português (Brasil)
-- **IDEs:** antigravity, claude-code
+- **IDEs:** antigravity, claude-code, codex
 - **Date Format:** YYYY-MM-DD
