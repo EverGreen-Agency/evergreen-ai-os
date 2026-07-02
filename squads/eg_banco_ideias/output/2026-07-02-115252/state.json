@@ -1,0 +1,30 @@
+{
+  "squad": "eg_banco_ideias",
+  "status": "completed",
+  "step": {
+    "current": 2,
+    "total": 2,
+    "label": "step_registro"
+  },
+  "agents": [
+    {
+      "id": "curador",
+      "name": "Curador",
+      "icon": "??",
+      "status": "done",
+      "desk": {
+        "col": 1,
+        "row": 1
+      }
+    }
+  ],
+  "handoff": {
+    "from": "curador",
+    "to": "banco_ideias",
+    "message": "Banco de Ideias limpo com estagios, links e arquivamento atualizados.",
+    "completedAt": "2026-07-02T12:15:00-03:00"
+  },
+  "startedAt": "2026-07-02T11:52:52-03:00",
+  "updatedAt": "2026-07-02T12:15:00-03:00",
+  "completedAt": "2026-07-02T12:15:00-03:00"
+}

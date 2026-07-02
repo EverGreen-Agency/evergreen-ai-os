@@ -17,5 +17,7 @@
 - ConexÃµes (`depends_on` / `enables`) sÃ£o o mecanismo anti-redundÃ¢ncia â€” prioridade sobre categoria.
 - Schema em inglÃªs (chaves + valores enum: stage capture/evaluation/processing/project/company; horizon NOW/MEDIUM/LONG/NEW_COMPANY); `title`/`desc`/`source` ficam em PT (conteÃºdo).
 
-## Changelog de Otimizações
-- [2026-06-25] otimização: Atualização do curador para gerar descrições profundas e criar/atualizar documentação em .md (/docs/) para ideias complexas. (evidência: memórias acumuladas de profundidade e uso de /docs/)
+- Em auditorias de conclusao, nao marcar uma ideia como `project` apenas porque ela `enables` outra ideia; verificar o escopo proprio e evidencia real no repo. Ex.: `banco-ideias` continua separado de `hub-chat-dispatcher`, que ainda precisa do campo de chat no dashboard.
+
+## Changelog de Otimiza??es
+- [2026-06-25] otimizaï¿½ï¿½o: Atualizaï¿½ï¿½o do curador para gerar descriï¿½ï¿½es profundas e criar/atualizar documentaï¿½ï¿½o em .md (/docs/) para ideias complexas. (evidï¿½ncia: memï¿½rias acumuladas de profundidade e uso de /docs/)

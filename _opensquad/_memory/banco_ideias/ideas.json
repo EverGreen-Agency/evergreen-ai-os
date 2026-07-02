@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-01",
+  "updated_at": "2026-07-02",
   "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front). Schema v1.1 added optional fields: part_of (umbrella idea id — composition, not a dependency), readiness (free text: external gates that unblock starting — market/team/money/KPIs), clickup (bool: flagged to become a ClickUp card, HITL).",
   "stages": [
     "capture",
@@ -61,7 +61,7 @@
       "id": "business-evaluator",
       "title": "Avaliador de Negócios (mentalidade Musk/Hormozi)",
       "desc": "CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o Guardião (técnico). Duas lentes: PRIMEIROS PRINCÍPIOS (Musk: problema-raiz? deletável? 10x? trava real? MVP) e OFERTA/VALOR (Hormozi: negócio ou custo? equação de valor; monetiza? alavancagem?). Veredito CONSTRUIR/CORTAR/SIMPLIFICAR/ADIAR + a ONE THING, matando scope creep antes da spec. HITL.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -89,7 +89,7 @@
       "id": "guardiao-arquiteto",
       "title": "Arquiteto (autovigilância)",
       "desc": "CONSTRUÍDO (squad eg_arquiteto). IA de autovigilância que audita ideia/projeto INTERNO LENDO O REPO AO VIVO (escaneia squads/, stack.json, .mcp.json, código) — não um inventário congelado. 4 gates: squad / integração / stack / princípios. Consultivo, HITL. O Cartógrafo foi descartado por redundância: o Arquiteto lê o repo direto.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -104,7 +104,7 @@
       "id": "banco-arquitetura",
       "title": "Banco de Arquitetura",
       "desc": "Guarda o PORQUÊ da estrutura — identidade, princípios de engenharia e decisões arquiteturais. NÃO é mais espelho do filesystem: o inventário (squads/stack/integrações) o Arquiteto lê do repo ao vivo. Aba Arquitetura no dashboard mostra o doc + Mapa de Squads ao vivo.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Infra",
       "origin": "internal",
@@ -119,7 +119,7 @@
       "id": "squad-engenharia",
       "title": "Squad de Engenharia (SDD + ADR)",
       "desc": "Projetos de cliente: brief → spec.md (SDD) → ADRs do porquê de cada escolha → scaffold de repo → sub-agentes por task.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -134,7 +134,7 @@
       "id": "banco-stack",
       "title": "Banco de Stack",
       "desc": "Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar). Entrada da Engenharia; ADRs são a saída.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "MEDIUM",
       "category": "Infra",
       "origin": "internal",
@@ -164,7 +164,7 @@
       "id": "codegraph",
       "title": "Adoção do CodeGraph",
       "desc": "ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; este repo indexado (.codegraph/ gitignored); skill em skills/codegraph/. Ferramentas: codegraph_explore, codegraph_node. Consumidor: Gate de Alavancagem do Arquiteto — valor maior é CROSS-REPO (rodar codegraph init nos outros projetos da EG p/ avaliar a mega plataforma contra tudo que já fizemos).",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Infra",
       "origin": "external",
@@ -176,9 +176,24 @@
       "source": "sessão jun/2026 (github.com/colbymchenry/codegraph)"
     },
     {
+      "id": "dispatcher",
+      "title": "Dispatcher / Triagem",
+      "desc": "CONSTRUIDO (squad dispatcher). Roteador reativo que recebe demanda livre, classifica se e tarefa operacional ou capacidade nova, le o cardapio real de squads e encaminha com aprovacao humana antes de disparar. E a base operacional que o futuro hub-chat-dispatcher deve expor no dashboard como campo de chat/comando.",
+      "stage": "project",
+      "horizon": "NOW",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "hub-chat-dispatcher"
+      ],
+      "source": "repo squads/dispatcher + limpeza do banco em 2026-07-02"
+    },
+    {
       "id": "hub-chat-dispatcher",
       "title": "Hub: chat = dispatcher",
-      "desc": "Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno.",
+      "desc": "Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno. NAO CONSTRUIDO ainda: falta o campo de chat/comando no dashboard conectado ao dispatcher.",
       "stage": "capture",
       "horizon": "MEDIUM",
       "category": "Cockpit",
@@ -196,7 +211,7 @@
       "id": "squad-hunter",
       "title": "Squad de Propostas (eg_proposals)",
       "desc": "CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Consolida o antigo squad-propostas (qualificação fit vs. ICP + rascunho de proposta padrão EG). Reativo: você traz a vaga. Renomeado de eg_hunter (criado pelo Gemini).",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -226,7 +241,7 @@
       "id": "auto-melhoria-squads",
       "title": "Auto-melhoria dos Squads (eg_meta)",
       "desc": "CONSTRUÍDO. Squad eg_meta: lê o memories.md + runs de um squad-alvo e PROPÕE diff nos .agent.md dele; aplica só o aprovado (HITL). Fecha o loop: o runner já captura aprendizados; o eg_meta os vira melhoria de prompt.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Feature",
       "origin": "internal",
@@ -267,7 +282,7 @@
       "id": "squad-prospector",
       "title": "Squad Prospector (eg_prospector)",
       "desc": "CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -313,15 +328,18 @@
     {
       "id": "squad-kickoff",
       "title": "Squad Kickoff Técnico",
-      "desc": "Escopo aprovado → árvore de tarefas ClickUp + esqueleto de repo GitHub. Possível overlap com squad-engenharia.",
+      "desc": "Escopo aprovado → árvore de tarefas ClickUp + esqueleto de repo GitHub. Possível overlap com squad-engenharia. Absorvido por squad-engenharia: o escopo de spec, ADR, scaffold e arvore de tarefas passou a morar no squad de Engenharia.",
       "stage": "capture",
       "horizon": "",
       "category": "Squad",
       "origin": "internal",
-      "archived": false,
-      "depends_on": [],
+      "archived": true,
+      "depends_on": [
+        "squad-engenharia"
+      ],
       "enables": [],
-      "source": "Roadmap §2"
+      "source": "Roadmap §2",
+      "part_of": "squad-engenharia"
     },
     {
       "id": "squad-raiox",
@@ -342,7 +360,7 @@
       "id": "squad-criativos",
       "title": "Squad de Criativos (eg_criativos)",
       "desc": "CONSTRUÍDO (squad eg_criativos). Criativos de anúncio pago: briefing/ângulos → roteiros + variações A/B → revisão (política da plataforma + marca EG) → análise de performance (loop criar→medir→melhorar). Plataforma/formato = parâmetro; config atual Meta/vídeo. Materializa esta ideia + a metade de análise de squad-trafego.",
-      "stage": "processing",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Squad",
       "origin": "internal",
@@ -905,7 +923,6 @@
       "depends_on": [],
       "enables": [
         "cockpit-produto",
-        "banco-ideias-visual",
         "idea-detail-edit"
       ],
       "source": "Biblioteca de Referência (/web-artifacts-builder)"
@@ -971,6 +988,25 @@
       ],
       "enables": [],
       "source": "Sessão jun/2026 (Refinamento de Arquitetura)"
+    },
+    {
+      "id": "doc-generator-eg",
+      "title": "Gerador de Documentos EG (PDF/DOCX branded)",
+      "desc": "Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes: propostas, relatórios de cliente, specs/anexos de contrato, one-pagers. Saídas: PDF (via HTML→Chrome headless --print-to-pdf, ou WeasyPrint) e DOCX. Branding parametrizável: perfil EG (musgo/menta/baunilha, Helvetica Neue) por padrão, ou branding do cliente quando o entregável é para a marca dele. Usa a camada de marca do skill-brand-eg (tokens de cor/fonte) — este é o motor de renderização/exportação, não a camada de marca. Resolve a dor de 'cada documento sai com layout/branding diferente'. Origem prática: o entregável do lead Rian (PJe/TRF1) precisou virar PDF único + protótipo, feito à mão; esta skill industrializa isso.",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "skill-brand-eg",
+        "filosofia-visual-eg"
+      ],
+      "enables": [
+        "squad-relatorios",
+        "squad-hunter"
+      ],
+      "source": "sessão jul/2026 (feedback Eduardo — lead Rian/PJe)"
     }
   ]
 }

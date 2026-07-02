@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-07-01",
+  "updated_at": "2026-07-02",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",
@@ -38,9 +38,9 @@
       "name": "Python",
       "quadrant": "languages",
       "ring": "adopt",
-      "note": "Aposta natural para backend de projetos de cliente (APIs, automação, IA). Ainda não no repo; primeiro projeto real valida.",
-      "adr": "",
-      "source": "sessão jun/2026"
+      "note": "Aposta natural para backend de projetos de cliente (APIs, automação, IA). Primeira validação real: projeto Rian/PJe-TRF1 (web app + automação).",
+      "adr": "ADR-0001@rian-pje-trf1",
+      "source": "sessão jun/2026; projeto rian-pje-trf1"
     },
     {
       "id": "markdown-yaml",
@@ -92,9 +92,9 @@
       "name": "FastAPI",
       "quadrant": "frameworks",
       "ring": "adopt",
-      "note": "Candidato a padrão de API Python para projetos de cliente (async, typing, OpenAPI grátis). Avaliar contra alternativas no 1º projeto via ADR.",
-      "adr": "",
-      "source": "sessão jun/2026"
+      "note": "Padrão de API Python para projetos de cliente (async, typing, OpenAPI grátis). Validado no 1º projeto via ADR-0001 (Rian/PJe-TRF1).",
+      "adr": "ADR-0001@rian-pje-trf1",
+      "source": "sessão jun/2026; projeto rian-pje-trf1"
     },
     {
       "id": "nextjs",
@@ -109,10 +109,10 @@
       "id": "playwright",
       "name": "Playwright",
       "quadrant": "tools",
-      "ring": "assess",
-      "note": "Automação de browser com sessão persistente. Base do Sherlock e de coletas. Via MCP.",
-      "adr": "",
-      "source": ".mcp.json"
+      "ring": "trial",
+      "note": "Automação de browser com sessão persistente. Base do Sherlock e de coletas (via MCP). Promovido assess→trial: motor de automação do PJe no projeto Rian/TRF1 (Playwright-Python, certificado A1 como client-cert).",
+      "adr": "ADR-0002@rian-pje-trf1",
+      "source": ".mcp.json; projeto rian-pje-trf1"
     },
     {
       "id": "ws-chokidar",
@@ -239,6 +239,24 @@
       "adr": "",
       "source": "",
       "id": "data-for-seo"
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite",
+      "quadrant": "platforms-infra",
+      "ring": "trial",
+      "note": "Persistência transacional zero-config (arquivo único) para apps pequenos self-hosted. Em validação no projeto Rian/PJe-TRF1 (modelos, estado, checkpoint) atrás de SQLAlchemy, com caminho de migração para Postgres na Fase 2.",
+      "adr": "ADR-0004@rian-pje-trf1",
+      "source": "projeto rian-pje-trf1"
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Banco relacional padrão para quando o projeto exige concorrência/multi-user. Planejado como destino de migração na Fase 2 do projeto Rian (multi-user/permissões). Ainda não usado em produção na casa.",
+      "adr": "",
+      "source": "projeto rian-pje-trf1 (Fase 2)"
     }
   ]
 }

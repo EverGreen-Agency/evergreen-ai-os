@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protocolo PJe · TRF1 — Protótipo EG</title>
+<style>
+  :root{
+    --musgo:#4f5d3f; --musgo2:#69784f; --baunilha:#f5f1e6; --menta:#bcd3bf; --menta-d:#8fb097;
+    --tinta:#242621; --mut:#7d7a70; --linha:#ddd8cb; --card:#fffdf8; --bg:#eef0e7;
+    --ok:#3f7a3f; --go:#b6802a; --er:#b23b3b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--tinta);background:var(--bg);font-size:14px;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  .hidden{display:none!important}
+  /* ---- Login ---- */
+  #login{height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--musgo),#3a4530)}
+  .login-card{background:var(--card);border-radius:14px;padding:38px 34px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .brand{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--musgo2);font-weight:700}
+  .login-card h1{font-size:22px;margin:6px 0 2px;color:var(--musgo)}
+  .login-card p.sub{color:var(--mut);font-size:13px;margin:0 0 22px}
+  /* ---- App shell ---- */
+  #app{display:grid;grid-template-columns:210px 1fr;grid-template-rows:56px 1fr;height:100vh;grid-template-areas:"side top" "side main"}
+  .top{grid-area:top;background:var(--card);border-bottom:1px solid var(--linha);display:flex;align-items:center;padding:0 20px;gap:14px}
+  .top .logo{font-weight:700;color:var(--musgo);letter-spacing:.5px}
+  .top .logo span{color:var(--menta-d)}
+  .badge{background:var(--menta);color:var(--musgo);font-size:11px;font-weight:700;border-radius:20px;padding:3px 10px;letter-spacing:.5px}
+  .top .who{margin-left:auto;color:var(--mut);font-size:13px;display:flex;align-items:center;gap:8px}
+  .top .who .av{width:26px;height:26px;border-radius:50%;background:var(--musgo);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .side{grid-area:side;background:var(--musgo);color:var(--baunilha);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+  .side .app-name{font-size:15px;font-weight:700;padding:6px 10px 16px;line-height:1.25}
+  .side .app-name small{display:block;font-weight:400;opacity:.7;font-size:11px;letter-spacing:.5px}
+  .nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--baunilha);
+    background:transparent;border:0;width:100%;text-align:left;font-size:14px;opacity:.85}
+  .nav:hover{background:rgba(255,255,255,.08);opacity:1}
+  .nav.active{background:var(--baunilha);color:var(--musgo);font-weight:600;opacity:1}
+  .nav .ic{width:16px;text-align:center}
+  .side .foot{margin-top:auto;font-size:11px;opacity:.6;padding:10px}
+  .main{grid-area:main;overflow:auto;padding:26px 30px}
+  .pagettl{display:flex;align-items:center;gap:12px;margin:0 0 6px}
+  .pagettl h2{font-size:21px;margin:0;color:var(--musgo)}
+  .pagettl .hint{color:var(--mut);font-size:13px}
+  /* ---- components ---- */
+  .card{background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 5px;display:block}
+  .inp,.sel{width:100%;height:40px;border:1px solid var(--linha);border-radius:8px;padding:0 12px;background:#fff;font-size:14px;color:var(--tinta)}
+  .sel{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 17px,calc(100% - 11px) 17px;background-size:5px 5px;background-repeat:no-repeat}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .btn{background:var(--musgo);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600}
+  .btn:hover{background:#3f4c32}
+  .btn.g{background:#fff;color:var(--musgo);border:1.5px solid var(--musgo)}
+  .btn.g:hover{background:#f3f5ee}
+  .btn.block{width:100%}
+  .btn.sm{padding:8px 12px;font-size:13px}
+  .rowbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .chips label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linha);border-radius:20px;padding:6px 12px;margin:0 6px 6px 0;font-size:13px;background:#fff;cursor:pointer}
+  .chips input{accent-color:var(--musgo)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--linha)}
+  th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  tr.click:hover{background:#f6f4ec;cursor:pointer}
+  .pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 10px}
+  .pill.ok{background:#e3f0e3;color:var(--ok)} .pill.go{background:#f6ecd6;color:var(--go)}
+  .pill.er{background:#f3dede;color:var(--er)} .pill.mut{background:#eceae2;color:var(--mut)}
+  .steps{display:flex;gap:8px;margin:2px 0 4px}
+  .steps .s{flex:1;text-align:center;font-size:12px;color:var(--mut);padding:8px;border-radius:8px;background:#fff;border:1px solid var(--linha)}
+  .steps .s.on{background:var(--musgo);color:#fff;border-color:var(--musgo);font-weight:600}
+  .steps .s.done{background:var(--menta);color:var(--musgo);border-color:var(--menta)}
+  .drop{border:2px dashed var(--menta-d);border-radius:10px;padding:22px;text-align:center;color:var(--mut);background:#fbfdf9;font-size:13px}
+  .banner{background:#fff7e6;border:1px solid #f0d9a8;color:#8a6d2f;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:14px}
+  .note{color:var(--mut);font-size:12.5px;margin-top:8px}
+  .prog{height:10px;background:#eceae2;border-radius:6px;overflow:hidden;margin:4px 0 2px}
+  .prog>i{display:block;height:100%;background:var(--musgo2)}
+  .stepline{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #f0eee6;font-size:14px}
+  .dot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex:0 0 auto}
+  .dot.ok{background:var(--ok)} .dot.go{background:var(--go)} .dot.mut{background:#cfccC1;color:#fff}
+  .success{display:flex;align-items:center;gap:14px}
+  .success .ck{width:52px;height:52px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px}
+  .kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0eee6;font-size:14px}
+  .kv b{color:var(--musgo)}
+  .protobar{position:fixed;bottom:0;left:0;right:0;background:var(--tinta);color:var(--baunilha);font-size:12px;
+    text-align:center;padding:7px;letter-spacing:.3px;z-index:50;opacity:.94}
+  .protobar b{color:var(--menta)}
+  @media(max-width:720px){#app{grid-template-columns:1fr;grid-template-areas:"top" "main"}.side{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login">
+  <div class="login-card">
+    <div class="brand">EverGreen</div>
+    <h1>Protocolo PJe — TRF1</h1>
+    <p class="sub">Autentique com seu certificado digital A1 para começar.</p>
+    <label class="lbl">Certificado A1 (.pfx)</label>
+    <input class="inp" value="certificado-escritorio.pfx" readonly>
+    <label class="lbl">Senha do certificado</label>
+    <input class="inp" type="password" value="123456">
+    <div style="height:18px"></div>
+    <button class="btn block" onclick="enter()">Autenticar no PJe/TRF1</button>
+    <p class="note" style="text-align:center;margin-top:16px">A1 (arquivo) na Fase 1 · A3 (token) na Fase 2</p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="hidden">
+  <aside class="side">
+    <div class="app-name">Protocolo PJe<small>ESCRITÓRIO · TRF1</small></div>
+    <button class="nav active" data-nav="painel" onclick="go('painel')"><span class="ic">▤</span> Painel</button>
+    <button class="nav" data-nav="novo" onclick="startWizard()"><span class="ic">+</span> Novo Protocolo</button>
+    <button class="nav" data-nav="modelos" onclick="go('modelos')"><span class="ic">▢</span> Modelos</button>
+    <div class="foot">Fase 2: consulta de processos, manifestações e permissões.</div>
+  </aside>
+
+  <header class="top">
+    <div class="logo">Ever<span>Green</span></div>
+    <span class="badge">PROTÓTIPO</span>
+    <div class="who"><span>Rian Palheta</span><span class="av">R</span></div>
+  </header>
+
+  <main class="main">
+
+    <!-- PAINEL -->
+    <section id="s-painel">
+      <div class="pagettl"><h2>Painel</h2><span class="hint">fila de protocolos do escritório</span></div>
+      <div class="rowbtns" style="justify-content:flex-start"><button class="btn" onclick="startWizard()">+ Novo Protocolo</button><button class="btn g" onclick="go('modelos')">Modelos</button></div>
+      <div class="card" style="padding:8px 12px">
+        <table>
+          <tr><th>Apelido</th><th>Tipo de ação</th><th>Autor</th><th>Status</th><th>Data</th></tr>
+          <tr class="click" onclick="viewDone()"><td>Maria-mat.</td><td>Salário-maternidade</td><td>Maria Silva</td><td><span class="pill ok">concluído</span></td><td>02/07</td></tr>
+          <tr class="click" onclick="startWizard()"><td>João-apos.</td><td>Aposentadoria</td><td>João Souza</td><td><span class="pill go">em andamento</span></td><td>02/07</td></tr>
+          <tr class="click" onclick="startWizard()"><td>rasc-003</td><td>—</td><td>—</td><td><span class="pill mut">rascunho</span></td><td>02/07</td></tr>
+          <tr class="click" onclick="startWizard()"><td>Ana-mat.</td><td>Salário-maternidade</td><td>Ana Lima</td><td><span class="pill er">erro</span></td><td>01/07</td></tr>
+        </table>
+      </div>
+      <p class="note">Sessão PJe: <b style="color:var(--ok)">● conectada</b> · clicar numa linha reabre no ponto onde parou.</p>
+    </section>
+
+    <!-- MODELOS -->
+    <section id="s-modelos" class="hidden">
+      <div class="pagettl"><h2>Modelos de auto-preenchimento</h2></div>
+      <div class="rowbtns" style="justify-content:flex-start"><button class="btn sm" onclick="startWizard()">+ Novo modelo</button></div>
+      <div class="card" style="padding:8px 12px">
+        <table>
+          <tr><th>Nome</th><th>Matéria / Assunto</th><th>Campos</th><th>Ações</th></tr>
+          <tr><td>Salário-maternidade</td><td>Previdenciário / Sal.-maternidade</td><td>8</td><td class="mut">editar · duplicar · excluir</td></tr>
+          <tr><td>Aposentadoria por idade</td><td>Previdenciário / Aposentadoria</td><td>9</td><td class="mut">editar · duplicar · excluir</td></tr>
+          <tr><td>BPC / LOAS</td><td>Previdenciário / Assist. social</td><td>7</td><td class="mut">editar · duplicar · excluir</td></tr>
+        </table>
+      </div>
+      <p class="note">Modelo = fotografia dos campos comuns. No protocolo muda só autor, valor da causa e documentos. Criado pela interface, sem código.</p>
+    </section>
+
+    <!-- WIZARD: FORMULÁRIO -->
+    <section id="s-novo" class="hidden">
+      <div class="pagettl"><h2>Novo Protocolo</h2></div>
+      <div class="steps"><div class="s on">1 · Formulário</div><div class="s">2 · Documentos</div><div class="s">3 · Revisão</div><div class="s">4 · Envio</div></div>
+      <div class="card">
+        <label class="lbl">Iniciar de</label>
+        <select class="sel" id="modeloSel"><option>Modelo: Salário-maternidade</option><option>Modelo: Aposentadoria por idade</option><option>Em branco</option></select>
+        <div class="grid3">
+          <div><label class="lbl">Matéria</label>
+            <select class="sel" id="materia" onchange="cascade()"><option>Previdenciário</option><option>Cível</option><option>Criminal</option></select></div>
+          <div><label class="lbl">Jurisdição</label><select class="sel" id="jurisdicao"></select></div>
+          <div><label class="lbl">Classe judicial</label><select class="sel" id="classe"></select></div>
+        </div>
+        <label class="lbl">Assunto</label>
+        <select class="sel" id="assunto"></select>
+        <div class="grid3">
+          <div><label class="lbl">Autor</label><input class="inp" value="Maria Silva"></div>
+          <div><label class="lbl">CPF</label><input class="inp" value="000.000.000-00"></div>
+          <div><label class="lbl">Valor da causa</label><input class="inp" value="R$ 8.400,00"></div>
+        </div>
+        <label class="lbl">Características do processo</label>
+        <div class="chips">
+          <label><input type="checkbox" checked> pessoa física</label>
+          <label><input type="checkbox" checked> justiça gratuita</label>
+          <label><input type="checkbox"> assistência</label>
+          <label><input type="checkbox"> sigilo</label>
+          <label><input type="checkbox"> informação pública</label>
+        </div>
+        <p class="note">Marcar uma característica altera os campos exigidos (lógica dinâmica do PJe).</p>
+        <div class="rowbtns"><button class="btn g" onclick="toast('Modelo salvo (protótipo)')">💾 Salvar como modelo</button><button class="btn" onclick="go('documentos')">Avançar ▸</button></div>
+      </div>
+    </section>
+
+    <!-- WIZARD: DOCUMENTOS -->
+    <section id="s-documentos" class="hidden">
+      <div class="pagettl"><h2>Novo Protocolo · Documentos</h2></div>
+      <div class="steps"><div class="s done">1 · Formulário</div><div class="s on">2 · Documentos</div><div class="s">3 · Revisão</div><div class="s">4 · Envio</div></div>
+      <div class="card">
+        <div class="drop">⬆ Enviar arquivos — arraste os PDFs aqui (petição inicial + comprobatórios)</div>
+        <table style="margin-top:12px">
+          <tr><th>Ordem</th><th>Arquivo</th><th>Tamanho</th><th>Tratamento</th></tr>
+          <tr><td>⠿ 1</td><td>peticao-inicial.pdf</td><td>3,2 MB</td><td><span class="pill ok">OK</span></td></tr>
+          <tr><td>⠿ 2</td><td>procuracao.pdf</td><td>0,8 MB</td><td><span class="pill ok">OK</span></td></tr>
+          <tr><td>⠿ 3</td><td>provas.pdf</td><td>14,1 MB</td><td><span class="pill go">dividido em 2 (&lt;10MB)</span></td></tr>
+          <tr><td>⠿ 4</td><td>laudo.pdf</td><td>—</td><td><span class="pill er">corrompido — barrado</span></td></tr>
+        </table>
+        <div class="banner">⚠ 1 arquivo corrompido foi barrado automaticamente antes do envio. PDFs acima de 10 MB são divididos/comprimidos sozinhos.</div>
+        <div class="rowbtns"><button class="btn g" onclick="go('novo')">◂ Voltar</button><button class="btn" onclick="go('revisao')">Avançar ▸</button></div>
+      </div>
+    </section>
+
+    <!-- WIZARD: REVISÃO -->
+    <section id="s-revisao" class="hidden">
+      <div class="pagettl"><h2>Novo Protocolo · Revisão</h2></div>
+      <div class="steps"><div class="s done">1 · Formulário</div><div class="s done">2 · Documentos</div><div class="s on">3 · Revisão</div><div class="s">4 · Envio</div></div>
+      <div class="card">
+        <label class="lbl">Vai ser enviado ao PJe/TRF1</label>
+        <div class="kv"><span>Classe / Assunto</span><b>Proc. Comum Cível · Salário-maternidade</b></div>
+        <div class="kv"><span>Autor · Valor · Gratuidade</span><b>Maria Silva · R$ 8.400,00 · gratuita</b></div>
+        <div class="kv"><span>Documentos (ordem)</span><b>1 petição · 2 procuração · 3-4 provas</b></div>
+        <label class="lbl" style="margin-top:16px">Modo</label>
+        <div class="chips">
+          <label><input type="radio" name="modo" checked> Simulação (dry-run) — não envia</label>
+          <label><input type="radio" name="modo"> Protocolar de verdade</label>
+        </div>
+        <label class="lbl">Confirme digitando <b style="color:var(--musgo)">PROTOCOLAR</b></label>
+        <input class="inp" placeholder="digite PROTOCOLAR para liberar o envio real">
+        <div class="rowbtns"><button class="btn g" onclick="go('documentos')">◂ Voltar</button><button class="btn" onclick="runProtocol()">Protocolar ▸</button></div>
+      </div>
+    </section>
+
+    <!-- WIZARD: EXECUÇÃO -->
+    <section id="s-execucao" class="hidden">
+      <div class="pagettl"><h2>Protocolando…</h2></div>
+      <div class="steps"><div class="s done">1 · Formulário</div><div class="s done">2 · Documentos</div><div class="s done">3 · Revisão</div><div class="s on">4 · Envio</div></div>
+      <div class="card">
+        <div class="stepline"><span class="dot ok">✓</span> Login / sessão PJe</div>
+        <div class="stepline"><span class="dot ok">✓</span> Preenchimento do formulário</div>
+        <div class="stepline"><span class="dot go">◐</span> Assinatura (certificado A1)</div>
+        <div class="prog"><i id="bar" style="width:60%"></i></div>
+        <div class="stepline"><span class="dot mut">○</span> Anexação dos documentos</div>
+        <div class="stepline"><span class="dot mut">○</span> Envio / geração do comprovante</div>
+        <p class="note">log: assinando documento 2 de 4… · em caso de falha, o botão <b>Retomar</b> continua do ponto (sem duplicar).</p>
+        <div class="rowbtns"><button class="btn" onclick="viewDone()">Ver comprovante ▸</button></div>
+      </div>
+    </section>
+
+    <!-- COMPROVANTE -->
+    <section id="s-comprovante" class="hidden">
+      <div class="pagettl"><h2>Resultado</h2></div>
+      <div class="card">
+        <div class="success"><div class="ck">✓</div><div><b style="font-size:17px;color:var(--musgo)">Protocolo concluído</b><div class="note">gerado pelo PJe/TRF1</div></div></div>
+        <div class="kv" style="margin-top:14px"><span>Nº do processo</span><b>1002xxx-xx.2026.4.01.3100</b></div>
+        <div class="kv"><span>Comprovante</span><b><a href="#" onclick="toast('Download (protótipo)');return false" style="color:var(--musgo2)">⬇ baixar PDF</a> · <a href="#" onclick="toast('Visualizar (protótipo)');return false" style="color:var(--musgo2)">visualizar</a></b></div>
+        <div class="kv"><span>Documentos</span><b>4 anexados (1 dividido automaticamente)</b></div>
+        <div class="kv"><span>Tempo de operação ativa</span><b>2 min 40 s</b></div>
+        <div class="kv"><span>Assinatura</span><b>certificado A1 do escritório</b></div>
+        <div class="rowbtns"><button class="btn g" onclick="toast('Log completo (protótipo)')">Log completo</button><button class="btn" onclick="go('painel')">◂ Voltar ao painel</button></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="protobar">Protótipo navegável EverGreen — <b>sem dados reais, sem integração com o PJe</b>. Serve para validar telas e fluxo da Fase 1.</div>
+<div id="toast" style="position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--musgo);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.3s;z-index:60"></div>
+
+<script>
+  const CASC = {
+    "Previdenciário": {jur:["Seção Judiciária do Amapá","Seção Judiciária do Pará","Seção Judiciária do Amazonas"], cls:["Procedimento Comum Cível","Juizado Especial Federal Cível"], ass:["Salário-maternidade","Aposentadoria por idade","BPC / LOAS","Auxílio-doença"]},
+    "Cível": {jur:["Seção Judiciária do Amapá"], cls:["Procedimento Comum Cível","Execução de Título Extrajudicial"], ass:["Indenização","Obrigação de fazer"]},
+    "Criminal": {jur:["Seção Judiciária do Amapá"], cls:["Ação Penal - Procedimento Ordinário"], ass:["Crimes contra a ordem tributária"]}
+  };
+  function fill(sel,arr){sel.innerHTML=arr.map(o=>`<option>${o}</option>`).join('')}
+  function cascade(){const m=document.getElementById('materia').value;const c=CASC[m];
+    fill(document.getElementById('jurisdicao'),c.jur);fill(document.getElementById('classe'),c.cls);fill(document.getElementById('assunto'),c.ass);}
+  function enter(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');cascade();go('painel');}
+  const SCREENS=['painel','modelos','novo','documentos','revisao','execucao','comprovante'];
+  function go(id){SCREENS.forEach(s=>document.getElementById('s-'+s).classList.add('hidden'));
+    document.getElementById('s-'+id).classList.remove('hidden');
+    document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+    const map={painel:'painel',modelos:'modelos',novo:'novo',documentos:'novo',revisao:'novo',execucao:'novo',comprovante:'painel'};
+    const act=document.querySelector('.nav[data-nav="'+map[id]+'"]');if(act)act.classList.add('active');
+    document.querySelector('.main').scrollTop=0;}
+  function startWizard(){go('novo')}
+  function runProtocol(){go('execucao');let w=60;const bar=document.getElementById('bar');
+    const t=setInterval(()=>{w+=8;if(w>=100){w=100;clearInterval(t)}bar.style.width=w+'%'},220);}
+  function viewDone(){go('comprovante')}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1600);}
+</script>
+</body>
+</html>
