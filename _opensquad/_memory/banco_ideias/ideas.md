@@ -340,6 +340,11 @@ Atualizado em: 2026-07-01
   - Depende de: Nenhuma | Habilita: banco-arquitetura
   - Descrição: ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; repo indexado; skill em skills/codegraph/. Ferramentas: codegraph_explore, codegraph_node. Valor maior é cross-repo p/ a avaliação da mega plataforma.
 
+- **Consciência cross-repo do Arquiteto (eg-scan)** (cross-repo-awareness)
+  - Categoria: Infra | Horizonte: NOW
+  - Depende de: codegraph | Habilita: Nenhuma
+  - Descrição: Arquiteto descobre (org EverGreen-Agency via gh + escaneia Desktop/EG) e consulta todos os projetos sozinho. codegraph POR REPO; skill eg-scan roda a pergunta em todos e resume. Alimenta o Gate de Alavancagem.
+
 ## Estágio: PROJECT
 
 *Nenhuma ideia neste estágio.*

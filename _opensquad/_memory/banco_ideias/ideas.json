@@ -26,6 +26,21 @@
       "source": "sessão jul/2026"
     },
     {
+      "id": "cross-repo-awareness",
+      "title": "Consciência cross-repo do Arquiteto (eg-scan)",
+      "desc": "O Arquiteto descobre e consulta TODOS os projetos da EG sozinho, sem o humano mencionar. Descoberta: org EverGreen-Agency (gh repo list) + escaneia a pasta-raiz local (Desktop/EG) por repos git. Conhecimento de código: codegraph POR REPO (decisão de Eduardo — índice único num monte de node_modules dá merda). Cola: skill eg-scan roda uma pergunta em todos os repos indexados (codegraph explore -p) e devolve resumo combinado. Alimenta o Gate de Alavancagem do Arquiteto ('já construímos X em algum projeto?').",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "codegraph"
+      ],
+      "enables": [],
+      "source": "sessão jul/2026"
+    },
+    {
       "id": "ads-api-skills",
       "title": "Skills de Ads (Meta + Google)",
       "desc": "Skills p/ ligar as APIs de anúncio ao eg_criativos: meta_ads (Marketing API) e google_ads (Google Ads API). Dão 'olhos' ao Analista de Performance (puxar métricas: hook rate, CTR, CPA, ROAS, frequência). Leitura livre; QUALQUER escrita (pausar campanha, mexer verba) é HITL. Tokens por client_id (conta de anúncio do cliente), nunca no .env global. Sem MCP pronto no catálogo → skill script/mcp a construir (Trilho B).",
