@@ -22,3 +22,7 @@ _opensquad/logs/
 # Mantém versionado apenas o molde _template/ e o README da carteira.
 _opensquad/_memory/clients/*/
 !_opensquad/_memory/clients/_template/
+
+# Histórico dos copilots
+.claude-code-history
+.codex-history

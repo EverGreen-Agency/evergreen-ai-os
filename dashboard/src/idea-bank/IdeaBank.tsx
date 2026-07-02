@@ -175,6 +175,7 @@ export function IdeaBank() {
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
           <button
             onClick={() => setShowArchived(!showArchived)}
+            title="Arquivadas = ideias consideradas e descartadas/superadas de propósito (com o motivo), guardadas pra não rediscutir. Não é a lixeira: pra lixo real (duplicata, card de teste), exclua em vez de arquivar."
             style={{ ...styles.filterBtn, borderColor: "var(--border)", color: "var(--text-secondary)" }}
           >
             {showArchived ? "Ocultar arquivadas" : "Ver arquivadas"}
@@ -425,6 +426,9 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
             </button>
             <button
               onClick={() => onArchive(idea)}
+              title={idea.archived
+                ? "Restaurar: traz a ideia de volta pro board ativo."
+                : "Arquivar: cemitério de ideias rejeitadas/superadas conscientemente (com o motivo) — some do board mas fica consultável. Pra lixo real (duplicata/teste), exclua em vez de arquivar."}
               style={{ ...styles.actionBtn, marginLeft: "auto" }}
             >
               {idea.archived ? "Restaurar" : "Arquivar"}

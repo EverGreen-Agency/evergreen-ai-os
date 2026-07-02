@@ -1,7 +1,7 @@
 name: "Arquiteto EG"
 icon: "🛡️"
 version: "1.0"
-description: "Avaliação de ideia/projeto INTERNO (nunca de cliente) em DUAS lentes: NEGÓCIO (Avaliador — deveria existir? é 10x? monetiza?) roda primeiro, depois ESTRUTURA (Guardião/Arquiteto — cabe? reaproveita/integra/assina/constrói?). O Guardião audita LENDO O REPO AO VIVO — escaneia squads/, stack.json, .mcp.json e o código real (não um inventário congelado). Roda 5 gates: squad / integração / stack / princípios / alavancagem (build vs buy vs reuse). Saída é parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). O arquitetura.md guarda só o 'porquê'; o 'o quê' ele lê do código."
+description: "Avaliação de ideia/projeto INTERNO (nunca de cliente) em DUAS lentes: NEGÓCIO (Avaliador — deveria existir? é 10x? monetiza?) roda primeiro, depois ESTRUTURA (Arquiteto — cabe? reaproveita/integra/assina/constrói?). O Arquiteto audita LENDO O REPO AO VIVO — escaneia squads/, stack.json, .mcp.json e o código real (não um inventário congelado). Roda 5 gates: squad / integração / stack / princípios / alavancagem (build vs buy vs reuse). Saída é parecer consultivo — nunca reescreve nada sozinho (Write/Read barrier). O arquitetura.md guarda só o 'porquê'; o 'o quê' ele lê do código."
 
 pipeline:
   - id: step_negocio

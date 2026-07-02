@@ -18,6 +18,8 @@
 - Templates: `templates/spec.template.md`, `templates/adr.template.md`.
 - Write/Read barrier: escrita no ClickUp (Kickoff) é aprovada, não automática.
 - Geração de entregável em **PDF**: markdown → HTML (`python-markdown`, extensões `tables`/`fenced_code`) → **Chrome headless `--print-to-pdf`**. A máquina não tem `pandoc` nem `wkhtmltopdf`. Alternativa in-app: `page.pdf()` do Playwright ou WeasyPrint. Wireframes/PoC navegáveis: **HTML single-file self-contained** (branding EG), hospedável em GitHub Pages/Vercel.
+- **LGPD/residência de dados no design:** ao desenhar projeto com dado sensível/PII, identificar as restrições de **LGPD e residência na própria spec** e escolher hosting **por tier** — backend/DB/credenciais em **região BR**; frontend livre. **Vercel tem região Brasil (gru1)** e Railway tem regiões → *managed ≠ dados fora do BR*. O **kit LGPD** (DPA, política de privacidade, termos, cláusula de transferência internacional) é **entregável** ao cliente (ver ideia `doc-generator-eg`).
+- Nomenclatura: o agente de ADRs chama-se **Decisor Técnico** (`decisor_tecnico`), NÃO "Arquiteto de Decisões" — evita confusão com o squad `eg_arquiteto` (parecer interno). Renomeado em 2026-07-02.
 
 ## Changelog de Otimizações
 

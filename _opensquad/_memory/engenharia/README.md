@@ -5,7 +5,7 @@ Aqui moram os artefatos de **projetos internos da EG** construídos pela Engenha
 Cada projeto interno vira uma pasta `<id>/` (mesmo slug da ideia no Banco de Ideias, em stage `project`) com:
 
 - `spec.md` — o contrato (Especificador)
-- `adr/ADR-XXXX-*.md` — as decisões técnicas com porquê (Arquiteto de Decisões)
+- `adr/ADR-XXXX-*.md` — as decisões técnicas com porquê (Decisor Técnico)
 - `scaffold.md` — esqueleto do repo + árvore de tarefas (Scaffolder)
 
 A decisão que criou esta pasta é a **D6** no Banco de Arquitetura (`_opensquad/_memory/banco_arquitetura/arquitetura.md`).

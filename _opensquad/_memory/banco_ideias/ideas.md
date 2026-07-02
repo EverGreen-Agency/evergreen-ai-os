@@ -1,9 +1,9 @@
 # Banco de Ideias EG
 
-> View gerada a partir de `ideas.json` em 2026-07-02. Fonte da verdade: `ideas.json`. Total: 69 ideias.
+> View gerada a partir de `ideas.json` em 2026-07-02. Fonte da verdade: `ideas.json`. Total: 70 ideias.
 
 
-## Captura (capture) — 53
+## Captura (capture) — 54
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos…
@@ -139,6 +139,8 @@
 - **Gerador de Documentos EG (PDF/DOCX branded)** (`doc-generator-eg`) · Infra · a redefinir · internal
   - Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes:…
   - depends_on: [skill-brand-eg, filosofia-visual-eg] · enables: [squad-relatorios, squad-hunter]
+- **eg-publish (deploy de artefatos: Vercel / GitHub Pages)** (`eg-publish`) · Infra · a redefinir · internal
+  - Skill que publica um artefato estático (protótipo clicável, landing, doc HTML, one-pager) numa URL pública — Vercel (CLI/MCP autenticado) ou GitHub…
 
 ## Processamento (processing) — 3
 

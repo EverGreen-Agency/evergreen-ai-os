@@ -22,5 +22,8 @@ RNF §6: aplicação self-hosted; o Rian já roda **Docker** num servidor em cas
 - **Passa a exigir:** documentação de instalação clara; atenção ao peso da imagem (browsers).
 - **Reversibilidade:** fácil.
 
+## Atualização (2026-07-02)
+Correção de premissa: **Vercel/Railway não implicam necessariamente dados fora do Brasil** — a Vercel oferece região **Brasil (gru1, São Paulo)** e o banco pode ficar em região BR. Logo, o managed é alternativa viável em **residência de dados** (ainda exige DPA + tratar o provedor como subprocessador/operador). A decisão **self-hosted permanece** para a Fase 1 (controle máximo do cliente sobre dado sob sigilo + certificado), mas o **padrão EG (Vercel, região BR)** é a alternativa natural se o Rian preferir managed — com o kit LGPD (DPA/política/termos) como entregável. **Regra de projeto:** identificar restrições de LGPD/residência na spec e escolher hosting **por tier** (backend/dados sensíveis em região BR; frontend livre).
+
 ## Impacto no Banco de Stack
 Nenhum — Docker já é infra-padrão.

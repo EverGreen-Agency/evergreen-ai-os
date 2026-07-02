@@ -28,5 +28,10 @@ Propostas, relatórios e entregáveis da EG (e para clientes) saem **toda hora c
 - Para DOCX, avaliar `python-docx` (programático) vs. template `.docx` com placeholders.
 - Fase 1 sensata: **PDF branded EG a partir de markdown** (cobre proposta/spec/relatório). DOCX e branding-de-cliente entram depois.
 
+## Escopo ampliado (feedback Eduardo, 02/07)
+Além de propostas/relatórios/specs, o motor cobre:
+- **Manuais e guias how-to** para clientes e funcionários — ex.: "como adicionar a BM da EverGreen como parceira dentro da sua Business Manager para gerenciarmos os ads", passo-a-passo de onboarding, tutoriais de acesso. Reduz atrito no setup de cliente e padroniza a comunicação.
+- **Kit jurídico/LGPD** — DPA (acordo de tratamento de dados), política de privacidade, termos de uso e, quando o deploy transita dados fora do Brasil (ex.: Vercel/Railway nos EUA), a **cláusula de transferência internacional** (LGPD art. 33) + base legal/consentimento. Necessidade real: todo projeto que trata dado de cliente precisa desse kit; hoje sai inconsistente. Candidato a virar um sub-conjunto de templates (ou uma ideia irmã `kit-juridico-lgpd` se ganhar corpo próprio).
+
 ## Caminho (Trilho B)
 Registrada no Banco (capture). Próximos saltos, sob HITL: Arquiteto (cabe? reaproveita `skill-brand-eg`?) → se `build`, vira skill formal via Engenharia. Horizonte a redefinir (sugestão MEDIUM — dor ativa e recorrente).

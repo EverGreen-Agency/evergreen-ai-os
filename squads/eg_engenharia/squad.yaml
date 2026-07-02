@@ -10,7 +10,7 @@ pipeline:
     interactive: true
 
   - id: step_decisoes
-    agent: arquiteto_decisor
+    agent: decisor_tecnico
     description: "A partir da spec aprovada, decide a stack consultando o Banco de Stack (só Adopt/Trial sem bandeira; Assess é experimento explícito). Para cada escolha relevante (linguagem, framework, arquitetura, padrão de dados) escreve um ADR: contexto → opções → escolha → consequência. Se promover uma tech Trial→Adopt, atualiza o stack.json. Apresenta os ADRs para aprovação."
     interactive: true
 

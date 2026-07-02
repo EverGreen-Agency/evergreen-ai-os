@@ -992,7 +992,7 @@
     {
       "id": "doc-generator-eg",
       "title": "Gerador de Documentos EG (PDF/DOCX branded)",
-      "desc": "Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes: propostas, relatórios de cliente, specs/anexos de contrato, one-pagers. Saídas: PDF (via HTML→Chrome headless --print-to-pdf, ou WeasyPrint) e DOCX. Branding parametrizável: perfil EG (musgo/menta/baunilha, Helvetica Neue) por padrão, ou branding do cliente quando o entregável é para a marca dele. Usa a camada de marca do skill-brand-eg (tokens de cor/fonte) — este é o motor de renderização/exportação, não a camada de marca. Resolve a dor de 'cada documento sai com layout/branding diferente'. Origem prática: o entregável do lead Rian (PJe/TRF1) precisou virar PDF único + protótipo, feito à mão; esta skill industrializa isso.",
+      "desc": "Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes: propostas, relatórios de cliente, specs/anexos de contrato, one-pagers, manuais e guias how-to (para clientes/funcionários — ex.: 'como adicionar a BM da EG como parceira na sua BM'), e kit jurídico/LGPD (DPA, política de privacidade, termos de uso, cláusula de transferência internacional de dados). Saídas: PDF (via HTML→Chrome headless --print-to-pdf, ou WeasyPrint) e DOCX. Branding parametrizável: perfil EG (musgo/menta/baunilha, Helvetica Neue) por padrão, ou branding do cliente quando o entregável é para a marca dele. Usa a camada de marca do skill-brand-eg (tokens de cor/fonte) — este é o motor de renderização/exportação, não a camada de marca. Resolve a dor de 'cada documento sai com layout/branding diferente'. Origem prática: o entregável do lead Rian (PJe/TRF1) precisou virar PDF único + protótipo, feito à mão; esta skill industrializa isso.",
       "stage": "capture",
       "horizon": "",
       "category": "Infra",
@@ -1007,6 +1007,19 @@
         "squad-hunter"
       ],
       "source": "sessão jul/2026 (feedback Eduardo — lead Rian/PJe)"
+    },
+    {
+      "id": "eg-publish",
+      "title": "eg-publish (deploy de artefatos: Vercel / GitHub Pages)",
+      "desc": "Skill que publica um artefato estático (protótipo clicável, landing, doc HTML, one-pager) numa URL pública — Vercel (CLI/MCP autenticado) ou GitHub Pages (gh) — e devolve o link. Resolve a dor de mandar link de artefato do claude.ai pro cliente (baixa percepção de valor): entrega link em domínio EG (Vercel + subdomínio, ex.: proto-cliente.evergreenmkt.com.br) ou GH Pages. GUARDRAIL CRÍTICO: deploy SEMPRE de uma pasta isolada só com o artefato — NUNCA a raiz do repo (senão vaza squads, memória, dados de cliente). HITL antes de publicar algo com dado sensível/cliente (NDA); URL não indexada por padrão. Diferença Vercel×GH Pages documentada no doc. É o 'last mile' de web-artifacts-builder e doc-generator-eg (o que eles geram, esta skill coloca no ar).",
+      "stage": "capture",
+      "horizon": "",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "source": "sessão jul/2026 (feedback Eduardo — deploy do protótipo Rian)"
     }
   ]
 }
