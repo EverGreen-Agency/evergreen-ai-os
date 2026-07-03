@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-02",
+  "updated_at": "2026-07-03",
   "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front). Schema v1.1 added optional fields: part_of (umbrella idea id — composition, not a dependency), readiness (free text: external gates that unblock starting — market/team/money/KPIs), clickup (bool: flagged to become a ClickUp card, HITL).",
   "stages": [
     "capture",
@@ -824,7 +824,7 @@
       "id": "idea-detail-edit",
       "title": "Editar ideias + ver detalhe / 1 doc por ideia",
       "desc": "No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez de só o JSON. Modal de edição é o caminho v1.",
-      "stage": "capture",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Cockpit",
       "origin": "internal",
