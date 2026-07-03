@@ -10,7 +10,10 @@ Como combinei na nossa call, sentei e transformei tudo o que a gente alinhou num
 
 Segue em anexo (PDF). Dá uma lida com calma e me diz se está batendo com o que você imagina, ou se ajusto alguma coisa.
 
-Tô finalizando também um **protótipo navegável** das telas pra você clicar e visualizar como vai ficar — te mando o link em seguida.
+Também montei um **protótipo navegável** das telas pra você clicar e sentir como vai ficar (login → novo protocolo → documentos → revisão → comprovante):
+👉 https://rian.poc.evergreenmkt.com.br
+
+*(É só protótipo de telas — sem dado real, sem integração com o PJe ainda. Serve pra validar o fluxo.)*
 
 Pra eu fechar o cronograma e os valores certinho, preciso confirmar 3 pontos rápidos com você:
 
