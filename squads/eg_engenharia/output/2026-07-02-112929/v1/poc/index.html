@@ -86,7 +86,18 @@
   .protobar{position:fixed;bottom:0;left:0;right:0;background:var(--tinta);color:var(--baunilha);font-size:12px;
     text-align:center;padding:7px;letter-spacing:.3px;z-index:50;opacity:.94}
   .protobar b{color:var(--menta)}
-  @media(max-width:720px){#app{grid-template-columns:1fr;grid-template-areas:"top" "main"}.side{display:none}}
+  /* segmented toggle (estilo produto, cores EG) */
+  .seg{display:inline-flex;border:1px solid var(--linha);border-radius:8px;overflow:hidden;background:#fff}
+  .seg button{border:0;background:#fff;padding:9px 15px;font-size:13px;color:var(--mut);border-right:1px solid var(--linha)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--musgo);color:#fff;font-weight:600}
+  /* KPIs do painel */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .kpi{background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:14px 16px}
+  .kpi .k{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+  .kpi .v{font-size:25px;color:var(--musgo);font-weight:700;margin-top:4px}
+  .kpi .d{font-size:12px;color:var(--mut);margin-top:2px}
+  @media(max-width:720px){#app{grid-template-columns:1fr;grid-template-areas:"top" "main"}.side{display:none}.kpis{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -128,7 +139,13 @@
     <!-- PAINEL -->
     <section id="s-painel">
       <div class="pagettl"><h2>Painel</h2><span class="hint">fila de protocolos do escritório</span></div>
-      <div class="rowbtns" style="justify-content:flex-start"><button class="btn" onclick="startWizard()">+ Novo Protocolo</button><button class="btn g" onclick="go('modelos')">Modelos</button></div>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Protocolados hoje</div><div class="v">6</div><div class="d">meta diária: 8</div></div>
+        <div class="kpi"><div class="k">Em andamento</div><div class="v">2</div><div class="d">1 aguardando assinatura</div></div>
+        <div class="kpi"><div class="k">Taxa de sucesso</div><div class="v">96%</div><div class="d">últimos 30 dias</div></div>
+        <div class="kpi"><div class="k">Tempo médio</div><div class="v">2m40s</div><div class="d">operação ativa/protocolo</div></div>
+      </div>
+      <div class="rowbtns" style="justify-content:flex-start;margin-top:16px"><button class="btn" onclick="startWizard()">+ Novo Protocolo</button><button class="btn g" onclick="go('modelos')">Modelos</button></div>
       <div class="card" style="padding:8px 12px">
         <table>
           <tr><th>Apelido</th><th>Tipo de ação</th><th>Autor</th><th>Status</th><th>Data</th></tr>
@@ -176,15 +193,22 @@
           <div><label class="lbl">CPF</label><input class="inp" value="000.000.000-00"></div>
           <div><label class="lbl">Valor da causa</label><input class="inp" value="R$ 8.400,00"></div>
         </div>
+        <div class="grid3">
+          <div><label class="lbl">Prioridade de tramitação</label>
+            <select class="sel"><option>Normal</option><option>Idoso (60+)</option><option>Doença grave</option><option>Gestante</option></select></div>
+          <div><label class="lbl">Justiça gratuita</label>
+            <div class="seg"><button type="button" class="on" onclick="seg(this)">Sim</button><button type="button" onclick="seg(this)">Não</button><button type="button" onclick="seg(this)">Custas a recolher</button></div></div>
+          <div><label class="lbl">Tutela de urgência</label>
+            <div class="seg"><button type="button" onclick="seg(this)">Sim</button><button type="button" class="on" onclick="seg(this)">Não</button></div></div>
+        </div>
         <label class="lbl">Características do processo</label>
         <div class="chips">
           <label><input type="checkbox" checked> pessoa física</label>
-          <label><input type="checkbox" checked> justiça gratuita</label>
-          <label><input type="checkbox"> assistência</label>
-          <label><input type="checkbox"> sigilo</label>
-          <label><input type="checkbox"> informação pública</label>
+          <label><input type="checkbox"> assistência judiciária</label>
+          <label><input type="checkbox"> sigilo / segredo de justiça</label>
+          <label><input type="checkbox"> réu preso</label>
         </div>
-        <p class="note">Marcar uma característica altera os campos exigidos (lógica dinâmica do PJe).</p>
+        <p class="note">Prioridade, gratuidade e características alteram os campos exigidos (lógica dinâmica encadeada do PJe).</p>
         <div class="rowbtns"><button class="btn g" onclick="toast('Modelo salvo (protótipo)')">💾 Salvar como modelo</button><button class="btn" onclick="go('documentos')">Avançar ▸</button></div>
       </div>
     </section>
@@ -194,15 +218,15 @@
       <div class="pagettl"><h2>Novo Protocolo · Documentos</h2></div>
       <div class="steps"><div class="s done">1 · Formulário</div><div class="s on">2 · Documentos</div><div class="s">3 · Revisão</div><div class="s">4 · Envio</div></div>
       <div class="card">
-        <div class="drop">⬆ Enviar arquivos — arraste os PDFs aqui (petição inicial + comprobatórios)</div>
+        <div class="drop">⬆ Enviar arquivos — arraste ou selecione os PDFs do seu computador (upload manual)</div>
         <table style="margin-top:12px">
-          <tr><th>Ordem</th><th>Arquivo</th><th>Tamanho</th><th>Tratamento</th></tr>
-          <tr><td>⠿ 1</td><td>peticao-inicial.pdf</td><td>3,2 MB</td><td><span class="pill ok">OK</span></td></tr>
-          <tr><td>⠿ 2</td><td>procuracao.pdf</td><td>0,8 MB</td><td><span class="pill ok">OK</span></td></tr>
-          <tr><td>⠿ 3</td><td>provas.pdf</td><td>14,1 MB</td><td><span class="pill go">dividido em 2 (&lt;10MB)</span></td></tr>
-          <tr><td>⠿ 4</td><td>laudo.pdf</td><td>—</td><td><span class="pill er">corrompido — barrado</span></td></tr>
+          <tr><th>Ordem</th><th>Arquivo</th><th>Tipo (você classifica)</th><th>Tamanho</th><th>Tratamento do PDF</th></tr>
+          <tr><td>⠿ 1</td><td>peticao-inicial.pdf</td><td><select class="sel" style="height:34px;background-position:calc(100% - 14px) 14px,calc(100% - 9px) 14px"><option>Petição inicial</option><option>Procuração</option><option>Documentos pessoais</option><option>Comprovante</option><option>Outros</option></select></td><td>3,2 MB</td><td><span class="pill ok">OK</span></td></tr>
+          <tr><td>⠿ 2</td><td>procuracao.pdf</td><td><select class="sel" style="height:34px;background-position:calc(100% - 14px) 14px,calc(100% - 9px) 14px"><option>Procuração</option><option>Petição inicial</option><option>Documentos pessoais</option><option>Comprovante</option><option>Outros</option></select></td><td>0,8 MB</td><td><span class="pill ok">OK</span></td></tr>
+          <tr><td>⠿ 3</td><td>provas.pdf</td><td><select class="sel" style="height:34px;background-position:calc(100% - 14px) 14px,calc(100% - 9px) 14px"><option>Comprovante</option><option>Petição inicial</option><option>Procuração</option><option>Documentos pessoais</option><option>Outros</option></select></td><td>14,1 MB</td><td><span class="pill go">dividido em 2 (&lt;10MB)</span></td></tr>
+          <tr><td>⠿ 4</td><td>laudo.pdf</td><td class="mut">—</td><td>—</td><td><span class="pill er">corrompido — barrado</span></td></tr>
         </table>
-        <div class="banner">⚠ 1 arquivo corrompido foi barrado automaticamente antes do envio. PDFs acima de 10 MB são divididos/comprimidos sozinhos.</div>
+        <div class="banner">Classificação e ordem <b>manuais</b> — você escolhe o tipo de cada anexo e arrasta para ordenar (como no LegalMail). O sistema só cuida do <b>tratamento técnico do PDF</b>: valida, divide/comprime acima de 10&nbsp;MB e barra corrompidos. <b>Sem OCR e sem leitura automática</b>, como combinado para esta fase.</div>
         <div class="rowbtns"><button class="btn g" onclick="go('novo')">◂ Voltar</button><button class="btn" onclick="go('revisao')">Avançar ▸</button></div>
       </div>
     </section>
@@ -285,6 +309,7 @@
     const t=setInterval(()=>{w+=8;if(w>=100){w=100;clearInterval(t)}bar.style.width=w+'%'},220);}
   function viewDone(){go('comprovante')}
   function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1600);}
+  function seg(btn){btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
 </script>
 </body>
 </html>

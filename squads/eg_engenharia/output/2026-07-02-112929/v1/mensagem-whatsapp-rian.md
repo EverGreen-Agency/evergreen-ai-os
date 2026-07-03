@@ -1,28 +1,28 @@
-# Mensagem WhatsApp — Rian
+# Mensagem WhatsApp — Rian (retorno pós-feedback dele)
 
-**Anexar:** `Entregavel-PJe-TRF1-Fase1.pdf` (o documento de especificação Fase 1).
+**Link atualizado:** https://rian.poc.evergreenmkt.com.br (protótipo já afinado)
 
 ---
 
-Oi, Rian! Tudo certo? 👋
+Rian, muito bom o teu protótipo! 👏 Rodei ele inteiro aqui. Gostei bastante do teu **"modelo de formulário"** (a tela de Dados do protocolo) — já **incorporei essa pegada no nosso**, com os campos que você usou: **prioridade de tramitação, tutela de urgência e justiça gratuita** (Sim / Não / Custas a recolher).
 
-Como combinei na nossa call, sentei e transformei tudo o que a gente alinhou num **documento de especificação da Fase 1** — o que a ferramenta vai fazer, as regras, as telas e a arquitetura. Ele serve de anexo do contrato pra a gente não ter divergência depois.
+E totalmente alinhado com o que você falou: por agora **cortamos a parte de IA** (classificação automática de documentos, OCR e busca em pasta no computador). Fica **anexo e classificação manuais**, com **upload normal** dos arquivos — igual ao LegalMail. Isso simplifica e acelera a entrega; a parte de IA fica mapeada pra uma fase futura, quando fizer sentido.
 
-Segue em anexo (PDF). Dá uma lida com calma e me diz se está batendo com o que você imagina, ou se ajusto alguma coisa.
-
-Também montei um **protótipo navegável** das telas pra você clicar e sentir como vai ficar (login → novo protocolo → documentos → revisão → comprovante):
+Já **afinei o protótipo** com essas melhorias — dá uma olhada no mesmo link (entra em "Novo Protocolo" → "Documentos"):
 👉 https://rian.poc.evergreenmkt.com.br
 
-*(É só protótipo de telas — sem dado real, sem integração com o PJe ainda. Serve pra validar o fluxo.)*
+*(Continua sendo protótipo de telas — sem dado real e sem integração com o PJe. É pra validar o fluxo.)*
 
-Pra eu fechar o cronograma e os valores certinho, preciso confirmar 3 pontos rápidos com você:
+E confirmando o resto do que você me passou:
+✅ **Certificado A1** — perfeito, começamos com ele (o A3/token entra numa fase seguinte).
+✅ **Roda no teu homelab** — fechado; quando o projeto crescer, a gente avalia nuvem (dá pra manter tudo em região Brasil, sem problema de LGPD).
 
-1️⃣ **Certificado:** a gente começa só com o **A1 (arquivo .pfx)**? O A3 (token) fica pra fase 2, porque num servidor ele fica inviável.
-2️⃣ **Onde roda:** confirma que a ferramenta fica no **seu servidor** (aquele que você roda com Docker)?
-3️⃣ **Pra testar de verdade:** você consegue me passar **1 caso real anonimizado de salário-maternidade** (petição + documentos) e acesso ao **ambiente de teste do PJe**?
+**Um favor importante:** quando puder, dá uma olhada no **documento de especificação** que te mandei (o PDF)? É ele que trava escopo, prazo e valor — preciso do teu **"ok"** (ou dos ajustes) pra eu fechar a proposta. Assim que você validar, já te mando o orçamento com cronograma. 🙏
 
-Assim que você validar o documento, já te encaminho a proposta com prazo e investimento. Qualquer dúvida, é só me chamar aqui. Abraço! 🌱
+Pra fechar, ainda preciso de 2 coisas quando der: **1 caso real anonimizado** de salário-maternidade (petição + documentos) e acesso ao **ambiente de teste do PJe**. (O NDA a gente assina antes de você me passar qualquer acesso.)
+
+Abraço! 🌱
 
 ---
 
-*Obs.: se preferir, mando também por e-mail. E o NDA a gente assina antes de você me passar qualquer acesso/credencial.*
+*Notas de escopo confirmadas nesta rodada (registrar na spec v2): A1-only Fase 1 · homelab self-hosted · classificação e anexo MANUAIS (sem OCR/IA/busca-em-pasta) · upload normal de documentos · tratamento técnico de PDF (dividir >10MB, barrar corrompido) mantido.*
