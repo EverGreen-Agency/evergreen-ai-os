@@ -8,8 +8,10 @@ Rian, muito bom o teu protótipo! 👏 Rodei ele inteiro aqui. Gostei bastante d
 
 E totalmente alinhado com o que você falou: por agora **cortamos a parte de IA** (classificação automática de documentos, OCR e busca em pasta no computador). Fica **anexo e classificação manuais**, com **upload normal** dos arquivos — igual ao LegalMail. Isso simplifica e acelera a entrega; a parte de IA fica mapeada pra uma fase futura, quando fizer sentido.
 
-Já **afinei o protótipo** com essas melhorias — dá uma olhada no mesmo link (entra em "Novo Protocolo" → "Documentos"):
+Já **afinei e enriqueci o protótipo** com essas melhorias — dá uma navegada com calma no mesmo link (o **Painel** com a fila ao vivo, o **Novo Protocolo** → **Documentos**, o **Histórico**):
 👉 https://rian.poc.evergreenmkt.com.br
+
+*(Dica: se tiver visto antes e parecer igual, dá um Ctrl+Shift+R pra atualizar — é cache do navegador.)*
 
 *(Continua sendo protótipo de telas — sem dado real e sem integração com o PJe. É pra validar o fluxo.)*
 
