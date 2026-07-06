@@ -24,6 +24,7 @@ const CAT_COLOR: Record<string, string> = {
   Service:    "#a855f7",
   Infra:      "#8888a0",
   Commercial: "#ff5252",
+  Platform:   "#3ac97b",
 };
 
 // Category descriptions — tooltip on badges and filters (PT, shown on the front).
@@ -34,6 +35,7 @@ const CAT_DESC: Record<string, string> = {
   Service:    "Oferta vendável ao cliente — um entregável comercial (ex: Auditoria AI-First).",
   Infra:      "Fundação técnica que outros usam (vector store, MCP, bancos de conhecimento).",
   Commercial: "Estratégia de posicionamento, precificação ou venda (ex: AI-CMO, Dogfooding).",
+  Platform:   "Mega-plataforma EG e seus módulos — o guarda-chuva e as camadas do sistema (multitenant, client-hub, financeiro...).",
 };
 
 const CATEGORIES = Object.keys(CAT_COLOR);
@@ -297,6 +299,9 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
   const dependsOn = idea.depends_on.map((id) => ideas.find((i) => i.id === id)?.title ?? id);
   const enables = idea.enables.map((id) => ideas.find((i) => i.id === id)?.title ?? id);
   const horizon = HORIZON_META[idea.horizon];
+  const parent = idea.part_of ? (ideas.find((i) => i.id === idea.part_of)?.title ?? idea.part_of) : null;
+  const parentShort = parent ? (parent.length > 20 ? parent.slice(0, 18) + "…" : parent) : null;
+  const childrenCount = ideas.filter((i) => i.part_of === idea.id && !i.archived).length;
 
   return (
     <div
@@ -375,6 +380,16 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
             → {idea.enables.length}
           </span>
         )}
+        {parent && (
+          <span style={{ ...styles.badge, color: "var(--text-secondary)" }} title={`Faz parte de: ${parent}`}>
+            ⊂ {parentShort}
+          </span>
+        )}
+        {childrenCount > 0 && (
+          <span style={{ ...styles.badge, color: "#3ac97b", background: "#3ac97b18" }} title={`Contém ${childrenCount} módulo(s)/ideia(s)`}>
+            ⊃ {childrenCount}
+          </span>
+        )}
       </div>
 
       {/* Expanded: connections + actions */}
@@ -390,6 +405,24 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
             <div style={styles.connectionRow}>
               <span style={{ color: "var(--text-secondary)" }}>→ habilita: </span>
               {enables.join(", ")}
+            </div>
+          )}
+          {parent && (
+            <div style={styles.connectionRow}>
+              <span style={{ color: "var(--text-secondary)" }}>⊂ faz parte de: </span>
+              {parent}
+            </div>
+          )}
+          {childrenCount > 0 && (
+            <div style={styles.connectionRow}>
+              <span style={{ color: "#3ac97b" }}>⊃ contém: </span>
+              {childrenCount} módulo(s)/ideia(s)
+            </div>
+          )}
+          {idea.readiness && (
+            <div style={styles.connectionRow}>
+              <span style={{ color: "var(--text-secondary)" }}>prontidão: </span>
+              {idea.readiness}
             </div>
           )}
           {idea.source && (
@@ -476,7 +509,7 @@ function IdeaEditForm({ idea, onSave, onCancel }: { idea: Idea; onSave: (i: Idea
           onChange={(e) => field("category", e.target.value as Category)}
           style={styles.editSelect}
         >
-          {(["Squad","Cockpit","Feature","Service","Infra","Commercial"] as Category[]).map((c) => (
+          {(["Squad","Cockpit","Feature","Service","Infra","Commercial","Platform"] as Category[]).map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
@@ -514,6 +547,20 @@ function IdeaEditForm({ idea, onSave, onCancel }: { idea: Idea; onSave: (i: Idea
           title="IDs das ideias que esta ideia desbloqueia"
         />
       </div>
+      <input
+        value={draft.part_of ?? ""}
+        onChange={(e) => setDraft((d) => ({ ...d, part_of: e.target.value.trim() || undefined }))}
+        placeholder="Faz parte de (ID do módulo/umbrella — part_of)"
+        style={{ ...styles.editInput, fontSize: 10 }}
+        title="ID da ideia guarda-chuva/módulo que esta compõe (part_of)"
+      />
+      <textarea
+        value={draft.readiness ?? ""}
+        onChange={(e) => setDraft((d) => ({ ...d, readiness: e.target.value || undefined }))}
+        placeholder="Prontidão / portões externos p/ começar (mercado, equipe, dinheiro)"
+        rows={2}
+        style={{ ...styles.editInput, resize: "vertical", fontSize: 10 }}
+      />
       <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
         <button
           type="button"
