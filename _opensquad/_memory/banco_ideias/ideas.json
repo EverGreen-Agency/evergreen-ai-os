@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-03",
-  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT (business content shown on the front). Schema v1.1 added optional fields: part_of (umbrella idea id — composition, not a dependency), readiness (free text: external gates that unblock starting — market/team/money/KPIs), clickup (bool: flagged to become a ClickUp card, HITL).",
+  "updated_at": "2026-07-06",
+  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-06: added umbrella 'mega-plataforma' and module map; categories normalized to the v1.1 enum (no custom 'Platform' category). Commercial doctrines are marked as principles/integrations, not as software modules.",
   "stages": [
     "capture",
     "evaluation",
@@ -23,7 +23,10 @@
       "enables": [
         "banco-stack"
       ],
-      "source": "sessão jul/2026"
+      "source": "sessão jul/2026",
+      "part_of": "mod-radar-pesquisa",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "cross-repo-awareness",
@@ -38,7 +41,10 @@
         "codegraph"
       ],
       "enables": [],
-      "source": "sessão jul/2026"
+      "source": "sessão jul/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "ads-api-skills",
@@ -55,7 +61,10 @@
       "enables": [
         "squad-trafego"
       ],
-      "source": "sessão jul/2026"
+      "source": "sessão jul/2026",
+      "part_of": "mod-entrega-mkt",
+      "readiness": "OAuth Meta/Google; tokens por client_id; validar response no Postman antes.",
+      "clickup": false
     },
     {
       "id": "business-evaluator",
@@ -68,7 +77,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "sessão jul/2026"
+      "source": "sessão jul/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "banco-ideias",
@@ -83,7 +95,10 @@
       "enables": [
         "hub-chat-dispatcher"
       ],
-      "source": "sessão jun/2026 + Roadmap §5.13"
+      "source": "sessão jun/2026 + Roadmap §5.13",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "guardiao-arquiteto",
@@ -98,7 +113,10 @@
         "banco-arquitetura"
       ],
       "enables": [],
-      "source": "sessão jun/2026 + Biblioteca §7 (ai-firstify)"
+      "source": "sessão jun/2026 + Biblioteca §7 (ai-firstify)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "banco-arquitetura",
@@ -113,7 +131,10 @@
       "enables": [
         "guardiao-arquiteto"
       ],
-      "source": "sessão jun/2026"
+      "source": "sessão jun/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-engenharia",
@@ -128,7 +149,10 @@
         "banco-stack"
       ],
       "enables": [],
-      "source": "sessão jun/2026 + Roadmap §2 (Kickoff Técnico)"
+      "source": "sessão jun/2026 + Roadmap §2 (Kickoff Técnico)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": "Motor de entrega de projeto de cliente — vira gargalo de escala se o white-label crescer.",
+      "clickup": false
     },
     {
       "id": "banco-stack",
@@ -143,7 +167,10 @@
       "enables": [
         "squad-engenharia"
       ],
-      "source": "sessão jun/2026"
+      "source": "sessão jun/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "carteira-clientes",
@@ -158,7 +185,10 @@
         "squad-onboarding"
       ],
       "enables": [],
-      "source": "sessão jun/2026 + Roadmap §5.14"
+      "source": "sessão jun/2026 + Roadmap §5.14",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "codegraph",
@@ -173,7 +203,10 @@
       "enables": [
         "banco-arquitetura"
       ],
-      "source": "sessão jun/2026 (github.com/colbymchenry/codegraph)"
+      "source": "sessão jun/2026 (github.com/colbymchenry/codegraph)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "dispatcher",
@@ -188,7 +221,10 @@
       "enables": [
         "hub-chat-dispatcher"
       ],
-      "source": "repo squads/dispatcher + limpeza do banco em 2026-07-02"
+      "source": "repo squads/dispatcher + limpeza do banco em 2026-07-02",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "hub-chat-dispatcher",
@@ -205,7 +241,10 @@
       "enables": [
         "tag-ativacao"
       ],
-      "source": "sessão jun/2026"
+      "source": "sessão jun/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-hunter",
@@ -220,7 +259,10 @@
       "enables": [
         "multi-plataforma-freelance"
       ],
-      "source": "sessão Gemini jun/2026 + sessão jun/2026"
+      "source": "sessão Gemini jun/2026 + sessão jun/2026",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "tag-ativacao",
@@ -235,7 +277,10 @@
         "hub-chat-dispatcher"
       ],
       "enables": [],
-      "source": "sessão jun/2026"
+      "source": "sessão jun/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "auto-melhoria-squads",
@@ -248,7 +293,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "sessão jun/2026"
+      "source": "sessão jun/2026",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "multi-plataforma-freelance",
@@ -263,7 +311,10 @@
         "squad-hunter"
       ],
       "enables": [],
-      "source": "sessão Gemini jun/2026"
+      "source": "sessão Gemini jun/2026",
+      "part_of": "mod-comercial",
+      "readiness": "Maioria das plataformas sem API / bloqueia scraper → MVP semi-manual.",
+      "clickup": false
     },
     {
       "id": "squad-reunioes",
@@ -276,7 +327,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §2"
+      "source": "Roadmap §2",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-prospector",
@@ -291,7 +345,10 @@
       "enables": [
         "icebreaker"
       ],
-      "source": "Roadmap §2 + sessão jun/2026"
+      "source": "Roadmap §2 + sessão jun/2026",
+      "part_of": "mod-comercial",
+      "readiness": "Depende de créditos de MCP (Apollo/Lusha/Clay/Vibe).",
+      "clickup": false
     },
     {
       "id": "squad-relatorios",
@@ -308,7 +365,10 @@
       "enables": [
         "squad-raiox"
       ],
-      "source": "Roadmap §2"
+      "source": "Roadmap §2",
+      "part_of": "mod-entrega-mkt",
+      "readiness": "Depende de vector-store e das APIs de dados.",
+      "clickup": false
     },
     {
       "id": "squad-onboarding",
@@ -323,7 +383,10 @@
       "enables": [
         "carteira-clientes"
       ],
-      "source": "Roadmap §2 + squad eg_setup"
+      "source": "Roadmap §2 + squad eg_setup",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-kickoff",
@@ -339,7 +402,9 @@
       ],
       "enables": [],
       "source": "Roadmap §2",
-      "part_of": "squad-engenharia"
+      "part_of": "squad-engenharia",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-raiox",
@@ -354,7 +419,10 @@
         "squad-relatorios"
       ],
       "enables": [],
-      "source": "Roadmap §2"
+      "source": "Roadmap §2",
+      "part_of": "client-hub",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-criativos",
@@ -367,7 +435,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §2 (LONGO)"
+      "source": "Roadmap §2 (LONGO)",
+      "part_of": "mod-entrega-mkt",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-trafego",
@@ -380,7 +451,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §2 (LONGO)"
+      "source": "Roadmap §2 (LONGO)",
+      "part_of": "mod-entrega-mkt",
+      "readiness": "Write/Read barrier em verba — nunca autônomo.",
+      "clickup": false
     },
     {
       "id": "squad-seo-geo",
@@ -393,7 +467,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §2 (LONGO)"
+      "source": "Roadmap §2 (LONGO)",
+      "part_of": "mod-entrega-mkt",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "squad-voz-cliente",
@@ -408,7 +485,10 @@
       "enables": [
         "dossie-provas"
       ],
-      "source": "Roadmap §7.1"
+      "source": "Roadmap §7.1",
+      "part_of": "mod-conhecimento",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "log-audio-wpp",
@@ -421,7 +501,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §3.1"
+      "source": "Roadmap §3.1",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "sla-watchdog",
@@ -434,7 +517,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §3.2"
+      "source": "Roadmap §3.2",
+      "part_of": "client-hub",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "dossie-provas",
@@ -449,7 +535,10 @@
       "enables": [
         "vector-store"
       ],
-      "source": "Roadmap §3.4"
+      "source": "Roadmap §3.4",
+      "part_of": "mod-conhecimento",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "health-score",
@@ -464,7 +553,10 @@
         "dossie-provas"
       ],
       "enables": [],
-      "source": "Roadmap §3.5"
+      "source": "Roadmap §3.5",
+      "part_of": "client-hub",
+      "readiness": "Depende de dados (dossie-provas / GA4/Ads).",
+      "clickup": false
     },
     {
       "id": "icebreaker",
@@ -479,7 +571,10 @@
         "squad-prospector"
       ],
       "enables": [],
-      "source": "Roadmap §3.6"
+      "source": "Roadmap §3.6",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "segundo-cerebro",
@@ -494,7 +589,10 @@
         "vector-store"
       ],
       "enables": [],
-      "source": "Roadmap §3.8"
+      "source": "Roadmap §3.8",
+      "part_of": "mod-conhecimento",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "vector-store",
@@ -509,7 +607,10 @@
       "enables": [
         "segundo-cerebro"
       ],
-      "source": "Roadmap §4"
+      "source": "Roadmap §4",
+      "part_of": "mod-conhecimento",
+      "readiness": "Infra pgvector — custo e hospedagem.",
+      "clickup": false
     },
     {
       "id": "context-decay",
@@ -524,7 +625,10 @@
         "vector-store"
       ],
       "enables": [],
-      "source": "Roadmap §4"
+      "source": "Roadmap §4",
+      "part_of": "mod-conhecimento",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "llm-agnostic",
@@ -537,7 +641,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §4"
+      "source": "Roadmap §4",
+      "part_of": "mod-nucleo",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "client-config-auto",
@@ -554,7 +661,10 @@
       "enables": [
         "carteira-clientes"
       ],
-      "source": "Roadmap §4"
+      "source": "Roadmap §4",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "pesquisa-academica",
@@ -567,7 +677,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.1"
+      "source": "Roadmap §5.1",
+      "part_of": "mod-radar-pesquisa",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "ensemble-juiz",
@@ -580,7 +693,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.2"
+      "source": "Roadmap §5.2",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "forward-deployed",
@@ -593,7 +709,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.3"
+      "source": "Roadmap §5.3",
+      "part_of": null,
+      "readiness": "Classificação: SEPARAR/NEW_COMPANY. Exige operação de privacidade severa, implantação dedicada e outra proposta comercial.",
+      "clickup": false
     },
     {
       "id": "cockpit-produto",
@@ -606,7 +725,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.4"
+      "source": "Roadmap §5.4",
+      "part_of": "mod-saas-billing",
+      "readiness": "Ponte cockpit->produto; alinhado a 'produto amplo já'. Dogfood antes de vender.",
+      "clickup": false
     },
     {
       "id": "precificacao-valor",
@@ -619,7 +741,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.5"
+      "source": "Roadmap §5.5",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como princípio comercial da plataforma e das ofertas, não como módulo de software.",
+      "clickup": false
     },
     {
       "id": "service-as-software",
@@ -632,7 +757,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.6"
+      "source": "Roadmap §5.6",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como tese de go-to-market: tecnologia nos bastidores, valor percebido como crescimento e operação premium.",
+      "clickup": false
     },
     {
       "id": "ai-cmo-mrr",
@@ -645,7 +773,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.7"
+      "source": "Roadmap §5.7",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como argumento de retenção/MRR, ligado ao client-hub e ao modelo de billing.",
+      "clickup": false
     },
     {
       "id": "dogfooding",
@@ -658,7 +789,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.8"
+      "source": "Roadmap §5.8",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como gate obrigatório: uso interno antes de vender como produto/white-label.",
+      "clickup": false
     },
     {
       "id": "fabrica-back-front",
@@ -671,7 +805,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.9"
+      "source": "Roadmap §5.9",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como princípio operacional: IA no backoffice; humano em julgamento, relacionamento e fechamento.",
+      "clickup": false
     },
     {
       "id": "change-management",
@@ -684,7 +821,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.10 (skill /learn)"
+      "source": "Roadmap §5.10 (skill /learn)",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR ao onboarding/sucesso do cliente; reduz churn e sabotagem operacional.",
+      "clickup": false
     },
     {
       "id": "vibe-building",
@@ -697,7 +837,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.11"
+      "source": "Roadmap §5.11",
+      "part_of": "mod-nucleo",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "auditoria-ai-first",
@@ -710,7 +853,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.12"
+      "source": "Roadmap §5.12",
+      "part_of": "mod-comercial",
+      "readiness": "É oferta high-ticket (ai-firstify); depende de playbook de auditoria.",
+      "clickup": false
     },
     {
       "id": "prospec-wpp-evolution",
@@ -723,7 +869,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.15 (Kelvin)"
+      "source": "Roadmap §5.15 (Kelvin)",
+      "part_of": "mod-comunicacao-wpp",
+      "readiness": "Chip fleet aquecido; API não-oficial; risco de ban.",
+      "clickup": false
     },
     {
       "id": "voip-qualificacao",
@@ -736,7 +885,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.16"
+      "source": "Roadmap §5.16",
+      "part_of": "mod-comunicacao-wpp",
+      "readiness": "Custo ElevenLabs+Twilio.",
+      "clickup": false
     },
     {
       "id": "ia-adapta-cliente",
@@ -749,7 +901,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.17"
+      "source": "Roadmap §5.17",
+      "part_of": null,
+      "readiness": "Classificação: INTEGRAR como princípio arquitetural/comercial: adaptar ao legado do cliente via API, não exigir substituição brusca.",
+      "clickup": false
     },
     {
       "id": "stack-memoria-zep",
@@ -764,7 +919,10 @@
         "vector-store"
       ],
       "enables": [],
-      "source": "Roadmap §5.18"
+      "source": "Roadmap §5.18",
+      "part_of": "mod-conhecimento",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "skill-brand-eg",
@@ -777,7 +935,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §7.4 / Biblioteca §3"
+      "source": "Roadmap §7.4 / Biblioteca §3",
+      "part_of": "mod-marca-artefatos",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "skill-squad-creator",
@@ -790,7 +951,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §7.4 / Biblioteca §1"
+      "source": "Roadmap §7.4 / Biblioteca §1",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "eg-mcp-tools",
@@ -803,7 +967,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §7.4 / Biblioteca §2"
+      "source": "Roadmap §7.4 / Biblioteca §2",
+      "part_of": "mod-nucleo",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "skill-raiox",
@@ -818,7 +985,10 @@
         "squad-relatorios"
       ],
       "enables": [],
-      "source": "Roadmap §7.4"
+      "source": "Roadmap §7.4",
+      "part_of": "client-hub",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "idea-detail-edit",
@@ -833,7 +1003,10 @@
         "banco-ideias"
       ],
       "enables": [],
-      "source": "sessão jun/2026 (feedback Eduardo)"
+      "source": "sessão jun/2026 (feedback Eduardo)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "banco-arquitetura-tab",
@@ -848,7 +1021,10 @@
         "banco-arquitetura"
       ],
       "enables": [],
-      "source": "sessão jun/2026 (feedback Eduardo)"
+      "source": "sessão jun/2026 (feedback Eduardo)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "clients-clickup-sync",
@@ -864,7 +1040,10 @@
         "squad-onboarding"
       ],
       "enables": [],
-      "source": "sessão jun/2026 (feedback Eduardo)"
+      "source": "sessão jun/2026 (feedback Eduardo)",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "banks-portability",
@@ -877,7 +1056,10 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "sessão jun/2026 (feedback Eduardo)"
+      "source": "sessão jun/2026 (feedback Eduardo)",
+      "part_of": "mod-nucleo",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "idea-bank-auto",
@@ -893,7 +1075,10 @@
         "log-audio-wpp"
       ],
       "enables": [],
-      "source": "sessão jun/2026 (feedback Eduardo)"
+      "source": "sessão jun/2026 (feedback Eduardo)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "filosofia-visual-eg",
@@ -909,7 +1094,10 @@
         "skill-brand-eg",
         "idea-detail-edit"
       ],
-      "source": "Biblioteca de Referência (/canvas-design)"
+      "source": "Biblioteca de Referência (/canvas-design)",
+      "part_of": "mod-marca-artefatos",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "web-artifacts-builder",
@@ -925,7 +1113,10 @@
         "cockpit-produto",
         "idea-detail-edit"
       ],
-      "source": "Biblioteca de Referência (/web-artifacts-builder)"
+      "source": "Biblioteca de Referência (/web-artifacts-builder)",
+      "part_of": "mod-marca-artefatos",
+      "readiness": "Habilita o front do produto white-label.",
+      "clickup": false
     },
     {
       "id": "matriz-risco-comercial",
@@ -941,7 +1132,10 @@
         "squad-hunter",
         "squad-prospector"
       ],
-      "source": "Biblioteca de Referência (/legal-risk-assessment)"
+      "source": "Biblioteca de Referência (/legal-risk-assessment)",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "estrutura-modal-briefing",
@@ -957,7 +1151,10 @@
         "squad-reunioes",
         "dossie-provas"
       ],
-      "source": "Biblioteca de Referência (/legal /brief)"
+      "source": "Biblioteca de Referência (/legal /brief)",
+      "part_of": "mod-cockpit-interno",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "handoff-assincrono-inboxes",
@@ -972,7 +1169,10 @@
         "hub-chat-dispatcher"
       ],
       "enables": [],
-      "source": "Sessão jun/2026 (Refinamento de Arquitetura)"
+      "source": "Sessão jun/2026 (Refinamento de Arquitetura)",
+      "part_of": "mod-nucleo",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "clickup-direct-injector",
@@ -987,7 +1187,10 @@
         "squad-reunioes"
       ],
       "enables": [],
-      "source": "Sessão jun/2026 (Refinamento de Arquitetura)"
+      "source": "Sessão jun/2026 (Refinamento de Arquitetura)",
+      "part_of": "mod-comercial",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "doc-generator-eg",
@@ -1006,7 +1209,10 @@
         "squad-relatorios",
         "squad-hunter"
       ],
-      "source": "sessão jul/2026 (feedback Eduardo — lead Rian/PJe)"
+      "source": "sessão jul/2026 (feedback Eduardo — lead Rian/PJe)",
+      "part_of": "mod-marca-artefatos",
+      "readiness": null,
+      "clickup": false
     },
     {
       "id": "eg-publish",
@@ -1019,7 +1225,476 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "sessão jul/2026 (feedback Eduardo — deploy do protótipo Rian)"
+      "source": "sessão jul/2026 (feedback Eduardo — deploy do protótipo Rian)",
+      "part_of": "mod-marca-artefatos",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mega-plataforma",
+      "title": "Mega Plataforma EG",
+      "desc": "Guarda-chuva estratégico e técnico da EverGreen: uma plataforma modular que nasce como ferramenta interna e operacional da EG, evolui para superfície de trabalho com/para clientes e, depois de validada por dogfooding, pode virar SaaS/white-label para outras operações. Ela não transforma a EG em agência 360 nem limita a boutique a um nicho; o objetivo é criar moat premium: dados, processos, squads, entregáveis, governança e client experience integrados para qualquer mercado em que a EG decida atuar.",
+      "stage": "project",
+      "horizon": "NOW",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Fundação = multitenant/SSO/acessos, recorte MVP e fronteiras de dados antes de tudo. Equipe enxuta → construir por fatias, começando por uso interno e operacional. Produto/white-label só depois de validação real com EG e clientes.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-nucleo",
+      "title": "Módulo Núcleo (infra transversal)",
+      "desc": "Fundações da plataforma: multitenant/SSO/acessos, hosting, building-blocks (Lego), camada LLM-agnostic, handoff assíncrono, portabilidade dos bancos.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-cockpit-interno",
+      "title": "Módulo Cockpit Interno (backoffice EG)",
+      "desc": "Backoffice da EG: dashboard, bancos (ideias/arquitetura/stack), dispatcher/hub-chat, motor de IA (squad-creator, auto-melhoria, Arquiteto+Avaliador), codegraph, fábrica de engenharia.",
+      "stage": "project",
+      "horizon": "NOW",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-comercial",
+      "title": "Módulo Comercial (funil EG)",
+      "desc": "Módulo de aquisição e relacionamento da EG: prospecção, propostas, onboarding, carteira, reuniões, funil, lead scoring e inteligência comercial. Deve suportar diferentes mercados; solar é ICP prioritário atual, não nicho fixo da boutique.",
+      "stage": "project",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-entrega-mkt",
+      "title": "Módulo Entrega de Marketing",
+      "desc": "Módulo de entrega growth/marketing para clientes de múltiplos mercados: criativos, tráfego, SEO/GEO, social, relatórios, BI e skills de Ads. Não é agência 360; é capacidade operacional padronizada para executar o que a estratégia EG aprovar.",
+      "stage": "project",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-conhecimento",
+      "title": "Módulo Conhecimento / Segundo Cérebro",
+      "desc": "RAG/segundo cérebro, vector store, decay, Zep, voz do cliente, ingestão de vídeo, banco de cases sucesso/fracasso.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-radar-pesquisa",
+      "title": "Módulo Radar & Pesquisa",
+      "desc": "Tech-scout, pesquisa de políticas (Meta/Google), updates de stack, pesquisa acadêmica e squad de negócios/estratégia.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-marca-artefatos",
+      "title": "Módulo Marca & Artefatos",
+      "desc": "Brand skill, filosofia visual, gerador de documentos, web-artifacts builder, eg-publish. A camada que dá padrão boutique a tudo que a IA gera.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "readiness": null,
+      "clickup": false
+    },
+    {
+      "id": "mod-multitenant",
+      "title": "Multitenant / SSO / Acessos",
+      "desc": "Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação do produto white-label.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "client-hub",
+        "mod-saas-billing"
+      ],
+      "part_of": "mod-nucleo",
+      "readiness": "Fundação de tudo; portão = decisão de arquitetura (Trilho A/B). Bloqueia client-hub, billing e o modelo de agências-parceiras.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "client-hub",
+      "title": "Área do Cliente (Hub NFC)",
+      "desc": "Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e visão clara do que a EG está operando. Começa como portal de acompanhamento dos clientes EG; depois pode compor o produto white-label.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-multitenant",
+        "mod-bi-dashboards"
+      ],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Depende de multitenant + BI. É o que o cliente mais pede hoje (campanhas/score). Módulos desbloqueáveis conforme oferta contratada.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-bi-dashboards",
+      "title": "Motor de BI / Dashboards",
+      "desc": "Integra o repo BIAds: Meta/Google Ads, funil dinâmico, criativos, rastreio de UTMs — interno e cliente. Squads escrevem a narrativa; o BI exibe os números.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Cockpit",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "ads-api-skills"
+      ],
+      "enables": [],
+      "part_of": "client-hub",
+      "readiness": "BIAds já iniciado (+CodeGraph). OAuth Meta/Google; validar response no Postman. Distinguir BIs: EG × cliente × funcionários-do-cliente (multi-tenant).",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-financeiro",
+      "title": "Módulo Financeiro",
+      "desc": "Viabilidade/forecasting/metas + cobrança de cliente + contábil/fiscal (emissão de NF, situação cadastral, vigilância tributária). Nível pessoal → corporativo.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [
+        "squad-negocios"
+      ],
+      "part_of": "mega-plataforma",
+      "readiness": "Começar do pessoal (Planilha-Orcamentaria.xlsx). Contábil/fiscal precisa contador + integração bancária. Base para decisões de investimento (assinar ferramenta? contratar?).",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-rh",
+      "title": "Módulo RH",
+      "desc": "Rampagem de funcionário (15/30/60/90), níveis de cultura e de cargo, performance/NPS por gestor (carteira de clientes do gestor), kits de onboarding de funcionário.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Depende de haver equipe rampando; hoje EG é enxuta (Eduardo/Gustavo).",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-logistica-kits",
+      "title": "Logística de Kits",
+      "desc": "Controle de estoque de peças, fornecedores/custos, quem recebeu qual kit e nível, status (entregue/produção), campos custom por item (ciclos de lavagem, durabilidade).",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Volume de kits ainda baixo; começar simples (nem mirabolante nem simplório demais).",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-contratos",
+      "title": "Gestão de Contratos (Autentique)",
+      "desc": "Absorver o Autentique: ciclo/assinatura/status de contratos, ligado a financeiro (datas início/fim) e onboarding.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Autentique já em uso; absorver via API.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-certificacoes",
+      "title": "Gestão de Certificações",
+      "desc": "Certificados da EG e dos funcionários (Google, Meta/Ads, Salesforce, Hubspot): validade e renovação.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mod-rh",
+      "readiness": "Nice-to-have; baixa prioridade.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-saas-billing",
+      "title": "Billing / SaaS / Retenção",
+      "desc": "Camada de pagamentos, assinaturas, cupons, cotas, planos, clientes legado, white-label e parcerias. A lógica de retenção é legítima: o cliente pode sair da consultoria e seguir pagando pelo sistema; nada de backdoor técnico ou bloqueio abusivo.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-multitenant"
+      ],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Depende de multitenant + haver produto a cobrar. IMPORTANTE: retenção legítima = suspensão contratual de acesso; NUNCA backdoor de travamento (risco jurídico/LGPD).",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-site-cms",
+      "title": "Site EG + EG Lab + CMS",
+      "desc": "Refatoração do site EG, EG Lab/POCs e eventual CMS: cases inteligentes puxados do backoffice, mapa de clientes, correção de marca EverGreen, laboratório público de artefatos e integração com a operação interna. É parte do moat porque transforma produção interna em prova pública.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "eg-publish"
+      ],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Auditoria SEO/GEO já feita (auditoriaevergreenseogeo.md). Altíssima interligação com o backoffice. Parte do site é NOW.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-comunicacao-wpp",
+      "title": "Omnichannel WhatsApp",
+      "desc": "WhatsApp/coexistence/Evolution API/VoIP + gestão de números e chips para o CRM; integra a operadora Telecom (irmã). Contra-ataque às mudanças da Meta (janela de 24h, API).",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Meta muda API/janela 24h (cobrança ~out/2026); chip fleet + aquecimento; risco de ban; bugs Baileys/Evolution/Kommo.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-conhecimento-video",
+      "title": "Ingestão de Vídeo (YT/Insta)",
+      "desc": "Baixar + transcrever + entender vídeo (YouTube e Instagram) no banco de conhecimento; alimenta cases e RAG.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "vector-store"
+      ],
+      "enables": [],
+      "part_of": "mod-conhecimento",
+      "readiness": "yt-dlp/transcrição + storage; curadoria (não 'conhecimento infinito'); LGPD/direitos autorais ao baixar cursos de terceiros.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "squad-negocios",
+      "title": "Squad de Negócios / Estratégia",
+      "desc": "Lente de decisão de viabilidade (inspiração Musk/China/JHSF/BlackRock): investir, assinar mais uma ferramenta, contratar funcionário, comprar ação (PJ x carga tributária)? Complementa o Avaliador de Negócios.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Squad",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-financeiro"
+      ],
+      "enables": [],
+      "part_of": "mod-radar-pesquisa",
+      "readiness": "Depende do financeiro (dados). Lente de decisão, HITL.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "mod-policy-research",
+      "title": "Pesquisa de Políticas & Updates de Stack",
+      "desc": "Dois tipos de vigilância: (1) políticas de anúncio Meta/Google e afins → atualiza squads; (2) mudanças de API/linguagem/framework que quebram projetos de cliente (CI/CD de manutenção).",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mod-radar-pesquisa",
+      "readiness": "Alimenta squads de ads e projetos de cliente; feeds/fontes a definir.",
+      "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
+      "clickup": false
+    },
+    {
+      "id": "foton",
+      "title": "Fóton (plataforma pessoal do Eduardo)",
+      "desc": "Plataforma pessoal do Eduardo (SEPARAR da EG): planejamento financeiro pessoal, banco de ideias pessoal, segundo cérebro pessoal, tarefas/reuniões pessoais, projetos e trade. Integrável à EG, dados isolados.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Classificação: SEPARAR. Baixo custo inicial — é reorganização e isolamento de dados pessoais. Portão = separar dados pessoais × EG (repo/pastas próprios) e decidir quais módulos EG podem ser reaproveitados.",
+      "source": "Mega-Plataforma-parte-1.md (Fóton) + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "prisma-bi",
+      "title": "Prisma BI (relatórios / due-diligence / selos)",
+      "desc": "Empresa própria (SEPARAR): geração de relatórios complexos rápidos — due diligence de influenciador, auditoria SEO/GEO/ESG, financeiro/contábil — e selo de qualidade. Sob a holding Quark.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Classificação: SEPARAR. Mercado a validar; jurídico alto em due diligence pública, selos e exposição de empresas/pessoas. Reaproveita BI/relatórios da EG, mas deve virar produto/empresa própria.",
+      "source": "Mega-Plataforma-parte-1.md (Prisma BI) + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "telecom-chips",
+      "title": "Telecom / Hub de Chips (operadora white-label)",
+      "desc": "Empresa própria (SEPARAR): operadora white-label / hub de chips para marketeiros e devs, roteamento de números para não depender da Meta. Integra a plataforma via mod-comunicacao-wpp.",
+      "stage": "capture",
+      "horizon": "NEW_COMPANY",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Classificação: SEPARAR. Capital + regulação (Anatel) + risco de marca em nichos sensíveis. Por enquanto integra como fornecedor/camada do módulo WhatsApp, não como core da Mega Plataforma.",
+      "source": "Mega-Plataforma-parte-1.md (Telecom) + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "micro-aws-hosting",
+      "title": "Micro-AWS / Hospedagem própria",
+      "desc": "Empresa/infra própria (SEPARAR): home lab, servidores próprios, micro-AWS e serviços de TI; hospedar sites/serviços de clientes; futuro fine-tuning/modelos locais.",
+      "stage": "capture",
+      "horizon": "NEW_COMPANY",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Classificação: SEPARAR. Só faz sentido com volume, capital em servidores e capacidade SRE. Decisão deve passar pelo módulo financeiro/viabilidade.",
+      "source": "Mega-Plataforma-parte-1.md (micro-AWS) + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "educacao-comunidade",
+      "title": "Educação / Comunidade",
+      "desc": "Braço de infoproduto/comunidade (SEPARAR, inspiração Lucas Félix/Kelvin): cursos, mentorias, disponibilizar conteúdo/clones de mentores aos assinantes/funcionários.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "readiness": "Classificação: SEPARAR. Depende de autoridade, audiência e produção própria; cuidado com direitos autorais/LGPD ao usar cursos de terceiros.",
+      "source": "Mega-Plataforma-parte-1.md (Educação) + sessão 2026-07-06",
+      "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "trade-autonomo",
+      "title": "Trade autônomo (bots / challenges)",
+      "desc": "Frente pessoal (SEPARAR, part_of Fóton): bots de trade auto-melhoráveis, challenges de traders (ganhar/vender conta). Renda pessoal, não-core.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Service",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "foton",
+      "readiness": "Classificação: SEPARAR e part_of Fóton. Capital de risco e renda pessoal; fora do core EG agora.",
+      "source": "Mega-Plataforma-parte-1.md (Trade) + sessão 2026-07-06",
+      "clickup": false
     }
   ]
 }
