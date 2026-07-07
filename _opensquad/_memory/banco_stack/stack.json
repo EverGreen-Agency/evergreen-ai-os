@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-07-02",
+  "updated_at": "2026-07-07",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",
@@ -257,6 +257,69 @@
       "note": "Banco relacional padrão para quando o projeto exige concorrência/multi-user. Planejado como destino de migração na Fase 2 do projeto Rian (multi-user/permissões). Ainda não usado em produção na casa.",
       "adr": "",
       "source": "projeto rian-pje-trf1 (Fase 2)"
+    },
+    {
+      "name": "Argil.ai",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Generate engaging AI videos",
+      "adr": "",
+      "source": "https://www.argil.ai/",
+      "id": "argil-ai"
+    },
+    {
+      "name": "Delphi Ai",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Par segundo Cérebro. Digitize Your Mind Turn your knowledge into an interactive profile people can talk to. Showcase your  expertise, answer repetitive questions, and discover what people want to know next.",
+      "adr": "",
+      "source": "https://www.delphi.ai/",
+      "id": "delphi-ai"
+    },
+    {
+      "name": "Zernio",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "The social media and messaging API for developers and AI agents. API para whatsapp.",
+      "adr": "",
+      "source": "https://zernio.com/",
+      "id": "zernio"
+    },
+    {
+      "name": "MindPal",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Turn your expertise into branded AI agents and multi-agent workflows.",
+      "adr": "",
+      "source": "https://mindpal.space/",
+      "id": "mindpal"
+    },
+    {
+      "name": "Assis.co",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM com IA",
+      "adr": "",
+      "source": "https://assis.co/",
+      "id": "assis-co"
+    },
+    {
+      "name": "Attio",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM for the next generation of teams. Powerful, flexible and data-driven, Attio makes it easy to build the CRM to drive revenue forwards.",
+      "adr": "",
+      "source": "https://attio.com/",
+      "id": "attio"
+    },
+    {
+      "name": "Helena CRM",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM para WhatsApp que aprende a cada conversa A plataforma White Label para desenvolver o seu negócio  Conecte equipes com clientes e leads. Combine agentes de IA, atendimento humano e um CRM que aprende a cada conversa. Uma tecnologia conversacional robusta que sustenta o crescimento do seu negócio.",
+      "adr": "",
+      "source": "https://www.helenacrm.com/",
+      "id": "helena-crm"
     }
   ]
 }

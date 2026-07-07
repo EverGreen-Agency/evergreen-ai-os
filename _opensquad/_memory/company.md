@@ -1,13 +1,13 @@
-# EverGreen MKT
+﻿# EverGreen MKT
 
 - **Nome da Empresa:** EverGreen MKT
 - **Website:** https://www.evergreenmkt.com.br/
 
 ## Descrição e Setor
-Boutique de crescimento e consultoria empresarial executiva focada em aumento de faturamento. Atua de forma estratégica, tecnológica (AI First) e orientada a dados, focada em previsibilidade comercial. Não atua como uma "agência 360".
+Boutique de crescimento e consultoria empresarial executiva focada em aumento de faturamento. Atua de forma estratégica, tecnológica (AI First) e orientada a dados, focada em previsibilidade comercial. Não atua como uma "agência 360": constrói capacidade, processos, inteligência e operação premium ao redor do que gera crescimento.
 
 ## Público-Alvo (ICP)
-Empresas B2B, com foco prioritário em integradoras de energia solar (faturamento > R$ 150 mil/mês). Operações maduras com demanda existente e dono presente, que buscam previsibilidade comercial e têm ambição real de crescimento.
+A EG não é uma boutique nichada por mercado. Atende diferentes setores quando há potencial real de crescimento, maturidade operacional e decisor presente. Integradoras de energia solar são um ICP prioritário momentâneo/documentado para foco comercial, não uma limitação estrutural da boutique.
 
 ## Produtos / Serviços Oferecidos
 - **Sistema Raiz EG**: Metodologia proprietária (Diagnosticar, Priorizar, Estruturar, Evoluir).
