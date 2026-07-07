@@ -1,0 +1,36 @@
+# Supabase CLI — configuração local do projeto Bioma (mod-multitenant).
+# Portas padrão: api 54321 / db 54322 / studio 54323.
+# Produção: região São Paulo (sa-east-1) — LGPD/ADR-0004 (deploy fica com o Eduardo).
+
+project_id = "bioma"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false

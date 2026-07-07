@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+ * Tokens semânticos (ADR-0010): componentes NUNCA usam cor fixa da paleta
+ * Tailwind — sempre bg-primary / text-muted-foreground / bg-background etc.
+ * White-label: o layout do tenant injeta <style> sobrescrevendo --primary /
+ * --primary-foreground a partir de organizations.branding (server-side).
+ * Paleta base EG: musgo (primária), baunilha (fundo claro), menta (acento).
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #faf7f0; /* baunilha */
+  --foreground: #1e241c;
+  --card: #ffffff;
+  --card-foreground: #1e241c;
+  --muted: #eeeae0;
+  --muted-foreground: #5b6355;
+  --primary: #3b5d3a; /* musgo */
+  --primary-foreground: #faf7f0;
+  --accent: #d4ecdd; /* menta */
+  --accent-foreground: #24402c;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --border: #ddd7c9;
+  --input: #ddd7c9;
+  --ring: #3b5d3a;
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #141810;
+  --foreground: #e8e6dd;
+  --card: #1c2217;
+  --card-foreground: #e8e6dd;
+  --muted: #262d20;
+  --muted-foreground: #a3ab98;
+  --primary: #7fae7c;
+  --primary-foreground: #141810;
+  --accent: #24402c;
+  --accent-foreground: #d4ecdd;
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --border: #2e3627;
+  --input: #2e3627;
+  --ring: #7fae7c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
