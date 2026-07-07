@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "updated_at": "2026-07-07",
-  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.).",
+  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.). 2a varredura 2026-07-07: +7 gaps (escada-oferta-tech, desvincular-opensquad, modulo-investimentos, banco-skills-produto, squad-ativacao-por-cliente, niveis-score-expandido, squad-recrutamento).",
   "stages": [
     "capture",
     "evaluation",
@@ -2114,6 +2114,415 @@
       "readiness": "Decisão arquitetural a ser firmada (ADR-0010).",
       "source": "sessão 2026-07-07",
       "clickup": false
+    },
+    {
+      "id": "aprovacao-tinder",
+      "title": "Fluxo de Aprovação Tinder-style",
+      "desc": "Tela no client-hub para o cliente aprovar criativos e textos com Swipe Right/Left, engatilhando webhooks para o time de tráfego ou agendamento direto.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "client-hub",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "marketplace-addons",
+      "title": "Marketplace de Add-ons (Up-sell)",
+      "desc": "App Store interna no client-hub para vender dashboards extras, robôs ou consultoria com um clique via mod-saas-billing.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-saas-billing"
+      ],
+      "enables": [],
+      "part_of": "client-hub",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "delivery-tracker",
+      "title": "Rastreador de Entregáveis (Roadmap)",
+      "desc": "Timeline estilo Apple/Pizza Tracker mostrando o progresso da operação para tangibilizar o serviço pago e reduzir ansiedade/churn.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "client-hub",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "narrative-reports",
+      "title": "Relatórios Executivos Narrados",
+      "desc": "Storytelling por IA gerado mensalmente a partir dos dados do BI, entregando insights mastigados em texto/áudio para o CEO do cliente.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-bi-dashboards"
+      ],
+      "enables": [],
+      "part_of": "mod-bi-dashboards",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "gamificacao-setup",
+      "title": "Gamificação de Setup (Loyalty)",
+      "desc": "Sistema de recompensas (EG Points, descontos) para incentivar clientes a enviarem senhas e instalarem tags mais rápido.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "client-hub",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "qa-auditor",
+      "title": "Agente QA Implacável (Shadow Auditor)",
+      "desc": "IA que roda em background revisando gramática de anúncios, links quebrados e tags UTMs antes da entrega ir para o ar.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mod-observabilidade",
+      "source": "sessão 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "mod-integrations-hub",
+      "title": "Hub de Integrações Externas",
+      "desc": "Catálogo e governança de integrações externas do Bioma: Meta, Google, LinkedIn, Autentique, ClickUp, Kommo, WhatsApp, Stripe, Drive e Google Meu Negócio. Centraliza status, OAuth/API keys, webhooks, health, escopos e bloqueios para evitar cada módulo reinventar integração.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Platform",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "cofre-senhas",
+        "mod-observabilidade"
+      ],
+      "enables": [
+        "mod-bi-dashboards",
+        "mod-comercial",
+        "mod-contratos",
+        "mod-comunicacao-wpp"
+      ],
+      "part_of": "mod-nucleo",
+      "readiness": "Começar pelos conectores que bloqueiam Fase 1: Meta/Google, Autentique e ClickUp. Não virar iPaaS genérico.",
+      "source": "revisão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "mod-workflows-aprovacoes",
+      "title": "Motor de Workflows e Aprovações HITL",
+      "desc": "Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo. Generaliza tag-ativacao, aprovações do client-hub e gates de segurança.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Platform",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-multitenant"
+      ],
+      "enables": [
+        "mod-cockpit-interno",
+        "client-hub",
+        "mod-entrega-mkt"
+      ],
+      "part_of": "mod-nucleo",
+      "readiness": "Evitar burocracia: começar só com ações sensíveis e alto risco.",
+      "source": "revisão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "mod-lgpd-governanca-dados",
+      "title": "Governança de Dados, LGPD e Uso de IA",
+      "desc": "Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, contratos, áudios e credenciais.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Platform",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-multitenant"
+      ],
+      "enables": [
+        "cofre-senhas",
+        "mod-conhecimento",
+        "mod-comunicacao-wpp",
+        "mod-site-cms"
+      ],
+      "part_of": "mod-nucleo",
+      "readiness": "Precisa de revisão jurídica; enforcement deve ficar em adapters/API, não só em documento.",
+      "source": "revisão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "access-request-portal",
+      "title": "Portal de Solicitação de Acessos",
+      "desc": "Fluxo guiado para o cliente conceder acessos sem planilha de senhas: conectar Meta BM, Google Ads MCC, Google Meu Negócio, Drive, Kommo, WhatsApp e outras plataformas. Alimenta cofre-senhas e mod-integrations-hub.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "cofre-senhas",
+        "mod-integrations-hub"
+      ],
+      "enables": [
+        "mod-comercial",
+        "client-hub",
+        "mod-bi-dashboards"
+      ],
+      "part_of": "cofre-senhas",
+      "readiness": "Substitui planilha sensível de usuário/senha. MVP deve aceitar integração formal e fallback manual seguro.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "evidence-ledger",
+      "title": "Livro de Evidências Operacionais",
+      "desc": "Ledger de decisões, aprovações, entregáveis, relatórios enviados, resultados, reuniões e evidências. Serve para client-hub, jurídico, dossiê de provas, retenção e defesa de escopo.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-conhecimento",
+        "mod-workflows-aprovacoes"
+      ],
+      "enables": [
+        "client-hub",
+        "mod-juridico",
+        "mod-site-cms"
+      ],
+      "part_of": "mod-conhecimento",
+      "readiness": "Começar como eventos append-only ligados a entregáveis, reuniões, aprovações e relatórios.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "integration-doctor",
+      "title": "Integration Doctor",
+      "desc": "Diagnóstico de integrações: token Meta expirou, pixel sem evento, Google Ads sem acesso, UTM quebrada, webhook Autentique falhou, job de BI atrasou. Explica causa, impacto e próxima ação.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-integrations-hub",
+        "mod-observabilidade"
+      ],
+      "enables": [
+        "mod-bi-dashboards",
+        "mod-comunicacao-wpp",
+        "mod-contratos"
+      ],
+      "part_of": "mod-integrations-hub",
+      "readiness": "Depende de conectores emitirem status e de observabilidade padronizada.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "client-operating-agreement",
+      "title": "Client Operating Agreement",
+      "desc": "Ficha viva por cliente: contrato, escopo, SLAs, canais oficiais, permissões, módulos comprados, limites, regras de comunicação e acordos operacionais. Evita desalinhamento entre venda, entrega e cliente.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-contratos",
+        "mod-comercial",
+        "client-hub"
+      ],
+      "enables": [
+        "mod-entrega-mkt",
+        "mod-comunicacao-wpp",
+        "mod-juridico"
+      ],
+      "part_of": "client-hub",
+      "readiness": "Deve nascer como fonte de verdade operacional do cliente antes de automações avançadas.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "exit-handover-mode",
+      "title": "Modo Saída / Handover",
+      "desc": "Fluxo premium para cliente que encerra contrato: pacote organizado de exportação, acessos, documentos, relatórios, assets e handover. Retenção legítima e experiência profissional, sem backdoor.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "client-hub",
+        "mod-lgpd-governanca-dados",
+        "cofre-senhas"
+      ],
+      "enables": [
+        "mod-saas-billing",
+        "mod-juridico"
+      ],
+      "part_of": "client-hub",
+      "readiness": "Definir limites contratuais, exportação e dados que podem sair. Pode virar add-on pago.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "demo-tenant-sales-theater",
+      "title": "Demo Tenant / Sales Theater",
+      "desc": "Tenant fictício perfeito para venda e demonstração: mostra Hub, BI, score, timeline, aprovações e integrações sem depender de dados de cliente real. Serve para pitch, treinamento e QA visual.",
+      "stage": "capture",
+      "horizon": "NOW",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "client-hub",
+        "mod-bi-dashboards"
+      ],
+      "enables": [
+        "mod-comercial",
+        "mod-site-cms"
+      ],
+      "part_of": "mod-comercial",
+      "readiness": "Pode começar com seed data estático e evoluir para tenant demo completo.",
+      "source": "sugestão Codex 2026-07-07",
+      "clickup": false
+    },
+    {
+      "id": "escada-oferta-tech",
+      "title": "Escada de Oferta de Tecnologia",
+      "desc": "Aplicar à tecnologia a mesma lógica da escada de ofertas de growth (inspiração Kelvin Cleto): análise/diagnóstico → cliente faz por conta → EG faz com ele → EG faz por ele → high-end cobrando percentual. Hoje a EG só tem escada para growth (Documento-Mestre §10); falta o braço tecnológico explícito.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mod-comercial",
+      "readiness": "Precisa desenhar os degraus técnicos equivalentes aos 4 do growth; decisão de precificação por degrau.",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "desvincular-opensquad",
+      "title": "Desvincular/Desengessar do Framework Opensquad",
+      "desc": "Hoje squads são YAML/MD interpretados de forma cadenciada (D1 em arquitetura.md). Preocupação: prompts/contexto grandes (como este) podem falhar instruções do squad ou alucinar. Avaliar usar mais frameworks/LLMs além do Opensquad onde fizer sentido, sem perder o que já funciona.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Infra",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mod-cockpit-interno",
+      "readiness": "Questiona D1 (arquitetura.md) diretamente — decisão arquitetural de peso, não é feature. Distinto de llm-agnostic (que só roteia modelo, não muda o framework de orquestração).",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "modulo-investimentos",
+      "title": "Módulo de Investimentos (carteira pessoal)",
+      "desc": "Gestão de carteira de investimentos: integrar Portfel/Finclass, análise ação por ação, preço médio, valorização, registro de compra/venda, sugestões e análises de mercado. Nasce pessoal (Fóton); aplicação corporativa na EG é decisão futura (fluxo pode ser inverso: EG primeiro, Fóton depois).",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Platform",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "foton",
+      "readiness": "Distinto de trade-autonomo (que é sobre bots de auto-trade); este é ferramenta de gestão/análise de carteira.",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "banco-skills-produto",
+      "title": "Banco de Skills/Prompts como Produto",
+      "desc": "Vender/fornecer bancos de skills ou prompts como produto no lado de tech da EG. Especulativo — o próprio Eduardo não tem certeza se vale a pena.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Commercial",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "mega-plataforma",
+      "readiness": "Avaliar com Avaliador de Negócios antes de qualquer escopo; pode já estar parcialmente coberto por skill-squad-creator/vibe-building do lado de construção, mas falta o lado de venda/distribuição.",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "squad-ativacao-por-cliente",
+      "title": "Ativação de Squads/Features por Cliente",
+      "desc": "Orquestração operacional: ativar uma automação específica para um cliente (ex: posts de blog recorrentes) e outra diferente para outro (ex: criativos, stories). Como o backoffice gerencia essas entregas ativadas por squad e por cliente no dia a dia.",
+      "stage": "capture",
+      "horizon": "MEDIUM",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mod-comercial"
+      ],
+      "enables": [],
+      "part_of": "mod-comercial",
+      "readiness": "Distinto de client-hub (que é a vitrine pro cliente); aqui é a orquestração interna de qual squad roda pra qual cliente. Liga a mod-workflows-aprovacoes (ativação = ação sensível?).",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "niveis-score-expandido",
+      "title": "Expansão dos Pilares de Score (nível high-end)",
+      "desc": "Questão em aberto: expandir o score além dos 3 pilares (Oferta/Demanda/Conversão) para um nível estilo Lázaro Ramos/Flávio Augusto — que mexe em fornecedores, RH, contratação, contábil/tributário e cobra percentual de crescimento. Eduardo pediu para decidir isso numa conversa futura.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [],
+      "enables": [],
+      "part_of": "client-hub",
+      "readiness": "Decisão estratégica pendente — não implementar sem resolver primeiro se a EG quer essa oferta high-end de escopo tão amplo (risco de virar 'agência 360' se mal desenhado).",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
+    },
+    {
+      "id": "squad-recrutamento",
+      "title": "Squad de Recrutamento (reaproveita ferramenta de propostas)",
+      "desc": "Reaproveitar a mesma lógica/skill do squad de propostas (busca automática em plataformas cadastradas) para submeter vagas de emprego quando a EG for contratar.",
+      "stage": "capture",
+      "horizon": "LONG",
+      "category": "Feature",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "squad-hunter"
+      ],
+      "enables": [],
+      "part_of": "mod-rh",
+      "source": "Mega-Plataforma parte 1+2 (2a varredura) + sessão 2026-07-07"
     }
   ]
 }

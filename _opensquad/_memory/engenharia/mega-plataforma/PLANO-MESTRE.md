@@ -23,6 +23,9 @@
 ---
 
 ## 1. Decisões de PLATAFORMA (ADRs transversais — decidir 1x no `mod-multitenant`, herdar em todos)
+
+> ⚠️ **Numeração P1–P8 abaixo está HISTÓRICA/SUPERSEDIDA (2026-07-07).** As decisões já foram tomadas e viraram ADRs de verdade em `_opensquad/_memory/engenharia/mod-multitenant/adr/ADR-0001..0010-*.md` (fonte canônica). P9–P14 (workspace/cofre/créditos-IA/revenda/self-host/nome) viraram módulos/ideias próprios — ver §6 e `roadmap-p0-p1.md`. Mantido aqui só como registro do raciocínio original; **não usar esta numeração P1–P8 em documentos novos.**
+
 - **ADR-P1 — Stack base / keep-vs-migrate.** A plataforma evolui do cockpit atual (Vite+React+TS, backend via plugin Vite `squadWatcher`, bancos JSON, sem auth). Opções: (a) manter Vite+React e adicionar backend/API+DB; (b) **migrar p/ Next.js** (blueprint: SSR + API routes + ecossistema auth/multitenant); (c) Vite + backend separado (FastAPI/Django). Critérios: continuidade com o código atual, auth/multitenant nativos, workers, esforço de refactor. *Avaliar seriamente (b) — o blueprint aponta pra lá e o cockpit atual é pequeno; refactor é permitido (decisão do Eduardo).*
 - **ADR-P2 — Auth build-vs-buy.** Avaliar **Clerk** vs **Supabase Auth** vs Auth.js/NextAuth vs WorkOS vs próprio. Critérios EXPLÍCITOS: multitenancy/organizations nativo (Clerk e WorkOS têm orgs+roles prontos), RBAC, **custo por MAU/tenant**, **residência de dados BR/LGPD** (onde o provider guarda os dados de auth?), self-host/lock-in, SSO federado futuro, DX. *Clerk = orgs+RBAC+UI prontos, DX excelente, rápido; contras: dados no exterior (checar LGPD p/ dados de auth), custo por MAU escala. Supabase Auth = casa com Postgres+RLS, self-hostável, BR-friendly. Pôr AMBOS no ADR com trade-offs numéricos.*
 - **ADR-P3 — Banco + isolamento.** PostgreSQL (Supabase/Neon/RDS região BR) + **RLS** (isolamento no banco) vs isolamento app-level. RLS = padrão-ouro multi-tenant.

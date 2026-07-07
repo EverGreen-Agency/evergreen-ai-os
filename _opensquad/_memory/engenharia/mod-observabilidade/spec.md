@@ -1,31 +1,78 @@
-# Spec: mod-observabilidade (Monitoramento, APM e Uptime)
+# Spec: mod-observabilidade
 
-- **Cliente:** Interno (DevOps) e Externo (Status Page) — *Nova Ideia* (part_of `mega-plataforma`)
-- **Fase:** 0/1 (Transversal, nasce junto com a fundação)
-- **Status:** rascunho
+- **Cliente:** EverGreen, equipe técnica e status externo (`target: internal`, plataforma)
+- **Autor:** Especificador EG + revisão Codex
 - **Data:** 2026-07-07
+- **Status:** rascunho
+- **Versão:** 1.0
+- **Ideias relacionadas:** `mod-observabilidade`, `qa-auditor`, `sla-watchdog`
 
 ## 1. Objetivo
-Garantir que a Mega Plataforma nunca caia de forma silenciosa. A EG e o cliente precisam saber o status em tempo real da aplicação, do banco de dados, dos workers e de todos os provedores externos (Stripe, APIs do Meta/Google, Provedor de Email, Vercel). É a diferença entre um projeto amador (onde o cliente avisa que caiu) e um SaaS premium (onde a equipe de engenharia é alertada 3 segundos após a queda e o cliente vê uma *Status Page* transparente).
 
-## 2. Contexto (A Ideia e Opinião)
-**Opinião do Arquiteto:** Uma plataforma B2B/SaaS não sobrevive apenas de código bonito. Se um token OAuth do Facebook expirar, ou a API da Stripe parar de confirmar pagamentos (webhooks falhando), o prejuízo é financeiro imediato. Precisamos de **Observabilidade Ativa** (APM - Application Performance Monitoring) e **Monitoramento Sintético** (robôs externos pingando o nosso sistema).
+Garantir que o Bioma não falhe silenciosamente: monitorar aplicação, banco, filas, integrações, jobs, webhooks, qualidade de dados e experiência mínima dos usuários.
 
-## 3. Escopo Funcional (O que será construído/integrado)
-1. **Health Checks Nativos (`/api/health`):**
-   *   Uma rota leve e desprotegida na nossa API que responde `200 OK`.
-   *   O payload dessa rota testa rapidamente a conexão com o PostgreSQL, o status do Redis (filas) e a saúde do storage.
-2. **Monitoramento Sintético (Externo):**
-   *   Uso de uma ferramenta externa como **BetterStack** (antigo UptimeRobot) ou Datadog Synthetics.
-   *   Essa ferramenta "pressiona" a plataforma a cada 1 minuto. Se a Vercel cair, a ferramenta nos liga (PagerDuty/SMS/WhatsApp) imediatamente.
-3. **Sentinela de Terceiros (Dependências):**
-   *   Rastreador de status das APIs que usamos: Stripe, Supabase/Auth.js, LiteLLM.
-   *   Se a Stripe estiver fora do ar, o frontend exibe um banner: "O sistema de pagamentos está em manutenção pela Stripe".
-4. **Log de Erros (Crash Reporting):**
-   *   Integração com **Sentry** no frontend e backend. Se um usuário clicar em um botão e der um erro não-tratado em produção, o Sentry captura a linha do código e nos alerta.
-5. **Status Page Transparente:**
-   *   Uma página pública (`status.evergreen.com.br`) e um widget embedado no `client-hub` mostrando bolinhas verdes ou amarelas para: "Painel", "Integrações de Ads", "Pagamentos".
+## 2. Contexto
 
-## 4. Integrações Críticas (ADRs Futuros)
-*   **ADR-OBS1 (Sentry vs Datadog):** Escolher a ferramenta de captura de erros. O Sentry é o padrão ouro e tem um tier gratuito generoso para Next.js.
-*   **ADR-OBS2 (Uptime Monitor):** Escolher o provedor que vai fazer o *ping* e a *Status Page* pública (BetterStack é a recomendação).
+Uma plataforma B2B premium precisa detectar falhas antes do cliente. Quedas de API, token expirado, job parado, webhook perdido, dashboard vazio ou erro de frontend têm impacto direto em percepção de valor e operação.
+
+## 3. Escopo
+
+O que será construído/integrado:
+
+- Health checks de aplicação, banco, Redis, storage e workers.
+- Monitoramento de uptime e status page.
+- Captura de erros frontend/backend.
+- Logs estruturados por tenant, usuário, módulo, job e correlation id.
+- Monitoramento de filas, retries e dead-letter.
+- Sentinela de integrações externas: Supabase, Stripe, Meta, Google, Autentique, ClickUp, WhatsApp.
+- Alertas para falhas críticas, tokens expirados, webhooks quebrados e ingestão atrasada.
+- QA auditor futuro para links, UTMs, criativos e entregas antes de publicar.
+
+## 4. Fora de Escopo
+
+- Construir APM próprio se ferramenta externa resolver melhor.
+- Expor logs internos sensíveis ao cliente.
+- Monitorar infraestrutura de terceiros que não temos como consultar.
+- Fazer resposta automática destrutiva a incidentes.
+
+## 5. Requisitos Funcionais
+
+- RF1 — Sistema deve expor health endpoint da aplicação.
+- RF2 — Sistema deve verificar conexão com Postgres, Redis, storage e workers.
+- RF3 — Sistema deve capturar erros frontend/backend com contexto mínimo.
+- RF4 — Jobs devem emitir status: queued, running, success, failed, retrying, dead-letter.
+- RF5 — Integrações críticas devem ter status conhecido ou `unknown`, nunca silêncio.
+- RF6 — Incidentes críticos devem gerar alerta para canal definido.
+- RF7 — Status page deve mostrar estado resumido para componentes públicos.
+- RF8 — Logs devem incluir correlation id para rastrear fluxo ponta a ponta.
+- RF9 — Falha de token/credencial deve acionar dono operacional sem expor segredo.
+
+## 6. Requisitos Não-Funcionais
+
+- **Segurança:** logs não podem conter tokens, senhas, PII desnecessária ou prompts sensíveis.
+- **Confiabilidade:** alertas críticos devem ter deduplicação para evitar spam.
+- **Retenção:** logs e eventos precisam de política de retenção por criticidade.
+- **Performance:** observabilidade não pode degradar fluxo principal perceptivelmente.
+- **Operação:** incidentes devem ter severidade e owner.
+
+## 7. Critérios de Aceite
+
+- CA1 — Health check falha se banco ou Redis estiver indisponível.
+- CA2 — Erro não tratado no frontend aparece na ferramenta de crash reporting.
+- CA3 — Job que falha repetidamente entra em dead-letter e gera alerta.
+- CA4 — Token expirado de integração aparece como incidente operacional.
+- CA5 — Status page não vaza dados internos.
+- CA6 — Um fluxo com erro pode ser rastreado por correlation id.
+
+## 8. Riscos e Dependências
+
+- **Risco:** excesso de alerta virar ruído.  
+  **Mitigação:** severidade, deduplicação e owners.
+
+- **Risco:** logar segredo por acidente.  
+  **Mitigação:** redaction central e testes para campos sensíveis.
+
+- **Dependência:** ADR Sentry/Datadog.
+- **Dependência:** ADR BetterStack/Uptime/status page.
+- **Dependência:** padronização de logs desde a fundação.
+

@@ -1,9 +1,9 @@
 # Banco de Ideias EG
 
-> View gerada a partir de `ideas.json` em 2026-07-07. Fonte da verdade: `ideas.json`. Total: 126 ideias.
+> View gerada a partir de `ideas.json` em 2026-07-07. Fonte da verdade: `ideas.json`. Total: 148 ideias.
 
 
-## Captura (capture) — 105
+## Captura (capture) — 127
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
@@ -307,6 +307,72 @@
 - **Temas (Light/Dark) e White-label** (`mod-theming`) · Infra · NOW · internal
   - Motor de injeção de CSS em tempo real (Tailwind CSS Variables) para suportar Light/Dark mode perfeitamente e permitir que Agências Parceiras coloquem suas…
   - part_of: mega-plataforma
+- **Fluxo de Aprovação Tinder-style** (`aprovacao-tinder`) · Feature · MEDIUM · internal
+  - Tela no client-hub para o cliente aprovar criativos e textos com Swipe Right/Left, engatilhando webhooks para o time de tráfego ou agendamento direto.
+  - part_of: client-hub
+- **Marketplace de Add-ons (Up-sell)** (`marketplace-addons`) · Commercial · MEDIUM · internal
+  - App Store interna no client-hub para vender dashboards extras, robôs ou consultoria com um clique via mod-saas-billing.
+  - depends_on: [mod-saas-billing] · part_of: client-hub
+- **Rastreador de Entregáveis (Roadmap)** (`delivery-tracker`) · Feature · MEDIUM · internal
+  - Timeline estilo Apple/Pizza Tracker mostrando o progresso da operação para tangibilizar o serviço pago e reduzir ansiedade/churn.
+  - part_of: client-hub
+- **Relatórios Executivos Narrados** (`narrative-reports`) · Feature · LONG · internal
+  - Storytelling por IA gerado mensalmente a partir dos dados do BI, entregando insights mastigados em texto/áudio para o CEO do cliente.
+  - depends_on: [mod-bi-dashboards] · part_of: mod-bi-dashboards
+- **Gamificação de Setup (Loyalty)** (`gamificacao-setup`) · Commercial · MEDIUM · internal
+  - Sistema de recompensas (EG Points, descontos) para incentivar clientes a enviarem senhas e instalarem tags mais rápido.
+  - part_of: client-hub
+- **Agente QA Implacável (Shadow Auditor)** (`qa-auditor`) · Feature · LONG · internal
+  - IA que roda em background revisando gramática de anúncios, links quebrados e tags UTMs antes da entrega ir para o ar.
+  - part_of: mod-observabilidade
+- **Hub de Integrações Externas** (`mod-integrations-hub`) · Platform · NOW · internal
+  - Catálogo e governança de integrações externas do Bioma: Meta, Google, LinkedIn, Autentique, ClickUp, Kommo, WhatsApp, Stripe, Drive e Google Meu Negócio.…
+  - depends_on: [cofre-senhas, mod-observabilidade] · enables: [mod-bi-dashboards, mod-comercial, mod-contratos, mod-comunicacao-wpp] · part_of: mod-nucleo
+- **Motor de Workflows e Aprovações HITL** (`mod-workflows-aprovacoes`) · Platform · NOW · internal
+  - Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo.…
+  - depends_on: [mod-multitenant] · enables: [mod-cockpit-interno, client-hub, mod-entrega-mkt] · part_of: mod-nucleo
+- **Governança de Dados, LGPD e Uso de IA** (`mod-lgpd-governanca-dados`) · Platform · NOW · internal
+  - Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de…
+  - depends_on: [mod-multitenant] · enables: [cofre-senhas, mod-conhecimento, mod-comunicacao-wpp, mod-site-cms] · part_of: mod-nucleo
+- **Portal de Solicitação de Acessos** (`access-request-portal`) · Feature · NOW · internal
+  - Fluxo guiado para o cliente conceder acessos sem planilha de senhas: conectar Meta BM, Google Ads MCC, Google Meu Negócio, Drive, Kommo, WhatsApp e outras…
+  - depends_on: [cofre-senhas, mod-integrations-hub] · enables: [mod-comercial, client-hub, mod-bi-dashboards] · part_of: cofre-senhas
+- **Livro de Evidências Operacionais** (`evidence-ledger`) · Feature · MEDIUM · internal
+  - Ledger de decisões, aprovações, entregáveis, relatórios enviados, resultados, reuniões e evidências. Serve para client-hub, jurídico, dossiê de provas,…
+  - depends_on: [mod-conhecimento, mod-workflows-aprovacoes] · enables: [client-hub, mod-juridico, mod-site-cms] · part_of: mod-conhecimento
+- **Integration Doctor** (`integration-doctor`) · Feature · NOW · internal
+  - Diagnóstico de integrações: token Meta expirou, pixel sem evento, Google Ads sem acesso, UTM quebrada, webhook Autentique falhou, job de BI atrasou.…
+  - depends_on: [mod-integrations-hub, mod-observabilidade] · enables: [mod-bi-dashboards, mod-comunicacao-wpp, mod-contratos] · part_of: mod-integrations-hub
+- **Client Operating Agreement** (`client-operating-agreement`) · Feature · NOW · internal
+  - Ficha viva por cliente: contrato, escopo, SLAs, canais oficiais, permissões, módulos comprados, limites, regras de comunicação e acordos operacionais.…
+  - depends_on: [mod-contratos, mod-comercial, client-hub] · enables: [mod-entrega-mkt, mod-comunicacao-wpp, mod-juridico] · part_of: client-hub
+- **Modo Saída / Handover** (`exit-handover-mode`) · Feature · MEDIUM · internal
+  - Fluxo premium para cliente que encerra contrato: pacote organizado de exportação, acessos, documentos, relatórios, assets e handover. Retenção legítima e…
+  - depends_on: [client-hub, mod-lgpd-governanca-dados, cofre-senhas] · enables: [mod-saas-billing, mod-juridico] · part_of: client-hub
+- **Demo Tenant / Sales Theater** (`demo-tenant-sales-theater`) · Feature · NOW · internal
+  - Tenant fictício perfeito para venda e demonstração: mostra Hub, BI, score, timeline, aprovações e integrações sem depender de dados de cliente real. Serve…
+  - depends_on: [client-hub, mod-bi-dashboards] · enables: [mod-comercial, mod-site-cms] · part_of: mod-comercial
+- **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · MEDIUM · internal
+  - Aplicar à tecnologia a mesma lógica da escada de ofertas de growth (inspiração Kelvin Cleto): análise/diagnóstico → cliente faz por conta → EG faz com ele…
+  - part_of: mod-comercial
+- **Desvincular/Desengessar do Framework Opensquad** (`desvincular-opensquad`) · Infra · MEDIUM · internal
+  - Hoje squads são YAML/MD interpretados de forma cadenciada (D1 em arquitetura.md). Preocupação: prompts/contexto grandes (como este) podem falhar…
+  - part_of: mod-cockpit-interno
+- **Módulo de Investimentos (carteira pessoal)** (`modulo-investimentos`) · Platform · LONG · internal
+  - Gestão de carteira de investimentos: integrar Portfel/Finclass, análise ação por ação, preço médio, valorização, registro de compra/venda, sugestões e…
+  - part_of: foton
+- **Banco de Skills/Prompts como Produto** (`banco-skills-produto`) · Commercial · LONG · internal
+  - Vender/fornecer bancos de skills ou prompts como produto no lado de tech da EG. Especulativo — o próprio Eduardo não tem certeza se vale a pena.
+  - part_of: mega-plataforma
+- **Ativação de Squads/Features por Cliente** (`squad-ativacao-por-cliente`) · Feature · MEDIUM · internal
+  - Orquestração operacional: ativar uma automação específica para um cliente (ex: posts de blog recorrentes) e outra diferente para outro (ex: criativos,…
+  - depends_on: [mod-comercial] · part_of: mod-comercial
+- **Expansão dos Pilares de Score (nível high-end)** (`niveis-score-expandido`) · Feature · LONG · internal
+  - Questão em aberto: expandir o score além dos 3 pilares (Oferta/Demanda/Conversão) para um nível estilo Lázaro Ramos/Flávio Augusto — que mexe em…
+  - part_of: client-hub
+- **Squad de Recrutamento (reaproveita ferramenta de propostas)** (`squad-recrutamento`) · Feature · LONG · internal
+  - Reaproveitar a mesma lógica/skill do squad de propostas (busca automática em plataformas cadastradas) para submeter vagas de emprego quando a EG for contratar.
+  - depends_on: [squad-hunter] · part_of: mod-rh
 
 ## Processamento (processing) — 6
 

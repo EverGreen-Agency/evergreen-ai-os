@@ -1,29 +1,79 @@
-# Spec: mod-financeiro (Backoffice Financeiro)
+# Spec: mod-financeiro
 
-- **Cliente:** Interno (`target: internal`) — ideia `mod-financeiro` (part_of `mega-plataforma`)
-- **Fase:** 2 (Dogfood e Operação Base)
-- **Status:** rascunho
+- **Cliente:** EverGreen, uso interno (`target: internal`, plataforma)
+- **Autor:** Especificador EG + revisão Codex
 - **Data:** 2026-07-07
+- **Status:** rascunho
+- **Versão:** 1.0
+- **Ideias relacionadas:** `mod-financeiro`, `ai-credits-metering`, `planejamento-negocios`, `micro-aws-hosting`, `mod-saas-billing`
 
 ## 1. Objetivo
-Centralizar toda a previsibilidade de caixa, emissões e modelagem financeira da EverGreen. Eliminar o uso de múltiplas planilhas isoladas, trazendo a filosofia de orçamento "70/10/20" e a gestão de metas financeiras corporativas para dentro da Mega Plataforma.
+
+Centralizar previsibilidade financeira, viabilidade de investimentos, cobranças, inadimplência, custos operacionais e uso de créditos de IA da EverGreen.
 
 ## 2. Contexto
-A EG possui modelos de excel muito refinados (Planilha-Orcamentaria.xlsx) criados no núcleo Fóton (pessoal), que validam a viabilidade de projetos e orçamentos. O objetivo é generalizar essa lógica para a tesouraria corporativa, unindo a visão de cobrança dos clientes SaaS/Agency com a estrutura de custos fixos, folha de pagamento e distribuição de lucros.
 
-## 3. Escopo Funcional
-1. **Forecasting e Viabilidade:**
-   *   Motor de simulação de novos contratos (MRR) versus custos de aquisição, calculando o ponto de equilíbrio.
-2. **Orçamento Base (70/10/20):**
-   *   Alocação automática das receitas do mês nos potes: Operação (70%), Reserva/Risco (10%) e Lucro/Distribuição (20%).
-3. **Painel de Inadimplência e Cobrança:**
-   *   Ligado ao módulo de Contratos. Listagem de notas pendentes.
-4. **Integração Fiscal:**
-   *   Sincronização cadastral (CNPJ/Situação) e gatilho de emissão de NFS-e (Notas Fiscais de Serviço) automatizadas, integrado à prefeitura/ferramenta contábil.
+A EG tem planilhas pessoais/corporativas como referência, mas o Bioma precisa separar dados pessoais de dados da empresa. O módulo financeiro nasce para apoiar decisões pragmáticas: contratar, assinar ferramenta, construir módulo, manter cliente, cobrar, investir ou adiar.
 
-## 4. Requisitos Não-Funcionais
-*   Segurança militar sobre acessos: Apenas a *role* `financeiro_admin` pode acessar.
-*   Cálculos matemáticos devem usar bibliotecas de precisão (`decimal.js`) e armazenamento no banco em centavos (`integer`) para evitar bugs de arredondamento de float points.
+## 3. Escopo
 
-## 5. Integrações Críticas (ADRs Futuros)
-*   **ADR-FIN1 (Integração Bancária/Contábil):** Construir as emissões fiscais usando API da Conta Azul, Omie, ou construir integrações diretas (NFE.io)?
+O que será construído:
+
+- Cadastro de receitas, custos, despesas, centros de custo e projetos.
+- Forecasting de caixa, MRR, setup, contratos recorrentes e cenários.
+- Simulação de viabilidade para módulos, ferramentas e contratações.
+- Controle de inadimplência e status de cobrança por cliente.
+- Visão de custos por cliente, operação e squad quando houver dados.
+- Medição de créditos de IA por modelo, provedor, escopo e tenant.
+- Integração com billing, contratos e contábil/fiscal por ADR.
+- Alertas de custo anômalo, limite de IA e risco de caixa.
+
+## 4. Fora de Escopo
+
+- Misturar Fóton/finanças pessoais com financeiro EG.
+- Substituir contador ou responsabilidade fiscal sem validação.
+- Emitir NFS-e sem ADR e integração homologada.
+- Fazer trading/investimentos autônomos dentro da EG.
+- Expor margem ou caixa para clientes.
+
+## 5. Requisitos Funcionais
+
+- RF1 — Sistema deve registrar receitas e despesas por categoria, projeto, cliente e competência.
+- RF2 — Sistema deve calcular forecast mensal e cenários de contratação/investimento.
+- RF3 — Sistema deve listar clientes inadimplentes e ações de cobrança.
+- RF4 — Sistema deve receber eventos de contrato assinado e pagamento/falha de billing.
+- RF5 — Sistema deve medir uso de IA por provedor/modelo, tenant, usuário, módulo e origem (API/CLI/subscription quando rastreável).
+- RF6 — Sistema deve alertar estouro de orçamento, custo anômalo ou limite de crédito.
+- RF7 — Sistema deve simular payback/ROI de ferramentas ou módulos antes de adoção.
+- RF8 — Sistema deve exportar dados para contabilidade quando integração não estiver pronta.
+
+## 6. Requisitos Não-Funcionais
+
+- **Segurança:** acesso restrito a `financeiro_admin` e papéis aprovados.
+- **Precisão:** valores monetários em centavos ou decimal; nunca float para cálculo financeiro.
+- **Auditoria:** alterações em valor, status de cobrança e centro de custo devem ser auditadas.
+- **Privacidade:** margem, folha e custos internos não aparecem em áreas de cliente.
+- **Resiliência:** integração bancária/fiscal deve ter fallback manual.
+
+## 7. Critérios de Aceite
+
+- CA1 — Usuário sem papel financeiro não consegue acessar dados de caixa/custo.
+- CA2 — Uma despesa e uma receita recorrente entram no forecast mensal.
+- CA3 — Um cliente inadimplente aparece com status, valor, contrato e próxima ação.
+- CA4 — Uso de IA é registrado por pelo menos módulo, usuário e provedor/modelo quando disponível.
+- CA5 — Cálculos financeiros não apresentam erro de ponto flutuante em centavos.
+- CA6 — Uma simulação de assinatura de ferramenta mostra custo mensal, dono e justificativa.
+
+## 8. Riscos e Dependências
+
+- **Risco:** criar ERP antes de ter operação suficiente.  
+  **Mitigação:** começar com forecast, cobranças, custos e créditos de IA.
+
+- **Risco:** dados financeiros pessoais contaminarem dados EG.  
+  **Mitigação:** Fóton separado; importar apenas lógica, não dados pessoais.
+
+- **Dependência:** `mod-saas-billing` para assinaturas.
+- **Dependência:** `mod-contratos` para valores e vigência.
+- **Dependência:** ADR integração bancária/contábil.
+- **Dependência:** ADR créditos de IA/metering.
+

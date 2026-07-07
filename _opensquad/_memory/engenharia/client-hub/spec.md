@@ -1,39 +1,98 @@
-# Spec: client-hub (Área do Cliente e Portal Premium)
+# Spec: client-hub
 
-- **Cliente:** externo (`target: external`) — ideia `client-hub` (part_of `mega-plataforma`)
-- **Fase:** 1 (O que o cliente vê)
+- **Cliente:** EverGreen + clientes EG (`target: internal`, com superfície de produto externa)
+- **Autor:** Especificador EG + revisão Codex
+- **Data:** 2026-07-07
 - **Status:** rascunho
-- **Data:** 2026-07-06
+- **Versão:** 1.0
+- **Ideias relacionadas:** `client-hub`, `squad-raiox`, `health-score`, `selo-benchmark`, `aprovacao-tinder`, `marketplace-addons`, `delivery-tracker`, `gamificacao-setup`, `drive-rag-cliente`, `client-operating-agreement`, `exit-handover-mode`
 
 ## 1. Objetivo
-Criar o "palco" principal de interação entre a EverGreen e os clientes corporativos. O `client-hub` é um portal white-glove acessado por gestores e CEOs de clientes para acompanhar o retorno do investimento (BIs), a saúde da marca (Raio-X), entender os gargalos da operação (SLA) e contratar novas soluções de forma friction-less, unificando todo o output da agência em um ecossistema estilo Apple.
 
-## 2. Contexto e Gatilhos
-A EverGreen entrega relatórios, brand books, setups, tráfego e conteúdo. Historicamente, essas entregas vivem dispersas em PDFs, Notion e grupos de WhatsApp, gerando atrito e dificultando a percepção de valor. O Hub resolve isso centralizando o output.
-*   **Acesso Mágico:** O cliente recebe um kit logístico (onboarding) com um cartão NFC. Ao bater o celular no cartão, ele é autenticado magicamente e cai no Hub.
-*   **Depende de:** `mod-multitenant` (para isolar os clientes) e `mod-bi-dashboards` (para renderizar os gráficos).
-*   **Reaproveita:** O Blueprint PDF HM (telas do dashboard geral), a `skill-raiox` e as lógicas de Score. Também reaproveitará ativamente o repositório BIAds e utilizará o CodeGraph para mapear as integrações já existentes.
+Criar a área premium do cliente EG: um portal white-glove onde decisores acompanham métricas, score, entregáveis, aprovações, documentos, comunicações e oportunidades de expansão da parceria.
 
-## 3. Escopo Funcional (O que será construído)
-1. **Página Inicial (Visão Executiva):**
-   *   Métricas de estrela-guia agregadas.
-   *   Status de saúde (Health Score) da parceria (SLA, entregas atrasadas/em dia).
-   *   Acesso rápido aos artefatos da marca (linkando para o `mod-marca-artefatos` futuramente).
-2. **Motor de Score e Raio-X:**
-   *   Gamificação do negócio do cliente, avaliando maturidade em Oferta, Demanda e Conversão.
-   *   O cliente responde check-ins periódicos e vê a nota dele (Score) subir ou descer.
-3. **Módulos Bloqueados (Funil Kotler 5A e Upsell):**
-   *   Seção mostrando as "árvores de crescimento" do cliente.
-   *   Módulos cinzas/bloqueados (Ex: "Aceleração de Branding", "Omnichannel") que o cliente ainda não comprou, com a explicação do porquê o negócio dele precisa daquilo, liberando para pedido imediato (Upsell guiado pelo Score).
-4. **Dashboards Integrados:**
-   *   Abas chamando os relatórios do `mod-bi-dashboards` de forma embarcada (sem o cliente saber que está num BI), focando em CPL, CAC e ROI.
-5. **Comunicação Centralizada:**
-   *   Resumo das últimas reuniões, aprovações pendentes (redirecionando para o clickup sync/aprovador).
+## 2. Contexto
 
-## 4. Requisitos Não-Funcionais
-*   **Design Cinematográfico:** O UI/UX deve ser absurdamente responsivo, limpo, usando dark mode, tipografia moderna (Inter/Outfit), micro-interações de hover e gradientes suaves. A sensação deve ser a de usar um software premium do Vale do Silício.
-*   **Zero-Friction:** A UX deve focar no C-level. Executivos não querem dezenas de cliques; querem ver a meta, o gasto e o que precisam aprovar em 5 segundos.
+Hoje a percepção de valor da EG fica espalhada entre WhatsApp, PDFs, ClickUp, Notion, apresentações, reuniões e arquivos enviados por Drive. O `client-hub` centraliza essa experiência e torna visível o que a EG está fazendo pelo cliente.
 
-## 5. Integrações Críticas (ADRs Futuros)
-*   **ADR-CH1 (Acesso via NFC):** Como lidar com o magic link / tag NFC para garantir segurança sem forçar o cliente a lembrar de senhas.
-*   **ADR-CH2 (Desbloqueio Dinâmico):** Como a plataforma valida no banco quais módulos a conta do cliente possui para renderizar componentes desativados/bloqueados na UI.
+O módulo começa como ferramenta de uso EG-com-cliente. Depois pode evoluir para uso do cliente e, no limite, para white-label. Ele depende da fundação multitenant, de entitlements/ofertas e do motor de BI.
+
+## 3. Escopo
+
+O que será construído:
+
+- Dashboard executivo por tenant com KPIs essenciais, status de parceria e próximos passos.
+- Visão de Score/Raio-X por pilares: Oferta, Demanda e Conversão.
+- Health Score da parceria: SLA, pendências, entregas, aprovações e risco de churn.
+- Timeline de entregáveis estilo tracker: solicitado, em produção, em revisão, aprovado, publicado.
+- Área de aprovações de criativos, textos, relatórios e decisões, incluindo experiência "tinder-style" quando aplicável.
+- Área de módulos bloqueados/desbloqueados por oferta, plano, contrato ou entitlement.
+- Acesso a dashboards do `mod-bi-dashboards` de forma nativa e sem parecer ferramenta externa.
+- Biblioteca de documentos/artefatos do cliente: relatórios, contratos, brand book, links, gravações e recursos aprovados.
+- Entrada para NFC/magic link dos kits, com segurança e expiração.
+- Comunicação centralizada, inicialmente como espelho/resumo de WhatsApp/ClickUp/e-mail, não como substituição total.
+- Marketplace de add-ons futuro: módulos, análises e serviços adicionais.
+- Client Operating Agreement: ficha viva com escopo, SLAs, canais oficiais, módulos comprados, limites e regras de comunicação.
+- Modo Saída/Handover: pacote organizado de exportação e transição quando o cliente encerrar contrato ou mudar de formato.
+
+## 4. Fora de Escopo
+
+- Substituir WhatsApp, ClickUp, Drive ou CRM no MVP.
+- Permitir que o cliente rode análises sensíveis sozinho sem escopo/contrato.
+- Expor dados brutos de outros clientes ou da operação interna EG.
+- Criar billing completo dentro do Hub; isso pertence ao `mod-saas-billing`.
+- Criar BI do zero dentro do Hub; visualizações vêm do `mod-bi-dashboards`.
+- Liberar white-label/reseller antes de `mod-saas-billing`, theming e tenancy estarem maduros.
+
+## 5. Requisitos Funcionais
+
+- RF1 — Cliente autenticado deve acessar apenas dados do próprio tenant.
+- RF2 — Usuário interno EG deve alternar tenants conforme permissões e com auditoria.
+- RF3 — Hub deve exibir visão executiva com KPIs, health score, entregas e aprovações pendentes.
+- RF4 — Hub deve exibir Score/Raio-X com histórico e interpretação por pilar.
+- RF5 — Hub deve renderizar módulos bloqueados com motivo, valor percebido e CTA interno de upsell.
+- RF6 — Hub deve consumir dashboards autorizados do `mod-bi-dashboards`.
+- RF7 — Hub deve registrar aprovações/reprovações de criativos/relatórios com comentário e timestamp.
+- RF8 — Hub deve aceitar acesso via magic link/NFC com token de curta duração e fallback seguro.
+- RF9 — Hub deve listar documentos e links aprovados para aquele cliente.
+- RF10 — Hub deve mostrar timeline de entregáveis e status operacional sem expor ruído interno.
+- RF11 — Hub deve permitir que EG marque conteúdo como visível/invisível ao cliente.
+- RF12 — Hub deve gerar eventos para `mod-conhecimento` quando cliente aprova, rejeita ou comenta entregáveis.
+- RF13 — Hub deve exibir ou referenciar o acordo operacional vigente do cliente.
+- RF14 — Hub deve suportar fluxo de handover/exportação conforme contrato e política de dados.
+
+## 6. Requisitos Não-Funcionais
+
+- **Segurança:** isolamento por RLS/tenant; URLs assinadas para arquivos; magic links com expiração.
+- **Privacidade:** não expor anotações internas, custos, margem, prompts ou logs de squad ao cliente.
+- **Performance:** visão executiva deve carregar em até 1,5s p95 com dados cacheados.
+- **UX:** executivos devem entender status, valor e pendências em menos de 10 segundos.
+- **Acessibilidade:** responsivo e utilizável em mobile, já que NFC provavelmente abre no celular.
+- **Auditabilidade:** toda aprovação, acesso sensível e mudança de visibilidade deve gerar log.
+
+## 7. Critérios de Aceite
+
+- CA1 — Um cliente logado não consegue acessar dashboard, documento ou aprovação de outro tenant por URL direta.
+- CA2 — Um usuário EG consegue publicar um relatório como visível ao cliente e o cliente consegue abrir pelo Hub.
+- CA3 — Um magic link expirado não concede acesso e oferece fluxo seguro de reenvio.
+- CA4 — Um criativo pode ser aprovado/reprovado pelo cliente e o evento fica associado ao entregável.
+- CA5 — Um módulo não contratado aparece bloqueado com copy comercial, mas sem liberar a funcionalidade.
+- CA6 — O Hub exibe pelo menos uma visão de BI embutida sem expor credenciais ou links internos.
+- CA7 — O tracker mostra entregáveis em andamento e concluídos por cliente.
+
+## 8. Riscos e Dependências
+
+- **Risco:** prometer ao cliente uma plataforma completa antes de a operação estar estabilizada.  
+  **Mitigação:** MVP focado em visibilidade, aprovações, BI e documentos.
+
+- **Risco:** módulos bloqueados parecerem venda agressiva.  
+  **Mitigação:** ligar upsell ao diagnóstico/score e às necessidades reais.
+
+- **Risco:** magic link/NFC virar vetor de acesso indevido.  
+  **Mitigação:** tokens curtos, device/session binding e opção de revogação.
+
+- **Dependência:** `mod-multitenant` para auth, tenant e RBAC.
+- **Dependência:** `mod-bi-dashboards` para dados e visualizações.
+- **Dependência:** `cofre-senhas` e `mod-integrations-hub` para integrações seguras.
+- **Dependência:** ADR de NFC/magic link.
+- **Dependência:** ADR de entitlements/service catalog.
