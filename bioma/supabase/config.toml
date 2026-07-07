@@ -20,9 +20,15 @@ major_version = 17
 enabled = true
 sql_paths = ["./seed.sql"]
 
+# Studio/pg_meta instável neste host Windows — desligado; use psql/Drizzle
+# (reabilite se quiser a UI: enabled = true).
 [studio]
-enabled = true
+enabled = false
 port = 54323
+
+# Analytics exige daemon Docker exposto em tcp:2375 no Windows — desligado local.
+[analytics]
+enabled = false
 
 [auth]
 enabled = true
