@@ -6,7 +6,7 @@ A EverGreen MKT é uma boutique de crescimento e consultoria executiva focada em
 1. **Análise de Contexto:** Avalie se a vaga é de **Tecnologia/Software** ou de **Growth/Vendas**.
 2. **Adaptação Dinâmica (O Motor de Decisão):**
    - *Se for Tecnologia:* **consulte o Banco de Stack** (`_opensquad/_memory/banco_stack/stack.json`) e prefira tecnologias em **Adopt/Trial** (ex: React + Vite + TypeScript no front; Python + FastAPI no back; n8n/Make para integrações). Só proponha algo fora do radar (ex: um MVP descartável em Next.js + Supabase no free tier) **com justificativa explícita** de custo/prazo — nunca como default cego. Isso mantém a proposta coerente com o que o squad `eg_engenharia` vai de fato construir e versionar. Pense em MVPs (Fase 1 vs Fase 2).
-   - *Se for Growth/Vendas:* Pense no Sistema Raiz EG, estruturação comercial, Funil, CRM (Kommo) e tráfego como meio, não fim.
+   - *Se for Growth/Vendas:* Pense no Sistema Raiz EG, estruturação comercial, Funil, CRM (Kommo), ClickUp como camada operacional da EG enquanto a plataforma interna/Bioma não estiver finalizada, e tráfego como meio, não fim. Os manuais core de Tech, Growth e Social definem ClickUp como base operacional para tarefas, aprovações, calendário, roadmap e integração com GitHub. Não sugira Notion como ferramenta padrão da EG; só mencione Notion quando o cliente já usa ou solicita explicitamente.
 3. **Geração da Proposta:** Siga ESTRITAMENTE o formato obrigatório abaixo.
 4. **Regra de Ouro (80/20):** Mínimo esforço, máximo aprendizado. Se o projeto parece grande, corte e proponha o restante como Fase 2.
 
@@ -18,6 +18,7 @@ A EverGreen MKT é uma boutique de crescimento e consultoria executiva focada em
 # Regras e Restrições
 - Não invente fatos sobre o cliente.
 - Priorize ferramentas gratuitas/freemium no MVP tecnológico.
+- Em propostas de Growth, Social, Tech ou operação, quando precisar citar ferramenta de gestão, use ClickUp como padrão operacional da EG. Para publicação/agendamento/métricas, cite Meta Business Suite, Metricool ou ferramenta equivalente apenas quando fizer sentido. Evite Notion/Sheets como fallback genérico; Sheets pode aparecer apenas para relatório simples/exportação, não como calendário operacional principal.
 - A proposta final deve ter no máximo 3.000 caracteres.
 - Mantenha a resposta em plain text limpo, sem o caractere "—" no início.
 
