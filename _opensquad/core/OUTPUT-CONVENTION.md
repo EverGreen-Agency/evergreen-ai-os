@@ -36,3 +36,18 @@ Renomear/mover pastas de runs antigos é **arriscado** (pode quebrar referência
 **baixo valor** — ficam como estão. A convenção vale para runs **novos**. Exemplos do legado:
 `dispatcher/output/2026-07-02-112016/routing.md` (na raiz, sem `v1/`) e
 `banco_ideias/output/2026-07-02-112346/triagem.md` (idem) — deixados intactos de propósito.
+
+## Onde mora cada TIPO de artefato (adendo 2026-07-07)
+
+A convenção acima é só para **run de squad**. Mas há 3 tipos de artefato, e nem tudo vai pra `engenharia/`:
+
+| Tipo | Exemplo | Onde mora | Como aparece |
+|---|---|---|---|
+| **Run de squad** (efêmero) | parecer, triagem, routing | `squads/<squad>/output/<run>/v1/` | histórico do run (dashboard) |
+| **Projeto de cliente/lead** | Rian (PJe/TRF1), entregáveis | `_opensquad/_memory/clients/<id>/engenharia/` | **link na área do cliente/lead** (mesmo lead ainda não fechado) |
+| **Módulo de plataforma/produto** | `mod-multitenant`, `client-hub`, `mod-bi-dashboards` | `_opensquad/_memory/engenharia/<id>/` (`spec.md` · `adr/` · `tasks.md`) | aba **Engenharia** do dashboard |
+
+**Regras:**
+- O `target` do `eg_engenharia` hoje é `client`|`internal`. Módulo de **plataforma/produto** não é projeto-de-cliente nem ferramenta-interna simples → usar `target: internal` com **flag/nota de produto** (ou criar `target: platform` quando o dashboard suportar). *(As specs `client-hub`/`bi` foram criadas com `target: external/mixed` — inválido; corrigir p/ o padrão.)*
+- **Projeto de cliente/lead** (ex: Rian) **não** deve viver só no `output/` do squad: o entregável final vai pra `clients/<id>/engenharia/` e é **linkado na área do cliente/lead** — assim se acha pela pessoa, não navegando pastas. *(O Rian hoje está em `squads/eg_engenharia/output/<ts>/` — mover/linkar quando a Carteira/área de leads existir.)*
+- **Fix de navegação real:** aba **"Engenharia"** no dashboard (feature de `mod-cockpit-interno`) lê esse filesystem e lista, por projeto/módulo, spec+ADRs+tarefas — como o Banco de Ideias já faz. Enquanto não existe, o índice é o `PLANO-MESTRE.md`.

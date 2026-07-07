@@ -26,3 +26,7 @@ _opensquad/_memory/clients/*/
 # Histórico dos copilots
 .claude-code-history
 .codex-history
+
+# Dado financeiro PESSOAL do Eduardo — nunca versionar (vai pro Fóton, não pra EG)
+Planilha-Orcamentaria.xlsx
+*Orcamentaria*.xlsx
