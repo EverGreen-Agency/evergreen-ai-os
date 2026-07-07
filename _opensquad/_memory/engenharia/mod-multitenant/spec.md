@@ -61,7 +61,7 @@ O que explicitamente **não** entra neste 1º corte:
 - **CA4** — Árvore de orgs com os 4 níveis existe no schema e aceita um cliente-da-agência sob uma agência-parceira sob a EG (mesmo sem UI de reseller).
 - **CA5** — Ações sensíveis aparecem no `audit_logs`.
 - **CA6** — Super-admin suspende um tenant e o acesso é bloqueado imediatamente.
-- **CA7** — App publicado em ambiente web (dados em região BR), HTTPS, com o cockpit atual preservado ou migrado sem perda de função.
+- **CA7** — App publicado em ambiente web (dados em região BR), HTTPS. *(Revisado 2026-07-07: o cockpit atual (`dashboard/`) não tem uso operacional real — sem auth, sem operação de negócio passando por ele, é só visualizador local de bancos/ideias. Não é uma premissa a proteger. CA7 vira só "publicar corretamente"; ver §9 sobre a estratégia de migração.)*
 
 ## 8. Riscos e Dependências
 - **Risco:** escolha de auth (build vs buy) e do mecanismo de isolamento (RLS) define custo/segurança → **Mitigação:** ADRs dedicados antes de codar.
@@ -69,6 +69,9 @@ O que explicitamente **não** entra neste 1º corte:
 - **Risco:** misturar bancos internos (JSON) com dados de produto (DB) → **Mitigação:** fronteira explícita — bancos internos em arquivo (D2), dados de tenant no DB.
 - **Dependência:** provedor de auth e de banco (a decidir em ADR) + região BR de hosting → **Necessário até:** antes do scaffold.
 - **Dependência:** stack de produto (Postgres, framework web/backend) precisa **entrar no `stack.json`** (o radar hoje não cobre) → Decisor registra.
+
+## 9. Nota de revisão — cockpit sem uso operacional (2026-07-07)
+O Eduardo confirmou: **o cockpit atual (`dashboard/`) não é operável** — sem login, sem operação de negócio (não roda cliente, não roda financeiro, não roda nada crítico), é um visualizador local dos bancos internos (ideias, arquitetura, stack). Isso muda a estratégia de migração do ADR-0001: **não há necessidade de "strangler para preservar"** — a plataforma nova (Bioma) pode ser construída **greenfield**, e as poucas telas úteis do cockpit (Banco de Ideias, Tech Radar) são **portadas por valor, não por obrigação de compatibilidade**. Ver ADR-0001 §4 atualizado.
 
 ---
 <!-- [SUPOSIÇÃO] pendentes: (1) SSO federado fora do 1º corte; (2) ordem de grandeza de escala; (3) bancos internos JSON permanecem em arquivo (D2). Confirmar no gate de aprovação. -->

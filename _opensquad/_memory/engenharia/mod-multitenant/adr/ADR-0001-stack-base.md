@@ -31,9 +31,12 @@ Visando máxima agilidade no desenvolvimento e facilidade de deploy inicial (mas
 *   **Esforço de Refatoração:** Migrar o cockpit atual (Vite puro) para Next.js Server Components exige um esforço substancial de reescrita da lógica de data-fetching.
 *   **Centralização:** O repositório unificado garante que 1 dev full-stack pode entregar uma funcionalidade ponta-a-ponta (do schema do banco ao botão na UI) sem fricção.
 
-## 4. Estratégia de Migração — Strangler, NÃO big-bang (adendo do Juiz)
-O cockpit atual (`dashboard/`) **funciona hoje** e a spec exige preservá-lo (CA7). Portanto a migração Vite→Next.js é **incremental (Strangler Fig)**, não reescrita de uma vez:
-*   **Fase A:** subir o app Next.js novo ao lado, com Supabase Auth + Postgres + a fundação `mod-multitenant` (orgs/RBAC/RLS). O cockpit atual continua rodando local, sem auth, para uso interno da EG.
-*   **Fase B:** migrar telas do cockpit (Banco de Ideias, Arquitetura, Carteira) para o app novo uma a uma, quando cada uma ganhar valor de estar autenticada/multi-tenant. Os **bancos internos JSON continuam** sendo lidos por adapters (ADR-0006), não migram para o DB de produto.
-*   **Fase C:** quando todas as telas úteis migraram, o Vite antigo é aposentado.
-*   **Regra:** nunca quebrar o cockpit interno num deploy. Cada migração de tela é reversível e testável isolada.
+## 4. Estratégia de Migração — GREENFIELD, não strangler (revisado 2026-07-07)
+**Correção:** a v1 deste ADR assumia "strangler pattern" para preservar o cockpit atual. O Eduardo confirmou que **o cockpit (`dashboard/`) não tem uso operacional** — sem auth, sem operação de negócio real passando por ele, é um visualizador local dos bancos internos (ideias/arquitetura/stack). Não há nada crítico a "proteger" durante a migração, então strangler (que existe para não quebrar algo em produção) é complexidade desnecessária aqui.
+
+**Decisão:** construir a plataforma nova (Next.js + Supabase + `mod-multitenant`) **greenfield**, do zero, sem obrigação de compatibilidade com o Vite atual:
+*   O app Next.js novo nasce limpo com a fundação (orgs/RBAC/RLS/auth).
+*   Telas do cockpit que têm valor real (Banco de Ideias, Tech Radar) são **portadas por decisão de produto**, não por obrigação — cada uma vira uma feature normal do roadmap (Fase 2, `mod-cockpit-interno`), especificada e priorizada como qualquer outra.
+*   Os **bancos internos JSON continuam** sendo lidos por adapters quando essas telas forem portadas (ADR-0006) — isso não muda.
+*   O `dashboard/` Vite atual pode continuar rodando em paralelo enquanto isso, sem pressão de prazo — ele não bloqueia nem é bloqueado pelo desenvolvimento do Bioma.
+*   **Ganho:** menos código de transição, menos vínculo com decisões antigas do Vite, arquitetura da fundação fica mais limpa desde o dia 1.
