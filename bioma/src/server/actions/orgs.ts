@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
+import { uuidSchema } from "@/lib/validation";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ACTIVE_ORG_COOKIE } from "@/server/active-org";
@@ -24,7 +26,7 @@ const createOrgSchema = z.object({
     .max(60)
     .regex(/^[a-z0-9][a-z0-9-]*$/),
   orgType: z.enum(["client", "partner_agency", "agency_client", "independent"]),
-  parentOrgId: z.string().uuid(),
+  parentOrgId: uuidSchema,
 });
 
 /** Cria org filha. RLS exige org.manage no PAI (CA2/CA4) — client do usuário. */
@@ -73,7 +75,7 @@ export async function createOrgAction(
 }
 
 const setStatusSchema = z.object({
-  orgId: z.string().uuid(),
+  orgId: uuidSchema,
   status: z.enum(["active", "suspended"]),
 });
 
@@ -120,7 +122,7 @@ export async function setOrgStatusAction(
   return { ok: true };
 }
 
-const switchOrgSchema = z.object({ orgId: z.string().uuid() });
+const switchOrgSchema = z.object({ orgId: uuidSchema });
 
 /** Troca o tenant ativo. O valor é validado de novo no getActiveOrg (RLS). */
 export async function switchOrgAction(formData: FormData): Promise<void> {

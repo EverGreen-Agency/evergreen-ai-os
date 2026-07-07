@@ -85,6 +85,22 @@ export const isPlatformSuperAdmin = cache(async (): Promise<boolean> => {
   return (data ?? []).length > 0;
 });
 
+/** Membro (qualquer papel ativo) da org plataforma EG? Gate do cockpit interno. */
+export const isPlatformMember = cache(async (): Promise<boolean> => {
+  const memberships = await getMyMemberships();
+  if (memberships.length === 0) return false;
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("org_type", "platform")
+    .in(
+      "id",
+      memberships.map((m) => m.orgId),
+    );
+  return (data ?? []).length > 0;
+});
+
 /**
  * Exige permissão sobre UMA org específica (recurso), nunca "permissão global".
  * Membership direta OU tenant_admin ancestral OU super-admin de plataforma —

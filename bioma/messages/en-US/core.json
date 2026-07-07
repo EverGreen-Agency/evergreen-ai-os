@@ -36,7 +36,9 @@
     "noOrg": {
       "title": "No organization",
       "body": "Your user is not linked to any active organization."
-    }
+    },
+    "vault": "Vault",
+    "cockpit": "Cockpit"
   },
   "landing": {
     "welcome": "Hello, {name}",

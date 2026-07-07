@@ -28,6 +28,8 @@
     "logout": "Sair",
     "switchOrg": "Trocar organização",
     "admin": "Administração",
+    "vault": "Cofre",
+    "cockpit": "Cockpit",
     "home": "Início",
     "suspended": {
       "title": "Acesso suspenso",

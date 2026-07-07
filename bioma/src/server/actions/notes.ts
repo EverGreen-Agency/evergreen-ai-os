@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { uuidSchema } from "@/lib/validation";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AuthzError, requirePermission, requireUser } from "@/server/authz";
 import type { ActionState } from "./orgs";
 
 const createNoteSchema = z.object({
-  tenantId: z.string().uuid(),
+  tenantId: uuidSchema,
   title: z.string().min(1).max(200),
   body: z.string().max(5000).optional(),
 });
@@ -46,8 +48,8 @@ export async function createNoteAction(
 }
 
 const deleteNoteSchema = z.object({
-  noteId: z.string().uuid(),
-  tenantId: z.string().uuid(),
+  noteId: uuidSchema,
+  tenantId: uuidSchema,
 });
 
 export async function deleteNoteAction(formData: FormData): Promise<void> {

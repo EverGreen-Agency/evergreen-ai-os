@@ -1,0 +1,54 @@
+{
+  "vault": {
+    "title": "Access vault",
+    "subtitle": "Tenant credentials — encrypted, audited, no spreadsheets.",
+    "empty": "No credentials yet.",
+    "columns": {
+      "platform": "Platform",
+      "label": "Label",
+      "status": "Status",
+      "updated": "Updated"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "compromised": "Compromised",
+      "revoked": "Revoked",
+      "rotating": "Rotating"
+    },
+    "form": {
+      "title": "New credential",
+      "platform": "Platform (e.g. google-ads, meta-bm, kommo)",
+      "label": "Label (e.g. Client main account)",
+      "username": "Username / e-mail",
+      "password": "Password",
+      "token": "Token / API key",
+      "recoveryCodes": "Recovery codes",
+      "notes": "Sensitive notes",
+      "hint": "All sensitive fields are encrypted before saving. Provide at least username, password or token.",
+      "submit": "Save to vault"
+    },
+    "reveal": {
+      "button": "Reveal",
+      "reasonLabel": "Reason for revealing (required, goes to the audit log)",
+      "reasonPlaceholder": "E.g. set up Google Ads campaign",
+      "confirm": "Reveal secrets",
+      "hide": "Hide",
+      "blocked": "Credential revoked/compromised — reveal blocked.",
+      "username": "Username",
+      "password": "Password",
+      "token": "Token",
+      "recoveryCodes": "Recovery",
+      "notes": "Notes"
+    },
+    "actions": {
+      "revoke": "Revoke",
+      "markCompromised": "Compromised",
+      "rotate": "Rotate",
+      "reactivate": "Reactivate"
+    },
+    "errors": {
+      "credential_blocked": "Credential blocked from revealing."
+    }
+  }
+}

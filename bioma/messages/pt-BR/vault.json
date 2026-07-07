@@ -1,0 +1,54 @@
+{
+  "vault": {
+    "title": "Cofre de acessos",
+    "subtitle": "Credenciais do tenant — cifradas, auditadas, sem planilha.",
+    "empty": "Nenhuma credencial cadastrada.",
+    "columns": {
+      "platform": "Plataforma",
+      "label": "Identificação",
+      "status": "Status",
+      "updated": "Atualizada"
+    },
+    "status": {
+      "active": "Ativa",
+      "expired": "Expirada",
+      "compromised": "Comprometida",
+      "revoked": "Revogada",
+      "rotating": "Em rotação"
+    },
+    "form": {
+      "title": "Nova credencial",
+      "platform": "Plataforma (ex.: google-ads, meta-bm, kommo)",
+      "label": "Identificação (ex.: Conta principal do cliente)",
+      "username": "Usuário / e-mail",
+      "password": "Senha",
+      "token": "Token / chave de API",
+      "recoveryCodes": "Códigos de recuperação",
+      "notes": "Notas sensíveis",
+      "hint": "Todos os campos sensíveis são cifrados antes de salvar. Preencha ao menos usuário, senha ou token.",
+      "submit": "Salvar no cofre"
+    },
+    "reveal": {
+      "button": "Revelar",
+      "reasonLabel": "Motivo da revelação (obrigatório, vai para a auditoria)",
+      "reasonPlaceholder": "Ex.: configurar campanha no Google Ads",
+      "confirm": "Revelar segredos",
+      "hide": "Ocultar",
+      "blocked": "Credencial revogada/comprometida — revelação bloqueada.",
+      "username": "Usuário",
+      "password": "Senha",
+      "token": "Token",
+      "recoveryCodes": "Recuperação",
+      "notes": "Notas"
+    },
+    "actions": {
+      "revoke": "Revogar",
+      "markCompromised": "Comprometida",
+      "rotate": "Rotacionar",
+      "reactivate": "Reativar"
+    },
+    "errors": {
+      "credential_blocked": "Credencial bloqueada para revelação."
+    }
+  }
+}

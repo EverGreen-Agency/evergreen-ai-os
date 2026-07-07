@@ -8,7 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getActiveOrg, getVisibleOrgs } from "@/server/active-org";
 import { logoutAction } from "@/server/actions/auth";
-import { getMyMemberships, isPlatformSuperAdmin, requireUser } from "@/server/authz";
+import {
+  getMyMemberships,
+  isPlatformMember,
+  isPlatformSuperAdmin,
+  requireUser,
+} from "@/server/authz";
 
 /**
  * Shell do tenant (RF8): contexto da org ativa + gate de suspensão (CA6, além
@@ -20,12 +25,14 @@ export default async function AppLayout({
   await requireUser(); // proxy já redireciona; cinto e suspensório
   const t = await getTranslations("shell");
 
-  const [orgs, activeOrg, memberships, superAdmin] = await Promise.all([
-    getVisibleOrgs(),
-    getActiveOrg(),
-    getMyMemberships(),
-    isPlatformSuperAdmin(),
-  ]);
+  const [orgs, activeOrg, memberships, superAdmin, platformMember] =
+    await Promise.all([
+      getVisibleOrgs(),
+      getActiveOrg(),
+      getMyMemberships(),
+      isPlatformSuperAdmin(),
+      isPlatformMember(),
+    ]);
 
   // Sem org visível: ou o usuário não tem vínculo, ou TODAS as orgs dele estão
   // suspensas (RLS as esconde — memberships continuam visíveis para si mesmo).
@@ -71,6 +78,20 @@ export default async function AppLayout({
                 activeOrgId={activeOrg.id}
                 label={t("switchOrg")}
               />
+            ) : null}
+            <Link
+              href="/vault"
+              className="rounded-md px-3 py-1.5 text-sm font-medium hover:bg-muted"
+            >
+              {t("vault")}
+            </Link>
+            {platformMember ? (
+              <Link
+                href="/cockpit"
+                className="rounded-md px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              >
+                {t("cockpit")}
+              </Link>
             ) : null}
             {superAdmin ? (
               <Link

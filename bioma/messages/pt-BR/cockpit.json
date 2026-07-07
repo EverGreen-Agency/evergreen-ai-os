@@ -1,0 +1,126 @@
+{
+  "cockpit": {
+    "title": "Cockpit interno",
+    "subtitle": "Superfície operacional da EG: ideias, radar de stack, engenharia, arquitetura e o legado do dashboard antigo.",
+    "nav": {
+      "overview": "Visão geral",
+      "ideas": "Ideias",
+      "radar": "Radar",
+      "engineering": "Engenharia",
+      "architecture": "Arquitetura",
+      "legacy": "Legado"
+    },
+    "unavailable": {
+      "title": "Memória interna indisponível neste ambiente",
+      "body": "O diretório _opensquad/_memory não foi encontrado (deploy sem o repo interno?). Configure INTERNAL_MEMORY_PATH ou rode o Bioma dentro do monorepo evergreen-ai-os."
+    },
+    "overview": {
+      "open": "Abrir",
+      "ideasTitle": "Banco de Ideias",
+      "ideasCount": "{count, plural, =1 {1 ideia ativa} other {# ideias ativas}}",
+      "radarTitle": "Tech Radar",
+      "radarCount": "{count, plural, =1 {1 tecnologia} other {# tecnologias}}",
+      "engineeringTitle": "Engenharia",
+      "modulesCount": "{count, plural, =1 {1 módulo} other {# módulos}}",
+      "withSpec": "Com spec",
+      "withAdrs": "Com ADRs",
+      "withTasks": "Com tasks",
+      "legacyTitle": "Legado /dashboard",
+      "legacyCount": "{count, plural, =1 {1 item inventariado} other {# itens inventariados}}",
+      "architectureLink": "Ver decisões de arquitetura (D1–D7) →",
+      "sourceMissing": "Fonte indisponível neste ambiente."
+    },
+    "ideas": {
+      "filters": {
+        "category": "Categoria",
+        "stage": "Estágio",
+        "partOf": "Parte de",
+        "all": "Todas",
+        "apply": "Filtrar",
+        "clear": "Limpar filtros"
+      },
+      "count": "Mostrando {shown} de {total} ideias ativas.",
+      "archivedHidden": "({count, plural, =1 {1 arquivada oculta} other {# arquivadas ocultas}})",
+      "columns": {
+        "title": "Ideia",
+        "category": "Categoria",
+        "stage": "Estágio",
+        "horizon": "Horizonte",
+        "partOf": "Parte de",
+        "readiness": "Prontidão"
+      },
+      "stages": {
+        "capture": "Captura",
+        "evaluation": "Avaliação",
+        "processing": "Processamento",
+        "project": "Projeto",
+        "company": "Empresa"
+      },
+      "empty": "Nenhuma ideia encontrada com esses filtros."
+    },
+    "radar": {
+      "count": "{count, plural, =1 {1 tecnologia no radar} other {# tecnologias no radar}}",
+      "updatedAt": "atualizado em {date}",
+      "columns": {
+        "tech": "Tecnologia",
+        "ring": "Anel",
+        "note": "Nota",
+        "adr": "ADR"
+      },
+      "rings": {
+        "adopt": "Adotar",
+        "trial": "Testar",
+        "assess": "Avaliar",
+        "hold": "Evitar"
+      },
+      "quadrants": {
+        "languages": "Linguagens",
+        "frameworks": "Frameworks",
+        "tools": "Ferramentas",
+        "platforms-infra": "Plataformas & Infra"
+      }
+    },
+    "engineering": {
+      "count": "{count, plural, =1 {1 módulo em _memory/engenharia} other {# módulos em _memory/engenharia}}",
+      "columns": {
+        "module": "Módulo",
+        "spec": "Spec",
+        "status": "Status",
+        "date": "Data",
+        "adrs": "ADRs",
+        "tasks": "Tasks"
+      },
+      "specUntitled": "(spec sem título)",
+      "noSpec": "sem spec.md",
+      "tasksYes": "sim",
+      "tasksNo": "não",
+      "empty": "Nenhum módulo encontrado.",
+      "sourceHint": "Fonte: _opensquad/_memory/engenharia/[id]/ (spec.md, adr/*.md, tasks.md). Leitura direta do repo — sem cópia."
+    },
+    "architecture": {
+      "principlesTitle": "Princípios de engenharia da casa",
+      "decisionsTitle": "Decisões arquiteturais (D1–D7)",
+      "decisionsEmpty": "Nenhuma decisão encontrada em arquitetura.md.",
+      "toolsTitle": "Ferramentas externas",
+      "toolsHint": "Inventário do que a EG usa/assina hoje e a decisão de cada uma na mega-plataforma (manter · absorver · revender · avaliar).",
+      "toolsEmpty": "ferramentas-externas.md não encontrado."
+    },
+    "legacy": {
+      "intro": "Inventário do dashboard/ Vite antigo (embrião histórico do cockpit). Cada área foi classificada com decisão final; quando já portada, a URL equivalente no Bioma aparece ao lado. O dashboard antigo não precisa estar rodando para nada aqui.",
+      "todoEditing": "TODO: edição do Banco de Ideias e do Stack pelo cockpit (schema validation + diff resumido + auditoria — CA2 da spec) fica para o próximo corte. Até lá, este corte é somente leitura e a escrita continua no fluxo atual (Curador/git).",
+      "columns": {
+        "area": "Área",
+        "legacyPath": "Onde vive no legado",
+        "decision": "Decisão",
+        "biomaUrl": "Equivalente no Bioma",
+        "note": "Nota"
+      },
+      "decisions": {
+        "portar": "Portar",
+        "descartar": "Descartar",
+        "manter_temporario": "Manter temporário",
+        "substituido": "Substituído"
+      }
+    }
+  }
+}

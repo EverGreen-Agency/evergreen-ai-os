@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { uuidSchema } from "@/lib/validation";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { audit } from "@/server/audit";
@@ -13,7 +15,7 @@ const createMemberSchema = z.object({
   email: z.string().email(),
   displayName: z.string().min(2).max(120),
   password: z.string().min(10).max(256),
-  orgId: z.string().uuid(),
+  orgId: uuidSchema,
   roleKey: z.enum(["tenant_admin", "operator", "client_viewer", "super_admin"]),
 });
 
@@ -94,8 +96,8 @@ export async function createMemberAction(
 }
 
 const changeRoleSchema = z.object({
-  membershipId: z.string().uuid(),
-  orgId: z.string().uuid(),
+  membershipId: uuidSchema,
+  orgId: uuidSchema,
   roleKey: z.enum(["tenant_admin", "operator", "client_viewer"]),
 });
 
