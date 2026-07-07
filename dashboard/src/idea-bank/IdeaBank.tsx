@@ -38,6 +38,17 @@ const CAT_DESC: Record<string, string> = {
   Platform:   "Mega-plataforma EG e seus módulos — o guarda-chuva e as camadas do sistema (multitenant, client-hub, financeiro...).",
 };
 
+// Rótulos em PT exibidos no front (o valor no JSON continua em inglês — enum).
+const CAT_LABEL: Record<string, string> = {
+  Squad:      "Squad",
+  Cockpit:    "Cockpit",
+  Feature:    "Recurso",
+  Service:    "Serviço",
+  Infra:      "Infra",
+  Commercial: "Comercial",
+  Platform:   "Plataforma",
+};
+
 const CATEGORIES = Object.keys(CAT_COLOR);
 
 // Urgency order for development. Lower = more urgent; sorts cards within a column.
@@ -169,7 +180,7 @@ export function IdeaBank() {
                   color: active ? color : "var(--text-secondary)",
                 }}
               >
-                {cat}
+                {CAT_LABEL[cat] ?? cat}
               </button>
             );
           })}
@@ -354,7 +365,7 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
           title={CAT_DESC[idea.category]}
           style={{ ...styles.badge, background: `${catColor}22`, color: catColor, fontWeight: 700, cursor: "help" }}
         >
-          {idea.category}
+          {CAT_LABEL[idea.category] ?? idea.category}
         </span>
         {horizon && (
           <span
@@ -510,7 +521,7 @@ function IdeaEditForm({ idea, onSave, onCancel }: { idea: Idea; onSave: (i: Idea
           style={styles.editSelect}
         >
           {(["Squad","Cockpit","Feature","Service","Infra","Commercial","Platform"] as Category[]).map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>{CAT_LABEL[c] ?? c}</option>
           ))}
         </select>
         <select

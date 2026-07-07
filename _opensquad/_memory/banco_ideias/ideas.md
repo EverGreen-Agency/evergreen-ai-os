@@ -1,9 +1,9 @@
 # Banco de Ideias EG
 
-> View gerada a partir de `ideas.json` em 2026-07-07. Fonte da verdade: `ideas.json`. Total: 124 ideias.
+> View gerada a partir de `ideas.json` em 2026-07-07. Fonte da verdade: `ideas.json`. Total: 126 ideias.
 
 
-## Captura (capture) — 102
+## Captura (capture) — 105
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
@@ -156,71 +156,77 @@
 - **eg-publish (deploy de artefatos: Vercel / GitHub Pages)** (`eg-publish`) · Infra · a redefinir · internal
   - Skill que publica um artefato estático (protótipo clicável, landing, doc HTML, one-pager) numa URL pública — Vercel (CLI/MCP autenticado) ou GitHub Pages…
   - part_of: mod-marca-artefatos
-- **Módulo Núcleo (infra transversal)** (`mod-nucleo`) · Infra · NOW · internal
+- **Módulo Núcleo (infra transversal)** (`mod-nucleo`) · Platform · NOW · internal
   - Fundações da plataforma: multitenant/SSO/acessos, hosting, building-blocks (Lego), camada LLM-agnostic, handoff assíncrono, portabilidade dos bancos.
   - part_of: mega-plataforma
-- **Módulo Conhecimento / Segundo Cérebro** (`mod-conhecimento`) · Infra · MEDIUM · internal
+- **Módulo Comercial (funil EG)** (`mod-comercial`) · Platform · NOW · internal
+  - Módulo de aquisição e relacionamento da EG: prospecção, propostas, onboarding, carteira, reuniões, funil, lead scoring e inteligência comercial. Deve…
+  - part_of: mega-plataforma
+- **Módulo Entrega de Marketing** (`mod-entrega-mkt`) · Platform · NOW · internal
+  - Módulo de entrega growth/marketing para clientes de múltiplos mercados: criativos, tráfego, SEO/GEO, social, relatórios, BI e skills de Ads. Não é agência…
+  - part_of: mega-plataforma
+- **Módulo Conhecimento / Segundo Cérebro** (`mod-conhecimento`) · Platform · MEDIUM · internal
   - RAG/segundo cérebro, vector store, decay, Zep, voz do cliente, ingestão de vídeo, banco de cases sucesso/fracasso.
   - part_of: mega-plataforma
-- **Módulo Radar & Pesquisa** (`mod-radar-pesquisa`) · Feature · MEDIUM · internal
+- **Módulo Radar & Pesquisa** (`mod-radar-pesquisa`) · Platform · MEDIUM · internal
   - Tech-scout, pesquisa de políticas (Meta/Google), updates de stack, pesquisa acadêmica e squad de negócios/estratégia.
   - part_of: mega-plataforma
-- **Módulo Marca & Artefatos** (`mod-marca-artefatos`) · Infra · MEDIUM · internal
+- **Módulo Marca & Artefatos** (`mod-marca-artefatos`) · Platform · MEDIUM · internal
   - Brand skill, filosofia visual, gerador de documentos, web-artifacts builder, eg-publish. A camada que dá padrão boutique a tudo que a IA gera.
   - part_of: mega-plataforma
-- **Multitenant / SSO / Acessos** (`mod-multitenant`) · Infra · NOW · internal
+- **Multitenant / SSO / Acessos** (`mod-multitenant`) · Platform · NOW · internal
   - Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação…
   - enables: [client-hub, mod-saas-billing] · part_of: mod-nucleo
-- **Área do Cliente (Hub NFC)** (`client-hub`) · Cockpit · NOW · internal
+- **Área do Cliente (Hub NFC)** (`client-hub`) · Platform · NOW · internal
   - Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e…
   - depends_on: [mod-multitenant, mod-bi-dashboards] · part_of: mega-plataforma
-- **Motor de BI / Dashboards** (`mod-bi-dashboards`) · Cockpit · NOW · internal
+- **Motor de BI / Dashboards** (`mod-bi-dashboards`) · Platform · NOW · internal
   - Integra o repo BIAds: Meta/Google Ads, funil dinâmico, criativos, rastreio de UTMs — interno e cliente. Squads escrevem a narrativa; o BI exibe os números.
   - depends_on: [ads-api-skills] · part_of: client-hub
-- **Módulo Financeiro** (`mod-financeiro`) · Feature · MEDIUM · internal
+- **Módulo Financeiro** (`mod-financeiro`) · Platform · MEDIUM · internal
   - Viabilidade/forecasting/metas + cobrança de cliente + contábil/fiscal (emissão de NF, situação cadastral, vigilância tributária). Nível pessoal → corporativo.
   - enables: [squad-negocios] · part_of: mega-plataforma
-- **Módulo RH** (`mod-rh`) · Feature · MEDIUM · internal
+- **Módulo RH** (`mod-rh`) · Platform · MEDIUM · internal
   - Rampagem de funcionário (15/30/60/90), níveis de cultura e de cargo, performance/NPS por gestor (carteira de clientes do gestor), kits de onboarding de…
   - part_of: mega-plataforma
-- **Logística de Kits** (`mod-logistica-kits`) · Feature · MEDIUM · internal
+- **Logística de Kits** (`mod-logistica-kits`) · Platform · MEDIUM · internal
   - Controle de estoque de peças, fornecedores/custos, quem recebeu qual kit e nível, status (entregue/produção), campos custom por item (ciclos de lavagem,…
   - part_of: mega-plataforma
-- **Gestão de Contratos (Autentique)** (`mod-contratos`) · Feature · MEDIUM · internal
+- **Gestão de Contratos (Autentique)** (`mod-contratos`) · Platform · MEDIUM · internal
   - Absorver o Autentique: ciclo/assinatura/status de contratos, ligado a financeiro (datas início/fim) e onboarding.
   - part_of: mega-plataforma
-- **Gestão de Certificações** (`mod-certificacoes`) · Feature · LONG · internal
+- **Gestão de Certificações** (`mod-certificacoes`) · Platform · LONG · internal
   - Certificados da EG e dos funcionários (Google, Meta/Ads, Salesforce, Hubspot): validade e renovação.
   - part_of: mod-rh
-- **Billing / SaaS / Retenção** (`mod-saas-billing`) · Feature · MEDIUM · internal
+- **Billing / SaaS / Retenção** (`mod-saas-billing`) · Platform · MEDIUM · internal
   - Camada de pagamentos, assinaturas, cupons, cotas, planos, clientes legado, white-label e parcerias. A lógica de retenção é legítima: o cliente pode sair…
   - depends_on: [mod-multitenant] · part_of: mega-plataforma
-- **Site EG + EG Lab + CMS** (`mod-site-cms`) · Feature · NOW · internal
+- **Site EG + EG Lab + CMS** (`mod-site-cms`) · Platform · NOW · internal
   - Refatoração do site EG, EG Lab/POCs e eventual CMS: cases inteligentes puxados do backoffice, mapa de clientes, correção de marca EverGreen, laboratório…
   - depends_on: [eg-publish] · part_of: mega-plataforma
-- **Omnichannel WhatsApp** (`mod-comunicacao-wpp`) · Feature · MEDIUM · internal
+- **Omnichannel WhatsApp** (`mod-comunicacao-wpp`) · Platform · MEDIUM · internal
   - WhatsApp/coexistence/Evolution API/VoIP + gestão de números e chips para o CRM; integra a operadora Telecom (irmã). Contra-ataque às mudanças da Meta…
   - part_of: mega-plataforma
-- **Ingestão de Vídeo (YT/Insta)** (`mod-conhecimento-video`) · Infra · MEDIUM · internal
+- **Ingestão de Vídeo (YT/Insta)** (`mod-conhecimento-video`) · Platform · MEDIUM · internal
   - Baixar + transcrever + entender vídeo (YouTube e Instagram) no banco de conhecimento; alimenta cases e RAG.
   - depends_on: [vector-store] · part_of: mod-conhecimento
-- **Squad de Negócios / Estratégia** (`squad-negocios`) · Squad · MEDIUM · internal
+- **Squad de Negócios / Estratégia** (`squad-negocios`) · Platform · MEDIUM · internal
   - Lente de decisão de viabilidade (inspiração Musk/China/JHSF/BlackRock): investir, assinar mais uma ferramenta, contratar funcionário, comprar ação (PJ x…
   - depends_on: [mod-financeiro] · part_of: mod-radar-pesquisa
-- **Pesquisa de Políticas & Updates de Stack** (`mod-policy-research`) · Feature · MEDIUM · internal
+- **Pesquisa de Políticas & Updates de Stack** (`mod-policy-research`) · Platform · MEDIUM · internal
   - Dois tipos de vigilância: (1) políticas de anúncio Meta/Google e afins → atualiza squads; (2) mudanças de API/linguagem/framework que quebram projetos de…
   - part_of: mod-radar-pesquisa
-- **Fóton (plataforma pessoal do Eduardo)** (`foton`) · Service · MEDIUM · internal
+- **Fóton (plataforma pessoal do Eduardo)** (`foton`) · Platform · MEDIUM · internal
   - Plataforma pessoal do Eduardo (SEPARAR da EG): planejamento financeiro pessoal, banco de ideias pessoal, segundo cérebro pessoal, tarefas/reuniões…
-- **Prisma BI (relatórios / due-diligence / selos)** (`prisma-bi`) · Service · LONG · internal
+- **Prisma BI (relatórios / due-diligence / selos)** (`prisma-bi`) · Platform · LONG · internal
   - Empresa própria (SEPARAR): geração de relatórios complexos rápidos — due diligence de influenciador, auditoria SEO/GEO/ESG, financeiro/contábil — e selo…
-- **Telecom / Hub de Chips (operadora white-label)** (`telecom-chips`) · Service · NEW_COMPANY · internal
+- **Telecom / Hub de Chips (operadora white-label)** (`telecom-chips`) · Platform · NEW_COMPANY · internal
   - Empresa própria (SEPARAR): operadora white-label / hub de chips para marketeiros e devs, roteamento de números para não depender da Meta. Integra a…
-- **Micro-AWS / Hospedagem própria** (`micro-aws-hosting`) · Service · NEW_COMPANY · internal
+- **Micro-AWS / Hospedagem própria** (`micro-aws-hosting`) · Platform · NEW_COMPANY · internal
   - Empresa/infra própria (SEPARAR): home lab, servidores próprios, micro-AWS e serviços de TI; hospedar sites/serviços de clientes; futuro…
-- **Educação / Comunidade** (`educacao-comunidade`) · Service · LONG · internal
+- **Educação / Comunidade** (`educacao-comunidade`) · Platform · LONG · internal
   - Braço de infoproduto/comunidade (SEPARAR, inspiração Lucas Félix/Kelvin): cursos, mentorias, disponibilizar conteúdo/clones de mentores aos…
-- **Trade autônomo (bots / challenges)** (`trade-autonomo`) · Service · LONG · internal
+- **Trade autônomo (bots / challenges)** (`trade-autonomo`) · Platform · LONG · internal
   - Frente pessoal (SEPARAR, part_of Fóton): bots de trade auto-melhoráveis, challenges de traders (ganhar/vender conta). Renda pessoal, não-core.
   - part_of: foton
 - **App Mobile da Plataforma** (`mod-mobile`) · Platform · LONG · internal
@@ -298,8 +304,11 @@
 - **Jogo Interno (estilo TBH)** (`jogo-interno`) · Platform · LONG · internal
   - Jogo desktop-companion RPG (inspiração Task Bar Hero) p/ funcionários, gamificando cultura; ganhos/trocas, possível Web3/token/microeconomia. Primeiro…
   - part_of: foton
+- **Temas (Light/Dark) e White-label** (`mod-theming`) · Infra · NOW · internal
+  - Motor de injeção de CSS em tempo real (Tailwind CSS Variables) para suportar Light/Dark mode perfeitamente e permitir que Agências Parceiras coloquem suas…
+  - part_of: mega-plataforma
 
-## Processamento (processing) — 4
+## Processamento (processing) — 6
 
 - **Consciência cross-repo do Arquiteto (eg-scan)** (`cross-repo-awareness`) · Infra · NOW · internal
   - O Arquiteto descobre e consulta TODOS os projetos da EG sozinho, sem o humano mencionar. Descoberta: org EverGreen-Agency (gh repo list) + escaneia a…
@@ -310,11 +319,16 @@
 - **Carteira de Clientes** (`carteira-clientes`) · Cockpit · MEDIUM · internal
   - Plano de controle ativo: por cliente, serviços/tags, configs ClickUp/Kommo, log. Provisiona o ClickUp. Fala com o eg_setup.
   - depends_on: [squad-onboarding] · part_of: mod-comercial
-- **Observabilidade, APM e Monitoramento Sintético** (`mod-observabilidade`) · Infra · NOW · internal
+- **Mega Plataforma EG** (`mega-plataforma`) · Platform · NOW · internal
+  - Guarda-chuva estratégico e técnico da EverGreen: uma plataforma modular que nasce como ferramenta interna e operacional da EG, evolui para superfície de…
+- **Observabilidade, APM e Monitoramento Sintético** (`mod-observabilidade`) · Platform · NOW · internal
   - Módulo transversal para monitorar Uptime (BetterStack), falhas de código (Sentry) e saúde das dependências externas (Stripe, Vercel). Essencial para SaaS…
   - part_of: mega-plataforma
+- **Internacionalização e Tradução (i18n)** (`mod-i18n`) · Infra · NOW · internal
+  - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e…
+  - part_of: mega-plataforma
 
-## Projeto (project) — 16
+## Projeto (project) — 13
 
 - **Avaliador de Negócios (mentalidade Musk/Hormozi)** (`business-evaluator`) · Squad · NOW · internal
   - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o…
@@ -352,16 +366,8 @@
 - **Editar ideias + ver detalhe / 1 doc por ideia** (`idea-detail-edit`) · Cockpit · NOW · internal
   - No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez…
   - depends_on: [banco-ideias] · part_of: mod-cockpit-interno
-- **Mega Plataforma EG** (`mega-plataforma`) · Infra · NOW · internal
-  - Guarda-chuva estratégico e técnico da EverGreen: uma plataforma modular que nasce como ferramenta interna e operacional da EG, evolui para superfície de…
-- **Módulo Cockpit Interno (backoffice EG)** (`mod-cockpit-interno`) · Cockpit · NOW · internal
+- **Módulo Cockpit Interno (backoffice EG)** (`mod-cockpit-interno`) · Platform · NOW · internal
   - Backoffice da EG: dashboard, bancos (ideias/arquitetura/stack), dispatcher/hub-chat, motor de IA (squad-creator, auto-melhoria, Arquiteto+Avaliador),…
-  - part_of: mega-plataforma
-- **Módulo Comercial (funil EG)** (`mod-comercial`) · Feature · NOW · internal
-  - Módulo de aquisição e relacionamento da EG: prospecção, propostas, onboarding, carteira, reuniões, funil, lead scoring e inteligência comercial. Deve…
-  - part_of: mega-plataforma
-- **Módulo Entrega de Marketing** (`mod-entrega-mkt`) · Feature · NOW · internal
-  - Módulo de entrega growth/marketing para clientes de múltiplos mercados: criativos, tráfego, SEO/GEO, social, relatórios, BI e skills de Ads. Não é agência…
   - part_of: mega-plataforma
 
 ## Arquivadas — 2

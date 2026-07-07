@@ -30,3 +30,6 @@ _opensquad/_memory/clients/*/
 # Dado financeiro PESSOAL do Eduardo — nunca versionar (vai pro Fóton, não pra EG)
 Planilha-Orcamentaria.xlsx
 *Orcamentaria*.xlsx
+
+# PDFs grandes de referência (docs-fonte) — pesados p/ o histórico do git
+_opensquad/_memory/knowledge/inputs-mega-plataforma/*.pdf
