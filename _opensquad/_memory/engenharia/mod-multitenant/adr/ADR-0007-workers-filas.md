@@ -22,3 +22,8 @@ Em forte alinhamento com o ADR-0001 (Monólito em Next.js), adotaremos uma fila 
 ## 4. Consequências e Trade-offs
 *   Mantém a stack TypeScript coesa no dia 1, evitando o caos estrutural e DevOps de gerenciar dois backends (Node + Python) simultâneos no MVP da plataforma.
 *   Introduz a necessidade arquitetural de rodar e assinar um serviço de Redis gerenciado (ex: Upstash ou ElastiCache na AWS).
+
+## 5. Nota — "por que não event-driven?" (Eduardo, 2026-07-08)
+O Bioma **já é event-driven onde importa**: todo trabalho assíncrono passa pela fila (BullMQ), e cada job É um evento — payload obrigatório `{ tenantId, correlationId }`, retries explícitos, Dead Letter Queue com incidente automático (mod-observabilidade). Quando o motor de squads/IA entrar (conhecimento, entrega-mkt), esses jobs são o barramento natural de eventos.
+
+O que decidimos **não** fazer (por ora) é *event-sourcing / bus como fonte de verdade entre módulos* dentro do monólito: módulos se falam por chamada direta + transação no Postgres — mais simples, transacional e depurável para 1 dev + IA. Se um dia precisarmos de fan-out confiável entre módulos (ex.: `contract.signed` disparando financeiro+onboarding+hub), o caminho de evolução é o **outbox pattern no Postgres** (tabela de eventos + worker que publica na fila) — adiciona-se sem reescrever nada, porque os consumidores já são workers BullMQ. **Gatilho de revisão:** ≥3 módulos reagindo ao mesmo fato de negócio ou necessidade de replay/auditoria de eventos.
