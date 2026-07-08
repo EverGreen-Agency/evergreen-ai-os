@@ -39,7 +39,7 @@
         "apply": "Filter",
         "clear": "Clear filters"
       },
-      "count": "Showing {shown} of {total} active ideas.",
+      "count": "{count, plural, =1 {1 idea} other {# ideas}}",
       "archivedHidden": "({count, plural, =1 {1 archived hidden} other {# archived hidden}})",
       "columns": {
         "title": "Idea",
@@ -78,6 +78,9 @@
         "frameworks": "Frameworks",
         "tools": "Tools",
         "platforms-infra": "Platforms & Infra"
+      },
+      "filters": {
+        "all": "All"
       }
     },
     "engineering": {
@@ -95,7 +98,23 @@
       "tasksYes": "yes",
       "tasksNo": "no",
       "empty": "No modules found.",
-      "sourceHint": "Source: _opensquad/_memory/engenharia/[id]/ (spec.md, adr/*.md, tasks.md). Read live from the repo — no copies."
+      "sourceHint": "Source: _opensquad/_memory/engenharia/[id]/ (spec.md, adr/*.md, tasks.md). Read live from the repo — no copies.",
+      "phasesHint": "Modules grouped by roadmap phase (maturity matrix). Click to open spec, ADRs and tasks.",
+      "noPhase": "No phase in matrix",
+      "chips": {
+        "spec": "spec",
+        "noSpec": "no spec",
+        "adrs": "{count} ADR(s)",
+        "tasks": "tasks"
+      },
+      "detail": {
+        "nextGate": "Next gate",
+        "dependsOn": "depends on",
+        "enables": "enables",
+        "contains": "contains",
+        "noSpec": "This module has no spec.md yet.",
+        "back": "Back to Engineering"
+      }
     },
     "architecture": {
       "principlesTitle": "House engineering principles",

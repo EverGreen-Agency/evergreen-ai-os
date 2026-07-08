@@ -62,11 +62,14 @@ export default async function AppLayout({
         <style>{`:root { --primary: ${sanitizeColor(brandColor)}; --ring: ${sanitizeColor(brandColor)}; }`}</style>
       ) : null}
 
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
+      <header className="border-b border-border bg-surface-deep">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-2.5">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-lg font-semibold text-primary">
               Bioma
+              <span className="ml-2 text-[10px] font-normal uppercase tracking-[1px] text-muted-foreground">
+                EverGreen
+              </span>
             </Link>
             <Badge variant="secondary">{activeOrg.name}</Badge>
           </div>
@@ -111,7 +114,7 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6">{children}</main>
     </>
   );
 }

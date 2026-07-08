@@ -216,6 +216,89 @@ export const getEngineeringModules = cache(
   },
 );
 
+// ── Matriz de maturidade (mega-plataforma/matriz-maturidade-modulos.md) ─────
+
+export type ModuleMaturity = {
+  id: string;
+  /** ex.: "P0", "P0.5", "P1 interno", "P2/P4", "paralelo" */
+  phase: string;
+  /** ex.: "E1", "S1/A1", "S1/FUT" */
+  maturity: string;
+  nextGate: string;
+};
+
+export const getMaturityMatrix = cache(
+  async (): Promise<Map<string, ModuleMaturity> | null> => {
+    const raw = await readTextFile(
+      "engenharia",
+      "mega-plataforma",
+      "matriz-maturidade-modulos.md",
+    );
+    if (raw === null) return null;
+    const map = new Map<string, ModuleMaturity>();
+    const rowRegex = /^\|\s*`([\w-]+)`\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|/gm;
+    let m: RegExpExecArray | null;
+    while ((m = rowRegex.exec(raw)) !== null) {
+      map.set(m[1], {
+        id: m[1],
+        phase: m[2].trim(),
+        maturity: m[3].trim(),
+        nextGate: stripInlineMarkdown(m[4].trim()),
+      });
+    }
+    return map;
+  },
+);
+
+// ── Detalhe de módulo (banco de artefatos navegável) ─────────────────────────
+
+const MODULE_ID_RE = /^[a-z0-9][a-z0-9_-]*$/;
+
+export type AdrDoc = { file: string; title: string; content: string };
+
+export type ModuleDetail = {
+  id: string;
+  specContent: string | null;
+  adrs: AdrDoc[];
+  tasksContent: string | null;
+};
+
+/** Conteúdo completo dos artefatos de um módulo (id validado — sem traversal). */
+export const getModuleDetail = cache(
+  async (id: string): Promise<ModuleDetail | null> => {
+    if (!MODULE_ID_RE.test(id)) return null;
+    if (!(await isMemoryAvailable())) return null;
+    try {
+      const st = await fs.stat(path.join(memoryBasePath(), "engenharia", id));
+      if (!st.isDirectory()) return null;
+    } catch {
+      return null;
+    }
+
+    const specContent = await readTextFile("engenharia", id, "spec.md");
+    const tasksContent = await readTextFile("engenharia", id, "tasks.md");
+
+    const adrs: AdrDoc[] = [];
+    try {
+      const files = (
+        await fs.readdir(path.join(memoryBasePath(), "engenharia", id, "adr"))
+      )
+        .filter((f) => f.toLowerCase().endsWith(".md"))
+        .sort();
+      for (const file of files) {
+        const content = await readTextFile("engenharia", id, "adr", file);
+        if (content === null) continue;
+        const title = content.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? file;
+        adrs.push({ file, title, content });
+      }
+    } catch {
+      // sem pasta adr/ — segue com lista vazia
+    }
+
+    return { id, specContent, adrs, tasksContent };
+  },
+);
+
 // ── Banco de Arquitetura (banco_arquitetura/*.md) ────────────────────────────
 
 export type ArchitectureDecision = {

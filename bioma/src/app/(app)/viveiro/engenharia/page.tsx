@@ -1,91 +1,124 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import type { Route } from "next";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { getEngineeringModules } from "@/server/viveiro/adapters";
+import { Chip } from "@/components/os/chip";
+import { KanbanCard } from "@/components/os/kanban";
+import { FALLBACK_COLOR, PHASE_COLOR } from "@/components/os/meta";
+import { Toolbar, ToolbarCount } from "@/components/os/toolbar";
+import {
+  getEngineeringModules,
+  getMaturityMatrix,
+  type EngineeringModule,
+  type ModuleMaturity,
+} from "@/server/viveiro/adapters";
 
 import { MemoryUnavailable } from "../memory-unavailable";
 
-/**
- * Engenharia (RF1 / CA1): módulos de `_memory/engenharia/` com spec, ADRs,
- * tasks e status lidos do cabeçalho de cada spec.md.
- */
-export default async function CockpitEngineeringPage() {
-  const t = await getTranslations("viveiro.engineering");
-  const modules = await getEngineeringModules();
+/** Ordem de fases do roadmap; módulos sem fase na matriz vão para o fim. */
+const PHASE_ORDER = ["P0", "P0.5", "P1", "P2", "P3", "P4"];
 
+function normalizePhase(phase: string | undefined): string {
+  if (!phase) return "—";
+  const match = phase.match(/P\d(?:\.\d)?/);
+  return match ? match[0] : phase;
+}
+
+/**
+ * Engenharia — BANCO DE ARTEFATOS navegável (RF1/CA1): módulos agrupados por
+ * fase do roadmap, com maturidade, próximo gate e acesso ao detalhe
+ * (spec + ADRs + tasks renderizados).
+ */
+export default async function ViveiroEngineeringPage() {
+  const t = await getTranslations("viveiro.engineering");
+  const [modules, matrix] = await Promise.all([
+    getEngineeringModules(),
+    getMaturityMatrix(),
+  ]);
   if (modules === null) return <MemoryUnavailable />;
+
+  const groups = new Map<string, Array<{ mod: EngineeringModule; mat?: ModuleMaturity }>>();
+  for (const mod of modules) {
+    const mat = matrix?.get(mod.id);
+    const phase = normalizePhase(mat?.phase);
+    if (!groups.has(phase)) groups.set(phase, []);
+    groups.get(phase)!.push({ mod, mat });
+  }
+
+  const orderedPhases = [
+    ...PHASE_ORDER.filter((p) => groups.has(p)),
+    ...[...groups.keys()].filter((p) => !PHASE_ORDER.includes(p)).sort(),
+  ];
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        {t("count", { count: modules.length })}
-      </p>
+      <Toolbar>
+        <span className="text-muted-foreground">{t("phasesHint")}</span>
+        <ToolbarCount>{t("count", { count: modules.length })}</ToolbarCount>
+      </Toolbar>
 
-      <Card>
-        <CardContent className="pt-6">
-          {modules.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="py-2 pr-4">{t("columns.module")}</th>
-                    <th className="py-2 pr-4">{t("columns.spec")}</th>
-                    <th className="py-2 pr-4">{t("columns.status")}</th>
-                    <th className="py-2 pr-4">{t("columns.date")}</th>
-                    <th className="py-2 pr-4">{t("columns.adrs")}</th>
-                    <th className="py-2">{t("columns.tasks")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {modules.map((mod) => (
-                    <tr key={mod.id} className="border-b border-border/60 align-top">
-                      <td className="py-2 pr-4 font-mono text-xs font-medium whitespace-nowrap">
-                        {mod.id}
-                      </td>
-                      <td className="max-w-md py-2 pr-4">
-                        {mod.hasSpec ? (
-                          <span>{mod.specTitle ?? t("specUntitled")}</span>
-                        ) : (
-                          <span className="text-muted-foreground">{t("noSpec")}</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-4">
-                        {mod.specStatus ? (
-                          <Badge variant="outline">{mod.specStatus}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-4 text-xs text-muted-foreground whitespace-nowrap">
-                        {mod.specDate ?? "—"}
-                      </td>
-                      <td className="py-2 pr-4">
-                        {mod.adrCount > 0 ? (
-                          <Badge variant="secondary">{mod.adrCount}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">0</span>
-                        )}
-                      </td>
-                      <td className="py-2 text-xs">
-                        {mod.hasTasks ? (
-                          <Badge variant="secondary">{t("tasksYes")}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">{t("tasksNo")}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {orderedPhases.map((phase) => {
+        const items = groups.get(phase)!;
+        const color = PHASE_COLOR[phase] ?? FALLBACK_COLOR;
+        return (
+          <section key={phase}>
+            <h2
+              className="mb-2 text-[11px] font-bold uppercase tracking-[0.7px]"
+              style={{ color }}
+            >
+              {phase === "—" ? t("noPhase") : phase}{" "}
+              <span className="font-mono text-muted-foreground">{items.length}</span>
+            </h2>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map(({ mod, mat }) => (
+                <ModuleCard key={mod.id} mod={mod} mat={mat} phaseColor={color} />
+              ))}
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{t("empty")}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <p className="text-xs text-muted-foreground">{t("sourceHint")}</p>
+          </section>
+        );
+      })}
     </div>
+  );
+}
+
+async function ModuleCard({
+  mod,
+  mat,
+  phaseColor,
+}: {
+  mod: EngineeringModule;
+  mat?: ModuleMaturity;
+  phaseColor: string;
+}) {
+  const t = await getTranslations("viveiro.engineering");
+  return (
+    <Link href={`/viveiro/engenharia/${mod.id}` as Route} className="group">
+      <KanbanCard className="h-full group-hover:border-primary">
+        <p className="font-mono text-[12px] font-semibold text-info">{mod.id}</p>
+        {mod.specTitle ? (
+          <p className="mt-0.5 line-clamp-2 text-[12px] text-muted-foreground">
+            {mod.specTitle}
+          </p>
+        ) : null}
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {mat ? <Chip color={phaseColor}>{mat.maturity}</Chip> : null}
+          {mod.hasSpec ? (
+            <Chip color="#3ac97b">{t("chips.spec")}</Chip>
+          ) : (
+            <Chip color="#ff6b5c">{t("chips.noSpec")}</Chip>
+          )}
+          {mod.adrCount > 0 ? (
+            <Chip color="#00d4ff">{t("chips.adrs", { count: mod.adrCount })}</Chip>
+          ) : null}
+          {mod.hasTasks ? <Chip color="#ffab00">{t("chips.tasks")}</Chip> : null}
+          {mod.specStatus ? <Chip color={FALLBACK_COLOR}>{mod.specStatus}</Chip> : null}
+        </div>
+        {mat?.nextGate ? (
+          <p className="mt-1.5 line-clamp-2 text-[10px] text-muted-foreground">
+            → {mat.nextGate}
+          </p>
+        ) : null}
+      </KanbanCard>
+    </Link>
   );
 }
