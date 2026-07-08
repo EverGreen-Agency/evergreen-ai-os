@@ -845,8 +845,8 @@
     {
       "id": "auditoria-ai-first",
       "title": "Auditoria de Prontidão AI-First",
-      "desc": "Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).",
-      "stage": "capture",
+      "desc": "Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify). DECISÃO (Documento-Mestre §escada, 2026-07-08): é o 1º degrau da escada de oferta tech — sai de captura; build junto do mod-comercial.",
+      "stage": "processing",
       "horizon": "",
       "category": "Service",
       "origin": "external",
@@ -1361,8 +1361,8 @@
     {
       "id": "mod-multitenant",
       "title": "Multitenant / SSO / Acessos",
-      "desc": "Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação do produto white-label.",
-      "stage": "capture",
+      "desc": "Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação do produto white-label. EM PRODUÇÃO no bioma/ (2026-07-08): RLS forçada, RBAC, audit, cofre integrado; 53 testes de aceite passando (CA1-CA7).",
+      "stage": "project",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -1885,8 +1885,8 @@
     {
       "id": "cofre-senhas",
       "title": "Cofre de Senhas & Gestão de Acessos",
-      "desc": "Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da Meta do cliente.",
-      "stage": "capture",
+      "desc": "Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da Meta do cliente. Fatia N&S em produção no bioma/ /vault (2026-07-07): segredos AES-256-GCM, reveal auditado com motivo, RBAC vault.read/manage/reveal.",
+      "stage": "processing",
       "horizon": "MEDIUM",
       "category": "Feature",
       "origin": "internal",
@@ -2258,8 +2258,8 @@
     {
       "id": "mod-lgpd-governanca-dados",
       "title": "Governança de Dados, LGPD e Uso de IA",
-      "desc": "Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, contratos, áudios e credenciais.",
-      "stage": "capture",
+      "desc": "Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, contratos, áudios e credenciais. Fatia N&S em produção no bioma/ (2026-07-08): 8 classes de dados, finalidades+consentimentos, gate de IA externa em src/server/ai/policy.ts.",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",

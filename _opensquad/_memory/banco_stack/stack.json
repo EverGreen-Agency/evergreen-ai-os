@@ -329,6 +329,33 @@
       "adr": "",
       "source": "https://www.storyblok.com/",
       "id": "storyblok"
+    },
+    {
+      "name": "Supabase",
+      "quadrant": "platforms-infra",
+      "ring": "trial",
+      "note": "Auth+Postgres+RLS+Storage, região São Paulo. Fundação do Bioma (mod-multitenant). Isolamento multi-tenant por RLS forçada; plano de saída documentado em STACK-RUNTIME-BIOMA.md.",
+      "adr": "ADR-0002@mod-multitenant",
+      "source": "https://supabase.com",
+      "id": "supabase"
+    },
+    {
+      "name": "Drizzle ORM",
+      "quadrant": "frameworks",
+      "ring": "trial",
+      "note": "Queries tipadas no Bioma; DDL+RLS ficam em SQL canônico nas migrations (o melhor dos dois). Leve p/ serverless.",
+      "adr": "ADR-0001@mod-multitenant",
+      "source": "https://orm.drizzle.team",
+      "id": "drizzle-orm"
+    },
+    {
+      "name": "BullMQ",
+      "quadrant": "frameworks",
+      "ring": "trial",
+      "note": "Fila de jobs do Bioma (payload tenantId+correlationId, retries, DLQ→incidente). Gatilho de simplificação p/ pg-boss se Redis ficar ocioso no MVP.",
+      "adr": "ADR-0007@mod-multitenant",
+      "source": "https://bullmq.io",
+      "id": "bullmq"
     }
   ]
 }

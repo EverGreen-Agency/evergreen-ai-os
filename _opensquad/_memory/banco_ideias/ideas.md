@@ -3,7 +3,7 @@
 > View gerada a partir de `ideas.json` em 2026-07-08. Fonte da verdade: `ideas.json`. Total: 148 ideias.
 
 
-## Captura (capture) — 124
+## Captura (capture) — 120
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
@@ -95,9 +95,6 @@
 - **Vibe Building (blocos reutilizáveis)** (`vibe-building`) · Infra · a redefinir · internal
   - Blocos instanciáveis (qualificador WA, dashboard GA4, qualificador CRM) em vez de reescrever do zero.
   - part_of: mod-nucleo
-- **Auditoria de Prontidão AI-First** (`auditoria-ai-first`) · Service · a redefinir · external
-  - Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).
-  - part_of: mod-comercial
 - **Prospecção WhatsApp (Evolution API)** (`prospec-wpp-evolution`) · Feature · a redefinir · external
   - API não-oficial em VPS p/ outbound frio, chip fleet aquecido. Oficial Meta só no inbound.
   - part_of: mod-comunicacao-wpp
@@ -172,9 +169,6 @@
 - **Módulo Marca & Artefatos** (`mod-marca-artefatos`) · Platform · MEDIUM · internal
   - Brand skill, filosofia visual, gerador de documentos, web-artifacts builder, eg-publish. A camada que dá padrão boutique a tudo que a IA gera.
   - part_of: mega-plataforma
-- **Multitenant / SSO / Acessos** (`mod-multitenant`) · Platform · NOW · internal
-  - Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação…
-  - enables: [client-hub, mod-saas-billing] · part_of: mod-nucleo
 - **Área do Cliente (Hub NFC)** (`client-hub`) · Platform · NOW · internal
   - Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e…
   - depends_on: [mod-multitenant, mod-bi-dashboards] · part_of: mega-plataforma
@@ -260,9 +254,6 @@
 - **Gestão/Medição de Créditos de IA** (`ai-credits-metering`) · Feature · MEDIUM · internal
   - Medir uso de IA por escopo (interno EG × operação p/ cliente × uso do cliente × assinantes SaaS) e por modelo (Opus/Gemini low/high), por…
   - part_of: mod-financeiro
-- **Cofre de Senhas & Gestão de Acessos** (`cofre-senhas`) · Feature · MEDIUM · internal
-  - Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da…
-  - part_of: mod-nucleo
 - **Centralização de Comunicações** (`centralizacao-comunicacoes`) · Feature · MEDIUM · internal
   - Onde rolam as comunicações: interno (ClickUp × Discord × Slack) e cliente (hoje 90% WhatsApp: grupo geral/gerência/financeiro/social). Decidir e integrar.
   - part_of: mod-comercial
@@ -329,9 +320,6 @@
 - **Motor de Workflows e Aprovações HITL** (`mod-workflows-aprovacoes`) · Platform · NOW · internal
   - Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo.…
   - depends_on: [mod-multitenant] · enables: [mod-cockpit-interno, client-hub, mod-entrega-mkt] · part_of: mod-nucleo
-- **Governança de Dados, LGPD e Uso de IA** (`mod-lgpd-governanca-dados`) · Platform · NOW · internal
-  - Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de…
-  - depends_on: [mod-multitenant] · enables: [cofre-senhas, mod-conhecimento, mod-comunicacao-wpp, mod-site-cms] · part_of: mod-nucleo
 - **Portal de Solicitação de Acessos** (`access-request-portal`) · Feature · NOW · internal
   - Fluxo guiado para o cliente conceder acessos sem planilha de senhas: conectar Meta BM, Google Ads MCC, Google Meu Negócio, Drive, Kommo, WhatsApp e outras…
   - depends_on: [cofre-senhas, mod-integrations-hub] · enables: [mod-comercial, client-hub, mod-bi-dashboards] · part_of: cofre-senhas
@@ -366,7 +354,16 @@
   - Reaproveitar a mesma lógica/skill do squad de propostas (busca automática em plataformas cadastradas) para submeter vagas de emprego quando a EG for contratar.
   - depends_on: [squad-hunter] · part_of: mod-rh
 
-## Processamento (processing) — 6
+## Processamento (processing) — 9
+- **Auditoria de Prontidão AI-First** (`auditoria-ai-first`) · Service · a redefinir · external
+  - Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).
+  - part_of: mod-comercial
+- **Governança de Dados, LGPD e Uso de IA** (`mod-lgpd-governanca-dados`) · Platform · NOW · internal
+  - Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de…
+  - depends_on: [mod-multitenant] · enables: [cofre-senhas, mod-conhecimento, mod-comunicacao-wpp, mod-site-cms] · part_of: mod-nucleo
+- **Cofre de Senhas & Gestão de Acessos** (`cofre-senhas`) · Feature · MEDIUM · internal
+  - Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da…
+  - part_of: mod-nucleo
 
 - **Consciência cross-repo do Arquiteto (eg-scan)** (`cross-repo-awareness`) · Infra · NOW · internal
   - O Arquiteto descobre e consulta TODOS os projetos da EG sozinho, sem o humano mencionar. Descoberta: org EverGreen-Agency (gh repo list) + escaneia a…
@@ -385,7 +382,10 @@
 - **Internacionalização e Tradução (i18n)** (`mod-i18n`) · Infra · NOW · internal
   - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e…
   - part_of: mega-plataforma
-## Projeto (project) — 16
+## Projeto (project) — 17
+- **Multitenant / SSO / Acessos** (`mod-multitenant`) · Platform · NOW · internal
+  - Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação…
+  - enables: [client-hub, mod-saas-billing] · part_of: mod-nucleo
 
 - **Avaliador de Negócios (mentalidade Musk/Hormozi)** (`business-evaluator`) · Squad · NOW · internal
   - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o…
