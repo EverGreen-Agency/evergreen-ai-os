@@ -114,6 +114,8 @@ O Raio-X não satura. Quando um pilar atinge 4–5 consistente, ele não está "
 
 **Platô / ICP de mercado limitado:** há teto de faturamento (TAM finito). Mas o Raio-X mede o quão bem o cliente captura o próprio teto, não o teto do mercado — sempre dá para melhorar conversão, defender share, subir ticket, baixar CAC. Quando o retorno marginal cair de verdade, rebaixa-se o retainer para um plano de manutenção mais leve. Nunca se inventa trabalho.
 
+**Nota — expansão além dos 3 pilares (decidido, não ativo):** os 3 pilares (Oferta/Demanda/Conversão) permanecem fixos para todo cliente — não expandem, mesmo no nível high-end. Uma eventual camada adicional de score (RH, fornecedores, tributário — estilo Lázaro Ramos/Flávio Augusto) vira módulo separado, exclusivo da Oferta 4 (Growth Partnership), nunca uma régua nova aqui. Decisão e racional completos em `Documento-Mestre_EG.md` §10.2. Mecânica dessa camada (perguntas, régua) ainda não desenhada — entra aqui quando for especificada.
+
 # **6\. Como o Raio-X é entregue ao cliente**
 
 * **No diagnóstico (oferta de entrada):** é o entregável central da devolutiva — um mapa visual dos três pilares, o Raio-X geral, o gargalo prioritário e o plano de 90 dias que ataca esse gargalo.

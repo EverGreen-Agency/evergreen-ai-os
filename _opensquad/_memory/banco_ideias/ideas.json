@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-07",
+  "updated_at": "2026-07-08",
   "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.). 2a varredura 2026-07-07: +7 gaps (escada-oferta-tech, desvincular-opensquad, modulo-investimentos, banco-skills-produto, squad-ativacao-por-cliente, niveis-score-expandido, squad-recrutamento).",
   "stages": [
     "capture",
@@ -2419,9 +2419,9 @@
     {
       "id": "escada-oferta-tech",
       "title": "Escada de Oferta de Tecnologia",
-      "desc": "Aplicar à tecnologia a mesma lógica da escada de ofertas de growth (inspiração Kelvin Cleto): análise/diagnóstico → cliente faz por conta → EG faz com ele → EG faz por ele → high-end cobrando percentual. Hoje a EG só tem escada para growth (Documento-Mestre §10); falta o braço tecnológico explícito.",
-      "stage": "capture",
-      "horizon": "MEDIUM",
+      "desc": "Escada de oferta de tecnologia (4 degraus, espelha growth): Raio-X Tecnológico -> Sprint de Estruturação Tecnológica -> Retainer de Operação Tecnológica -> Growth Partnership Tech. Documentada em Documento-Mestre_EG.md secao 10.1.",
+      "stage": "project",
+      "horizon": "NOW",
       "category": "Commercial",
       "origin": "internal",
       "archived": false,
@@ -2496,8 +2496,8 @@
     {
       "id": "niveis-score-expandido",
       "title": "Expansão dos Pilares de Score (nível high-end)",
-      "desc": "Questão em aberto: expandir o score além dos 3 pilares (Oferta/Demanda/Conversão) para um nível estilo Lázaro Ramos/Flávio Augusto — que mexe em fornecedores, RH, contratação, contábil/tributário e cobra percentual de crescimento. Eduardo pediu para decidir isso numa conversa futura.",
-      "stage": "capture",
+      "desc": "DECIDIDO: Raio-X core (3 pilares) nao expande para ninguem. Expansao (RH/fornecedores/tributario, estilo Lazaro Ramos) vira modulo separado exclusivo da Oferta 4 (Growth Partnership). Documentado em Documento-Mestre_EG.md secao 10.2 + nota em EG_Raio-X_Comercial.md. Mecanica (perguntas/regua) ainda a desenhar.",
+      "stage": "project",
       "horizon": "LONG",
       "category": "Feature",
       "origin": "internal",

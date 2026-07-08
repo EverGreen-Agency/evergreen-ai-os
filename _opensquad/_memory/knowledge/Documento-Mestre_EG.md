@@ -320,6 +320,64 @@ Raiz conecta diretamente ao nome EverGreen (a raiz é o que sustenta o crescimen
 
 * Garantia/Regra: Variável sem controle vira cassino. Variável com acesso, atribuição e influência vira alavancagem.
 
+# **10.1\) Escada de Oferta de Tecnologia**
+
+Espelha a escada de ofertas de growth (seção 10) para o braço tecnológico da EG. Mesma lógica de degraus — diagnóstico → cliente implementa sozinho → EG implementa com o cliente → EG opera pelo cliente → parceria de alta profundidade — adaptada de referência de mercado (modelo de escada tech de boutiques de tecnologia).
+
+## **Tech 1 \- Front-end (Você faz "sozinho")**
+
+**Raio-X Tecnológico (Auditoria de Prontidão AI-First)**
+
+* Objetivo: Mapear onde a operação do cliente perde eficiência por falta de automação e integração, e o quanto a empresa está pronta para IA.
+
+* Entregáveis: Auditoria da stack tecnológica atual; score de maturidade AI-First em 7 dimensões; gargalos operacionais priorizados; roadmap de implementação.
+
+* **Garantia/Regra:** Se o cliente não sair com clareza prática sobre gargalos tecnológicos e prioridades, a EG revisa o diagnóstico sem custo até ficar cristalino.
+
+## **Tech 2 \- Intermediária (Fazemos com você)**
+
+**Sprint de Estruturação Tecnológica**
+
+* Objetivo: Implementar as automações e integrações prioritárias identificadas no diagnóstico.
+
+* Entregáveis: Setup/integração de CRM e ferramentas; automações (squads/n8n); treinamento da equipe do cliente; sprint de 6 a 8 semanas.
+
+* **Garantia/Regra:** Se a EG não implantar os entregáveis definidos no cronograma da sprint, o acompanhamento é estendido sem honorário adicional até concluir o combinado.
+
+## **Tech 3 \- Back-end (Fazemos por você)**
+
+**Retainer de Operação Tecnológica (gestão)**
+
+* Objetivo: Operar a infraestrutura tecnológica do cliente continuamente, com cadência e evolução.
+
+* Entregáveis: Módulos operados pela EG (dashboards, automações, relatórios) via a plataforma da EG; SLA de disponibilidade; revisões estratégicas trimestrais; evolução contínua da stack.
+
+* **Garantia/Regra:** Se a EG não mantiver a cadência, o SLA e o ciclo de evolução acordados, o período é estendido até a entrega completa do combinado.
+
+## **Tech 4 \- High-end**
+
+**Growth Partnership Tech \- Fixo \+ Variável**
+
+* Objetivo: Parceria de alta profundidade tecnológica para operações maduras.
+
+* Entregáveis: Só faz sentido com baseline técnico claro, acesso real à operação e aos sistemas, atribuição minimamente confiável de ganho de eficiência, influência da EG sobre a arquitetura tecnológica do cliente.
+
+* Garantia/Regra: Variável sem controle vira cassino. Variável com acesso, atribuição e influência vira alavancagem.
+
+# **10.2\) Expansão do Score — nível high-end (mapeado, não ativo)**
+
+Questão levantada e decidida: o Raio-X Comercial EG (três pilares — Oferta, Demanda, Conversão) permanece universal e simples para todos os clientes. Não expande.
+
+A expansão de escopo de análise — inspirada em operadores como Lázaro Ramos e Flávio Augusto, que entram na empresa mexendo em fornecedores, RH, contratação, contábil e tributário, cobrando percentual do crescimento — não vira parte do Raio-X core.
+
+**Decisão:** a expansão vira um módulo desbloqueável exclusivo da Oferta 4 (Growth Partnership), nunca uma régua nova para todos.
+
+* **Por quê:** a força do Raio-X é a simplicidade e a comunicabilidade — três pilares, ataca o menor primeiro. Diluir isso para todo cliente enfraquece a ferramenta e aproxima a EG de "agência 360", o que contradiz o posicionamento (seção 2).
+
+* **Quando ativar:** só depois de uma relação de Growth Partnership já estabelecida (baseline claro, acesso real, influência sobre a operação — os mesmos requisitos da Oferta 4). Nunca nos degraus 1 a 3.
+
+* **Como (a desenhar):** dimensões adicionais de score (RH, fornecedores, tributário/contábil, cadeira de liderança) como camada separada do Raio-X core, com régua de perguntas própria — mecânica detalhada fica para o [EG\_Raio-X\_Comercial](https://docs.google.com/document/u/0/d/1WcG3gMXnZA-11GMUA4kDM_BZfpBt-w_nSXO7345yULY/edit) quando for especificar.
+
 # **11\) Estrutura de boa oferta aplicada à EG**
 
 | Oferta ruim (Cenário antigo) | Retainer genérico, promessa vaga, sem mecanismo próprio, sem garantia forte, comparável por preço e com escopo nebuloso. |

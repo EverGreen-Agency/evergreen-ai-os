@@ -1,9 +1,9 @@
 # Banco de Ideias EG
 
-> View gerada a partir de `ideas.json` em 2026-07-07. Fonte da verdade: `ideas.json`. Total: 148 ideias.
+> View gerada a partir de `ideas.json` em 2026-07-08. Fonte da verdade: `ideas.json`. Total: 148 ideias.
 
 
-## Captura (capture) — 127
+## Captura (capture) — 125
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
@@ -352,9 +352,6 @@
 - **Demo Tenant / Sales Theater** (`demo-tenant-sales-theater`) · Feature · NOW · internal
   - Tenant fictício perfeito para venda e demonstração: mostra Hub, BI, score, timeline, aprovações e integrações sem depender de dados de cliente real. Serve…
   - depends_on: [client-hub, mod-bi-dashboards] · enables: [mod-comercial, mod-site-cms] · part_of: mod-comercial
-- **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · MEDIUM · internal
-  - Aplicar à tecnologia a mesma lógica da escada de ofertas de growth (inspiração Kelvin Cleto): análise/diagnóstico → cliente faz por conta → EG faz com ele…
-  - part_of: mod-comercial
 - **Desvincular/Desengessar do Framework Opensquad** (`desvincular-opensquad`) · Infra · MEDIUM · internal
   - Hoje squads são YAML/MD interpretados de forma cadenciada (D1 em arquitetura.md). Preocupação: prompts/contexto grandes (como este) podem falhar…
   - part_of: mod-cockpit-interno
@@ -367,9 +364,6 @@
 - **Ativação de Squads/Features por Cliente** (`squad-ativacao-por-cliente`) · Feature · MEDIUM · internal
   - Orquestração operacional: ativar uma automação específica para um cliente (ex: posts de blog recorrentes) e outra diferente para outro (ex: criativos,…
   - depends_on: [mod-comercial] · part_of: mod-comercial
-- **Expansão dos Pilares de Score (nível high-end)** (`niveis-score-expandido`) · Feature · LONG · internal
-  - Questão em aberto: expandir o score além dos 3 pilares (Oferta/Demanda/Conversão) para um nível estilo Lázaro Ramos/Flávio Augusto — que mexe em…
-  - part_of: client-hub
 - **Squad de Recrutamento (reaproveita ferramenta de propostas)** (`squad-recrutamento`) · Feature · LONG · internal
   - Reaproveitar a mesma lógica/skill do squad de propostas (busca automática em plataformas cadastradas) para submeter vagas de emprego quando a EG for contratar.
   - depends_on: [squad-hunter] · part_of: mod-rh
@@ -394,7 +388,7 @@
   - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e…
   - part_of: mega-plataforma
 
-## Projeto (project) — 13
+## Projeto (project) — 15
 
 - **Avaliador de Negócios (mentalidade Musk/Hormozi)** (`business-evaluator`) · Squad · NOW · internal
   - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o…
@@ -435,6 +429,12 @@
 - **Módulo Cockpit Interno (backoffice EG)** (`mod-cockpit-interno`) · Platform · NOW · internal
   - Backoffice da EG: dashboard, bancos (ideias/arquitetura/stack), dispatcher/hub-chat, motor de IA (squad-creator, auto-melhoria, Arquiteto+Avaliador),…
   - part_of: mega-plataforma
+- **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · NOW · internal
+  - Escada de oferta de tecnologia (4 degraus, espelha growth): Raio-X Tecnológico -> Sprint de Estruturação Tecnológica -> Retainer de Operação Tecnológica…
+  - part_of: mod-comercial
+- **Expansão dos Pilares de Score (nível high-end)** (`niveis-score-expandido`) · Feature · LONG · internal
+  - DECIDIDO: Raio-X core (3 pilares) nao expande para ninguem. Expansao (RH/fornecedores/tributario, estilo Lazaro Ramos) vira modulo separado exclusivo da…
+  - part_of: client-hub
 
 ## Arquivadas — 2
 
