@@ -177,40 +177,36 @@ export const getEngineeringModules = cache(
       return null;
     }
 
-    const modules: EngineeringModule[] = [];
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const id = entry.name;
-
-      const spec = await readTextFile("engenharia", id, "spec.md");
-      const meta = spec !== null ? parseSpecMetadata(spec) : null;
-
-      let adrCount = 0;
-      try {
-        const adrFiles = await fs.readdir(path.join(engDir, id, "adr"));
-        adrCount = adrFiles.filter((f) => f.toLowerCase().endsWith(".md")).length;
-      } catch {
-        adrCount = 0;
-      }
-
-      let hasTasks = false;
-      try {
-        await fs.access(path.join(engDir, id, "tasks.md"));
-        hasTasks = true;
-      } catch {
-        hasTasks = false;
-      }
-
-      modules.push({
-        id,
-        hasSpec: spec !== null,
-        specTitle: meta?.title ?? null,
-        specStatus: meta?.status ?? null,
-        specDate: meta?.date ?? null,
-        adrCount,
-        hasTasks,
-      });
-    }
+    // Varredura paralela (perf 2026-07-08): 30+ módulos × 3 I/Os cada em
+    // sequência dava centenas de ms; Promise.all resolve numa rodada.
+    const modules = await Promise.all(
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map(async (entry): Promise<EngineeringModule> => {
+          const id = entry.name;
+          const [spec, adrCount, hasTasks] = await Promise.all([
+            readTextFile("engenharia", id, "spec.md"),
+            fs
+              .readdir(path.join(engDir, id, "adr"))
+              .then((f) => f.filter((x) => x.toLowerCase().endsWith(".md")).length)
+              .catch(() => 0),
+            fs
+              .access(path.join(engDir, id, "tasks.md"))
+              .then(() => true)
+              .catch(() => false),
+          ]);
+          const meta = spec !== null ? parseSpecMetadata(spec) : null;
+          return {
+            id,
+            hasSpec: spec !== null,
+            specTitle: meta?.title ?? null,
+            specStatus: meta?.status ?? null,
+            specDate: meta?.date ?? null,
+            adrCount,
+            hasTasks,
+          };
+        }),
+    );
 
     return modules.sort((a, b) => a.id.localeCompare(b.id));
   },

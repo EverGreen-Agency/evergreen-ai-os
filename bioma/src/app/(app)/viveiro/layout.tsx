@@ -23,6 +23,8 @@ export default async function CockpitLayout({
     { href: "/viveiro/radar", label: t("nav.radar") },
     { href: "/viveiro/engenharia", label: t("nav.engineering") },
     { href: "/viveiro/arquitetura", label: t("nav.architecture") },
+    { href: "/viveiro/status", label: t("nav.status") },
+    { href: "/viveiro/governanca", label: t("nav.governance") },
     { href: "/viveiro/legado", label: t("nav.legacy") },
   ];
 

@@ -82,7 +82,7 @@
   --radius-sm: calc(var(--radius) - 4px);
   /* Branding EG: Helvetica Neue com fallbacks (aprovado 2026-07-08) */
   --font-sans: "Helvetica Neue", Helvetica, Arial, ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
 }
 
 body {

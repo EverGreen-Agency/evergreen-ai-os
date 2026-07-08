@@ -8,7 +8,9 @@
       "radar": "Radar",
       "engineering": "Engineering",
       "architecture": "Architecture",
-      "legacy": "Legacy"
+      "legacy": "Legacy",
+      "status": "Status",
+      "governance": "Governance"
     },
     "unavailable": {
       "title": "Internal memory unavailable in this environment",

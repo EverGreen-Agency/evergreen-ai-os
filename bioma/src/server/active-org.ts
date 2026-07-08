@@ -6,6 +6,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -43,24 +44,28 @@ function toActiveOrg(o: OrgRow): ActiveOrg {
   };
 }
 
-/** Orgs visíveis ao usuário (RLS decide — nada de filtro manual). */
-export async function getVisibleOrgs(): Promise<ActiveOrg[]> {
+/**
+ * Orgs visíveis ao usuário (RLS decide — nada de filtro manual).
+ * cache(): layout + páginas chamam isto várias vezes por request; a query
+ * roda UMA vez por render (perf, 2026-07-08).
+ */
+export const getVisibleOrgs = cache(async (): Promise<ActiveOrg[]> => {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("organizations")
     .select("id, name, slug, org_type, status, branding, locale")
     .order("name");
   return ((data ?? []) as OrgRow[]).map(toActiveOrg);
-}
+});
 
 /**
  * Org ativa: cookie validado contra as orgs visíveis; fallback = primeira
  * visível. null = usuário sem nenhuma org acessível (ou todas suspensas).
  */
-export async function getActiveOrg(): Promise<ActiveOrg | null> {
+export const getActiveOrg = cache(async (): Promise<ActiveOrg | null> => {
   const orgs = await getVisibleOrgs();
   if (orgs.length === 0) return null;
   const cookieStore = await cookies();
   const wanted = cookieStore.get(ACTIVE_ORG_COOKIE)?.value;
   return orgs.find((o) => o.id === wanted) ?? orgs[0];
-}
+});

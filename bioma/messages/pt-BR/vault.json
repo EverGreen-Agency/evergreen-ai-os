@@ -39,7 +39,8 @@
       "password": "Senha",
       "token": "Token",
       "recoveryCodes": "Recuperação",
-      "notes": "Notas"
+      "notes": "Notas",
+      "autoHide": "Oculta automaticamente em 60s. Revelar de novo exige novo motivo (auditado)."
     },
     "actions": {
       "revoke": "Revogar",

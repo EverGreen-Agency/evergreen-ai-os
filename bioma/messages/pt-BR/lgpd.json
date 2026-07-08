@@ -1,0 +1,41 @@
+{
+  "lgpd": {
+    "hint": "Governança de dados (LGPD): finalidades de tratamento, consentimentos e a regra de IA externa.",
+    "counts": "{purposes} finalidade(s) · {consents} consentimento(s) ativo(s)",
+    "classes": {
+      "title": "Classes de dados e IA externa",
+      "rule": "secret, pii e restricted_ai NUNCA saem para LLM externa. financial e legal só com finalidade registrada com exceção explícita. public, internal e client passam pelo gate normalmente. Todo adapter de IA obrigatoriamente valida em src/server/ai/policy.ts."
+    },
+    "purposes": {
+      "title": "Finalidades de tratamento",
+      "formTitle": "Nova finalidade",
+      "empty": "Nenhuma finalidade registrada.",
+      "org": "Organização",
+      "purpose": "Finalidade (descrição operacional)",
+      "legalBasis": "Base legal (LGPD art. 7º)",
+      "dataClasses": "Classes de dados cobertas",
+      "externalAi": "Permitir IA externa para estas classes (exceção explícita)",
+      "aiAllowed": "IA externa OK",
+      "aiBlocked": "sem IA externa",
+      "bases": {
+        "consentimento": "Consentimento",
+        "legitimo_interesse": "Legítimo interesse",
+        "execucao_contrato": "Execução de contrato",
+        "obrigacao_legal": "Obrigação legal"
+      }
+    },
+    "consents": {
+      "title": "Consentimentos",
+      "formTitle": "Registrar consentimento",
+      "empty": "Nenhum consentimento registrado.",
+      "purpose": "Finalidade",
+      "subjectLabel": "Identificador do titular (pseudônimo)",
+      "subjectPlaceholder": "ex.: cliente-titular-01",
+      "subjectHint": "Nunca use nome/e-mail real aqui — PII fica fora desta tabela.",
+      "active": "ativo",
+      "revoked": "revogado",
+      "revoke": "Revogar",
+      "needPurpose": "Registre uma finalidade antes de registrar consentimentos."
+    }
+  }
+}

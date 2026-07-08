@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 
@@ -7,8 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 
-// Sans da marca = stack Helvetica Neue (globals.css); só a mono é webfont.
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Fontes 100% locais (globals.css): sans = stack Helvetica Neue; mono = stack
+// do sistema. Zero webfont = zero rede/trava no dev (perf 2026-07-08).
 
 export const metadata: Metadata = {
   title: "Bioma",
@@ -24,7 +23,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider>

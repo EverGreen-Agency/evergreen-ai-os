@@ -8,7 +8,9 @@
       "radar": "Radar",
       "engineering": "Engenharia",
       "architecture": "Arquitetura",
-      "legacy": "Legado"
+      "legacy": "Legado",
+      "status": "Status",
+      "governance": "Governança"
     },
     "unavailable": {
       "title": "Memória interna indisponível neste ambiente",

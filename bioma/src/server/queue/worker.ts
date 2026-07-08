@@ -26,7 +26,7 @@ const worker = new Worker(
   { connection: redisConnection(), concurrency: 5 },
 );
 
-// Falha esgotou retries → Dead Letter Queue (alerta vem no mod-observabilidade).
+// Falha esgotou retries → Dead Letter Queue + INCIDENTE (não falhar em silêncio).
 worker.on("failed", async (job, err) => {
   if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
   console.error(`[worker] DLQ job=${job.name} id=${job.id}: ${err.message}`);
@@ -34,6 +34,16 @@ worker.on("failed", async (job, err) => {
     original: { name: job.name, id: job.id, data: job.data },
     error: err.message,
     failedAt: new Date().toISOString(),
+  });
+  const { reportIncident } = await import("@/server/observability/incidents");
+  const payload = baseJobPayload.safeParse(job.data);
+  await reportIncident({
+    tenantId: payload.success ? payload.data.tenantId : null,
+    source: "queue.dlq",
+    severity: "critical",
+    title: `Job ${job.name} esgotou retries e caiu na DLQ`,
+    detail: { job_id: job.id, job_name: job.name, error_code: err.name },
+    correlationId: payload.success ? payload.data.correlationId : undefined,
   });
 });
 

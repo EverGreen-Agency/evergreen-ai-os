@@ -39,7 +39,8 @@
       "password": "Password",
       "token": "Token",
       "recoveryCodes": "Recovery",
-      "notes": "Notes"
+      "notes": "Notes",
+      "autoHide": "Auto-hides in 60s. Revealing again requires a new reason (audited)."
     },
     "actions": {
       "revoke": "Revoke",
