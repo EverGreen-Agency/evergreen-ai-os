@@ -1,6 +1,6 @@
 {
-  "cockpit": {
-    "title": "Cockpit interno",
+  "viveiro": {
+    "title": "Viveiro",
     "subtitle": "Superfície operacional da EG: ideias, radar de stack, engenharia, arquitetura e o legado do dashboard antigo.",
     "nav": {
       "overview": "Visão geral",
@@ -106,8 +106,8 @@
       "toolsEmpty": "ferramentas-externas.md não encontrado."
     },
     "legacy": {
-      "intro": "Inventário do dashboard/ Vite antigo (embrião histórico do cockpit). Cada área foi classificada com decisão final; quando já portada, a URL equivalente no Bioma aparece ao lado. O dashboard antigo não precisa estar rodando para nada aqui.",
-      "todoEditing": "TODO: edição do Banco de Ideias e do Stack pelo cockpit (schema validation + diff resumido + auditoria — CA2 da spec) fica para o próximo corte. Até lá, este corte é somente leitura e a escrita continua no fluxo atual (Curador/git).",
+      "intro": "Inventário do dashboard/ Vite antigo (embrião histórico desta área). Cada área foi classificada com decisão final; quando já portada, a URL equivalente no Bioma aparece ao lado. O dashboard antigo não precisa estar rodando para nada aqui.",
+      "todoEditing": "TODO: edição do Banco de Ideias e do Stack pelo Viveiro (schema validation + diff resumido + auditoria — CA2 da spec) fica para o próximo corte. Até lá, este corte é somente leitura e a escrita continua no fluxo atual (Curador/git).",
       "columns": {
         "area": "Área",
         "legacyPath": "Onde vive no legado",

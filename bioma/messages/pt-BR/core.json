@@ -29,7 +29,6 @@
     "switchOrg": "Trocar organização",
     "admin": "Administração",
     "vault": "Cofre",
-    "cockpit": "Cockpit",
     "home": "Início",
     "suspended": {
       "title": "Acesso suspenso",
@@ -38,7 +37,8 @@
     "noOrg": {
       "title": "Sem organização",
       "body": "Seu usuário não está vinculado a nenhuma organização ativa."
-    }
+    },
+    "viveiro": "Viveiro"
   },
   "landing": {
     "welcome": "Olá, {name}",

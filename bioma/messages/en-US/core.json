@@ -38,7 +38,7 @@
       "body": "Your user is not linked to any active organization."
     },
     "vault": "Vault",
-    "cockpit": "Cockpit"
+    "viveiro": "Viveiro"
   },
   "landing": {
     "welcome": "Hello, {name}",

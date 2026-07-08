@@ -1,6 +1,6 @@
 {
-  "cockpit": {
-    "title": "Internal cockpit",
+  "viveiro": {
+    "title": "Viveiro",
     "subtitle": "EG's operational surface: ideas, tech radar, engineering, architecture and the legacy dashboard inventory.",
     "nav": {
       "overview": "Overview",
@@ -106,8 +106,8 @@
       "toolsEmpty": "ferramentas-externas.md not found."
     },
     "legacy": {
-      "intro": "Inventory of the old Vite dashboard/ (the cockpit's historical embryo). Each area is classified with a final decision; when already ported, the equivalent Bioma URL is shown. The old dashboard does not need to be running for anything here.",
-      "todoEditing": "TODO: editing the Idea Bank and the Stack from the cockpit (schema validation + summarized diff + audit trail — spec CA2) is deferred to the next cut. Until then this cut is read-only and writes stay in the current flow (Curador/git).",
+      "intro": "Inventory of the old Vite dashboard/ (this area's historical embryo). Each area is classified with a final decision; when already ported, the equivalent Bioma URL is shown. The old dashboard does not need to be running for anything here.",
+      "todoEditing": "TODO: editing the Idea Bank and the Stack from Viveiro (schema validation + summarized diff + audit trail — spec CA2) is deferred to the next cut. Until then this cut is read-only and writes stay in the current flow (Curador/git).",
       "columns": {
         "area": "Area",
         "legacyPath": "Where it lives in the legacy",
