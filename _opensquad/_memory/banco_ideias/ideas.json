@@ -749,17 +749,17 @@
     {
       "id": "service-as-software",
       "title": "Service-as-a-Software (oferta invisível)",
-      "desc": "Vender Growth operado por máquina interna invisível. Tecnologia é bastidor, narrativa é crescimento.",
-      "stage": "capture",
-      "horizon": "",
+      "desc": "DECIDIDO: tese de go-to-market/oferta invisível da EG. Vende-se previsibilidade, crescimento e operação premium; tecnologia, squads e IA ficam nos bastidores como máquina interna de margem e entrega. Não é módulo de software; é princípio comercial e narrativo da plataforma.",
+      "stage": "project",
+      "horizon": "NOW",
       "category": "Commercial",
       "origin": "internal",
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "source": "Roadmap §5.6",
-      "part_of": null,
-      "readiness": "Classificação: INTEGRAR como tese de go-to-market: tecnologia nos bastidores, valor percebido como crescimento e operação premium.",
+      "source": "Roadmap §5.6 + _opensquad/_memory/banco_ideias/docs/service-as-software.md + Documento-Mestre_EG.md §3",
+      "part_of": "mod-comercial",
+      "readiness": "Documentado nos docs core como princípio comercial: refletir em decks, propostas, onboarding e na apresentação da escada de ofertas. Aplicar como regra de UX: valor visível, complexidade técnica invisível quando virar ruído.",
       "clickup": false
     },
     {

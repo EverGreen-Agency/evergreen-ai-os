@@ -13,6 +13,8 @@ A maioria das empresas cresce no improviso: a demanda chega, o dono ou o melhor 
 
 A EverGreen é uma boutique de previsibilidade comercial. Transformamos demanda, jornada e operação comercial em previsibilidade, controle e evolução de receita. Não com promessa de milagre — com método visível. Poucos clientes, alta exigência, inteligência aplicada e tecnologia em tudo. AI First por padrão.
 
+Para o cliente, a tecnologia aparece como clareza, cadência e previsibilidade. Por trás, ela acelera diagnóstico, documentação, execução e acompanhamento; na frente, ela só aparece quando ajuda você a decidir melhor e enxergar progresso com mais confiança.
+
 **O nome é uma promessa — em duas camadas.**
 
 A primeira é botânica. Evergreen é a planta que não perde a folha na entressafra — o verde que perdura. É o oposto do crescimento sazonal que sobe e despenca. Por isso o souvenir da parceria é uma araucária: perene, não-decídua. A tese da marca feita matéria.

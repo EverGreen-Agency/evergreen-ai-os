@@ -48,6 +48,12 @@ A "stack completa" (runtimes de agente, orquestrador de dados, RAG, infra dedica
 
 > A stack concreta (ferramentas e anéis de adoção) **não é listada aqui** — vive no `stack.json`. **Regra de modelo:** mapeie por **capacidade** ("melhor de raciocínio", "melhor de contexto longo", "mais barato pra volume"), nunca por versão fixa — versões mudam a cada poucos meses; a lógica de *qual tipo pra qual tarefa* permanece.
 
+### Service-as-a-Software: motor invisível, valor visível
+
+Para o cliente, squads não são vendidos como "robôs". Eles são o motor de bastidor que permite à EG entregar com mais velocidade, padrão, margem e profundidade. A interface pública deve expor apenas o que aumenta confiança: score, status, evidências, aprovações, próximos passos e progresso.
+
+A complexidade operacional dos agentes permanece interna, governada por HITL, logs e isolamento por `client_id`. A regra de produto é: valor visível para o cliente; complexidade técnica visível apenas para a operação EG.
+
 ### As 3 camadas de execução (sequenciamento)
 
 | Camada | O que é | Status |

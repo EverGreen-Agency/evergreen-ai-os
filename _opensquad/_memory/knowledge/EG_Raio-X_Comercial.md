@@ -22,6 +22,12 @@ Cada pilar recebe uma nota de 0 a 10\. O Raio-X geral é a média dos três. O p
 | Por que três pilares e não mais: são os três que impactam diretamente o faturamento. Jornada, dados e cadência são *meios* de melhorar esses três — não pilares separados. Manter em três deixa o diagnóstico afiado e comunicável. |
 | :---- |
 
+## **Raio-X como face visível da inteligência**
+
+No modelo Service-as-a-Software, o Raio-X é a parte visível da inteligência da EG: o cliente enxerga clareza, nota, gargalo prioritário, evidências e plano de ação. A coleta, síntese, automações, squads e modelos de IA ficam nos bastidores quando não aumentam a confiança da decisão.
+
+A regra de apresentação é simples: mostrar o suficiente para gerar confiança e movimento; esconder o suficiente para não transformar metodologia em ruído técnico.
+
 # **2\. Como funciona o cálculo**
 
 1. Cada pilar tem **5 perguntas**.

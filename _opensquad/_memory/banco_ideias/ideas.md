@@ -3,7 +3,7 @@
 > View gerada a partir de `ideas.json` em 2026-07-08. Fonte da verdade: `ideas.json`. Total: 148 ideias.
 
 
-## Captura (capture) — 125
+## Captura (capture) — 124
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
   - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
@@ -84,8 +84,6 @@
   - part_of: mod-saas-billing
 - **Precificação por valor/eficiência** (`precificacao-valor`) · Commercial · a redefinir · internal
   - Setup alto + fee de estratégia. Não cobrar por hora quando a IA automatiza 70%.
-- **Service-as-a-Software (oferta invisível)** (`service-as-software`) · Commercial · a redefinir · internal
-  - Vender Growth operado por máquina interna invisível. Tecnologia é bastidor, narrativa é crescimento.
 - **AI-CMO como justificativa de MRR** (`ai-cmo-mrr`) · Commercial · a redefinir · internal
   - Fee não é manutenção de robô — é aluguel do cérebro estratégico. Argumento central de retenção.
 - **Dogfooding** (`dogfooding`) · Commercial · NOW · internal
@@ -387,8 +385,7 @@
 - **Internacionalização e Tradução (i18n)** (`mod-i18n`) · Infra · NOW · internal
   - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e…
   - part_of: mega-plataforma
-
-## Projeto (project) — 15
+## Projeto (project) — 16
 
 - **Avaliador de Negócios (mentalidade Musk/Hormozi)** (`business-evaluator`) · Squad · NOW · internal
   - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o…
@@ -431,6 +428,9 @@
   - part_of: mega-plataforma
 - **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · NOW · internal
   - Escada de oferta de tecnologia (4 degraus, espelha growth): Raio-X Tecnológico -> Sprint de Estruturação Tecnológica -> Retainer de Operação Tecnológica…
+  - part_of: mod-comercial
+- **Service-as-a-Software (oferta invisível)** (`service-as-software`) · Commercial · NOW · internal
+  - DECIDIDO: tese de go-to-market/oferta invisível da EG. Vende-se previsibilidade, crescimento e operação premium; tecnologia, squads e IA ficam nos bastidores como…
   - part_of: mod-comercial
 - **Expansão dos Pilares de Score (nível high-end)** (`niveis-score-expandido`) · Feature · LONG · internal
   - DECIDIDO: Raio-X core (3 pilares) nao expande para ninguem. Expansao (RH/fornecedores/tributario, estilo Lazaro Ramos) vira modulo separado exclusivo da…

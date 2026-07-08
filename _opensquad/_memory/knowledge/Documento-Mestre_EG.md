@@ -109,6 +109,14 @@ Tecnologia não é “enfeite de pitch”. É diferencial real quando melhora:
 
 Aprofundamento (arquitetura, stack, squads) no documento operacional: [EG\_Arquitetura\_de\_Squads\_e\_IA](https://docs.google.com/document/u/0/d/10OfMcp8CxBrD5sF203qPRsNPDQjexgW_HZC9Pfo34So/edit)
 
+## **Service-as-a-Software: oferta invisível**
+
+A EG não vende "robôs de IA" nem tecnologia pela tecnologia. A tecnologia deve aparecer para o cliente como previsibilidade, clareza, velocidade e qualidade operacional.
+
+Service-as-a-Software é a tese comercial em que a EG usa squads, automações, dados e IA como máquina interna de margem e entrega, enquanto o cliente compra crescimento, operação premium e evolução de receita. O cliente não precisa microgerenciar a ferramenta nem entender cada agente; precisa perceber controle, cadência, progresso e resultado.
+
+Regra: a tecnologia é visível quando aumenta confiança (dashboard, score, evidências, auditoria, aprovações) e invisível quando viraria ruído técnico. Não é um módulo da plataforma; é princípio narrativo e comercial que orienta propostas, decks, onboarding, playbook, UX e escada de ofertas.
+
 # **4\) Aprendizados do modelo antigo**
 
 * vender sem filtro duro drena margem e energia;
