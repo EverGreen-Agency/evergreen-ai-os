@@ -7,8 +7,8 @@ Bioma é a plataforma operacional da EverGreen. Este repositório interno começ
 ```text
 bioma/
   apps/
-    web/      # frontend React/Vite
-    api/      # backend FastAPI
+    web/      # app web React/Vite
+    api/      # API HTTP FastAPI
     worker/   # jobs assíncronos, quando necessário
   packages/
     contracts/ # contratos OpenAPI/schemas compartilhados
@@ -17,11 +17,14 @@ bioma/
     env/
 ```
 
-## Stack Decidida
+Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada na Vercel é o app web, e o backend publicado na Railway/Fly é a API HTTP. Na prática, `web` equivale ao frontend e `api` equivale ao backend.
+
+## Stack decidida
 
 - Frontend: React + Vite + TypeScript.
 - Backend: FastAPI + Python.
 - Banco: Postgres direto.
+- Cache/fila futura: Redis.
 - Deploy: Vercel para `apps/web`; Railway para `apps/api`, Postgres, Redis e worker.
 - Fly: alternativa futura se houver exigência real de região, runtime ou rede.
 
@@ -32,7 +35,7 @@ bioma/
 - Verde Menta Viva: `#3AC97B`
 - Tipografia: Helvetica ou fallback compatível.
 
-## Desenvolvimento Local
+## Desenvolvimento local
 
 1. Copie os arquivos de ambiente:
 
@@ -65,6 +68,8 @@ Se o build Docker falhar em `npm ci` com `ETIMEDOUT`, é falha de rede durante i
 cd apps/api
 python -m venv .venv
 pip install -r requirements.txt
+python scripts/migrate.py
+python scripts/seed_dev.py
 uvicorn bioma_api.main:app --reload
 ```
 
@@ -76,9 +81,32 @@ npm install
 npm run dev
 ```
 
+Usuários de desenvolvimento:
+
+- `eduardo@evergreengrowth.com.br` / `senha-dev-123`
+- `henrique@hmconexoes.com.br` / `senha-dev-123`
+
+## Validação
+
+API:
+
+```bash
+cd apps/api
+python scripts/migrate.py
+python scripts/seed_dev.py
+python scripts/smoke_api.py
+```
+
+Frontend:
+
+```bash
+cd apps/web
+npm run build
+```
+
 ## Comunicação Web/API
 
-O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, aprovações, entregáveis, sync de ClickUp e auditoria são comandos explícitos.
+O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, aprovações, entregáveis, artefatos, sync de ClickUp e auditoria são comandos explícitos.
 
 GraphQL pode entrar depois como BFF ou camada de consulta se surgirem telas com múltiplas visões altamente customizáveis, overfetching real ou muitos consumidores externos. A decisão atual preserva essa opção porque o frontend não chama `fetch` direto espalhado pela aplicação; ele passa por um cliente HTTP isolado.
 

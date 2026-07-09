@@ -239,6 +239,14 @@ def main() -> None:
         upsert_artifact(
             conn,
             hm_id,
+            "Calendário editorial inicial",
+            "calendar",
+            "client",
+            "Primeira visão editável de pautas e entregas. Métricas entram apenas quando houver fonte real.",
+        )
+        upsert_artifact(
+            conn,
+            hm_id,
             "Mapa operacional ClickUp",
             "integration_map",
             "internal",

@@ -30,7 +30,7 @@ Antes de alterar escopo, fluxo de ClickUp ou lógica operacional, consulte:
 
 Data de referência: 2026-07-09.
 
-O MVP está em estado técnico validável, mas ainda não é produto final.
+O MVP está tecnicamente testável e operável em ambiente local. Ainda não é produto final nem staging publicado.
 
 Funcional hoje:
 
@@ -38,22 +38,26 @@ Funcional hoje:
 - API FastAPI com Postgres.
 - Docker local com Postgres, Redis, API e Web.
 - Seed dev com usuário EG e usuário cliente HM.
-- Client Hub com carteira, entregáveis, aprovações, artefatos e status.
+- Client Hub com carteira, entregáveis, aprovações, artefatos, sync e auditoria.
+- Criar cliente como EG admin.
+- Editar cliente como EG admin.
+- Criar, editar e excluir artefatos como EG admin.
+- Criar, atualizar status e excluir entregáveis como EG admin.
 - Aprovar/reprovar pendência pelo front.
-- Atualizar status de entregável como EG admin.
-- Modal de artefato.
+- Cliente enxerga apenas o próprio hub no seed.
 - ClickUp Bridge em modo manual/dry-run.
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
 - Área documentada para assets em `apps/web/public/assets/`.
+- Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
 
 Ainda demo/dry-run:
 
-- Dados HM ainda vêm de seed.
+- Dados iniciais HM vêm de seed, mas já podem ser editados pelo front.
 - ClickUp ainda não sincroniza tarefas reais sem token e mapeamento real.
-- Artefatos ainda não têm CRUD completo.
-- Briefing, brand book e calendário ainda não estão completos como módulos.
+- Briefing, brand book e calendário existem como artefatos editáveis, não como módulos ricos completos.
+- Analytics não deve exibir números reais enquanto não houver fonte real conectada.
 - Permissões ainda são simples: `eg_admin` e `client_user`.
-- UI ainda não é a experiência final premium prevista para o Client Hub.
+- UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
 
 ## Protocolo para múltiplas IAs
 
@@ -114,86 +118,86 @@ Não fazer ainda:
 
 ### P0 - Fechar MVP testável
 
-- Criar CRUD mínimo de cliente.
-- Criar CRUD mínimo de artefatos.
-- Criar CRUD mínimo de entregáveis.
-- Criar endpoint para listar estados de sync e auditoria.
-- Adicionar testes automatizados básicos de API.
-- Adicionar smoke test de frontend.
-- Criar checklist manual de QA.
+- [x] Criar documento vivo de execução do MVP.
+- [x] Corrigir CORS local e sessão.
+- [x] Criar CRUD mínimo de cliente.
+- [x] Criar CRUD mínimo de artefatos.
+- [x] Criar CRUD mínimo de entregáveis.
+- [x] Criar endpoint/retorno para estados de sync e auditoria.
+- [x] Adicionar smoke test básico de API.
+- [x] Validar build frontend.
+- [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
+- [ ] Criar checklist manual de QA assinado.
 
 ### P1 - Aproximar da entrega HM
 
-- Aplicar logos/assets reais da EG e, quando houver, da HM.
-- Criar telas específicas de Briefing.
-- Criar tela de Brand Book.
-- Criar calendário editorial inicial.
-- Criar visão de Analytics placeholder honesta, sem fingir dados reais.
-- Melhorar Client Hub para ser mais próximo da proposta visual HM, sem perder branding EG.
+- [ ] Aplicar logos/assets reais da EG e, quando houver, da HM.
+- [ ] Criar experiência específica de Briefing além do artefato textual.
+- [ ] Criar experiência específica de Brand Book além do artefato textual.
+- [ ] Criar calendário editorial rico, com visão semanal/mensal.
+- [ ] Criar visão de Analytics honesta, sem fingir dados reais.
+- [ ] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 
 ### P2 - ClickUp real
 
-- Configurar `CLICKUP_API_TOKEN`.
-- Cadastrar mapeamento real de pasta/listas.
-- Ler tarefas reais.
-- Mapear status por lista: Social, Growth e Tech.
-- Registrar erros de sync de forma visível no cockpit.
-- Definir política de escrita: sempre HITL no MVP.
+- [ ] Configurar `CLICKUP_API_TOKEN`.
+- [ ] Cadastrar mapeamento real de pasta/listas.
+- [ ] Ler tarefas reais.
+- [ ] Mapear status por lista: Social, Growth e Tech.
+- [ ] Registrar erros de sync de forma visível no cockpit.
+- [ ] Definir política de escrita: sempre HITL no MVP.
 
 ### P3 - Segurança e qualidade
 
-- Teste de IDOR/BOLA em endpoints com `client_id`.
-- Teste de autorização entre `eg_admin` e `client_user`.
-- Teste de sessão expirada/revogada.
-- Teste de CORS local/staging/prod.
-- Teste de validação de payload.
-- Teste básico de carga.
-- Checklist LGPD antes de qualquer dado real sensível.
+- [x] Smoke test de autorização entre `eg_admin` e `client_user`.
+- [x] Smoke test básico de BOLA/IDOR para outro cliente.
+- [x] Teste de CORS local.
+- [ ] Teste de sessão expirada/revogada.
+- [ ] Teste de validação de payload com massa inválida.
+- [ ] Teste básico de carga.
+- [ ] Burp/ZAP ou pentest automatizado.
+- [ ] Checklist LGPD antes de qualquer dado real sensível.
 
 ### P4 - Staging
 
-- Subir API e Postgres na Railway.
-- Subir Web na Vercel.
-- Configurar variáveis por ambiente.
-- Rodar seed apenas em ambiente local/staging controlado.
-- Criar domínio temporário de staging.
+- [ ] Subir API e Postgres na Railway.
+- [ ] Subir Web na Vercel.
+- [ ] Configurar variáveis por ambiente.
+- [ ] Rodar seed apenas em ambiente local/staging controlado.
+- [ ] Criar domínio temporário de staging.
 
 ## Critério de pronto do MVP v0
 
-O MVP v0 só pode ser considerado funcional quando:
+O MVP v0 pode ser considerado funcional localmente quando:
 
 - EG admin consegue entrar, ver clientes, criar/editar cliente, criar/editar entregáveis e artefatos.
 - Cliente consegue entrar e ver apenas o próprio hub.
 - Aprovações funcionam ponta a ponta.
-- ClickUp real lê tarefas de pelo menos uma pasta/lista.
-- A UI funciona em desktop, notebook com DevTools aberto e mobile.
+- ClickUp dry-run registra sync de forma visível.
+- A UI funciona em desktop e largura reduzida sem quebrar layout.
 - Não há dados fake apresentados como se fossem reais.
-- Há testes mínimos de API e smoke test de frontend.
-- Há checklist manual de QA assinado.
+- Há smoke test básico de API e build frontend passando.
+
+O MVP v0 só pode ser considerado pronto para cliente real quando, além disso:
+
+- ClickUp real lê tarefas de pelo menos uma pasta/lista.
+- Assets reais de EG/HM estão aplicados.
+- Staging está publicado.
+- QA visual/manual foi assinado.
+- Checklist LGPD foi revisado.
 
 ## Status de testes
 
-Testes já rodados até aqui:
+Testes rodados nesta rodada:
 
-- Build frontend.
-- Compile backend.
-- Healthcheck API.
-- Login via API.
-- Fluxo básico de Client Hub.
-- Aprovação/reprovação via API.
-- ClickUp Bridge dry-run.
-- CORS local.
+- `python -m compileall bioma/apps/api/bioma_api bioma/apps/api/scripts`
+- `python scripts/migrate.py`
+- `python scripts/seed_dev.py`
+- `python scripts/smoke_api.py`
+- `npx tsc -b`
+- `npm.cmd run build`
 
-Testes ainda não realizados:
-
-- Burp/ZAP ou pentest automatizado.
-- IDOR/BOLA sistemático.
-- Teste de carga.
-- Teste de invasão.
-- Fuzzing de payload.
-- Teste real de multiusuário.
-
-Portanto, os testes atuais são testes funcionais e smoke tests de desenvolvimento. Eles não substituem auditoria de segurança.
+Os testes atuais são funcionais e smoke tests de desenvolvimento. Eles não substituem auditoria de segurança, pentest, teste de carga ou revisão LGPD.
 
 ## Como registrar progresso
 
@@ -208,3 +212,4 @@ Formato:
 ## Log de execução
 
 - 2026-07-09 - Codex - 4d3502d - Corrigido CORS local, responsividade e área de assets - build front, compile backend, preflight/login CORS - pendente QA visual completo.
+- 2026-07-09 - Codex - ver git log - CRUD mínimo de cliente/artefato/entrega, auditoria no portal, smoke API e UI revisada - compile backend, migrate, seed, smoke API, tsc, build frontend - pendente assets reais, ClickUp real, QA visual e staging.

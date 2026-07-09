@@ -11,7 +11,7 @@ Responsabilidades iniciais:
 - publicação de artefatos para o Client Hub;
 - healthcheck para staging e produção.
 
-## Banco Local
+## Banco local
 
 Com o Docker do Bioma rodando:
 
@@ -25,10 +25,19 @@ Usuários de desenvolvimento:
 - `eduardo@evergreengrowth.com.br` / `senha-dev-123`
 - `henrique@hmconexoes.com.br` / `senha-dev-123`
 
-## Rodar Local
+## Rodar local
 
 ```bash
 python -m venv .venv
 pip install -r requirements.txt
 uvicorn bioma_api.main:app --reload
 ```
+
+## Validar
+
+```bash
+python -m compileall bioma_api scripts
+python scripts/smoke_api.py
+```
+
+O smoke test valida health, CORS local, login, listagem, bloqueio de sync para cliente, BOLA/IDOR básico, criação/edição de cliente, artefato, entrega e sync ClickUp dry-run.

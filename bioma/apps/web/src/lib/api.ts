@@ -15,13 +15,15 @@ export type CurrentUser = {
   }>;
 };
 
+export type ClientStatus = "onboarding" | "active" | "paused" | "archived";
+
 export type ClientSummary = {
   id: string;
   organization_id: string;
   organization_name: string;
   organization_slug: string;
   name: string;
-  status: "onboarding" | "active" | "paused" | "archived";
+  status: ClientStatus;
   responsible_name: string | null;
   clickup_folder_id: string | null;
   deliverables_total: number;
@@ -71,12 +73,45 @@ export type SyncRunSummary = {
   finished_at: string | null;
 };
 
+export type AuditLogSummary = {
+  id: string;
+  event_type: string;
+  actor_user_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
 export type ClientPortal = {
   client: ClientSummary;
   artifacts: ArtifactSummary[];
   deliverables: DeliverableSummary[];
   approvals: ApprovalSummary[];
   sync_runs: SyncRunSummary[];
+  audit_logs: AuditLogSummary[];
+};
+
+export type ClientPayload = {
+  name: string;
+  organization_name?: string;
+  organization_slug?: string;
+  status?: ClientStatus;
+  responsible_name?: string | null;
+  clickup_folder_id?: string | null;
+};
+
+export type ArtifactPayload = {
+  title: string;
+  kind: string;
+  visibility: "internal" | "client";
+  content?: string | null;
+  url?: string | null;
+};
+
+export type DeliverablePayload = {
+  title: string;
+  status: DeliverableStatus;
+  due_at?: string | null;
+  clickup_task_id?: string | null;
 };
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
@@ -117,14 +152,47 @@ export const api = {
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
   clients: () => request<ClientSummary[]>("/clients"),
+  createClient: (payload: ClientPayload) =>
+    request<ClientPortal>("/clients", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateClient: (clientId: string, payload: Partial<ClientPayload>) =>
+    request<ClientPortal>(`/clients/${clientId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
   clientPortal: (clientId: string) => request<ClientPortal>(`/clients/${clientId}`),
+  createArtifact: (clientId: string, payload: ArtifactPayload) =>
+    request<ClientPortal>(`/clients/${clientId}/artifacts`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateArtifact: (clientId: string, artifactId: string, payload: Partial<ArtifactPayload>) =>
+    request<ClientPortal>(`/clients/${clientId}/artifacts/${artifactId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteArtifact: (clientId: string, artifactId: string) =>
+    request<ClientPortal>(`/clients/${clientId}/artifacts/${artifactId}`, {
+      method: "DELETE",
+    }),
+  createDeliverable: (clientId: string, payload: DeliverablePayload) =>
+    request<ClientPortal>(`/clients/${clientId}/deliverables`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateDeliverable: (clientId: string, deliverableId: string, payload: Partial<DeliverablePayload>) =>
+    request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteDeliverable: (clientId: string, deliverableId: string) =>
+    request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
+      method: "DELETE",
+    }),
   decideApproval: (clientId: string, approvalId: string, status: Exclude<ApprovalStatus, "pending">) =>
     request<ClientPortal>(`/clients/${clientId}/approvals/${approvalId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status }),
-    }),
-  updateDeliverableStatus: (clientId: string, deliverableId: string, status: DeliverableStatus) =>
-    request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),

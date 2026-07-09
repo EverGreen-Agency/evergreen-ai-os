@@ -1,9 +1,14 @@
 from datetime import datetime
 from uuid import UUID
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
+
+ClientStatus = Literal["onboarding", "active", "paused", "archived"]
+ArtifactVisibility = Literal["internal", "client"]
+DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
+ApprovalStatus = Literal["pending", "approved", "rejected", "cancelled"]
 
 
 class ClientSummary(BaseModel):
@@ -12,7 +17,7 @@ class ClientSummary(BaseModel):
     organization_name: str
     organization_slug: str
     name: str
-    status: str
+    status: ClientStatus
     responsible_name: str | None = None
     clickup_folder_id: str | None = None
     deliverables_total: int
@@ -24,7 +29,7 @@ class ArtifactSummary(BaseModel):
     id: UUID
     title: str
     kind: str
-    visibility: str
+    visibility: ArtifactVisibility
     url: str | None = None
     content: str | None = None
     created_at: datetime
@@ -33,7 +38,7 @@ class ArtifactSummary(BaseModel):
 class DeliverableSummary(BaseModel):
     id: UUID
     title: str
-    status: str
+    status: DeliverableStatus
     due_at: datetime | None = None
     clickup_task_id: str | None = None
     updated_at: datetime
@@ -43,7 +48,7 @@ class ApprovalSummary(BaseModel):
     id: UUID
     deliverable_id: UUID | None = None
     deliverable_title: str | None = None
-    status: str
+    status: ApprovalStatus
     comment: str | None = None
     created_at: datetime
     decided_at: datetime | None = None
@@ -52,10 +57,18 @@ class ApprovalSummary(BaseModel):
 class SyncRunSummary(BaseModel):
     id: UUID
     source: str
-    status: str
-    summary: dict
+    status: Literal["ok", "error", "partial"]
+    summary: dict[str, Any]
     started_at: datetime
     finished_at: datetime | None = None
+
+
+class AuditLogSummary(BaseModel):
+    id: UUID
+    event_type: str
+    actor_user_id: UUID | None = None
+    metadata: dict[str, Any]
+    created_at: datetime
 
 
 class ClientPortalResponse(BaseModel):
@@ -64,6 +77,54 @@ class ClientPortalResponse(BaseModel):
     deliverables: list[DeliverableSummary]
     approvals: list[ApprovalSummary]
     sync_runs: list[SyncRunSummary]
+    audit_logs: list[AuditLogSummary]
+
+
+class ClientCreateRequest(BaseModel):
+    name: str
+    organization_name: str | None = None
+    organization_slug: str | None = None
+    status: ClientStatus = "onboarding"
+    responsible_name: str | None = None
+    clickup_folder_id: str | None = None
+
+
+class ClientUpdateRequest(BaseModel):
+    name: str | None = None
+    organization_name: str | None = None
+    status: ClientStatus | None = None
+    responsible_name: str | None = None
+    clickup_folder_id: str | None = None
+
+
+class ArtifactCreateRequest(BaseModel):
+    title: str
+    kind: str
+    visibility: ArtifactVisibility = "client"
+    content: str | None = None
+    url: str | None = None
+
+
+class ArtifactUpdateRequest(BaseModel):
+    title: str | None = None
+    kind: str | None = None
+    visibility: ArtifactVisibility | None = None
+    content: str | None = None
+    url: str | None = None
+
+
+class DeliverableCreateRequest(BaseModel):
+    title: str
+    status: DeliverableStatus = "planned"
+    due_at: datetime | None = None
+    clickup_task_id: str | None = None
+
+
+class DeliverableUpdateRequest(BaseModel):
+    title: str | None = None
+    status: DeliverableStatus | None = None
+    due_at: datetime | None = None
+    clickup_task_id: str | None = None
 
 
 class ApprovalDecisionRequest(BaseModel):
@@ -72,4 +133,4 @@ class ApprovalDecisionRequest(BaseModel):
 
 
 class DeliverableStatusRequest(BaseModel):
-    status: Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
+    status: DeliverableStatus
