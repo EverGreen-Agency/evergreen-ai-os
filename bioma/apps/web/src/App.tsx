@@ -79,6 +79,7 @@ export function App() {
   const activeOrg = user?.organizations[0] ?? null;
   const selectedClient = portal?.client ?? clients.find((client) => client.id === selectedClientId) ?? null;
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  const latestSync = portal?.sync_runs[0] ?? null;
 
   const metrics = useMemo(
     () => [
@@ -199,6 +200,20 @@ export function App() {
       await refreshClients();
     } catch (error) {
       setDataError(error instanceof Error ? error.message : "Não foi possível atualizar a entrega.");
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
+  async function handleClickUpSync() {
+    if (!selectedClientId) return;
+    setActionBusy("clickup-sync");
+    setDataError("");
+    try {
+      const data = await api.syncClickUp(selectedClientId);
+      setPortal(data);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Não foi possível sincronizar o ClickUp.");
     } finally {
       setActionBusy(null);
     }
@@ -414,9 +429,17 @@ export function App() {
                   </div>
                   <div className="sync-summary">
                     <GitBranch size={18} />
-                    <span>
-                      {selectedClient.clickup_folder_id ? "ClickUp conectado" : "ClickUp aguardando credencial"}
-                    </span>
+                    <span>{clickUpSummary(selectedClient.clickup_folder_id, latestSync?.status)}</span>
+                    {isEgAdmin && (
+                      <button
+                        className="sync-button"
+                        type="button"
+                        onClick={handleClickUpSync}
+                        disabled={actionBusy === "clickup-sync"}
+                      >
+                        Sincronizar
+                      </button>
+                    )}
                   </div>
                 </section>
 
@@ -594,4 +617,15 @@ function approvalStatusLabel(status: string) {
     cancelled: "Cancelado",
   };
   return labels[status] ?? status;
+}
+
+function clickUpSummary(folderId: string | null, status: string | undefined) {
+  if (!folderId) return "ClickUp sem mapeamento";
+  if (!status) return "ClickUp mapeado";
+  const labels: Record<string, string> = {
+    ok: "ClickUp sincronizado",
+    partial: "ClickUp parcial",
+    error: "ClickUp com erro",
+  };
+  return labels[status] ?? "ClickUp mapeado";
 }

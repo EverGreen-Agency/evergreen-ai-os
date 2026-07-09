@@ -1,10 +1,12 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from psycopg.types.json import Jsonb
 
 from bioma_api.auth import current_user_from_request
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
+from bioma_api.integrations.clickup import sync_clickup_folder
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.client_hub import (
     ApprovalDecisionRequest,
@@ -60,6 +62,7 @@ def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
     client = conn.execute(
         """
         select c.id, c.organization_id
+             , c.clickup_folder_id
         from clients c
         where c.id = %s
         """ + _client_access_filter(),
@@ -214,6 +217,35 @@ def decide_approval(
             values (%s, %s, 'approval.decided', jsonb_build_object('approval_id', %s::text, 'status', %s::text))
             """,
             (user.id, client["organization_id"], approval_id, payload.status),
+        )
+
+    return get_client_portal(client_id, user)
+
+
+@router.post("/{client_id}/sync/clickup", response_model=ClientPortalResponse)
+def sync_clickup(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> ClientPortalResponse:
+    if not _is_platform_admin(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode sincronizar ClickUp.")
+
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"])
+        conn.execute(
+            """
+            insert into sync_runs (source, organization_id, status, summary, finished_at)
+            values ('clickup', %s, %s, %s, now())
+            """,
+            (client["organization_id"], sync_status, Jsonb(summary)),
+        )
+        conn.execute(
+            """
+            insert into audit_logs (actor_user_id, organization_id, event_type, metadata)
+            values (%s, %s, 'clickup.sync_requested', jsonb_build_object('status', %s::text))
+            """,
+            (user.id, client["organization_id"], sync_status),
         )
 
     return get_client_portal(client_id, user)

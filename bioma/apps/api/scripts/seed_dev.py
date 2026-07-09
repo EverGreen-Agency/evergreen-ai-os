@@ -208,10 +208,14 @@ def main() -> None:
 
         conn.execute(
             """
-            insert into clients (organization_id, name, status, responsible_name)
-            values (%s, 'HM Conexões Poderosas', 'onboarding', 'Eduardo EG')
+            insert into clients (organization_id, name, status, responsible_name, clickup_folder_id)
+            values (%s, 'HM Conexões Poderosas', 'onboarding', 'Eduardo EG', 'hm-clickup-folder-demo')
             on conflict (organization_id)
-            do update set name = excluded.name, status = excluded.status, responsible_name = excluded.responsible_name
+            do update set
+              name = excluded.name,
+              status = excluded.status,
+              responsible_name = excluded.responsible_name,
+              clickup_folder_id = excluded.clickup_folder_id
             """,
             (hm_id,),
         )

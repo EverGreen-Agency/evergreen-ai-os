@@ -126,4 +126,8 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+  syncClickUp: (clientId: string) =>
+    request<ClientPortal>(`/clients/${clientId}/sync/clickup`, {
+      method: "POST",
+    }),
 };

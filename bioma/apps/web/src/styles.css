@@ -626,6 +626,23 @@ h3 {
   white-space: nowrap;
 }
 
+.sync-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(58, 201, 123, 0.42);
+  border-radius: 8px;
+  color: #09231b;
+  background: #3ac97b;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sync-button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
 .hub-block-list {
   display: grid;
   gap: 8px;
