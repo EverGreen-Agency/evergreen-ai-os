@@ -76,6 +76,10 @@ Arquivos sensíveis que não devem ser editados por duas IAs ao mesmo tempo:
 - `bioma/apps/web/src/App.tsx`
 - `bioma/apps/web/src/styles.css`
 - `bioma/apps/web/src/lib/api.ts`
+- `bioma/apps/web/src/lib/app-config.ts`
+- `bioma/apps/web/src/lib/format.ts`
+- `bioma/apps/web/src/components/shared.tsx`
+- `bioma/apps/web/src/views/CockpitView.tsx`
 - `bioma/apps/api/bioma_api/routers/client_hub.py`
 - `bioma/apps/api/migrations/*.sql`
 - `bioma/infra/docker-compose.yml`
@@ -126,6 +130,7 @@ Não fazer ainda:
 - [x] Criar endpoint/retorno para estados de sync e auditoria.
 - [x] Adicionar smoke test básico de API.
 - [x] Validar build frontend.
+- [x] Separar constantes, helpers e componentes comuns para reduzir `App.tsx`.
 - [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
 - [ ] Criar checklist manual de QA assinado.
 
@@ -213,3 +218,4 @@ Formato:
 
 - 2026-07-09 - Codex - 4d3502d - Corrigido CORS local, responsividade e área de assets - build front, compile backend, preflight/login CORS - pendente QA visual completo.
 - 2026-07-09 - Codex - ver git log - CRUD mínimo de cliente/artefato/entrega, auditoria no portal, smoke API e UI revisada - compile backend, migrate, seed, smoke API, tsc, build frontend - pendente assets reais, ClickUp real, QA visual e staging.
+- 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertCircle,
@@ -11,7 +11,6 @@ import {
   ClipboardCheck,
   FileText,
   GitBranch,
-  LayoutDashboard,
   Link,
   LockKeyhole,
   LogIn,
@@ -22,11 +21,9 @@ import {
   Search,
   Server,
   ShieldCheck,
-  Sparkles,
   Trash2,
   Users,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import {
   api,
@@ -40,68 +37,33 @@ import {
   type CurrentUser,
   type DeliverablePayload,
   type DeliverableStatus,
-  type DeliverableSummary,
 } from "./lib/api";
-
-type ViewId = "cockpit" | "clientes" | "conteudo" | "integracoes" | "engenharia";
-
-const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
-  { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
-  { id: "clientes", label: "Clientes", icon: Users },
-  { id: "conteudo", label: "Conteúdo", icon: BookOpen },
-  { id: "integracoes", label: "Integrações", icon: GitBranch },
-  { id: "engenharia", label: "Engenharia", icon: FileText },
-];
-
-const statusLabel: Record<ClientStatus, string> = {
-  onboarding: "Onboarding",
-  active: "Ativo",
-  paused: "Pausado",
-  archived: "Arquivado",
-};
-
-const deliverableStatusLabel: Record<DeliverableStatus, string> = {
-  planned: "Planejado",
-  in_progress: "Em execução",
-  waiting_approval: "Aguardando aprovação",
-  done: "Concluído",
-  blocked: "Bloqueado",
-};
-
-const integrationRows = [
-  { name: "ClickUp", status: "MVP", detail: "dry-run manual; próximo passo é leitura real de tasks por lista" },
-  { name: "Drive", status: "Backlog", detail: "centralizar links e arquivos do cliente no hub" },
-  { name: "LinkedIn/Analytics", status: "Backlog", detail: "apenas quando houver fonte real, sem métricas inventadas" },
-  { name: "Autentique", status: "Backlog", detail: "contratos e assinaturas sem duplicar ferramenta jurídica" },
-];
-
-const emptyClientDraft: ClientPayload = {
-  name: "",
-  organization_name: "",
-  status: "onboarding",
-  responsible_name: "",
-  clickup_folder_id: "",
-};
-
-const emptyArtifactDraft: ArtifactPayload = {
-  title: "",
-  kind: "briefing",
-  visibility: "client",
-  content: "",
-  url: "",
-};
-
-const emptyDeliverableDraft: DeliverablePayload = {
-  title: "",
-  status: "planned",
-  due_at: "",
-  clickup_task_id: "",
-};
-
-function currentViewFromHash(): ViewId {
-  const id = window.location.hash.replace("#", "") as ViewId;
-  return navItems.some((item) => item.id === id) ? id : "cockpit";
-}
+import { DockTitle, EmptyState, HealthRow, HubBlock, ProofItem, SectionHeader } from "./components/shared";
+import {
+  currentViewFromHash,
+  deliverableStatusLabel,
+  emptyArtifactDraft,
+  emptyClientDraft,
+  emptyDeliverableDraft,
+  integrationRows,
+  navItems,
+  statusLabel,
+  type ViewId,
+} from "./lib/app-config";
+import {
+  approvalStatusLabel,
+  artifactKindLabel,
+  auditLabel,
+  clickUpSummary,
+  compactMetadata,
+  formatDateTime,
+  formatDueDate,
+  isSessionError,
+  normalizeArtifactPayload,
+  normalizeClientPayload,
+  normalizeDeliverablePayload,
+} from "./lib/format";
+import { CockpitView } from "./views/CockpitView";
 
 export function App() {
   const [view, setView] = useState<ViewId>(currentViewFromHash());
@@ -988,260 +950,4 @@ export function App() {
       )}
     </main>
   );
-}
-
-function CockpitView({
-  user,
-  selectedClient,
-  metrics,
-  pendingApprovals,
-  activeDeliverables,
-  latestSync,
-  onGoClients,
-  onGoContent,
-}: {
-  user: CurrentUser;
-  selectedClient: ClientSummary | null;
-  metrics: Array<{ label: string; value: string; delta: string; tone: string }>;
-  pendingApprovals: Array<{ id: string; deliverable_title: string | null; comment: string | null }>;
-  activeDeliverables: DeliverableSummary[];
-  latestSync: string | undefined;
-  onGoClients: () => void;
-  onGoContent: () => void;
-}) {
-  return (
-    <>
-      <section className="hero-grid">
-        <article className="command-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Sessão</p>
-              <h2>{user.display_name}</h2>
-            </div>
-            <LockKeyhole size={24} />
-          </div>
-          <div className="session-card">
-            <strong>{selectedClient?.name ?? "Nenhum cliente selecionado"}</strong>
-            <span>{user.email}</span>
-            <small>{selectedClient ? `${selectedClient.organization_name} · ${statusLabel[selectedClient.status]}` : "Escolha um cliente para operar"}</small>
-          </div>
-          <div className="quick-actions">
-            <button type="button" onClick={onGoClients}>
-              <Users size={16} />
-              Abrir clientes
-            </button>
-            <button type="button" onClick={onGoContent}>
-              <BookOpen size={16} />
-              Ver conteúdo
-            </button>
-          </div>
-        </article>
-
-        <section className="metrics" aria-label="Indicadores iniciais">
-          {metrics.map((metric) => (
-            <article className={`metric-card ${metric.tone}`} key={metric.label}>
-              <span>{metric.label}</span>
-              <strong>{metric.value}</strong>
-              <small>{metric.delta}</small>
-            </article>
-          ))}
-        </section>
-      </section>
-
-      <section className="content-grid">
-        <article className="surface large">
-          <SectionHeader eyebrow="Fila de trabalho" title="Próximas ações" icon={CalendarCheck} />
-          <div className="timeline-list">
-            {pendingApprovals.map((approval) => (
-              <div className="timeline-row" key={approval.id}>
-                <span>Aprovação</span>
-                <strong>{approval.deliverable_title ?? "Aprovação pendente"}</strong>
-                <small>{approval.comment ?? "Sem comentário"}</small>
-              </div>
-            ))}
-            {activeDeliverables.slice(0, 5).map((deliverable) => (
-              <div className="timeline-row" key={deliverable.id}>
-                <span>{formatDueDate(deliverable.due_at)}</span>
-                <strong>{deliverable.title}</strong>
-                <small>{deliverableStatusLabel[deliverable.status]}</small>
-              </div>
-            ))}
-            {pendingApprovals.length === 0 && activeDeliverables.length === 0 && <EmptyState text="Nenhuma ação pendente." />}
-          </div>
-        </article>
-
-        <article className="surface">
-          <SectionHeader eyebrow="Operação" title="Sinais do MVP" icon={Sparkles} />
-          <div className="health-list">
-            <HealthRow icon={ClipboardCheck} label="Client Hub" ok={Boolean(selectedClient)} value={selectedClient?.name ?? "sem cliente"} />
-            <HealthRow icon={GitBranch} label="ClickUp" ok={latestSync !== "error"} value={latestSync ?? "dry-run pendente"} />
-            <HealthRow icon={ShieldCheck} label="Escopo" ok value="EG admin + cliente" />
-          </div>
-        </article>
-      </section>
-    </>
-  );
-}
-
-function ProofItem({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail: string }) {
-  return (
-    <div>
-      <Icon size={20} />
-      <strong>{title}</strong>
-      <span>{detail}</span>
-    </div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon: LucideIcon }) {
-  return (
-    <div className="panel-heading compact">
-      <div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
-      </div>
-      <Icon size={22} />
-    </div>
-  );
-}
-
-function DockTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
-  return (
-    <div className="dock-title">
-      <Icon size={16} />
-      <strong>{title}</strong>
-    </div>
-  );
-}
-
-function HubBlock({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: ReactNode }) {
-  return (
-    <section className="hub-block">
-      <div className="hub-block-title">
-        <Icon size={18} />
-        <h3>{title}</h3>
-      </div>
-      <div className="hub-block-list">{children}</div>
-    </section>
-  );
-}
-
-function HealthRow({ icon: Icon, label, ok, value }: { icon: LucideIcon; label: string; ok: boolean; value: string }) {
-  return (
-    <div className="health-row">
-      <Icon size={18} />
-      <span>{label}</span>
-      <strong className={ok ? "ok" : "bad"}>{value}</strong>
-    </div>
-  );
-}
-
-function EmptyState({ text, compact = false }: { text: string; compact?: boolean }) {
-  return <div className={compact ? "empty-state compact" : "empty-state"}>{text}</div>;
-}
-
-function normalizeClientPayload(payload: ClientPayload): ClientPayload {
-  return {
-    ...payload,
-    name: payload.name.trim(),
-    organization_name: normalizeOptional(payload.organization_name) ?? payload.name.trim(),
-    responsible_name: normalizeOptional(payload.responsible_name),
-    clickup_folder_id: normalizeOptional(payload.clickup_folder_id),
-  };
-}
-
-function normalizeArtifactPayload(payload: ArtifactPayload): ArtifactPayload {
-  return {
-    ...payload,
-    title: payload.title.trim(),
-    kind: payload.kind.trim() || "briefing",
-    content: normalizeOptional(payload.content),
-    url: normalizeOptional(payload.url),
-  };
-}
-
-function normalizeDeliverablePayload(payload: DeliverablePayload): DeliverablePayload {
-  return {
-    ...payload,
-    title: payload.title.trim(),
-    due_at: normalizeOptional(payload.due_at),
-    clickup_task_id: normalizeOptional(payload.clickup_task_id),
-  };
-}
-
-function normalizeOptional(value: string | null | undefined) {
-  const normalized = value?.trim();
-  return normalized ? normalized : null;
-}
-
-function formatDueDate(value: string | null) {
-  if (!value) return "Sem prazo";
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(
-    new Date(value),
-  );
-}
-
-function approvalStatusLabel(status: string) {
-  const labels: Record<string, string> = {
-    approved: "Aprovado",
-    rejected: "Reprovado",
-    cancelled: "Cancelado",
-  };
-  return labels[status] ?? status;
-}
-
-function artifactKindLabel(kind: string) {
-  const labels: Record<string, string> = {
-    briefing: "Briefing",
-    brand_book: "Brand book",
-    calendar: "Calendário",
-    integration_map: "Mapa de integração",
-  };
-  return labels[kind] ?? kind;
-}
-
-function clickUpSummary(folderId: string | null, status: string | undefined) {
-  if (!folderId) return "ClickUp sem mapeamento";
-  if (!status) return "ClickUp mapeado";
-  const labels: Record<string, string> = {
-    ok: "ClickUp sincronizado",
-    partial: "ClickUp parcial",
-    error: "ClickUp com erro",
-  };
-  return labels[status] ?? "ClickUp mapeado";
-}
-
-function auditLabel(eventType: string) {
-  const labels: Record<string, string> = {
-    "auth.login": "Login",
-    "client.created": "Cliente criado",
-    "client.updated": "Cliente atualizado",
-    "artifact.created": "Artefato criado",
-    "artifact.updated": "Artefato atualizado",
-    "artifact.deleted": "Artefato excluído",
-    "deliverable.created": "Entrega criada",
-    "deliverable.updated": "Entrega atualizada",
-    "deliverable.deleted": "Entrega excluída",
-    "approval.decided": "Aprovação decidida",
-    "clickup.sync_requested": "Sync ClickUp solicitado",
-  };
-  return labels[eventType] ?? eventType;
-}
-
-function compactMetadata(metadata: Record<string, unknown>) {
-  const keys = Object.keys(metadata);
-  if (keys.length === 0) return "sem metadados";
-  return keys
-    .slice(0, 3)
-    .map((key) => `${key}: ${String(metadata[key])}`)
-    .join(" · ");
-}
-
-function isSessionError(error: Error) {
-  const message = error.message.toLowerCase();
-  return message.includes("sessão ausente") || message.includes("sessão inválida");
 }
