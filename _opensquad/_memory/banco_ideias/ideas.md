@@ -1,33 +1,36 @@
 # Banco de Ideias EG
 
-> View gerada a partir de `ideas.json` em 2026-07-08. Fonte da verdade: `ideas.json`. Total: 148 ideias.
+> View gerada a partir de `ideas.json` em 2026-07-09. Fonte da verdade: `ideas.json`. Total: 149 ideias.
 
 
-## Captura (capture) — 120
+## Captura (capture) — 115
 
 - **Tech Scout (radar de ferramentas)** (`tech-scout`) · Squad · a redefinir · internal
-  - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra…
+  - Squad que garimpa proativamente onde os devs vivem (YouTube, Reddit, X, HN, GitHub trending) por MCPs, APIs, ferramentas e frameworks novos relevantes pra EG. Complemento OUTBOUND…
   - enables: [banco-stack] · part_of: mod-radar-pesquisa
 - **Skills de Ads (Meta + Google)** (`ads-api-skills`) · Infra · a redefinir · internal
-  - Skills p/ ligar as APIs de anúncio ao eg_criativos: meta_ads (Marketing API) e google_ads (Google Ads API). Dão 'olhos' ao Analista de Performance (puxar…
+  - Skills p/ ligar as APIs de anúncio ao eg_criativos: meta_ads (Marketing API) e google_ads (Google Ads API). Dão 'olhos' ao Analista de Performance (puxar métricas: hook rate, CTR,…
   - depends_on: [squad-criativos] · enables: [squad-trafego] · part_of: mod-entrega-mkt
+  - readiness: OAuth Meta/Google; tokens por client_id; validar response no Postman antes.
 - **Hub: chat = dispatcher** (`hub-chat-dispatcher`) · Cockpit · MEDIUM · internal
-  - Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno. NAO CONSTRUIDO ainda: falta o campo de chat/comando no…
+  - Barra de comando/chat no dashboard que é o dispatcher evoluído. Costura final do cockpit interno. NAO CONSTRUIDO ainda: falta o campo de chat/comando no dashboard conectado ao disp…
   - depends_on: [dispatcher] · enables: [tag-ativacao] · part_of: mod-cockpit-interno
 - **Tag de Ativação / Gatilho de Desenvolvimento** (`tag-ativacao`) · Cockpit · MEDIUM · internal
-  - Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Arquiteto identifica que pode começar, dispara o squad…
+  - Card sinaliza prontidão ('pronto p/ desenvolver'); ao mover de estágio, ou quando Curador/Arquiteto identifica que pode começar, dispara o squad responsável — SOB aprovação humana…
   - depends_on: [hub-chat-dispatcher] · part_of: mod-cockpit-interno
 - **Captação multi-plataforma de propostas** (`multi-plataforma-freelance`) · Feature · MEDIUM · internal
-  - Ingestão de vagas de Upwork/freelancermap/Malt/Contra/etc. MVP semi-manual (cola URL ou texto — a maioria não tem API e bloqueia scraper). Fase 2: RSS de…
+  - Ingestão de vagas de Upwork/freelancermap/Malt/Contra/etc. MVP semi-manual (cola URL ou texto — a maioria não tem API e bloqueia scraper). Fase 2: RSS de buscas salvas (Upwork) → n…
   - depends_on: [squad-hunter] · part_of: mod-comercial
+  - readiness: Maioria das plataformas sem API / bloqueia scraper → MVP semi-manual.
 - **Squad Análise de Reuniões** (`squad-reunioes`) · Squad · a redefinir · internal
-  - Transcrição → SPICED, pendências, rascunho pra CRM. Absorve o loop pós-call (origem Kelvin Cleto): fim da call → score SPICED + atualiza Kommo + rascunho…
+  - Transcrição → SPICED, pendências, rascunho pra CRM. Absorve o loop pós-call (origem Kelvin Cleto): fim da call → score SPICED + atualiza Kommo + rascunho de contrato + DoDs + objeç…
   - part_of: mod-comercial
 - **Squad Relatórios de Cliente** (`squad-relatorios`) · Squad · a redefinir · internal
   - Meta/Google/Kommo → narrativa do relatório. Squad escreve; BI exibe os números.
   - depends_on: [vector-store] · enables: [squad-raiox] · part_of: mod-entrega-mkt
+  - readiness: Depende de vector-store e das APIs de dados.
 - **Squad Onboarding / Kommo / ClickUp** (`squad-onboarding`) · Squad · a redefinir · internal
-  - Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Absorve a esteira de onboarding: contrato fechado → workspace ClickUp +…
+  - Proposta aprovada → configura pipeline Kommo, campos de lead, tarefas ClickUp. Absorve a esteira de onboarding: contrato fechado → workspace ClickUp + DoDs padrão + pasta Drive + m…
   - enables: [carteira-clientes] · part_of: mod-comercial
 - **Squad Raio-X Automatizado** (`squad-raiox`) · Squad · a redefinir · internal
   - Coleta dados do cliente → 3 pilares (Oferta/Demanda/Conversão) → score e relatório de gargalo.
@@ -35,6 +38,7 @@
 - **Otimização de Tráfego (HITL)** (`squad-trafego`) · Squad · a redefinir · internal
   - Assistido, nunca autônomo em verba (Write/Read barrier).
   - part_of: mod-entrega-mkt
+  - readiness: Write/Read barrier em verba — nunca autônomo.
 - **Squad SEO / GEO** (`squad-seo-geo`) · Squad · a redefinir · internal
   - Frente de busca orgânica e generativa.
   - part_of: mod-entrega-mkt
@@ -53,6 +57,7 @@
 - **Health Score por Dados** (`health-score`) · Feature · a redefinir · internal
   - Cruza frequência de contato × performance. CPA sobe + 15d sem call → tarefa 'Alerta de Risco'.
   - depends_on: [dossie-provas] · part_of: client-hub
+  - readiness: Depende de dados (dossie-provas / GA4/Ads).
 - **Icebreaker de Prospecção** (`icebreaker`) · Feature · a redefinir · internal
   - Varre site/LinkedIn do prospect → mini Raio-X personalizado → cold outreach com valor antes do pitch.
   - depends_on: [squad-prospector] · part_of: mod-comercial
@@ -62,6 +67,7 @@
 - **Vector store EG (pgvector)** (`vector-store`) · Infra · a redefinir · internal
   - Corpus: propostas, Raio-X, transcrições, cases. rag_search(query, client_id) com isolamento. Timestamps + decay.
   - enables: [segundo-cerebro] · part_of: mod-conhecimento
+  - readiness: Infra pgvector — custo e hospedagem.
 - **Context Decay** (`context-decay`) · Infra · a redefinir · internal
   - Toda entrada do vector store com timestamp + peso de recência. Metodologia antiga se invalida sozinha.
   - depends_on: [vector-store] · part_of: mod-conhecimento
@@ -79,30 +85,40 @@
   - part_of: mod-cockpit-interno
 - **Forward Deployed AI** (`forward-deployed`) · Service · NEW_COMPANY · external
   - Modelos open-source na infra do cliente p/ setores de privacidade severa. DNA de outra empresa.
+  - readiness: Classificação: SEPARAR/NEW_COMPANY. Exige operação de privacidade severa, implantação dedicada e outra proposta comercial.
 - **Cockpit interno → produto** (`cockpit-produto`) · Service · a redefinir · internal
   - Produtizar o cockpit como SaaS vertical p/ agências/consultorias. Só após validado internamente.
   - part_of: mod-saas-billing
+  - readiness: Ponte cockpit->produto; alinhado a 'produto amplo já'. Dogfood antes de vender.
 - **Precificação por valor/eficiência** (`precificacao-valor`) · Commercial · a redefinir · internal
   - Setup alto + fee de estratégia. Não cobrar por hora quando a IA automatiza 70%.
+  - readiness: Classificação: INTEGRAR como princípio comercial da plataforma e das ofertas, não como módulo de software.
 - **AI-CMO como justificativa de MRR** (`ai-cmo-mrr`) · Commercial · a redefinir · internal
   - Fee não é manutenção de robô — é aluguel do cérebro estratégico. Argumento central de retenção.
+  - readiness: Classificação: INTEGRAR como argumento de retenção/MRR, ligado ao client-hub e ao modelo de billing.
 - **Dogfooding** (`dogfooding`) · Commercial · NOW · internal
   - Rodar 100% da operação EG nos próprios squads antes de vender. Princípio inegociável.
+  - readiness: Classificação: INTEGRAR como gate obrigatório: uso interno antes de vender como produto/white-label.
 - **Fábrica: backoffice vs. frontoffice** (`fabrica-back-front`) · Commercial · a redefinir · internal
   - IA massacra o backoffice (contratos, ClickUp, relatórios). Humano foca julgamento e fechamento.
+  - readiness: Classificação: INTEGRAR como princípio operacional: IA no backoffice; humano em julgamento, relacionamento e fechamento.
 - **Change Management no cliente** (`change-management`) · Service · a redefinir · external
   - Playbook que mostra que a IA tira o trabalho braçal, não o emprego. Reduz churn por sabotagem.
+  - readiness: Classificação: INTEGRAR ao onboarding/sucesso do cliente; reduz churn e sabotagem operacional.
 - **Vibe Building (blocos reutilizáveis)** (`vibe-building`) · Infra · a redefinir · internal
   - Blocos instanciáveis (qualificador WA, dashboard GA4, qualificador CRM) em vez de reescrever do zero.
   - part_of: mod-nucleo
 - **Prospecção WhatsApp (Evolution API)** (`prospec-wpp-evolution`) · Feature · a redefinir · external
   - API não-oficial em VPS p/ outbound frio, chip fleet aquecido. Oficial Meta só no inbound.
   - part_of: mod-comunicacao-wpp
+  - readiness: Chip fleet aquecido; API não-oficial; risco de ban.
 - **VoIP inteligente de qualificação** (`voip-qualificacao`) · Service · a redefinir · external
   - Agente de voz (ElevenLabs+Twilio) qualifica por telefone. Mais barato que SDR, mais conversão que e-mail.
   - part_of: mod-comunicacao-wpp
+  - readiness: Custo ElevenLabs+Twilio.
 - **Princípio: IA se adapta ao cliente** (`ia-adapta-cliente`) · Commercial · a redefinir · external
   - Nunca substituir o legado do cliente. A IA entra via API, extrai, age, sai. Reduz fricção de venda.
+  - readiness: Classificação: INTEGRAR como princípio arquitetural/comercial: adaptar ao legado do cliente via API, não exigir substituição brusca.
 - **Segundo Cérebro — stack de memória (Zep)** (`stack-memoria-zep`) · Infra · a redefinir · external
   - Zep como camada de retenção longa sobre o pgvector. Fase 1.5 do RAG.
   - depends_on: [vector-store] · part_of: mod-conhecimento
@@ -118,21 +134,19 @@
 - **Skill raio-x-skill** (`skill-raiox`) · Infra · a redefinir · internal
   - Aplica a metodologia Raio-X (3 pilares, scoring) a dados de um cliente/prospect.
   - depends_on: [squad-relatorios] · part_of: client-hub
-- **Carteira ↔ ClickUp (puxar pastas, sincronizar cards)** (`clients-clickup-sync`) · Feature · MEDIUM · internal
-  - A aba Clientes puxa as pastas/listas reais do ClickUp e cria/atualiza cards a partir do config.json (diff desejado vs. real), sob aprovação (Write/Read…
-  - depends_on: [carteira-clientes, squad-onboarding] · part_of: mod-comercial
 - **Portabilidade dos bancos (não ser refém do opensquad)** (`banks-portability`) · Infra · MEDIUM · internal
-  - Os bancos (ideias/stack/arquitetura) são arquivos JSON/MD portáveis, mas vivem dentro de _opensquad/. Avaliar mover para um diretório de dados top-level…
+  - Os bancos (ideias/stack/arquitetura) são arquivos JSON/MD portáveis, mas vivem dentro de _opensquad/. Avaliar mover para um diretório de dados top-level (ex: knowledge/ ou data/) p…
   - part_of: mod-nucleo
 - **Banco de Ideias auto-atualizável** (`idea-bank-auto`) · Cockpit · MEDIUM · internal
-  - Banco se atualizar sozinho, principalmente os ESTÁGIOS (hoje o humano move os cards). Reconciliador lê sinais de realidade — existência do artefato…
+  - Banco se atualizar sozinho, principalmente os ESTÁGIOS (hoje o humano move os cards). Reconciliador lê sinais de realidade — existência do artefato (pasta/arquivo do squad), status…
   - depends_on: [hub-chat-dispatcher, log-audio-wpp] · part_of: mod-cockpit-interno
 - **Filosofia Visual EG (Manifesto de Design)** (`filosofia-visual-eg`) · Infra · a redefinir · internal
-  - Manifesto estético que traduz a marca EG em regras visuais rígidas (espaço, cor, composição) para garantir que qualquer material gerado por IA tenha…
+  - Manifesto estético que traduz a marca EG em regras visuais rígidas (espaço, cor, composição) para garantir que qualquer material gerado por IA tenha padrão boutique.
   - enables: [skill-brand-eg, idea-detail-edit] · part_of: mod-marca-artefatos
 - **Web Artifacts Builder (Motor de UI Rica)** (`web-artifacts-builder`) · Infra · a redefinir · internal
   - Padrão frontend (React/Vite/Tailwind) com regras anti-slop para a IA gerar Hub, Cockpit e Landing Pages sem cara de template genérico.
   - enables: [cockpit-produto, idea-detail-edit] · part_of: mod-marca-artefatos
+  - readiness: Habilita o front do produto white-label.
 - **Matriz de Risco Comercial (Lead Scoring)** (`matriz-risco-comercial`) · Commercial · a redefinir · internal
   - Framework quantitativo (Severidade x Probabilidade) para qualificar leads e projetos, decidindo matematicamente se a EG aceita, recusa ou escala o negócio.
   - enables: [squad-hunter, squad-prospector] · part_of: mod-comercial
@@ -146,19 +160,16 @@
   - Ferramenta para squads analíticos enviarem ideias de campanha diretamente para a pasta do cliente no ClickUp, pulando o banco de ideias da EG.
   - depends_on: [squad-reunioes] · part_of: mod-comercial
 - **Gerador de Documentos EG (PDF/DOCX branded)** (`doc-generator-eg`) · Infra · a redefinir · internal
-  - Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes: propostas,…
+  - Skill (motor + templates) que transforma conteúdo (markdown/dados estruturados) em documentos entregáveis com layout e identidade consistentes: propostas, relatórios de cliente, sp…
   - depends_on: [skill-brand-eg, filosofia-visual-eg] · enables: [squad-relatorios, squad-hunter] · part_of: mod-marca-artefatos
 - **eg-publish (deploy de artefatos: Vercel / GitHub Pages)** (`eg-publish`) · Infra · a redefinir · internal
-  - Skill que publica um artefato estático (protótipo clicável, landing, doc HTML, one-pager) numa URL pública — Vercel (CLI/MCP autenticado) ou GitHub Pages…
+  - Skill que publica um artefato estático (protótipo clicável, landing, doc HTML, one-pager) numa URL pública — Vercel (CLI/MCP autenticado) ou GitHub Pages (gh) — e devolve o link. R…
   - part_of: mod-marca-artefatos
-- **Módulo Núcleo (infra transversal)** (`mod-nucleo`) · Platform · NOW · internal
-  - Fundações da plataforma: multitenant/SSO/acessos, hosting, building-blocks (Lego), camada LLM-agnostic, handoff assíncrono, portabilidade dos bancos.
-  - part_of: mega-plataforma
 - **Módulo Comercial (funil EG)** (`mod-comercial`) · Platform · NOW · internal
-  - Módulo de aquisição e relacionamento da EG: prospecção, propostas, onboarding, carteira, reuniões, funil, lead scoring e inteligência comercial. Deve…
+  - Módulo de aquisição e relacionamento da EG: prospecção, propostas, onboarding, carteira, reuniões, funil, lead scoring e inteligência comercial. Deve suportar diferentes mercados;…
   - part_of: mega-plataforma
 - **Módulo Entrega de Marketing** (`mod-entrega-mkt`) · Platform · NOW · internal
-  - Módulo de entrega growth/marketing para clientes de múltiplos mercados: criativos, tráfego, SEO/GEO, social, relatórios, BI e skills de Ads. Não é agência…
+  - Módulo de entrega growth/marketing para clientes de múltiplos mercados: criativos, tráfego, SEO/GEO, social, relatórios, BI e skills de Ads. Não é agência 360; é capacidade operaci…
   - part_of: mega-plataforma
 - **Módulo Conhecimento / Segundo Cérebro** (`mod-conhecimento`) · Platform · MEDIUM · internal
   - RAG/segundo cérebro, vector store, decay, Zep, voz do cliente, ingestão de vídeo, banco de cases sucesso/fracasso.
@@ -169,96 +180,122 @@
 - **Módulo Marca & Artefatos** (`mod-marca-artefatos`) · Platform · MEDIUM · internal
   - Brand skill, filosofia visual, gerador de documentos, web-artifacts builder, eg-publish. A camada que dá padrão boutique a tudo que a IA gera.
   - part_of: mega-plataforma
-- **Área do Cliente (Hub NFC)** (`client-hub`) · Platform · NOW · internal
-  - Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e…
-  - depends_on: [mod-multitenant, mod-bi-dashboards] · part_of: mega-plataforma
 - **Motor de BI / Dashboards** (`mod-bi-dashboards`) · Platform · NOW · internal
   - Integra o repo BIAds: Meta/Google Ads, funil dinâmico, criativos, rastreio de UTMs — interno e cliente. Squads escrevem a narrativa; o BI exibe os números.
   - depends_on: [ads-api-skills] · part_of: client-hub
+  - readiness: V0: publicar snapshots/embeds/import manual no Client Hub. Ingestão API Meta/Google/LinkedIn vem depois, com OAuth e validação no Postman.
 - **Módulo Financeiro** (`mod-financeiro`) · Platform · MEDIUM · internal
   - Viabilidade/forecasting/metas + cobrança de cliente + contábil/fiscal (emissão de NF, situação cadastral, vigilância tributária). Nível pessoal → corporativo.
   - enables: [squad-negocios] · part_of: mega-plataforma
+  - readiness: Começar do pessoal (Planilha-Orcamentaria.xlsx). Contábil/fiscal precisa contador + integração bancária. Base para decisões de investimento (assinar ferramenta? contratar?).
 - **Módulo RH** (`mod-rh`) · Platform · MEDIUM · internal
-  - Rampagem de funcionário (15/30/60/90), níveis de cultura e de cargo, performance/NPS por gestor (carteira de clientes do gestor), kits de onboarding de…
+  - Rampagem de funcionário (15/30/60/90), níveis de cultura e de cargo, performance/NPS por gestor (carteira de clientes do gestor), kits de onboarding de funcionário.
   - part_of: mega-plataforma
+  - readiness: Depende de haver equipe rampando; hoje EG é enxuta (Eduardo/Gustavo).
 - **Logística de Kits** (`mod-logistica-kits`) · Platform · MEDIUM · internal
-  - Controle de estoque de peças, fornecedores/custos, quem recebeu qual kit e nível, status (entregue/produção), campos custom por item (ciclos de lavagem,…
+  - Controle de estoque de peças, fornecedores/custos, quem recebeu qual kit e nível, status (entregue/produção), campos custom por item (ciclos de lavagem, durabilidade).
   - part_of: mega-plataforma
+  - readiness: Volume de kits ainda baixo; começar simples (nem mirabolante nem simplório demais).
 - **Gestão de Contratos (Autentique)** (`mod-contratos`) · Platform · MEDIUM · internal
   - Absorver o Autentique: ciclo/assinatura/status de contratos, ligado a financeiro (datas início/fim) e onboarding.
   - part_of: mega-plataforma
+  - readiness: Autentique já em uso; absorver via API.
 - **Gestão de Certificações** (`mod-certificacoes`) · Platform · LONG · internal
   - Certificados da EG e dos funcionários (Google, Meta/Ads, Salesforce, Hubspot): validade e renovação.
   - part_of: mod-rh
+  - readiness: Nice-to-have; baixa prioridade.
 - **Billing / SaaS / Retenção** (`mod-saas-billing`) · Platform · MEDIUM · internal
-  - Camada de pagamentos, assinaturas, cupons, cotas, planos, clientes legado, white-label e parcerias. A lógica de retenção é legítima: o cliente pode sair…
+  - Camada de pagamentos, assinaturas, cupons, cotas, planos, clientes legado, white-label e parcerias. A lógica de retenção é legítima: o cliente pode sair da consultoria e seguir pag…
   - depends_on: [mod-multitenant] · part_of: mega-plataforma
+  - readiness: Depende de multitenant + haver produto a cobrar. IMPORTANTE: retenção legítima = suspensão contratual de acesso; NUNCA backdoor de travamento (risco jurídico/LGPD).
 - **Site EG + EG Lab + CMS** (`mod-site-cms`) · Platform · NOW · internal
-  - Refatoração do site EG, EG Lab/POCs e eventual CMS: cases inteligentes puxados do backoffice, mapa de clientes, correção de marca EverGreen, laboratório…
+  - Refatoração do site EG, EG Lab/POCs e eventual CMS: cases inteligentes puxados do backoffice, mapa de clientes, correção de marca EverGreen, laboratório público de artefatos e inte…
   - depends_on: [eg-publish] · part_of: mega-plataforma
+  - readiness: Auditoria SEO/GEO já feita (auditoriaevergreenseogeo.md). Altíssima interligação com o backoffice. Parte do site é NOW.
 - **Omnichannel WhatsApp** (`mod-comunicacao-wpp`) · Platform · MEDIUM · internal
-  - WhatsApp/coexistence/Evolution API/VoIP + gestão de números e chips para o CRM; integra a operadora Telecom (irmã). Contra-ataque às mudanças da Meta…
+  - WhatsApp/coexistence/Evolution API/VoIP + gestão de números e chips para o CRM; integra a operadora Telecom (irmã). Contra-ataque às mudanças da Meta (janela de 24h, API).
   - part_of: mega-plataforma
+  - readiness: Meta muda API/janela 24h (cobrança ~out/2026); chip fleet + aquecimento; risco de ban; bugs Baileys/Evolution/Kommo.
 - **Ingestão de Vídeo (YT/Insta)** (`mod-conhecimento-video`) · Platform · MEDIUM · internal
   - Baixar + transcrever + entender vídeo (YouTube e Instagram) no banco de conhecimento; alimenta cases e RAG.
   - depends_on: [vector-store] · part_of: mod-conhecimento
+  - readiness: yt-dlp/transcrição + storage; curadoria (não 'conhecimento infinito'); LGPD/direitos autorais ao baixar cursos de terceiros.
 - **Squad de Negócios / Estratégia** (`squad-negocios`) · Platform · MEDIUM · internal
-  - Lente de decisão de viabilidade (inspiração Musk/China/JHSF/BlackRock): investir, assinar mais uma ferramenta, contratar funcionário, comprar ação (PJ x…
+  - Lente de decisão de viabilidade (inspiração Musk/China/JHSF/BlackRock): investir, assinar mais uma ferramenta, contratar funcionário, comprar ação (PJ x carga tributária)? Compleme…
   - depends_on: [mod-financeiro] · part_of: mod-radar-pesquisa
+  - readiness: Depende do financeiro (dados). Lente de decisão, HITL.
 - **Pesquisa de Políticas & Updates de Stack** (`mod-policy-research`) · Platform · MEDIUM · internal
-  - Dois tipos de vigilância: (1) políticas de anúncio Meta/Google e afins → atualiza squads; (2) mudanças de API/linguagem/framework que quebram projetos de…
+  - Dois tipos de vigilância: (1) políticas de anúncio Meta/Google e afins → atualiza squads; (2) mudanças de API/linguagem/framework que quebram projetos de cliente (CI/CD de manutenç…
   - part_of: mod-radar-pesquisa
+  - readiness: Alimenta squads de ads e projetos de cliente; feeds/fontes a definir.
 - **Fóton (plataforma pessoal do Eduardo)** (`foton`) · Platform · MEDIUM · internal
-  - Plataforma pessoal do Eduardo (SEPARAR da EG): planejamento financeiro pessoal, banco de ideias pessoal, segundo cérebro pessoal, tarefas/reuniões…
+  - Plataforma pessoal do Eduardo (SEPARAR da EG): planejamento financeiro pessoal, banco de ideias pessoal, segundo cérebro pessoal, tarefas/reuniões pessoais, projetos e trade. Integ…
+  - readiness: Classificação: SEPARAR. Baixo custo inicial — é reorganização e isolamento de dados pessoais. Portão = separar dados pessoais × EG (repo/pastas próprios) e decidir quais módulos EG…
 - **Prisma BI (relatórios / due-diligence / selos)** (`prisma-bi`) · Platform · LONG · internal
-  - Empresa própria (SEPARAR): geração de relatórios complexos rápidos — due diligence de influenciador, auditoria SEO/GEO/ESG, financeiro/contábil — e selo…
+  - Empresa própria (SEPARAR): geração de relatórios complexos rápidos — due diligence de influenciador, auditoria SEO/GEO/ESG, financeiro/contábil — e selo de qualidade. Sob a holding…
+  - readiness: Classificação: SEPARAR. Mercado a validar; jurídico alto em due diligence pública, selos e exposição de empresas/pessoas. Reaproveita BI/relatórios da EG, mas deve virar produto/em…
 - **Telecom / Hub de Chips (operadora white-label)** (`telecom-chips`) · Platform · NEW_COMPANY · internal
-  - Empresa própria (SEPARAR): operadora white-label / hub de chips para marketeiros e devs, roteamento de números para não depender da Meta. Integra a…
+  - Empresa própria (SEPARAR): operadora white-label / hub de chips para marketeiros e devs, roteamento de números para não depender da Meta. Integra a plataforma via mod-comunicacao-w…
+  - readiness: Classificação: SEPARAR. Capital + regulação (Anatel) + risco de marca em nichos sensíveis. Por enquanto integra como fornecedor/camada do módulo WhatsApp, não como core da Mega Pla…
 - **Micro-AWS / Hospedagem própria** (`micro-aws-hosting`) · Platform · NEW_COMPANY · internal
-  - Empresa/infra própria (SEPARAR): home lab, servidores próprios, micro-AWS e serviços de TI; hospedar sites/serviços de clientes; futuro…
+  - Empresa/infra própria (SEPARAR): home lab, servidores próprios, micro-AWS e serviços de TI; hospedar sites/serviços de clientes; futuro fine-tuning/modelos locais.
+  - readiness: Classificação: SEPARAR. Só faz sentido com volume, capital em servidores e capacidade SRE. Decisão deve passar pelo módulo financeiro/viabilidade.
 - **Educação / Comunidade** (`educacao-comunidade`) · Platform · LONG · internal
-  - Braço de infoproduto/comunidade (SEPARAR, inspiração Lucas Félix/Kelvin): cursos, mentorias, disponibilizar conteúdo/clones de mentores aos…
+  - Braço de infoproduto/comunidade (SEPARAR, inspiração Lucas Félix/Kelvin): cursos, mentorias, disponibilizar conteúdo/clones de mentores aos assinantes/funcionários.
+  - readiness: Classificação: SEPARAR. Depende de autoridade, audiência e produção própria; cuidado com direitos autorais/LGPD ao usar cursos de terceiros.
 - **Trade autônomo (bots / challenges)** (`trade-autonomo`) · Platform · LONG · internal
   - Frente pessoal (SEPARAR, part_of Fóton): bots de trade auto-melhoráveis, challenges de traders (ganhar/vender conta). Renda pessoal, não-core.
   - part_of: foton
+  - readiness: Classificação: SEPARAR e part_of Fóton. Capital de risco e renda pessoal; fora do core EG agora.
 - **App Mobile da Plataforma** (`mod-mobile`) · Platform · LONG · internal
   - Versão mobile da mega-plataforma (cockpit + área do cliente). Depois da web validada.
   - part_of: mega-plataforma
+  - readiness: Depois da web; React Native/Expo ou PWA a decidir.
 - **Revenda/Hospedagem de Ferramentas** (`revenda-ferramentas`) · Feature · MEDIUM · internal
-  - Revender/hospedar ferramentas de terceiros como fonte de renda (ManyChat, Kommo, Beacons — modo agency/white-label). Pesquisar: white label, agency,…
+  - Revender/hospedar ferramentas de terceiros como fonte de renda (ManyChat, Kommo, Beacons — modo agency/white-label). Pesquisar: white label, agency, revenda, affiliate.
   - part_of: mod-saas-billing
+  - readiness: Comparar revender × construir interno (critério do doc).
 - **Planejamento de Negócios & M&A** (`planejamento-negocios`) · Commercial · LONG · internal
   - Área no backoffice p/ planejamento de futuras empresas, compra e venda de negócios (visão holding Quark).
   - part_of: squad-negocios
 - **Selo de Qualidade & Benchmark EG** (`selo-benchmark`) · Feature · MEDIUM · internal
-  - Captura automática de pequenas vitórias (dashboards/dados/transcrições) + selos de qualidade EG (bronze/prata/ouro; por área: tráfego, gestão, funil).…
+  - Captura automática de pequenas vitórias (dashboards/dados/transcrições) + selos de qualidade EG (bronze/prata/ouro; por área: tráfego, gestão, funil). Liga ao Prisma BI.
   - enables: [prisma-bi] · part_of: client-hub
+  - readiness: Não enrijecer regra de negócio; liga prisma-bi.
 - **Times Comerciais Controle×Teste (teste de ICP)** (`times-comerciais-ab`) · Feature · LONG · internal
   - Dois times comerciais: um no ICP fixo (controle, ex: solar), outro de testes (ICP/público/abordagem/comunicação). Metrificar na plataforma.
   - part_of: mod-rh
+  - readiness: Depende de ter time; hoje só 2 sócios.
 - **Clonagem de Personas/Mentores** (`clonagem-personas`) · Feature · LONG · internal
-  - Clonar a lógica/conhecimento de personas (Lucas Félix, Hormozi, Musk) — RAG por persona + 'fine-tuning lógico'. Conteúdo da persona só usado pelo clone…
+  - Clonar a lógica/conhecimento de personas (Lucas Félix, Hormozi, Musk) — RAG por persona + 'fine-tuning lógico'. Conteúdo da persona só usado pelo clone dela; formar conselhos.
   - part_of: mod-conhecimento
+  - readiness: LGPD/direitos autorais ao usar cursos de terceiros; risco de conhecimento desatualizado (IA muda rápido).
 - **Módulo Jurídico** (`mod-juridico`) · Platform · MEDIUM · internal
-  - Squad jurídico: validação de contratos × leis (mudou alguma lei que fragiliza o contrato?), verificação de cumprimento de entregáveis, riscos jurídicos.…
+  - Squad jurídico: validação de contratos × leis (mudou alguma lei que fragiliza o contrato?), verificação de cumprimento de entregáveis, riscos jurídicos. Absorve skills jurídicas.
   - enables: [mod-contratos] · part_of: mega-plataforma
+  - readiness: Liga mod-contratos; skills jurídicas já mencionadas.
 - **Drive próprio + RAG na Área do Cliente** (`drive-rag-cliente`) · Feature · MEDIUM · internal
-  - Drive nosso (infra) por cliente, indexado com RAG: transcrições, reuniões, docs trocados, logos. Buscar 'logo do cliente X' e puxar de onde apareceu.…
+  - Drive nosso (infra) por cliente, indexado com RAG: transcrições, reuniões, docs trocados, logos. Buscar 'logo do cliente X' e puxar de onde apareceu. Integrar Drive deles ou criar…
   - part_of: mod-conhecimento
+  - readiness: Storage + integração Drive; liga client-hub.
 - **Workspace Próprio (e-mail/drive/calendar/docs)** (`mod-workspace`) · Platform · LONG · internal
   - Absorver a infra de produtividade (hoje Titan/Google Workspace): engine de e-mail própria, drive, calendar, docs, gestão de acessos. Estilo Google Workspace.
   - part_of: mega-plataforma
+  - readiness: POSSÍVEL OVERREACH — Avaliador de Negócios pesar ROI × complexidade. Baixa prioridade.
 - **Co-pilot de Vendas ao Vivo** (`copilot-vendas`) · Feature · MEDIUM · internal
-  - Assistente que acompanha a reunião ao vivo e orienta o vendedor (dores, objeções, pitch, SPICED/SPIN); monta funil/score do lead em tempo real; modo…
+  - Assistente que acompanha a reunião ao vivo e orienta o vendedor (dores, objeções, pitch, SPICED/SPIN); monta funil/score do lead em tempo real; modo dual-screen (o que eu vejo × o…
   - depends_on: [mod-conhecimento] · part_of: mod-comercial
+  - readiness: Reusa base de conhecimento (Lucas/Rugido); áudio/tela ao vivo.
 - **Gestão/Medição de Créditos de IA** (`ai-credits-metering`) · Feature · MEDIUM · internal
-  - Medir uso de IA por escopo (interno EG × operação p/ cliente × uso do cliente × assinantes SaaS) e por modelo (Opus/Gemini low/high), por…
+  - Medir uso de IA por escopo (interno EG × operação p/ cliente × uso do cliente × assinantes SaaS) e por modelo (Opus/Gemini low/high), por API/CLI/subscription. Custo/limites. Clien…
   - part_of: mod-financeiro
+  - readiness: Liga ADR-0008 (llm_runs). Pesquisar auth de subscription (Codex/Claude Code/Antigravity).
 - **Centralização de Comunicações** (`centralizacao-comunicacoes`) · Feature · MEDIUM · internal
   - Onde rolam as comunicações: interno (ClickUp × Discord × Slack) e cliente (hoje 90% WhatsApp: grupo geral/gerência/financeiro/social). Decidir e integrar.
   - part_of: mod-comercial
+  - readiness: Decisão + integração; liga client-hub (comms centralizadas).
 - **Squad Kommo (dedup)** (`kommo-squad-dedup`) · Feature · MEDIUM · internal
-  - Squad/automação p/ o Kommo com remoção de duplicatas que ele faz mal (caso: 422 leads + ~2k contatos duplicados na reintegração; ele só achou ~30; cards…
+  - Squad/automação p/ o Kommo com remoção de duplicatas que ele faz mal (caso: 422 leads + ~2k contatos duplicados na reintegração; ele só achou ~30; cards com 'metade' da conversa).…
   - part_of: mod-comercial
 - **Integração Google Meu Negócio** (`integ-google-meu-negocio`) · Feature · MEDIUM · internal
   - Linkar/visualizar Google Meu Negócio (entregas/análises); no onboarding, cliente escaneia e já cedemos acesso.
@@ -270,32 +307,36 @@
   - Avaliar/absorver/modificar projetos open-source self-hosted p/ reduzir dependência externa (Chatwoot é só o exemplo do doc). Critério: build × buy × absorver.
   - part_of: mod-nucleo
 - **Portfólio de Sites & Recursos Gratuitos** (`portfolio-sites-recursos`) · Feature · MEDIUM · internal
-  - No site EG: exemplos de sites de alto padrão (b2b, engenharia/indústria=ElectROM, varejo/luxo e-commerce) como referência/portfólio, talvez baixáveis.…
+  - No site EG: exemplos de sites de alto padrão (b2b, engenharia/indústria=ElectROM, varejo/luxo e-commerce) como referência/portfólio, talvez baixáveis. Sites acelerados com IA (Clau…
   - part_of: mod-site-cms
 - **Escritório Virtual (pixel/Habbo) + Avatares** (`escritorio-virtual`) · Feature · LONG · internal
-  - Visualização única do escritório EG em pixel art (estilo Habbo): avatares de funcionários (foto→avatar via IA), seções geradas quando surge squad/feature…
+  - Visualização única do escritório EG em pixel art (estilo Habbo): avatares de funcionários (foto→avatar via IA), seções geradas quando surge squad/feature nova, elementos clicáveis.…
   - part_of: mod-cockpit-interno
+  - readiness: Baixa prioridade / ROI baixo (palavra do Eduardo); ideia legal, não urgente.
 - **Decisão: braço BPO / EG-OS** (`decisao-bpo`) · Commercial · MEDIUM · internal
-  - Continuar ou aposentar o braço de BPO (EG-OS no site: chatbot, DRE automático, n8n p/ MEI/PME antes do ICP). Era gancho de validação/oferta. Decidir com o…
+  - Continuar ou aposentar o braço de BPO (EG-OS no site: chatbot, DRE automático, n8n p/ MEI/PME antes do ICP). Era gancho de validação/oferta. Decidir com o squad de vigilância dos d…
   - part_of: mega-plataforma
 - **Nome da Plataforma** (`nome-plataforma`) · Commercial · NOW · internal
-  - Nomear a mega-plataforma. Sugestão do Juiz: BIOMA (ecossistema vivo que contém várias florestas/clientes; on-brand, evita colidir com o nível de cliente…
+  - Nomear a mega-plataforma. Sugestão do Juiz: BIOMA (ecossistema vivo que contém várias florestas/clientes; on-brand, evita colidir com o nível de cliente Floresta). Alt: Floresta. O…
   - part_of: mega-plataforma
+  - readiness: Default sugerido: Bioma. Martelo do Eduardo.
 - **Especializar agentes do eg_engenharia?** (`eng-agentes-especializados`) · Infra · MEDIUM · internal
-  - Avaliar criar agentes dedicados (backend/frontend/arquitetura/API/stack/frameworks/pesquisa/docs) no eg_engenharia. Recomendação do Juiz: NÃO fragmentar o…
+  - Avaliar criar agentes dedicados (backend/frontend/arquitetura/API/stack/frameworks/pesquisa/docs) no eg_engenharia. Recomendação do Juiz: NÃO fragmentar o squad (contra o princípio…
   - part_of: mod-cockpit-interno
 - **Profundidade de Revenda (reseller)** (`reseller-revenda-depth`) · Commercial · MEDIUM · internal
-  - Regra de negócio do white-label: até onde liberar revenda — agência vende p/ agência vende p/ agência (evitar loop infinito). Arquitetura da…
+  - Regra de negócio do white-label: até onde liberar revenda — agência vende p/ agência vende p/ agência (evitar loop infinito). Arquitetura da linkagem/limite. Ver ADR-0005 (hierarqu…
   - part_of: mod-saas-billing
 - **Hospedagem & Segurança (self-host)** (`hospedagem-seguranca`) · Infra · MEDIUM · internal
   - Avaliar Netlify (Railway self-hosted) / GitLab self-host p/ privacidade/segurança do código e dados. Ou só quando a micro-AWS existir?
   - part_of: mod-nucleo
 - **Jogo Interno (estilo TBH)** (`jogo-interno`) · Platform · LONG · internal
-  - Jogo desktop-companion RPG (inspiração Task Bar Hero) p/ funcionários, gamificando cultura; ganhos/trocas, possível Web3/token/microeconomia. Primeiro…
+  - Jogo desktop-companion RPG (inspiração Task Bar Hero) p/ funcionários, gamificando cultura; ganhos/trocas, possível Web3/token/microeconomia. Primeiro jogo de uma futura empresa de…
   - part_of: foton
+  - readiness: Especulativo, baixa prioridade; SEPARAR (Fóton ou empresa de jogos futura).
 - **Temas (Light/Dark) e White-label** (`mod-theming`) · Infra · NOW · internal
-  - Motor de injeção de CSS em tempo real (Tailwind CSS Variables) para suportar Light/Dark mode perfeitamente e permitir que Agências Parceiras coloquem suas…
+  - Motor de injeção de CSS em tempo real (Tailwind CSS Variables) para suportar Light/Dark mode perfeitamente e permitir que Agências Parceiras coloquem suas próprias cores primárias…
   - part_of: mega-plataforma
+  - readiness: Decisão arquitetural a ser firmada (ADR-0010).
 - **Fluxo de Aprovação Tinder-style** (`aprovacao-tinder`) · Feature · MEDIUM · internal
   - Tela no client-hub para o cliente aprovar criativos e textos com Swipe Right/Left, engatilhando webhooks para o time de tráfego ou agendamento direto.
   - part_of: client-hub
@@ -314,59 +355,54 @@
 - **Agente QA Implacável (Shadow Auditor)** (`qa-auditor`) · Feature · LONG · internal
   - IA que roda em background revisando gramática de anúncios, links quebrados e tags UTMs antes da entrega ir para o ar.
   - part_of: mod-observabilidade
-- **Hub de Integrações Externas** (`mod-integrations-hub`) · Platform · NOW · internal
-  - Catálogo e governança de integrações externas do Bioma: Meta, Google, LinkedIn, Autentique, ClickUp, Kommo, WhatsApp, Stripe, Drive e Google Meu Negócio.…
-  - depends_on: [cofre-senhas, mod-observabilidade] · enables: [mod-bi-dashboards, mod-comercial, mod-contratos, mod-comunicacao-wpp] · part_of: mod-nucleo
-- **Motor de Workflows e Aprovações HITL** (`mod-workflows-aprovacoes`) · Platform · NOW · internal
-  - Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo.…
-  - depends_on: [mod-multitenant] · enables: [mod-cockpit-interno, client-hub, mod-entrega-mkt] · part_of: mod-nucleo
 - **Portal de Solicitação de Acessos** (`access-request-portal`) · Feature · NOW · internal
-  - Fluxo guiado para o cliente conceder acessos sem planilha de senhas: conectar Meta BM, Google Ads MCC, Google Meu Negócio, Drive, Kommo, WhatsApp e outras…
+  - Fluxo guiado para o cliente conceder acessos sem planilha de senhas: conectar Meta BM, Google Ads MCC, Google Meu Negócio, Drive, Kommo, WhatsApp e outras plataformas. Alimenta cof…
   - depends_on: [cofre-senhas, mod-integrations-hub] · enables: [mod-comercial, client-hub, mod-bi-dashboards] · part_of: cofre-senhas
+  - readiness: Substitui planilha sensível de usuário/senha. MVP deve aceitar integração formal e fallback manual seguro.
 - **Livro de Evidências Operacionais** (`evidence-ledger`) · Feature · MEDIUM · internal
-  - Ledger de decisões, aprovações, entregáveis, relatórios enviados, resultados, reuniões e evidências. Serve para client-hub, jurídico, dossiê de provas,…
+  - Ledger de decisões, aprovações, entregáveis, relatórios enviados, resultados, reuniões e evidências. Serve para client-hub, jurídico, dossiê de provas, retenção e defesa de escopo.
   - depends_on: [mod-conhecimento, mod-workflows-aprovacoes] · enables: [client-hub, mod-juridico, mod-site-cms] · part_of: mod-conhecimento
+  - readiness: Começar como eventos append-only ligados a entregáveis, reuniões, aprovações e relatórios.
 - **Integration Doctor** (`integration-doctor`) · Feature · NOW · internal
-  - Diagnóstico de integrações: token Meta expirou, pixel sem evento, Google Ads sem acesso, UTM quebrada, webhook Autentique falhou, job de BI atrasou.…
+  - Diagnóstico de integrações: token Meta expirou, pixel sem evento, Google Ads sem acesso, UTM quebrada, webhook Autentique falhou, job de BI atrasou. Explica causa, impacto e próxim…
   - depends_on: [mod-integrations-hub, mod-observabilidade] · enables: [mod-bi-dashboards, mod-comunicacao-wpp, mod-contratos] · part_of: mod-integrations-hub
+  - readiness: Depende de conectores emitirem status e de observabilidade padronizada.
 - **Client Operating Agreement** (`client-operating-agreement`) · Feature · NOW · internal
-  - Ficha viva por cliente: contrato, escopo, SLAs, canais oficiais, permissões, módulos comprados, limites, regras de comunicação e acordos operacionais.…
+  - Ficha viva por cliente: contrato, escopo, SLAs, canais oficiais, permissões, módulos comprados, limites, regras de comunicação e acordos operacionais. Evita desalinhamento entre ve…
   - depends_on: [mod-contratos, mod-comercial, client-hub] · enables: [mod-entrega-mkt, mod-comunicacao-wpp, mod-juridico] · part_of: client-hub
+  - readiness: Deve nascer como fonte de verdade operacional do cliente antes de automações avançadas.
 - **Modo Saída / Handover** (`exit-handover-mode`) · Feature · MEDIUM · internal
-  - Fluxo premium para cliente que encerra contrato: pacote organizado de exportação, acessos, documentos, relatórios, assets e handover. Retenção legítima e…
+  - Fluxo premium para cliente que encerra contrato: pacote organizado de exportação, acessos, documentos, relatórios, assets e handover. Retenção legítima e experiência profissional,…
   - depends_on: [client-hub, mod-lgpd-governanca-dados, cofre-senhas] · enables: [mod-saas-billing, mod-juridico] · part_of: client-hub
+  - readiness: Definir limites contratuais, exportação e dados que podem sair. Pode virar add-on pago.
 - **Demo Tenant / Sales Theater** (`demo-tenant-sales-theater`) · Feature · NOW · internal
-  - Tenant fictício perfeito para venda e demonstração: mostra Hub, BI, score, timeline, aprovações e integrações sem depender de dados de cliente real. Serve…
+  - Tenant fictício perfeito para venda e demonstração: mostra Hub, BI, score, timeline, aprovações e integrações sem depender de dados de cliente real. Serve para pitch, treinamento e…
   - depends_on: [client-hub, mod-bi-dashboards] · enables: [mod-comercial, mod-site-cms] · part_of: mod-comercial
+  - readiness: Pode começar com seed data estático e evoluir para tenant demo completo.
 - **Desvincular/Desengessar do Framework Opensquad** (`desvincular-opensquad`) · Infra · MEDIUM · internal
-  - Hoje squads são YAML/MD interpretados de forma cadenciada (D1 em arquitetura.md). Preocupação: prompts/contexto grandes (como este) podem falhar…
+  - Hoje squads são YAML/MD interpretados de forma cadenciada (D1 em arquitetura.md). Preocupação: prompts/contexto grandes (como este) podem falhar instruções do squad ou alucinar. Av…
   - part_of: mod-cockpit-interno
+  - readiness: Questiona D1 (arquitetura.md) diretamente — decisão arquitetural de peso, não é feature. Distinto de llm-agnostic (que só roteia modelo, não muda o framework de orquestração).
 - **Módulo de Investimentos (carteira pessoal)** (`modulo-investimentos`) · Platform · LONG · internal
-  - Gestão de carteira de investimentos: integrar Portfel/Finclass, análise ação por ação, preço médio, valorização, registro de compra/venda, sugestões e…
+  - Gestão de carteira de investimentos: integrar Portfel/Finclass, análise ação por ação, preço médio, valorização, registro de compra/venda, sugestões e análises de mercado. Nasce pe…
   - part_of: foton
+  - readiness: Distinto de trade-autonomo (que é sobre bots de auto-trade); este é ferramenta de gestão/análise de carteira.
 - **Banco de Skills/Prompts como Produto** (`banco-skills-produto`) · Commercial · LONG · internal
   - Vender/fornecer bancos de skills ou prompts como produto no lado de tech da EG. Especulativo — o próprio Eduardo não tem certeza se vale a pena.
   - part_of: mega-plataforma
+  - readiness: Avaliar com Avaliador de Negócios antes de qualquer escopo; pode já estar parcialmente coberto por skill-squad-creator/vibe-building do lado de construção, mas falta o lado de vend…
 - **Ativação de Squads/Features por Cliente** (`squad-ativacao-por-cliente`) · Feature · MEDIUM · internal
-  - Orquestração operacional: ativar uma automação específica para um cliente (ex: posts de blog recorrentes) e outra diferente para outro (ex: criativos,…
+  - Orquestração operacional: ativar uma automação específica para um cliente (ex: posts de blog recorrentes) e outra diferente para outro (ex: criativos, stories). Como o backoffice g…
   - depends_on: [mod-comercial] · part_of: mod-comercial
+  - readiness: Distinto de client-hub (que é a vitrine pro cliente); aqui é a orquestração interna de qual squad roda pra qual cliente. Liga a mod-workflows-aprovacoes (ativação = ação sensível?)…
 - **Squad de Recrutamento (reaproveita ferramenta de propostas)** (`squad-recrutamento`) · Feature · LONG · internal
   - Reaproveitar a mesma lógica/skill do squad de propostas (busca automática em plataformas cadastradas) para submeter vagas de emprego quando a EG for contratar.
   - depends_on: [squad-hunter] · part_of: mod-rh
 
-## Processamento (processing) — 9
-- **Auditoria de Prontidão AI-First** (`auditoria-ai-first`) · Service · a redefinir · external
-  - Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify).
-  - part_of: mod-comercial
-- **Governança de Dados, LGPD e Uso de IA** (`mod-lgpd-governanca-dados`) · Platform · NOW · internal
-  - Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de…
-  - depends_on: [mod-multitenant] · enables: [cofre-senhas, mod-conhecimento, mod-comunicacao-wpp, mod-site-cms] · part_of: mod-nucleo
-- **Cofre de Senhas & Gestão de Acessos** (`cofre-senhas`) · Feature · MEDIUM · internal
-  - Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da…
-  - part_of: mod-nucleo
+## Processamento (processing) — 17
 
 - **Consciência cross-repo do Arquiteto (eg-scan)** (`cross-repo-awareness`) · Infra · NOW · internal
-  - O Arquiteto descobre e consulta TODOS os projetos da EG sozinho, sem o humano mencionar. Descoberta: org EverGreen-Agency (gh repo list) + escaneia a…
+  - O Arquiteto descobre e consulta TODOS os projetos da EG sozinho, sem o humano mencionar. Descoberta: org EverGreen-Agency (gh repo list) + escaneia a pasta-raiz local (Desktop/EG)…
   - depends_on: [codegraph] · part_of: mod-cockpit-interno
 - **Banco de Ideias** (`banco-ideias`) · Cockpit · NOW · internal
   - Esta ferramenta. Curador faz intake/dedup/conexão das ideias; tela no dashboard lê o banco real.
@@ -374,71 +410,120 @@
 - **Carteira de Clientes** (`carteira-clientes`) · Cockpit · MEDIUM · internal
   - Plano de controle ativo: por cliente, serviços/tags, configs ClickUp/Kommo, log. Provisiona o ClickUp. Fala com o eg_setup.
   - depends_on: [squad-onboarding] · part_of: mod-comercial
+- **Auditoria de Prontidão AI-First** (`auditoria-ai-first`) · Service · a redefinir · external
+  - Auditar operação do cliente em 7 dimensões → score + plano. Entregável high-ticket (ai-firstify). DECISÃO (Documento-Mestre §escada, 2026-07-08): é o 1º degrau da escada de oferta…
+  - part_of: mod-comercial
+  - readiness: É oferta high-ticket (ai-firstify); depende de playbook de auditoria.
+- **Carteira ↔ ClickUp (puxar pastas, sincronizar cards)** (`clients-clickup-sync`) · Feature · NOW · internal
+  - ClickUp Bridge do Bioma MVP v0: puxa pastas/listas/tasks reais do ClickUp para a carteira e, depois, cria/atualiza cards a partir do Bioma sob aprovação humana. O que acontece no C…
+  - depends_on: [carteira-clientes, squad-onboarding] · part_of: mod-integrations-hub
+  - readiness: MVP v0: começar read-only/polling; escrita só com HITL. Definir ADR: webhook, polling ou híbrido.
 - **Mega Plataforma EG** (`mega-plataforma`) · Platform · NOW · internal
-  - Guarda-chuva estratégico e técnico da EverGreen: uma plataforma modular que nasce como ferramenta interna e operacional da EG, evolui para superfície de…
-- **Observabilidade, APM e Monitoramento Sintético** (`mod-observabilidade`) · Platform · NOW · internal
-  - Módulo transversal para monitorar Uptime (BetterStack), falhas de código (Sentry) e saúde das dependências externas (Stripe, Vercel). Essencial para SaaS…
+  - Guarda-chuva estratégico e técnico da EverGreen: uma plataforma modular que nasce como ferramenta interna e operacional da EG, evolui para superfície de trabalho com/para clientes…
+  - readiness: Reset 2026-07-09: começar pelo Bioma MVP v0 (EG admin + cliente, cockpit interno, client hub, ClickUp Bridge e ambientes). Produto/white-label só depois de validação real com EG e…
+- **Bioma MVP v0 (reset enxuto)** (`bioma-mvp-v0`) · Platform · NOW · internal
+  - Recorte aprovado para recomeçar a plataforma: cockpit interno EG, client hub HM-like, ponte ClickUp bidirecional, engenharia docs map, auth simples e ambientes local/staging/prod.…
+  - depends_on: [mega-plataforma, client-hub, mod-cockpit-interno, clients-clickup-sync] · enables: [client-hub, mod-integrations-hub, mod-cockpit-interno] · part_of: mega-plataforma
+  - readiness: Aprovado em 2026-07-09 para planejamento. Próximo gate: ADR de stack/auth/deploy antes de criar a nova pasta bioma/.
+- **Módulo Núcleo (infra transversal)** (`mod-nucleo`) · Platform · NOW · internal
+  - Fundações da plataforma: multitenant/SSO/acessos, hosting, building-blocks (Lego), camada LLM-agnostic, handoff assíncrono, portabilidade dos bancos.
   - part_of: mega-plataforma
-- **Internacionalização e Tradução (i18n)** (`mod-i18n`) · Infra · NOW · internal
-  - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e…
+  - readiness: No Bioma MVP v0, núcleo começa mínimo: EG admin, cliente, auth, audit, Postgres, ambientes e contratos de integração.
+- **Módulo Cockpit Interno (backoffice EG)** (`mod-cockpit-interno`) · Platform · NOW · internal
+  - Backoffice da EG: carteira de clientes, dashboard interno, bancos (ideias/arquitetura/stack), engenharia docs map, dispatcher/HITL, status ClickUp e artefatos de squads. O /dashboa…
   - part_of: mega-plataforma
-## Projeto (project) — 17
+  - readiness: MVP v0 deve portar o valor do dashboard legado sem herdar stack/arquitetura; excluir escritório pixel art do primeiro corte.
 - **Multitenant / SSO / Acessos** (`mod-multitenant`) · Platform · NOW · internal
-  - Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação…
+  - Base de identidade e permissões: no MVP v0 começa com EG admin e cliente; hierarquia de agências-parceiras/clientes-delas fica como desenho futuro para white-label. A rodada antiga…
   - enables: [client-hub, mod-saas-billing] · part_of: mod-nucleo
+  - readiness: Gate v0: decidir auth/backend/Postgres/deploy. Não implementar reseller/billing no primeiro corte.
+- **Área do Cliente (Hub NFC)** (`client-hub`) · Platform · NOW · internal
+  - Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e visão clara do que a EG es…
+  - depends_on: [mod-multitenant, mod-bi-dashboards] · part_of: mega-plataforma
+  - readiness: MVP v0 usa base HM-like: dashboard, documentos, relatórios/snapshots, aprovações e timeline. NFC/magic link e BI completo entram depois.
+- **Observabilidade, APM e Monitoramento Sintético** (`mod-observabilidade`) · Platform · NOW · internal
+  - Módulo transversal para monitorar Uptime (BetterStack), falhas de código (Sentry) e saúde das dependências externas (Stripe, Vercel). Essencial para SaaS B2B, prevenindo falhas sil…
+  - part_of: mega-plataforma
+  - readiness: Depende de ferramentas externas pagas ou tiers gratuitos (Sentry, BetterStack).
+- **Cofre de Senhas & Gestão de Acessos** (`cofre-senhas`) · Feature · NOW · internal
+  - Gestão segura de acessos de clientes e funcionários para substituir planilhas sensíveis de usuário/senha. No MVP v0 começa como checklist/solicitação auditável; vault completo esti…
+  - part_of: mod-nucleo
+  - readiness: V0: checklist de acessos e fallback manual seguro. Full vault só após decisão de criptografia, RBAC e threat model.
+- **Internacionalização e Tradução (i18n)** (`mod-i18n`) · Infra · NOW · internal
+  - Capacidade transversal de renderizar a plataforma em múltiplas línguas. Focado inicialmente em interface (menus, botões) usando arquivos locais, e tradução dinâmica via IA para o c…
+  - part_of: mega-plataforma
+  - readiness: Decisão arquitetural a ser firmada (ADR-0009).
+- **Hub de Integrações Externas** (`mod-integrations-hub`) · Platform · NOW · internal
+  - Catálogo e governança de integrações externas do Bioma: Meta, Google, LinkedIn, Autentique, ClickUp, Kommo, WhatsApp, Stripe, Drive e Google Meu Negócio. Centraliza status, OAuth/A…
+  - depends_on: [cofre-senhas, mod-observabilidade] · enables: [mod-bi-dashboards, mod-comercial, mod-contratos, mod-comunicacao-wpp] · part_of: mod-nucleo
+  - readiness: Bioma MVP v0 começa pelo ClickUp Bridge. Depois Drive, Ads, Autentique, Kommo e WhatsApp. Não virar iPaaS genérico.
+- **Motor de Workflows e Aprovações HITL** (`mod-workflows-aprovacoes`) · Platform · NOW · internal
+  - Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo. Generaliza tag-ativacao, aprovaç…
+  - depends_on: [mod-multitenant] · enables: [mod-cockpit-interno, client-hub, mod-entrega-mkt] · part_of: mod-nucleo
+  - readiness: V0: aprovações apenas para publicar para cliente e escrever no ClickUp. Evitar BPM completo.
+- **Governança de Dados, LGPD e Uso de IA** (`mod-lgpd-governanca-dados`) · Platform · NOW · internal
+  - Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, con…
+  - depends_on: [mod-multitenant] · enables: [cofre-senhas, mod-conhecimento, mod-comunicacao-wpp, mod-site-cms] · part_of: mod-nucleo
+  - readiness: MVP v0 precisa de regra mínima: não enviar dados sensíveis/segredos para LLM externa sem política e aprovação. Revisão jurídica antes de escala.
+
+## Projeto interno (project) — 15
 
 - **Avaliador de Negócios (mentalidade Musk/Hormozi)** (`business-evaluator`) · Squad · NOW · internal
-  - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o…
+  - CONSTRUÍDO (agente avaliador_negocios no squad eg_arquiteto, roda ANTES do Guardião). Lente de NEGÓCIO pra ideias/projetos internos, complementa o Guardião (técnico). Duas lentes:…
   - part_of: mod-cockpit-interno
 - **Arquiteto (autovigilância)** (`guardiao-arquiteto`) · Squad · NOW · internal
-  - CONSTRUÍDO (squad eg_arquiteto). IA de autovigilância que audita ideia/projeto INTERNO LENDO O REPO AO VIVO (escaneia squads/, stack.json, .mcp.json,…
+  - CONSTRUÍDO (squad eg_arquiteto). IA de autovigilância que audita ideia/projeto INTERNO LENDO O REPO AO VIVO (escaneia squads/, stack.json, .mcp.json, código) — não um inventário co…
   - depends_on: [banco-arquitetura] · part_of: mod-cockpit-interno
 - **Banco de Arquitetura** (`banco-arquitetura`) · Infra · NOW · internal
-  - Guarda o PORQUÊ da estrutura — identidade, princípios de engenharia e decisões arquiteturais. NÃO é mais espelho do filesystem: o inventário…
+  - Guarda o PORQUÊ da estrutura — identidade, princípios de engenharia e decisões arquiteturais. NÃO é mais espelho do filesystem: o inventário (squads/stack/integrações) o Arquiteto…
   - enables: [guardiao-arquiteto] · part_of: mod-cockpit-interno
 - **Squad de Engenharia (SDD + ADR)** (`squad-engenharia`) · Squad · NOW · internal
   - Projetos de cliente: brief → spec.md (SDD) → ADRs do porquê de cada escolha → scaffold de repo → sub-agentes por task.
   - depends_on: [banco-stack] · part_of: mod-cockpit-interno
+  - readiness: Motor de entrega de projeto de cliente — vira gargalo de escala se o white-label crescer.
 - **Banco de Stack** (`banco-stack`) · Infra · MEDIUM · internal
-  - Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar).…
+  - Catálogo vivo (Tech Radar) de tecnologias p/ projetos. Status por anel: Assess (vale testar) · Trial (testando agora) · Adopt (padrão) · Hold (evitar). Entrada da Engenharia; ADRs…
   - enables: [squad-engenharia] · part_of: mod-cockpit-interno
 - **Adoção do CodeGraph** (`codegraph`) · Infra · NOW · external
-  - ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; este repo indexado (.codegraph/ gitignored); skill em skills/codegraph/.…
+  - ADOTADO (v1.1.6). MCP local (tree-sitter + SQLite, sem API key) no .mcp.json; este repo indexado (.codegraph/ gitignored); skill em skills/codegraph/. Ferramentas: codegraph_explor…
   - enables: [banco-arquitetura] · part_of: mod-cockpit-interno
 - **Dispatcher / Triagem** (`dispatcher`) · Squad · NOW · internal
-  - CONSTRUIDO (squad dispatcher). Roteador reativo que recebe demanda livre, classifica se e tarefa operacional ou capacidade nova, le o cardapio real de…
+  - CONSTRUIDO (squad dispatcher). Roteador reativo que recebe demanda livre, classifica se e tarefa operacional ou capacidade nova, le o cardapio real de squads e encaminha com aprova…
   - enables: [hub-chat-dispatcher] · part_of: mod-cockpit-interno
 - **Squad de Propostas (eg_proposals)** (`squad-hunter`) · Squad · NOW · internal
-  - CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Consolida o antigo squad-propostas…
+  - CONSTRUÍDO. Scout extrai briefing da oportunidade → Closer escreve a proposta EG (Closer agora consulta o Tech Radar). Consolida o antigo squad-propostas (qualificação fit vs. ICP…
   - enables: [multi-plataforma-freelance] · part_of: mod-comercial
 - **Auto-melhoria dos Squads (eg_meta)** (`auto-melhoria-squads`) · Feature · NOW · internal
-  - CONSTRUÍDO. Squad eg_meta: lê o memories.md + runs de um squad-alvo e PROPÕE diff nos .agent.md dele; aplica só o aprovado (HITL). Fecha o loop: o runner…
+  - CONSTRUÍDO. Squad eg_meta: lê o memories.md + runs de um squad-alvo e PROPÕE diff nos .agent.md dele; aplica só o aprovado (HITL). Fecha o loop: o runner já captura aprendizados; o…
   - part_of: mod-cockpit-interno
 - **Squad Prospector (eg_prospector)** (`squad-prospector`) · Squad · NOW · internal
-  - CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do…
+  - CONSTRUÍDO. Topo de funil: ICP → caça via MCPs reais (Apollo/Lusha/Clay/Vibe) → score de fit → lista qualificada → Kommo/eg_proposals (HITL). Separado do eg_proposals. Sem scraping…
   - enables: [icebreaker] · part_of: mod-comercial
+  - readiness: Depende de créditos de MCP (Apollo/Lusha/Clay/Vibe).
 - **Squad de Criativos (eg_criativos)** (`squad-criativos`) · Squad · NOW · internal
-  - CONSTRUÍDO (squad eg_criativos). Criativos de anúncio pago: briefing/ângulos → roteiros + variações A/B → revisão (política da plataforma + marca EG) →…
+  - CONSTRUÍDO (squad eg_criativos). Criativos de anúncio pago: briefing/ângulos → roteiros + variações A/B → revisão (política da plataforma + marca EG) → análise de performance (loop…
   - part_of: mod-entrega-mkt
-- **Editar ideias + ver detalhe / 1 doc por ideia** (`idea-detail-edit`) · Cockpit · NOW · internal
-  - No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez…
-  - depends_on: [banco-ideias] · part_of: mod-cockpit-interno
-- **Módulo Cockpit Interno (backoffice EG)** (`mod-cockpit-interno`) · Platform · NOW · internal
-  - Backoffice da EG: dashboard, bancos (ideias/arquitetura/stack), dispatcher/hub-chat, motor de IA (squad-creator, auto-melhoria, Arquiteto+Avaliador),…
-  - part_of: mega-plataforma
-- **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · NOW · internal
-  - Escada de oferta de tecnologia (4 degraus, espelha growth): Raio-X Tecnológico -> Sprint de Estruturação Tecnológica -> Retainer de Operação Tecnológica…
-  - part_of: mod-comercial
 - **Service-as-a-Software (oferta invisível)** (`service-as-software`) · Commercial · NOW · internal
-  - DECIDIDO: tese de go-to-market/oferta invisível da EG. Vende-se previsibilidade, crescimento e operação premium; tecnologia, squads e IA ficam nos bastidores como…
+  - DECIDIDO: tese de go-to-market/oferta invisível da EG. Vende-se previsibilidade, crescimento e operação premium; tecnologia, squads e IA ficam nos bastidores como máquina interna d…
   - part_of: mod-comercial
+  - readiness: Documentado nos docs core como princípio comercial: refletir em decks, propostas, onboarding e na apresentação da escada de ofertas. Aplicar como regra de UX: valor visível, comple…
+- **Editar ideias + ver detalhe / 1 doc por ideia** (`idea-detail-edit`) · Cockpit · NOW · internal
+  - No Kanban, poder editar título/desc/conexões e abrir um detalhe completo (hoje só expande resumo). Opção: um .md por ideia (notes) ligado ao card, em vez de só o JSON. Modal de edi…
+  - depends_on: [banco-ideias] · part_of: mod-cockpit-interno
+- **Escada de Oferta de Tecnologia** (`escada-oferta-tech`) · Commercial · NOW · internal
+  - Escada de oferta de tecnologia (4 degraus, espelha growth): Raio-X Tecnológico -> Sprint de Estruturação Tecnológica -> Retainer de Operação Tecnológica -> Growth Partnership Tech.…
+  - part_of: mod-comercial
+  - readiness: Precisa desenhar os degraus técnicos equivalentes aos 4 do growth; decisão de precificação por degrau.
 - **Expansão dos Pilares de Score (nível high-end)** (`niveis-score-expandido`) · Feature · LONG · internal
-  - DECIDIDO: Raio-X core (3 pilares) nao expande para ninguem. Expansao (RH/fornecedores/tributario, estilo Lazaro Ramos) vira modulo separado exclusivo da…
+  - DECIDIDO: Raio-X core (3 pilares) nao expande para ninguem. Expansao (RH/fornecedores/tributario, estilo Lazaro Ramos) vira modulo separado exclusivo da Oferta 4 (Growth Partnershi…
   - part_of: client-hub
+  - readiness: Decisão estratégica pendente — não implementar sem resolver primeiro se a EG quer essa oferta high-end de escopo tão amplo (risco de virar 'agência 360' se mal desenhado).
 
 ## Arquivadas — 2
 
-- **Squad Kickoff Técnico** (`squad-kickoff`) · Squad · arquivada
+- **Squad Kickoff Técnico** (`squad-kickoff`) · Squad · a redefinir · internal
+  - Escopo aprovado → árvore de tarefas ClickUp + esqueleto de repo GitHub. Possível overlap com squad-engenharia. Absorvido por squad-engenharia: o escopo de spec, ADR, scaffold e arv…
   - depends_on: [squad-engenharia] · part_of: squad-engenharia
-- **Aba Banco de Arquitetura no dashboard** (`banco-arquitetura-tab`) · Cockpit · arquivada
+- **Aba Banco de Arquitetura no dashboard** (`banco-arquitetura-tab`) · Cockpit · MEDIUM · internal
+  - Renderizar o arquitetura.md (e o catálogo de squads) numa aba, para ver/navegar a estrutura viva. Hoje o Banco de Arquitetura existe só como markdown, sem tela.
   - depends_on: [banco-arquitetura] · part_of: mod-cockpit-interno

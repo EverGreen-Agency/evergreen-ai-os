@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-08",
-  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.). 2a varredura 2026-07-07: +7 gaps (escada-oferta-tech, desvincular-opensquad, modulo-investimentos, banco-skills-produto, squad-ativacao-por-cliente, niveis-score-expandido, squad-recrutamento).",
+  "updated_at": "2026-07-09",
+  "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.). 2a varredura 2026-07-07: +7 gaps (escada-oferta-tech, desvincular-opensquad, modulo-investimentos, banco-skills-produto, squad-ativacao-por-cliente, niveis-score-expandido, squad-recrutamento). 2026-07-09: reset enxuto do Bioma MVP v0; bioma-legacy preservado como referência, não como arquitetura vigente; claims de produção no bioma/ antigo devem ser tratados como legado até validação nova.",
   "stages": [
     "capture",
     "evaluation",
@@ -1029,9 +1029,9 @@
     {
       "id": "clients-clickup-sync",
       "title": "Carteira ↔ ClickUp (puxar pastas, sincronizar cards)",
-      "desc": "A aba Clientes puxa as pastas/listas reais do ClickUp e cria/atualiza cards a partir do config.json (diff desejado vs. real), sob aprovação (Write/Read barrier). É a Carteira virando plano de controle de verdade.",
-      "stage": "capture",
-      "horizon": "MEDIUM",
+      "desc": "ClickUp Bridge do Bioma MVP v0: puxa pastas/listas/tasks reais do ClickUp para a carteira e, depois, cria/atualiza cards a partir do Bioma sob aprovação humana. O que acontece no ClickUp impacta o Bioma e vice-versa.",
+      "stage": "processing",
+      "horizon": "NOW",
       "category": "Feature",
       "origin": "internal",
       "archived": false,
@@ -1041,9 +1041,9 @@
       ],
       "enables": [],
       "source": "sessão jun/2026 (feedback Eduardo)",
-      "part_of": "mod-comercial",
-      "readiness": null,
-      "clickup": false
+      "part_of": "mod-integrations-hub",
+      "readiness": "MVP v0: começar read-only/polling; escrita só com HITL. Definir ADR: webhook, polling ou híbrido.",
+      "clickup": true
     },
     {
       "id": "banks-portability",
@@ -1241,16 +1241,41 @@
       "archived": false,
       "depends_on": [],
       "enables": [],
-      "readiness": "Fundação = multitenant/SSO/acessos, recorte MVP e fronteiras de dados antes de tudo. Equipe enxuta → construir por fatias, começando por uso interno e operacional. Produto/white-label só depois de validação real com EG e clientes.",
+      "readiness": "Reset 2026-07-09: começar pelo Bioma MVP v0 (EG admin + cliente, cockpit interno, client hub, ClickUp Bridge e ambientes). Produto/white-label só depois de validação real com EG e clientes.",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
       "part_of": null,
+      "clickup": false
+    },
+    {
+      "id": "bioma-mvp-v0",
+      "title": "Bioma MVP v0 (reset enxuto)",
+      "desc": "Recorte aprovado para recomeçar a plataforma: cockpit interno EG, client hub HM-like, ponte ClickUp bidirecional, engenharia docs map, auth simples e ambientes local/staging/prod. Preserva bioma-legacy como referência, mas não herda decisões de stack ou escopo da rodada Fable.",
+      "stage": "processing",
+      "horizon": "NOW",
+      "category": "Platform",
+      "origin": "internal",
+      "archived": false,
+      "depends_on": [
+        "mega-plataforma",
+        "client-hub",
+        "mod-cockpit-interno",
+        "clients-clickup-sync"
+      ],
+      "enables": [
+        "client-hub",
+        "mod-integrations-hub",
+        "mod-cockpit-interno"
+      ],
+      "part_of": "mega-plataforma",
+      "readiness": "Aprovado em 2026-07-09 para planejamento. Próximo gate: ADR de stack/auth/deploy antes de criar a nova pasta bioma/.",
+      "source": "sessão 2026-07-09 + Proposta HM em Markdown + Mega-Plataforma.md",
       "clickup": false
     },
     {
       "id": "mod-nucleo",
       "title": "Módulo Núcleo (infra transversal)",
       "desc": "Fundações da plataforma: multitenant/SSO/acessos, hosting, building-blocks (Lego), camada LLM-agnostic, handoff assíncrono, portabilidade dos bancos.",
-      "stage": "capture",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -1259,14 +1284,14 @@
       "enables": [],
       "part_of": "mega-plataforma",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
-      "readiness": null,
+      "readiness": "No Bioma MVP v0, núcleo começa mínimo: EG admin, cliente, auth, audit, Postgres, ambientes e contratos de integração.",
       "clickup": false
     },
     {
       "id": "mod-cockpit-interno",
       "title": "Módulo Cockpit Interno (backoffice EG)",
-      "desc": "Backoffice da EG: dashboard, bancos (ideias/arquitetura/stack), dispatcher/hub-chat, motor de IA (squad-creator, auto-melhoria, Arquiteto+Avaliador), codegraph, fábrica de engenharia.",
-      "stage": "project",
+      "desc": "Backoffice da EG: carteira de clientes, dashboard interno, bancos (ideias/arquitetura/stack), engenharia docs map, dispatcher/HITL, status ClickUp e artefatos de squads. O /dashboard legado prova conceitos úteis, mas o módulo novo ainda não está pronto como produto.",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -1275,7 +1300,7 @@
       "enables": [],
       "part_of": "mega-plataforma",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
-      "readiness": null,
+      "readiness": "MVP v0 deve portar o valor do dashboard legado sem herdar stack/arquitetura; excluir escritório pixel art do primeiro corte.",
       "clickup": false
     },
     {
@@ -1361,8 +1386,8 @@
     {
       "id": "mod-multitenant",
       "title": "Multitenant / SSO / Acessos",
-      "desc": "Base de identidade e permissões: EG interno × clientes × agências-parceiras × clientes-delas; perfil pessoa ou CNPJ; papéis e níveis de acesso. Fundação do produto white-label. EM PRODUÇÃO no bioma/ (2026-07-08): RLS forçada, RBAC, audit, cofre integrado; 53 testes de aceite passando (CA1-CA7).",
-      "stage": "project",
+      "desc": "Base de identidade e permissões: no MVP v0 começa com EG admin e cliente; hierarquia de agências-parceiras/clientes-delas fica como desenho futuro para white-label. A rodada antiga em bioma-legacy não é mais considerada produção vigente.",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -1373,7 +1398,7 @@
         "mod-saas-billing"
       ],
       "part_of": "mod-nucleo",
-      "readiness": "Fundação de tudo; portão = decisão de arquitetura (Trilho A/B). Bloqueia client-hub, billing e o modelo de agências-parceiras.",
+      "readiness": "Gate v0: decidir auth/backend/Postgres/deploy. Não implementar reseller/billing no primeiro corte.",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
       "clickup": false
     },
@@ -1381,7 +1406,7 @@
       "id": "client-hub",
       "title": "Área do Cliente (Hub NFC)",
       "desc": "Área do cliente e destino do cartão NFC do kit: score + micro-scores, dashboards/BIs, relatórios, comunicação centralizada, funis/all-bound, health/SLA e visão clara do que a EG está operando. Começa como portal de acompanhamento dos clientes EG; depois pode compor o produto white-label.",
-      "stage": "capture",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -1392,7 +1417,7 @@
       ],
       "enables": [],
       "part_of": "mega-plataforma",
-      "readiness": "Depende de multitenant + BI. É o que o cliente mais pede hoje (campanhas/score). Módulos desbloqueáveis conforme oferta contratada.",
+      "readiness": "MVP v0 usa base HM-like: dashboard, documentos, relatórios/snapshots, aprovações e timeline. NFC/magic link e BI completo entram depois.",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
       "clickup": false
     },
@@ -1410,7 +1435,7 @@
       ],
       "enables": [],
       "part_of": "client-hub",
-      "readiness": "BIAds já iniciado (+CodeGraph). OAuth Meta/Google; validar response no Postman. Distinguir BIs: EG × cliente × funcionários-do-cliente (multi-tenant).",
+      "readiness": "V0: publicar snapshots/embeds/import manual no Client Hub. Ingestão API Meta/Google/LinkedIn vem depois, com OAuth e validação no Postman.",
       "source": "Mega-Plataforma-parte-1.md + sessão 2026-07-06",
       "clickup": false
     },
@@ -1885,16 +1910,16 @@
     {
       "id": "cofre-senhas",
       "title": "Cofre de Senhas & Gestão de Acessos",
-      "desc": "Vault (estilo NordPass) p/ acessos de clientes e funcionários (hoje em planilha sensível). Onboarding captura acesso Google→MCC, vira parceiro na BM da Meta do cliente. Fatia N&S em produção no bioma/ /vault (2026-07-07): segredos AES-256-GCM, reveal auditado com motivo, RBAC vault.read/manage/reveal.",
+      "desc": "Gestão segura de acessos de clientes e funcionários para substituir planilhas sensíveis de usuário/senha. No MVP v0 começa como checklist/solicitação auditável; vault completo estilo NordPass depende de ADR de criptografia e permissões.",
       "stage": "processing",
-      "horizon": "MEDIUM",
+      "horizon": "NOW",
       "category": "Feature",
       "origin": "internal",
       "archived": false,
       "depends_on": [],
       "enables": [],
       "part_of": "mod-nucleo",
-      "readiness": "Sensível — criptografia forte; parte do onboarding.",
+      "readiness": "V0: checklist de acessos e fallback manual seguro. Full vault só após decisão de criptografia, RBAC e threat model.",
       "source": "Mega-Plataforma parte 1+2 + sessão 2026-07-07"
     },
     {
@@ -2213,7 +2238,7 @@
       "id": "mod-integrations-hub",
       "title": "Hub de Integrações Externas",
       "desc": "Catálogo e governança de integrações externas do Bioma: Meta, Google, LinkedIn, Autentique, ClickUp, Kommo, WhatsApp, Stripe, Drive e Google Meu Negócio. Centraliza status, OAuth/API keys, webhooks, health, escopos e bloqueios para evitar cada módulo reinventar integração.",
-      "stage": "capture",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -2229,7 +2254,7 @@
         "mod-comunicacao-wpp"
       ],
       "part_of": "mod-nucleo",
-      "readiness": "Começar pelos conectores que bloqueiam Fase 1: Meta/Google, Autentique e ClickUp. Não virar iPaaS genérico.",
+      "readiness": "Bioma MVP v0 começa pelo ClickUp Bridge. Depois Drive, Ads, Autentique, Kommo e WhatsApp. Não virar iPaaS genérico.",
       "source": "revisão Codex 2026-07-07",
       "clickup": false
     },
@@ -2237,7 +2262,7 @@
       "id": "mod-workflows-aprovacoes",
       "title": "Motor de Workflows e Aprovações HITL",
       "desc": "Motor transversal de aprovações humanas para publicar, enviar, cobrar, suspender, executar squad, alterar verba, revelar segredo ou liberar módulo. Generaliza tag-ativacao, aprovações do client-hub e gates de segurança.",
-      "stage": "capture",
+      "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
       "origin": "internal",
@@ -2251,14 +2276,14 @@
         "mod-entrega-mkt"
       ],
       "part_of": "mod-nucleo",
-      "readiness": "Evitar burocracia: começar só com ações sensíveis e alto risco.",
+      "readiness": "V0: aprovações apenas para publicar para cliente e escrever no ClickUp. Evitar BPM completo.",
       "source": "revisão Codex 2026-07-07",
       "clickup": false
     },
     {
       "id": "mod-lgpd-governanca-dados",
       "title": "Governança de Dados, LGPD e Uso de IA",
-      "desc": "Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, contratos, áudios e credenciais. Fatia N&S em produção no bioma/ (2026-07-08): 8 classes de dados, finalidades+consentimentos, gate de IA externa em src/server/ai/policy.ts.",
+      "desc": "Classificação de dados, consentimento, retenção, export/delete/anonymize, políticas de uso de LLM externa e checklist de publicação para dados de clientes, funcionários, leads, contratos, áudios e credenciais. No reset do Bioma, volta como módulo transversal de governança, não como produção herdada do legado.",
       "stage": "processing",
       "horizon": "NOW",
       "category": "Platform",
@@ -2274,7 +2299,7 @@
         "mod-site-cms"
       ],
       "part_of": "mod-nucleo",
-      "readiness": "Precisa de revisão jurídica; enforcement deve ficar em adapters/API, não só em documento.",
+      "readiness": "MVP v0 precisa de regra mínima: não enviar dados sensíveis/segredos para LLM externa sem política e aprovação. Revisão jurídica antes de escala.",
       "source": "revisão Codex 2026-07-07",
       "clickup": false
     },
