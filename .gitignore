@@ -31,7 +31,6 @@ _opensquad/_memory/clients/*/
 GEMINI.md
 AGENTS.md
 CLAUDE.md
-.agents
 .gemini
 
 # Graphify local graph artifacts (regenerated per repo)
@@ -50,3 +49,14 @@ _opensquad/_memory/knowledge/inputs-mega-plataforma/*.pdf
 
 .playwright-mcp
 bioma-admin.png
+
+# Bioma MVP v0 local/runtime artifacts
+bioma/**/.env
+bioma/**/.env.*
+!bioma/infra/env/*.example.env
+bioma/**/.venv/
+bioma/**/node_modules/
+bioma/**/dist/
+bioma/**/tsconfig.tsbuildinfo
+bioma/**/.pytest_cache/
+bioma/**/__pycache__/
