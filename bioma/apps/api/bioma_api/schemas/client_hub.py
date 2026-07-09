@@ -1,6 +1,8 @@
 from datetime import datetime
 from uuid import UUID
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -62,3 +64,12 @@ class ClientPortalResponse(BaseModel):
     deliverables: list[DeliverableSummary]
     approvals: list[ApprovalSummary]
     sync_runs: list[SyncRunSummary]
+
+
+class ApprovalDecisionRequest(BaseModel):
+    status: Literal["approved", "rejected", "cancelled"]
+    comment: str | None = None
+
+
+class DeliverableStatusRequest(BaseModel):
+    status: Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]

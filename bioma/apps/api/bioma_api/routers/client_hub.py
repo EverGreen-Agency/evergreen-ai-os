@@ -6,7 +6,12 @@ from bioma_api.auth import current_user_from_request
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.client_hub import ClientPortalResponse, ClientSummary
+from bioma_api.schemas.client_hub import (
+    ApprovalDecisionRequest,
+    ClientPortalResponse,
+    ClientSummary,
+    DeliverableStatusRequest,
+)
 
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
@@ -48,6 +53,21 @@ def _client_summary_sql(extra_where: str = "") -> str:
         group by c.id, o.id
         order by c.created_at desc
     """
+
+
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
+    is_admin = _is_platform_admin(user)
+    client = conn.execute(
+        """
+        select c.id, c.organization_id
+        from clients c
+        where c.id = %s
+        """ + _client_access_filter(),
+        (client_id, is_admin, user.id),
+    ).fetchone()
+    if not client:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+    return client
 
 
 @router.get("", response_model=list[ClientSummary])
@@ -146,3 +166,88 @@ def get_client_portal(
         approvals=list(approvals),
         sync_runs=list(sync_runs),
     )
+
+
+@router.patch("/{client_id}/approvals/{approval_id}", response_model=ClientPortalResponse)
+def decide_approval(
+    client_id: UUID,
+    approval_id: UUID,
+    payload: ApprovalDecisionRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> ClientPortalResponse:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        approval = conn.execute(
+            """
+            select id, deliverable_id, status
+            from approvals
+            where id = %s and organization_id = %s
+            """,
+            (approval_id, client["organization_id"]),
+        ).fetchone()
+        if not approval:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aprovação não encontrada.")
+        if approval["status"] != "pending":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aprovação já decidida.")
+
+        conn.execute(
+            """
+            update approvals
+            set status = %s, comment = coalesce(%s, comment), decided_by = %s, decided_at = now()
+            where id = %s
+            """,
+            (payload.status, payload.comment, user.id, approval_id),
+        )
+        if approval["deliverable_id"]:
+            next_status = "done" if payload.status == "approved" else "blocked"
+            conn.execute(
+                """
+                update deliverables
+                set status = %s, updated_at = now()
+                where id = %s and status = 'waiting_approval'
+                """,
+                (next_status, approval["deliverable_id"]),
+            )
+        conn.execute(
+            """
+            insert into audit_logs (actor_user_id, organization_id, event_type, metadata)
+            values (%s, %s, 'approval.decided', jsonb_build_object('approval_id', %s::text, 'status', %s::text))
+            """,
+            (user.id, client["organization_id"], approval_id, payload.status),
+        )
+
+    return get_client_portal(client_id, user)
+
+
+@router.patch("/{client_id}/deliverables/{deliverable_id}", response_model=ClientPortalResponse)
+def update_deliverable_status(
+    client_id: UUID,
+    deliverable_id: UUID,
+    payload: DeliverableStatusRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> ClientPortalResponse:
+    if not _is_platform_admin(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode atualizar entregas.")
+
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        result = conn.execute(
+            """
+            update deliverables
+            set status = %s, updated_at = now()
+            where id = %s and organization_id = %s
+            returning id
+            """,
+            (payload.status, deliverable_id, client["organization_id"]),
+        ).fetchone()
+        if not result:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
+        conn.execute(
+            """
+            insert into audit_logs (actor_user_id, organization_id, event_type, metadata)
+            values (%s, %s, 'deliverable.status_updated', jsonb_build_object('deliverable_id', %s::text, 'status', %s::text))
+            """,
+            (user.id, client["organization_id"], deliverable_id, payload.status),
+        )
+
+    return get_client_portal(client_id, user)

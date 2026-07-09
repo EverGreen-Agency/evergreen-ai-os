@@ -17,86 +17,20 @@ import {
   Server,
   ShieldCheck,
   Users,
+  X,
   Zap,
   type LucideIcon,
 } from "lucide-react";
-
-type ApiHealth = {
-  status: string;
-  checked_at: string;
-};
-
-type CurrentUser = {
-  id: string;
-  email: string;
-  display_name: string;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    role: "eg_admin" | "client_user";
-  }>;
-};
-
-type ClientSummary = {
-  id: string;
-  organization_id: string;
-  organization_name: string;
-  organization_slug: string;
-  name: string;
-  status: "onboarding" | "active" | "paused" | "archived";
-  responsible_name: string | null;
-  clickup_folder_id: string | null;
-  deliverables_total: number;
-  approvals_pending: number;
-  artifacts_client: number;
-};
-
-type ArtifactSummary = {
-  id: string;
-  title: string;
-  kind: string;
-  visibility: "internal" | "client";
-  content: string | null;
-  url: string | null;
-  created_at: string;
-};
-
-type DeliverableSummary = {
-  id: string;
-  title: string;
-  status: "planned" | "in_progress" | "waiting_approval" | "done" | "blocked";
-  due_at: string | null;
-  clickup_task_id: string | null;
-  updated_at: string;
-};
-
-type ApprovalSummary = {
-  id: string;
-  deliverable_title: string | null;
-  status: "pending" | "approved" | "rejected" | "cancelled";
-  comment: string | null;
-  created_at: string;
-};
-
-type SyncRunSummary = {
-  id: string;
-  source: string;
-  status: "ok" | "error" | "partial";
-  summary: Record<string, unknown>;
-  started_at: string;
-  finished_at: string | null;
-};
-
-type ClientPortal = {
-  client: ClientSummary;
-  artifacts: ArtifactSummary[];
-  deliverables: DeliverableSummary[];
-  approvals: ApprovalSummary[];
-  sync_runs: SyncRunSummary[];
-};
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+import {
+  api,
+  type ApiHealth,
+  type ArtifactSummary,
+  type ClientPortal,
+  type ClientSummary,
+  type CurrentUser,
+  type DeliverableStatus,
+  type DeliverableSummary,
+} from "./lib/api";
 
 const navItems = [
   { label: "Cockpit", icon: LayoutDashboard },
@@ -138,10 +72,13 @@ export function App() {
   const [portal, setPortal] = useState<ClientPortal | null>(null);
   const [dataError, setDataError] = useState("");
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [selectedArtifact, setSelectedArtifact] = useState<ArtifactSummary | null>(null);
 
   const apiOnline = health?.status === "ok";
   const activeOrg = user?.organizations[0] ?? null;
   const selectedClient = portal?.client ?? clients.find((client) => client.id === selectedClientId) ?? null;
+  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
 
   const metrics = useMemo(
     () => [
@@ -168,14 +105,14 @@ export function App() {
   );
 
   useEffect(() => {
-    fetch(`${apiBaseUrl}/health`)
-      .then((response) => response.json())
+    api
+      .health()
       .then(setHealth)
       .catch(() => setHealth(null));
 
-    fetch(`${apiBaseUrl}/auth/me`, { credentials: "include" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => data && setUser(data))
+    api
+      .me()
+      .then(setUser)
       .catch(() => {});
   }, []);
 
@@ -188,12 +125,9 @@ export function App() {
     }
 
     setDataError("");
-    fetch(`${apiBaseUrl}/clients`, { credentials: "include" })
-      .then((response) => {
-        if (!response.ok) throw new Error("Falha ao carregar clientes.");
-        return response.json();
-      })
-      .then((data: ClientSummary[]) => {
+    api
+      .clients()
+      .then((data) => {
         setClients(data);
         setSelectedClientId((current) => current ?? data[0]?.id ?? null);
       })
@@ -208,11 +142,8 @@ export function App() {
 
     setLoadingPortal(true);
     setDataError("");
-    fetch(`${apiBaseUrl}/clients/${selectedClientId}`, { credentials: "include" })
-      .then((response) => {
-        if (!response.ok) throw new Error("Falha ao carregar hub do cliente.");
-        return response.json();
-      })
+    api
+      .clientPortal(selectedClientId)
       .then(setPortal)
       .catch((error: Error) => setDataError(error.message))
       .finally(() => setLoadingPortal(false));
@@ -221,24 +152,116 @@ export function App() {
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoginError("");
-    const response = await fetch(`${apiBaseUrl}/auth/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!response.ok) {
-      setLoginError("Credenciais inválidas ou banco não migrado.");
-      return;
+    try {
+      const data = await api.login(email, password);
+      setUser(data.user);
+      setPassword("");
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "Credenciais inválidas ou banco não migrado.");
     }
-    const data = await response.json();
-    setUser(data.user);
-    setPassword("");
   }
 
   async function handleLogout() {
-    await fetch(`${apiBaseUrl}/auth/logout`, { method: "POST", credentials: "include" });
+    await api.logout().catch(() => {});
     setUser(null);
+  }
+
+  async function refreshClients() {
+    if (!user) return;
+    const data = await api.clients();
+    setClients(data);
+  }
+
+  async function handleApprovalDecision(approvalId: string, status: "approved" | "rejected") {
+    if (!selectedClientId) return;
+    const actionKey = `${approvalId}:${status}`;
+    setActionBusy(actionKey);
+    setDataError("");
+    try {
+      const data = await api.decideApproval(selectedClientId, approvalId, status);
+      setPortal(data);
+      await refreshClients();
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Não foi possível decidir a aprovação.");
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
+  async function handleDeliverableStatus(deliverableId: string, status: DeliverableStatus) {
+    if (!selectedClientId) return;
+    const actionKey = `${deliverableId}:${status}`;
+    setActionBusy(actionKey);
+    setDataError("");
+    try {
+      const data = await api.updateDeliverableStatus(selectedClientId, deliverableId, status);
+      setPortal(data);
+      await refreshClients();
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Não foi possível atualizar a entrega.");
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
+  if (!user) {
+    return (
+      <main className="login-shell">
+        <section className="login-copy">
+          <div className="brand large">
+            <div className="brand-mark">EG</div>
+            <div>
+              <strong>Bioma</strong>
+              <span>EverGreen</span>
+            </div>
+          </div>
+          <h1>Operação e cliente no mesmo lugar.</h1>
+          <div className="login-proof">
+            <div>
+              <Users size={20} />
+              <span>Client Hub</span>
+            </div>
+            <div>
+              <GitBranch size={20} />
+              <span>ClickUp Bridge</span>
+            </div>
+            <div>
+              <ShieldCheck size={20} />
+              <span>Controle EG</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="login-card" aria-label="Entrar no Bioma">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">Acesso</p>
+              <h2>Entrar no Bioma</h2>
+            </div>
+            <LockKeyhole size={24} />
+          </div>
+          <form className="login-form" onSubmit={handleLogin}>
+            <label>
+              E-mail
+              <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
+            </label>
+            <label>
+              Senha
+              <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
+            </label>
+            {loginError && <span className="form-error">{loginError}</span>}
+            <button type="submit">
+              <LogIn size={18} />
+              Entrar
+            </button>
+          </form>
+          <div className="login-health">
+            <span className={apiOnline ? "dot online" : "dot"} />
+            {apiOnline ? "API online" : "API offline"}
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -405,7 +428,26 @@ export function App() {
                         <strong>{deliverable.title}</strong>
                         <small>{deliverableStatusLabel[deliverable.status]}</small>
                       </div>
-                      <span>{formatDueDate(deliverable.due_at)}</span>
+                      <div className="row-tail">
+                        <span>{formatDueDate(deliverable.due_at)}</span>
+                        {isEgAdmin && (
+                          <select
+                            className="status-select"
+                            value={deliverable.status}
+                            onChange={(event) =>
+                              handleDeliverableStatus(deliverable.id, event.target.value as DeliverableStatus)
+                            }
+                            disabled={Boolean(actionBusy)}
+                            aria-label={`Status de ${deliverable.title}`}
+                          >
+                            {Object.entries(deliverableStatusLabel).map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </HubBlock>
@@ -418,20 +460,41 @@ export function App() {
                         <strong>{approval.deliverable_title ?? "Aprovação"}</strong>
                         <small>{approval.comment ?? "Sem comentário"}</small>
                       </div>
-                      <span>{approval.status === "pending" ? "Pendente" : approval.status}</span>
+                      {approval.status === "pending" ? (
+                        <div className="row-actions">
+                          <button
+                            className="mini-button approve"
+                            type="button"
+                            onClick={() => handleApprovalDecision(approval.id, "approved")}
+                            disabled={Boolean(actionBusy)}
+                          >
+                            Aprovar
+                          </button>
+                          <button
+                            className="mini-button reject"
+                            type="button"
+                            onClick={() => handleApprovalDecision(approval.id, "rejected")}
+                            disabled={Boolean(actionBusy)}
+                          >
+                            Reprovar
+                          </button>
+                        </div>
+                      ) : (
+                        <span className={`decision-pill ${approval.status}`}>{approvalStatusLabel(approval.status)}</span>
+                      )}
                     </div>
                   ))}
                 </HubBlock>
 
                 <HubBlock title="Artefatos" icon={FileText}>
                   {portal.artifacts.map((artifact) => (
-                    <div className="artifact-row" key={artifact.id}>
+                    <button className="artifact-row" key={artifact.id} type="button" onClick={() => setSelectedArtifact(artifact)}>
                       <div>
                         <strong>{artifact.title}</strong>
                         <small>{artifact.kind} · {artifact.visibility === "client" ? "cliente" : "interno"}</small>
                       </div>
                       <ArrowRight size={16} />
-                    </div>
+                    </button>
                   ))}
                 </HubBlock>
               </div>
@@ -475,6 +538,20 @@ export function App() {
           </article>
         </section>
       </section>
+
+      {selectedArtifact && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedArtifact(null)}>
+          <section className="artifact-modal" role="dialog" aria-modal="true" aria-label={selectedArtifact.title} onClick={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" onClick={() => setSelectedArtifact(null)} aria-label="Fechar artefato">
+              <X size={18} />
+            </button>
+            <p className="eyebrow">{selectedArtifact.kind}</p>
+            <h2>{selectedArtifact.title}</h2>
+            <p>{selectedArtifact.content ?? "Artefato sem conteúdo textual cadastrado."}</p>
+            <small>{selectedArtifact.visibility === "client" ? "Visível para cliente" : "Uso interno EG"}</small>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
@@ -508,4 +585,13 @@ function EmptyState({ text }: { text: string }) {
 function formatDueDate(value: string | null) {
   if (!value) return "Sem prazo";
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
+}
+
+function approvalStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    approved: "Aprovado",
+    rejected: "Reprovado",
+    cancelled: "Cancelado",
+  };
+  return labels[status] ?? status;
 }

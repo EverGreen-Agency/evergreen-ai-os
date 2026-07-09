@@ -134,14 +134,27 @@ def ensure_pending_approval(conn, organization_id, deliverable_id, requested_by,
     row = conn.execute(
         """
         select id from approvals
-        where organization_id = %s and deliverable_id = %s and status = 'pending'
+        where organization_id = %s and deliverable_id = %s
+        order by created_at asc
+        limit 1
         """,
         (organization_id, deliverable_id),
     ).fetchone()
     if row:
         conn.execute(
-            "update approvals set comment = %s where id = %s",
-            (comment, row["id"]),
+            """
+            update approvals
+            set status = 'pending', comment = %s, requested_by = %s, decided_by = null, decided_at = null
+            where id = %s
+            """,
+            (comment, requested_by, row["id"]),
+        )
+        conn.execute(
+            """
+            delete from approvals
+            where organization_id = %s and deliverable_id = %s and id <> %s
+            """,
+            (organization_id, deliverable_id, row["id"]),
         )
         return
     conn.execute(
