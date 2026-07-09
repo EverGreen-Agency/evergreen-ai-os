@@ -1,19 +1,24 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertCircle,
+  ArrowRight,
   CalendarCheck,
   CheckCircle2,
+  CircleDashed,
+  ClipboardCheck,
   FileText,
   GitBranch,
   LayoutDashboard,
   LockKeyhole,
   LogIn,
+  LogOut,
   Search,
   Server,
   ShieldCheck,
   Users,
   Zap,
+  type LucideIcon,
 } from "lucide-react";
 
 type ApiHealth = {
@@ -33,26 +38,65 @@ type CurrentUser = {
   }>;
 };
 
+type ClientSummary = {
+  id: string;
+  organization_id: string;
+  organization_name: string;
+  organization_slug: string;
+  name: string;
+  status: "onboarding" | "active" | "paused" | "archived";
+  responsible_name: string | null;
+  clickup_folder_id: string | null;
+  deliverables_total: number;
+  approvals_pending: number;
+  artifacts_client: number;
+};
+
+type ArtifactSummary = {
+  id: string;
+  title: string;
+  kind: string;
+  visibility: "internal" | "client";
+  content: string | null;
+  url: string | null;
+  created_at: string;
+};
+
+type DeliverableSummary = {
+  id: string;
+  title: string;
+  status: "planned" | "in_progress" | "waiting_approval" | "done" | "blocked";
+  due_at: string | null;
+  clickup_task_id: string | null;
+  updated_at: string;
+};
+
+type ApprovalSummary = {
+  id: string;
+  deliverable_title: string | null;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  comment: string | null;
+  created_at: string;
+};
+
+type SyncRunSummary = {
+  id: string;
+  source: string;
+  status: "ok" | "error" | "partial";
+  summary: Record<string, unknown>;
+  started_at: string;
+  finished_at: string | null;
+};
+
+type ClientPortal = {
+  client: ClientSummary;
+  artifacts: ArtifactSummary[];
+  deliverables: DeliverableSummary[];
+  approvals: ApprovalSummary[];
+  sync_runs: SyncRunSummary[];
+};
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
-
-const metrics = [
-  { label: "Clientes", value: "1", delta: "HM demo", tone: "green" },
-  { label: "Pendências", value: "4", delta: "2 aprovações", tone: "amber" },
-  { label: "Integrações", value: "1/5", delta: "ClickUp primeiro", tone: "mint" },
-];
-
-const timeline = [
-  { time: "Hoje", title: "Validar auth e modelo base", tag: "M2", status: "Em andamento" },
-  { time: "Próximo", title: "Carteira EG + cliente demo HM", tag: "M3", status: "Planejado" },
-  { time: "Depois", title: "ClickUp read-only por cliente", tag: "M4", status: "Planejado" },
-];
-
-const integrations = [
-  { name: "ClickUp", status: "prioridade", detail: "read-only -> HITL" },
-  { name: "Drive", status: "backlog", detail: "links e arquivos" },
-  { name: "Ads", status: "backlog", detail: "snapshots primeiro" },
-  { name: "Autentique", status: "backlog", detail: "contratos depois" },
-];
 
 const navItems = [
   { label: "Cockpit", icon: LayoutDashboard },
@@ -61,14 +105,67 @@ const navItems = [
   { label: "Integrações", icon: GitBranch },
 ];
 
+const integrations = [
+  { name: "ClickUp", status: "prioridade", detail: "sincronização read-only primeiro" },
+  { name: "Drive", status: "próximo", detail: "links e arquivos do cliente" },
+  { name: "Ads", status: "backlog", detail: "snapshots de performance" },
+  { name: "Autentique", status: "backlog", detail: "contratos e assinaturas" },
+];
+
+const statusLabel: Record<ClientSummary["status"], string> = {
+  onboarding: "Onboarding",
+  active: "Ativo",
+  paused: "Pausado",
+  archived: "Arquivado",
+};
+
+const deliverableStatusLabel: Record<DeliverableSummary["status"], string> = {
+  planned: "Planejado",
+  in_progress: "Em execução",
+  waiting_approval: "Aguardando aprovação",
+  done: "Concluído",
+  blocked: "Bloqueado",
+};
+
 export function App() {
   const [health, setHealth] = useState<ApiHealth | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [clients, setClients] = useState<ClientSummary[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [portal, setPortal] = useState<ClientPortal | null>(null);
+  const [dataError, setDataError] = useState("");
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   const apiOnline = health?.status === "ok";
+  const activeOrg = user?.organizations[0] ?? null;
+  const selectedClient = portal?.client ?? clients.find((client) => client.id === selectedClientId) ?? null;
+
+  const metrics = useMemo(
+    () => [
+      {
+        label: "Clientes",
+        value: String(clients.length),
+        delta: clients.length === 1 ? "1 conta ativa no MVP" : "carteira conectada",
+        tone: "green",
+      },
+      {
+        label: "Aprovações",
+        value: String(portal?.approvals.filter((approval) => approval.status === "pending").length ?? 0),
+        delta: "pendências do cliente",
+        tone: "amber",
+      },
+      {
+        label: "Artefatos",
+        value: String(portal?.artifacts.length ?? 0),
+        delta: "briefing, brand book, mapas",
+        tone: "mint",
+      },
+    ],
+    [clients.length, portal],
+  );
 
   useEffect(() => {
     fetch(`${apiBaseUrl}/health`)
@@ -82,10 +179,44 @@ export function App() {
       .catch(() => {});
   }, []);
 
-  const activeOrg = useMemo(() => {
-    if (!user?.organizations.length) return null;
-    return user.organizations[0];
+  useEffect(() => {
+    if (!user) {
+      setClients([]);
+      setSelectedClientId(null);
+      setPortal(null);
+      return;
+    }
+
+    setDataError("");
+    fetch(`${apiBaseUrl}/clients`, { credentials: "include" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Falha ao carregar clientes.");
+        return response.json();
+      })
+      .then((data: ClientSummary[]) => {
+        setClients(data);
+        setSelectedClientId((current) => current ?? data[0]?.id ?? null);
+      })
+      .catch((error: Error) => setDataError(error.message));
   }, [user]);
+
+  useEffect(() => {
+    if (!selectedClientId) {
+      setPortal(null);
+      return;
+    }
+
+    setLoadingPortal(true);
+    setDataError("");
+    fetch(`${apiBaseUrl}/clients/${selectedClientId}`, { credentials: "include" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Falha ao carregar hub do cliente.");
+        return response.json();
+      })
+      .then(setPortal)
+      .catch((error: Error) => setDataError(error.message))
+      .finally(() => setLoadingPortal(false));
+  }, [selectedClientId]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,6 +234,11 @@ export function App() {
     const data = await response.json();
     setUser(data.user);
     setPassword("");
+  }
+
+  async function handleLogout() {
+    await fetch(`${apiBaseUrl}/auth/logout`, { method: "POST", credentials: "include" });
+    setUser(null);
   }
 
   return (
@@ -132,7 +268,7 @@ export function App() {
           <span className={apiOnline ? "dot online" : "dot"} />
           <div>
             <strong>{apiOnline ? "API online" : "API offline"}</strong>
-            <span>{apiOnline ? "127.0.0.1:8000" : "health indisponível"}</span>
+            <span>{apiOnline ? "FastAPI + Postgres" : "health indisponível"}</span>
           </div>
         </div>
       </aside>
@@ -141,13 +277,15 @@ export function App() {
         <header className="topbar">
           <div className="topbar-title">
             <p className="eyebrow">Cockpit operacional</p>
-            <h1>Controle interno EG</h1>
+            <h1>Bioma EG</h1>
           </div>
           <div className="search-shell">
             <Search size={18} />
-            <span>Clientes, specs, entregas, integrações</span>
+            <span>Clientes, specs, entregas e integrações</span>
           </div>
         </header>
+
+        {dataError && <div className="notice error">{dataError}</div>}
 
         <section className="hero-grid">
           <article className="command-panel">
@@ -164,6 +302,10 @@ export function App() {
                 <strong>{activeOrg?.name ?? "EverGreen"}</strong>
                 <span>{user.email}</span>
                 <small>{activeOrg?.role === "eg_admin" ? "EG admin" : "Cliente"}</small>
+                <button className="ghost-button" type="button" onClick={handleLogout}>
+                  <LogOut size={16} />
+                  Sair
+                </button>
               </div>
             ) : (
               <form className="login-form" onSubmit={handleLogin}>
@@ -195,45 +337,110 @@ export function App() {
           </section>
         </section>
 
-        <section className="content-grid">
-          <article className="surface large">
+        <section className="client-layout" id="clientes">
+          <article className="surface client-list-panel">
             <div className="panel-heading compact">
               <div>
-                <p className="eyebrow">Operação</p>
-                <h2>Fila de construção</h2>
+                <p className="eyebrow">Client Hub</p>
+                <h2>Carteira</h2>
               </div>
-              <CalendarCheck size={22} />
+              <Users size={22} />
             </div>
-            <div className="timeline">
-              {timeline.map((item) => (
-                <div className="timeline-row" key={item.title}>
-                  <span className="timeline-time">{item.time}</span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.status}</small>
+
+            {!user && <EmptyState text="Entre para carregar a carteira EG." />}
+            {user && clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
+            <div className="client-list">
+              {clients.map((client) => (
+                <button
+                  className={client.id === selectedClientId ? "client-card selected" : "client-card"}
+                  key={client.id}
+                  type="button"
+                  onClick={() => setSelectedClientId(client.id)}
+                >
+                  <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
+                  <strong>{client.name}</strong>
+                  <small>{client.responsible_name ?? "Sem responsável"}</small>
+                  <div className="client-card-meta">
+                    <span>{client.deliverables_total} entregas</span>
+                    <span>{client.approvals_pending} aprovações</span>
                   </div>
-                  <span className="tag">{item.tag}</span>
-                </div>
+                </button>
               ))}
             </div>
           </article>
 
-          <article className="surface">
+          <article className="surface hub-panel">
             <div className="panel-heading compact">
               <div>
-                <p className="eyebrow">Infra</p>
-                <h2>Saúde local</h2>
+                <p className="eyebrow">Hub do cliente</p>
+                <h2>{selectedClient?.name ?? "Selecione um cliente"}</h2>
               </div>
-              <Server size={22} />
+              <ClipboardCheck size={22} />
             </div>
-            <div className="health-list">
-              <HealthRow icon={Activity} label="API" ok={apiOnline} value={apiOnline ? "ok" : "down"} />
-              <HealthRow icon={ShieldCheck} label="Auth" ok={Boolean(user)} value={user ? "sessão ativa" : "sem sessão"} />
-              <HealthRow icon={Zap} label="Docker" ok value="Postgres + Redis" />
-            </div>
-          </article>
 
-          <article className="surface large">
+            {loadingPortal && <EmptyState text="Carregando hub..." />}
+            {!loadingPortal && selectedClient && portal && (
+              <div className="hub-grid">
+                <section className="hub-block highlight">
+                  <div>
+                    <span className={`status-pill ${selectedClient.status}`}>{statusLabel[selectedClient.status]}</span>
+                    <h3>{selectedClient.organization_name}</h3>
+                    <p>
+                      Responsável: <strong>{selectedClient.responsible_name ?? "não definido"}</strong>
+                    </p>
+                  </div>
+                  <div className="sync-summary">
+                    <GitBranch size={18} />
+                    <span>
+                      {selectedClient.clickup_folder_id ? "ClickUp conectado" : "ClickUp aguardando credencial"}
+                    </span>
+                  </div>
+                </section>
+
+                <HubBlock title="Entregáveis" icon={CalendarCheck}>
+                  {portal.deliverables.map((deliverable) => (
+                    <div className="work-row" key={deliverable.id}>
+                      <CircleDashed size={16} />
+                      <div>
+                        <strong>{deliverable.title}</strong>
+                        <small>{deliverableStatusLabel[deliverable.status]}</small>
+                      </div>
+                      <span>{formatDueDate(deliverable.due_at)}</span>
+                    </div>
+                  ))}
+                </HubBlock>
+
+                <HubBlock title="Aprovações" icon={CheckCircle2}>
+                  {portal.approvals.map((approval) => (
+                    <div className="work-row" key={approval.id}>
+                      <AlertCircle size={16} />
+                      <div>
+                        <strong>{approval.deliverable_title ?? "Aprovação"}</strong>
+                        <small>{approval.comment ?? "Sem comentário"}</small>
+                      </div>
+                      <span>{approval.status === "pending" ? "Pendente" : approval.status}</span>
+                    </div>
+                  ))}
+                </HubBlock>
+
+                <HubBlock title="Artefatos" icon={FileText}>
+                  {portal.artifacts.map((artifact) => (
+                    <div className="artifact-row" key={artifact.id}>
+                      <div>
+                        <strong>{artifact.title}</strong>
+                        <small>{artifact.kind} · {artifact.visibility === "client" ? "cliente" : "interno"}</small>
+                      </div>
+                      <ArrowRight size={16} />
+                    </div>
+                  ))}
+                </HubBlock>
+              </div>
+            )}
+          </article>
+        </section>
+
+        <section className="content-grid">
+          <article className="surface large" id="integrações">
             <div className="panel-heading compact">
               <div>
                 <p className="eyebrow">Integrações</p>
@@ -252,28 +459,19 @@ export function App() {
             </div>
           </article>
 
-          <article className="surface">
+          <article className="surface" id="engenharia">
             <div className="panel-heading compact">
               <div>
-                <p className="eyebrow">Risco</p>
-                <h2>Gates</h2>
+                <p className="eyebrow">Infra</p>
+                <h2>Saúde local</h2>
               </div>
-              <AlertCircle size={22} />
+              <Server size={22} />
             </div>
-            <ul className="gate-list">
-              <li>
-                <CheckCircle2 size={16} />
-                ADRs v0 criados
-              </li>
-              <li>
-                <CheckCircle2 size={16} />
-                Branding EG aplicado
-              </li>
-              <li>
-                <AlertCircle size={16} />
-                LGPD antes de produção real
-              </li>
-            </ul>
+            <div className="health-list">
+              <HealthRow icon={Activity} label="API" ok={apiOnline} value={apiOnline ? "ok" : "down"} />
+              <HealthRow icon={ShieldCheck} label="Auth" ok={Boolean(user)} value={user ? "sessão ativa" : "sem sessão"} />
+              <HealthRow icon={Zap} label="Docker" ok value="Postgres + Redis" />
+            </div>
           </article>
         </section>
       </section>
@@ -281,17 +479,19 @@ export function App() {
   );
 }
 
-function HealthRow({
-  icon: Icon,
-  label,
-  ok,
-  value,
-}: {
-  icon: typeof Activity;
-  label: string;
-  ok: boolean;
-  value: string;
-}) {
+function HubBlock({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: ReactNode }) {
+  return (
+    <section className="hub-block">
+      <div className="hub-block-title">
+        <Icon size={18} />
+        <h3>{title}</h3>
+      </div>
+      <div className="hub-block-list">{children}</div>
+    </section>
+  );
+}
+
+function HealthRow({ icon: Icon, label, ok, value }: { icon: LucideIcon; label: string; ok: boolean; value: string }) {
   return (
     <div className="health-row">
       <Icon size={18} />
@@ -299,4 +499,13 @@ function HealthRow({
       <strong className={ok ? "ok" : "bad"}>{value}</strong>
     </div>
   );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <div className="empty-state">{text}</div>;
+}
+
+function formatDueDate(value: string | null) {
+  if (!value) return "Sem prazo";
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
 }

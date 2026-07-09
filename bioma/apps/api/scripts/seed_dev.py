@@ -60,6 +60,127 @@ def upsert_membership(conn, user_id, organization_id, role: str) -> None:
     )
 
 
+def upsert_artifact(
+    conn,
+    organization_id,
+    title: str,
+    kind: str,
+    visibility: str,
+    content: str,
+    url: str | None = None,
+) -> None:
+    row = conn.execute(
+        """
+        select id from artifacts
+        where organization_id = %s and title = %s and kind = %s
+        """,
+        (organization_id, title, kind),
+    ).fetchone()
+    if row:
+        conn.execute(
+            """
+            update artifacts
+            set visibility = %s, content = %s, url = %s
+            where id = %s
+            """,
+            (visibility, content, url, row["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into artifacts (organization_id, title, kind, visibility, content, url)
+        values (%s, %s, %s, %s, %s, %s)
+        """,
+        (organization_id, title, kind, visibility, content, url),
+    )
+
+
+def upsert_deliverable(
+    conn,
+    organization_id,
+    title: str,
+    status: str,
+    due_at: str | None = None,
+    clickup_task_id: str | None = None,
+):
+    row = conn.execute(
+        """
+        select id from deliverables
+        where organization_id = %s and title = %s
+        """,
+        (organization_id, title),
+    ).fetchone()
+    if row:
+        conn.execute(
+            """
+            update deliverables
+            set status = %s, due_at = %s, clickup_task_id = %s, updated_at = now()
+            where id = %s
+            """,
+            (status, due_at, clickup_task_id, row["id"]),
+        )
+        return row["id"]
+    return conn.execute(
+        """
+        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
+        values (%s, %s, %s, %s, %s)
+        returning id
+        """,
+        (organization_id, title, status, due_at, clickup_task_id),
+    ).fetchone()["id"]
+
+
+def ensure_pending_approval(conn, organization_id, deliverable_id, requested_by, comment: str) -> None:
+    row = conn.execute(
+        """
+        select id from approvals
+        where organization_id = %s and deliverable_id = %s and status = 'pending'
+        """,
+        (organization_id, deliverable_id),
+    ).fetchone()
+    if row:
+        conn.execute(
+            "update approvals set comment = %s where id = %s",
+            (comment, row["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into approvals (organization_id, deliverable_id, requested_by, status, comment)
+        values (%s, %s, %s, 'pending', %s)
+        """,
+        (organization_id, deliverable_id, requested_by, comment),
+    )
+
+
+def ensure_sync_run(conn, organization_id, source: str, status: str, summary: str) -> None:
+    exists = conn.execute(
+        """
+        select id from sync_runs
+        where organization_id = %s and source = %s
+        limit 1
+        """,
+        (organization_id, source),
+    ).fetchone()
+    if exists:
+        conn.execute(
+            """
+            update sync_runs
+            set status = %s, summary = %s::jsonb, finished_at = now()
+            where id = %s
+            """,
+            (status, summary, exists["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into sync_runs (organization_id, source, status, summary, finished_at)
+        values (%s, %s, %s, %s::jsonb, now())
+        """,
+        (organization_id, source, status, summary),
+    )
+
+
 def main() -> None:
     with connect() as conn:
         eg_id = upsert_org(conn, "EverGreen", "eg", "eg")
@@ -80,6 +201,70 @@ def main() -> None:
             do update set name = excluded.name, status = excluded.status, responsible_name = excluded.responsible_name
             """,
             (hm_id,),
+        )
+
+        upsert_artifact(
+            conn,
+            hm_id,
+            "Briefing estratégico HM",
+            "briefing",
+            "client",
+            "Direcionamento inicial para posicionamento, relacionamento e conteúdo no LinkedIn.",
+        )
+        upsert_artifact(
+            conn,
+            hm_id,
+            "Brand book v0",
+            "brand_book",
+            "client",
+            "Base de tom de voz, mensagens-chave e pilares editoriais para validação do cliente.",
+        )
+        upsert_artifact(
+            conn,
+            hm_id,
+            "Mapa operacional ClickUp",
+            "integration_map",
+            "internal",
+            "Estrutura inicial de listas, campos e status que será espelhada no Bioma.",
+        )
+
+        briefing_id = upsert_deliverable(
+            conn,
+            hm_id,
+            "Aprovar briefing estratégico",
+            "waiting_approval",
+            "2026-07-12 18:00:00-03",
+            "clickup-demo-briefing",
+        )
+        upsert_deliverable(
+            conn,
+            hm_id,
+            "Configurar hub do cliente",
+            "in_progress",
+            "2026-07-15 18:00:00-03",
+            "clickup-demo-hub",
+        )
+        upsert_deliverable(
+            conn,
+            hm_id,
+            "Publicar calendário editorial inicial",
+            "planned",
+            "2026-07-18 18:00:00-03",
+            "clickup-demo-calendar",
+        )
+        ensure_pending_approval(
+            conn,
+            hm_id,
+            briefing_id,
+            admin_id,
+            "Cliente precisa validar antes de seguir para brand book e calendário.",
+        )
+        ensure_sync_run(
+            conn,
+            hm_id,
+            "clickup",
+            "partial",
+            '{"listas": 2, "tarefas": 3, "modo": "demo-read-only"}',
         )
 
     print("seed ok")
