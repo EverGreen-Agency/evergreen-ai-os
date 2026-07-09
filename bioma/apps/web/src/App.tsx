@@ -118,6 +118,12 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (!user && window.location.hash) {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (!user) {
       setClients([]);
       setSelectedClientId(null);

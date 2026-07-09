@@ -38,7 +38,7 @@ a {
 
 .login-shell {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(320px, 520px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
   min-height: 100vh;
   color: #fff4c7;
   background:
@@ -211,6 +211,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  flex-wrap: wrap;
   margin-bottom: 22px;
 }
 
@@ -826,7 +827,25 @@ h3 {
   min-height: 48px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1180px) {
+  .login-copy h1 {
+    font-size: 44px;
+  }
+
+  h1 {
+    font-size: 44px;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
   .login-shell {
     grid-template-columns: 1fr;
   }
@@ -835,10 +854,12 @@ h3 {
     min-height: auto;
   }
 
-  .login-copy h1 {
-    font-size: 48px;
+  .login-proof {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
+@media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
     background: #fff4c7;
@@ -849,14 +870,21 @@ h3 {
     height: auto;
   }
 
-  .hero-grid,
   .content-grid,
   .client-layout {
     grid-template-columns: 1fr;
   }
 
-  h1 {
-    font-size: 44px;
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-card {
+    min-height: 132px;
+  }
+
+  .metric-card strong {
+    font-size: 42px;
   }
 }
 
