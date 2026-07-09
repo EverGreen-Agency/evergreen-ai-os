@@ -55,6 +55,10 @@ Para rodar também API e web via Docker:
 docker compose -f infra/docker-compose.yml --profile app up --build
 ```
 
+O perfil `app` constrói imagens locais para API e web. Na primeira execução ele baixa imagens base e dependências (`pip install`, `npm ci`), então depende de rede estável. Para desenvolvimento diário, o caminho mais rápido continua sendo Docker apenas para Postgres/Redis e API/web rodando no host com reload.
+
+Se o build Docker falhar em `npm ci` com `ETIMEDOUT`, é falha de rede durante instalação de dependências dentro do container. Rode novamente quando a conexão estabilizar ou use `npm install`/`npm run dev` no host.
+
 3. API:
 
 ```bash
@@ -71,6 +75,12 @@ cd apps/web
 npm install
 npm run dev
 ```
+
+## Comunicação Web/API
+
+O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, aprovações, entregáveis, sync de ClickUp e auditoria são comandos explícitos.
+
+GraphQL pode entrar depois como BFF ou camada de consulta se surgirem telas com múltiplas visões altamente customizáveis, overfetching real ou muitos consumidores externos. A decisão atual preserva essa opção porque o frontend não chama `fetch` direto espalhado pela aplicação; ele passa por um cliente HTTP isolado.
 
 ## Observação
 
