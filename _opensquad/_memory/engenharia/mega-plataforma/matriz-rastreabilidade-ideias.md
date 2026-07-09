@@ -38,7 +38,7 @@
 
 | Ideia / modulo | Artefato | Observacao |
 |---|---|---|
-| `cofre-senhas` | `_opensquad/_memory/engenharia/cofre-senhas/spec.md` | ja existe no Banco de Ideias; elevado por risco real de planilhas com usuario/senha |
+| `cofre-senhas` | `_opensquad/_memory/engenharia/cofre-senhas/spec.md` | em producao (fatia) no bioma/ /vault desde 2026-07-07 |
 | `mod-integrations-hub` | `_opensquad/_memory/engenharia/mod-integrations-hub/spec.md` | proposta de modulo; registrar no Banco de Ideias se aprovado |
 | `mod-workflows-aprovacoes` | `_opensquad/_memory/engenharia/mod-workflows-aprovacoes/spec.md` | proposta de modulo; generaliza `tag-ativacao` e aprovacoes HITL |
 | `mod-lgpd-governanca-dados` | `_opensquad/_memory/engenharia/mod-lgpd-governanca-dados/spec.md` | proposta de modulo; governa consentimento, retencao, PII e uso de LLM externa |

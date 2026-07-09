@@ -17,12 +17,12 @@
 
 | Modulo | Fase | Maturidade | Proximo gate |
 |---|---:|---|---|
-| `mod-multitenant` | P0 | E1 | concluir engenharia da fundacao e manter ADRs aceitos atualizados |
-| `mod-observabilidade` | P0.5 | S1/A1 | ADR observabilidade + logs/alertas/status page |
-| `cofre-senhas` | P0.5 | S1/A1 | ADR vault/secrets build-vs-buy |
+| `mod-multitenant` | P0 | E1 | CONCLUIDO 2026-07-08 (em producao no bioma/, 53 testes CA1-CA7); manter ADRs atualizados |
+| `mod-observabilidade` | P0.5 | E1 (fatia) | fatia em producao 2026-07-08 (health, incidents, DLQ->incidente, /viveiro/status); falta Sentry/BetterStack (conta/DPA) |
+| `cofre-senhas` | P0.5 | E1 (fatia) | fatia em producao 2026-07-07 (/vault, AES-256-GCM, reveal auditado c/ auto-ocultar); proximos: rotacao guiada, access-request |
 | `mod-integrations-hub` | P0.5 | S1/A1 | ADR OAuth/API keys/webhooks por provedor inicial |
 | `mod-workflows-aprovacoes` | P0.5 | S1/A1 | ADR approval engine/HITL policy |
-| `mod-lgpd-governanca-dados` | P0.5 | S1/A1 | ADR classificacao/retencao/LLM externa + revisao juridica |
+| `mod-lgpd-governanca-dados` | P0.5 | E1 (fatia) | fatia em producao 2026-07-08 (8 classes, purposes/consents, gate IA externa); PENDENTE: revisao juridica humana |
 | `mod-nucleo` | P0.5 | S1 | consolidar contratos transversais apos ADRs P0.5 |
 | `mod-cockpit-interno` | P1 interno | S1/A1 | ADR inventario/aposentadoria do `/dashboard` + arquitetura de adapters |
 | `client-hub` | P1 | S1/A1 | ADR NFC/magic link + entitlements/service catalog |
