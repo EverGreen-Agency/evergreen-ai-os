@@ -178,7 +178,7 @@ export function App() {
     }
 
     setDataError("");
-    refreshClients().catch((error: Error) => setDataError(error.message));
+    refreshClients().catch((error: Error) => handleAppError(error, "Não foi possível carregar clientes."));
   }, [user]);
 
   useEffect(() => {
@@ -191,8 +191,11 @@ export function App() {
     setDataError("");
     api
       .clientPortal(selectedClientId)
-      .then(setPortal)
-      .catch((error: Error) => setDataError(error.message))
+      .then((data) => {
+        setPortal(data);
+        setDataError("");
+      })
+      .catch((error: Error) => handleAppError(error, "Não foi possível carregar o hub."))
       .finally(() => setLoadingPortal(false));
   }, [selectedClientId]);
 
@@ -233,8 +236,28 @@ export function App() {
     if (!user) return;
     const data = await api.clients();
     setClients(data);
+    setDataError("");
     const nextId = preferredId ?? selectedClientId ?? data[0]?.id ?? null;
     setSelectedClientId(data.some((client) => client.id === nextId) ? nextId : data[0]?.id ?? null);
+  }
+
+  function resetSession(message = "Sua sessão expirou. Entre novamente para continuar.") {
+    setUser(null);
+    setPortal(null);
+    setClients([]);
+    setSelectedClientId(null);
+    setDataError("");
+    setLoginError(message);
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    setView("cockpit");
+  }
+
+  function handleAppError(error: Error, fallback: string) {
+    if (isSessionError(error)) {
+      resetSession();
+      return;
+    }
+    setDataError(error.message || fallback);
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -244,6 +267,7 @@ export function App() {
       const data = await api.login(email, password);
       setUser(data.user);
       setPassword("");
+      setDataError("");
       navigate("cockpit");
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Credenciais inválidas ou banco não migrado.");
@@ -255,6 +279,8 @@ export function App() {
     setUser(null);
     setPortal(null);
     setClients([]);
+    setSelectedClientId(null);
+    setDataError("");
     window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   }
 
@@ -264,10 +290,15 @@ export function App() {
     try {
       const data = await action();
       setPortal(data);
+      setDataError("");
       await refreshClients(data.client.id);
       return data;
     } catch (error) {
-      setDataError(error instanceof Error ? error.message : "Não foi possível concluir a ação.");
+      if (error instanceof Error) {
+        handleAppError(error, "Não foi possível concluir a ação.");
+      } else {
+        setDataError("Não foi possível concluir a ação.");
+      }
       return null;
     } finally {
       setActionBusy(null);
@@ -1208,4 +1239,9 @@ function compactMetadata(metadata: Record<string, unknown>) {
     .slice(0, 3)
     .map((key) => `${key}: ${String(metadata[key])}`)
     .join(" · ");
+}
+
+function isSessionError(error: Error) {
+  const message = error.message.toLowerCase();
+  return message.includes("sessão ausente") || message.includes("sessão inválida");
 }
