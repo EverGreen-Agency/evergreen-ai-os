@@ -16,6 +16,8 @@
 
 Se sim → **P0 fechado**, seguir para P0.5.
 
+**ATUALIZAÇÃO 2026-07-08 (Fable):** os 4 autochecks acima foram feitos — **P0 FECHADO** (53 testes CA1-CA7, build ok, login/admin E2E no browser). Além disso: `cofre-senhas`, `mod-observabilidade` e `mod-lgpd-governanca-dados` têm **fatia E1 em produção** (ver matriz-maturidade). UI = tema musgo do legado (default) + Viveiro operacional com banco de artefatos navegável (`/viveiro/engenharia/[id]`). Decisão de stack defendida em `STACK-RUNTIME-BIOMA.md` (**aguarda aceite do Juiz — gate da Fase E**). Próximos da fila quando liberado: `mod-integrations-hub` (migration 04) → `mod-workflows-aprovacoes` (05) → entitlements (07) → `client-hub` (08) → `mod-bi-dashboards` (09). Pendência humana: revisão jurídica LGPD; contas Sentry/BetterStack; credenciais OAuth de provedores.
+
 ## 2. Backlog completo — ordem de leitura e execução
 
 Cada módulo: ler `spec.md` + todos os `adr/*.md` na pasta `_opensquad/_memory/engenharia/<id>/` antes de codar. Copiar o padrão da tabela `notes` (RLS por `tenant_id` + policies nomeadas) para toda tabela nova.
