@@ -116,6 +116,54 @@ def main() -> None:
     )
     assert_status(delivered, 200, "update deliverable")
 
+    lead = admin.post(
+        f"/clients/{created_client_id}/leads",
+        json={
+            "name": "Lead Smoke",
+            "company": "Smoke Corp",
+            "role_title": "CEO",
+            "source": "LinkedIn",
+            "stage": "new",
+        },
+    )
+    assert_status(lead, 201, "create lead")
+    lead_id = lead.json()[0]["id"]
+    moved_lead = admin.patch(f"/clients/{created_client_id}/leads/{lead_id}", json={"stage": "meeting"})
+    assert_status(moved_lead, 200, "update lead")
+    client_leads = client_user.get(f"/clients/{created_client_id}/leads")
+    assert_status(client_leads, 404, "client cannot read another client leads")
+
+    finance = admin.post(
+        f"/clients/{created_client_id}/finance",
+        json={
+            "kind": "invoice",
+            "title": "Fatura smoke",
+            "amount": 1200,
+            "status": "open",
+            "due_at": "2026-08-10",
+        },
+    )
+    assert_status(finance, 201, "create financial record")
+    finance_id = finance.json()[0]["id"]
+    paid = admin.patch(f"/clients/{created_client_id}/finance/{finance_id}", json={"status": "paid", "paid_at": "2026-08-09"})
+    assert_status(paid, 200, "update financial record")
+
+    metric = admin.post(
+        f"/clients/{created_client_id}/metrics",
+        json={
+            "period_start": "2026-07-01",
+            "period_end": "2026-07-31",
+            "channel": "LinkedIn",
+            "metric": "impressions",
+            "value": 1234,
+            "source": "manual",
+        },
+    )
+    assert_status(metric, 201, "create performance metric")
+    metric_id = metric.json()[0]["id"]
+    metric_update = admin.patch(f"/clients/{created_client_id}/metrics/{metric_id}", json={"value": 2345})
+    assert_status(metric_update, 200, "update performance metric")
+
     sync = admin.post(f"/clients/{created_client_id}/sync/clickup")
     assert_status(sync, 200, "admin sync clickup dry-run")
 

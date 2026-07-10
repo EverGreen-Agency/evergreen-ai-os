@@ -356,6 +356,151 @@ def write_audit(conn, actor_user_id: UUID, organization_id: UUID, event_type: st
     )
 
 
+def list_leads(conn, organization_id: UUID):
+    return conn.execute(
+        """
+        select id, name, company, role_title, email, phone, linkedin_url, source, stage,
+               expected_value, notes, created_at, updated_at
+        from leads
+        where organization_id = %s
+        order by
+          case stage
+            when 'new' then 0
+            when 'qualifying' then 1
+            when 'meeting' then 2
+            when 'proposal' then 3
+            when 'won' then 4
+            else 5
+          end,
+          updated_at desc
+        """,
+        (organization_id,),
+    ).fetchall()
+
+
+def create_lead(conn, organization_id: UUID, payload: dict[str, Any]) -> UUID:
+    return conn.execute(
+        """
+        insert into leads (
+          organization_id, name, company, role_title, email, phone, linkedin_url,
+          source, stage, expected_value, notes
+        )
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        returning id
+        """,
+        (
+            organization_id,
+            payload["name"],
+            payload.get("company"),
+            payload.get("role_title"),
+            payload.get("email"),
+            payload.get("phone"),
+            payload.get("linkedin_url"),
+            payload.get("source"),
+            payload.get("stage", "new"),
+            payload.get("expected_value"),
+            payload.get("notes"),
+        ),
+    ).fetchone()["id"]
+
+
+def update_lead(conn, organization_id: UUID, lead_id: UUID, updates: dict[str, Any]) -> bool:
+    return _update_scoped_row(conn, "leads", organization_id, lead_id, updates)
+
+
+def delete_lead(conn, organization_id: UUID, lead_id: UUID) -> bool:
+    return _delete_scoped_row(conn, "leads", organization_id, lead_id)
+
+
+def list_financial_records(conn, organization_id: UUID):
+    return conn.execute(
+        """
+        select id, kind, title, amount, currency, status, contract_start_at, contract_end_at,
+               due_at, paid_at, notes, created_at, updated_at
+        from financial_records
+        where organization_id = %s
+        order by due_at nulls last, updated_at desc
+        """,
+        (organization_id,),
+    ).fetchall()
+
+
+def create_financial_record(conn, organization_id: UUID, payload: dict[str, Any]) -> UUID:
+    return conn.execute(
+        """
+        insert into financial_records (
+          organization_id, kind, title, amount, currency, status, contract_start_at,
+          contract_end_at, due_at, paid_at, notes
+        )
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        returning id
+        """,
+        (
+            organization_id,
+            payload["kind"],
+            payload["title"],
+            payload.get("amount"),
+            payload.get("currency", "BRL"),
+            payload.get("status", "open"),
+            payload.get("contract_start_at"),
+            payload.get("contract_end_at"),
+            payload.get("due_at"),
+            payload.get("paid_at"),
+            payload.get("notes"),
+        ),
+    ).fetchone()["id"]
+
+
+def update_financial_record(conn, organization_id: UUID, record_id: UUID, updates: dict[str, Any]) -> bool:
+    return _update_scoped_row(conn, "financial_records", organization_id, record_id, updates)
+
+
+def delete_financial_record(conn, organization_id: UUID, record_id: UUID) -> bool:
+    return _delete_scoped_row(conn, "financial_records", organization_id, record_id)
+
+
+def list_performance_metrics(conn, organization_id: UUID):
+    return conn.execute(
+        """
+        select id, period_start, period_end, channel, metric, value, source, notes, captured_at
+        from performance_metrics
+        where organization_id = %s
+        order by period_start desc, channel asc, metric asc
+        """,
+        (organization_id,),
+    ).fetchall()
+
+
+def create_performance_metric(conn, organization_id: UUID, payload: dict[str, Any]) -> UUID:
+    return conn.execute(
+        """
+        insert into performance_metrics (
+          organization_id, period_start, period_end, channel, metric, value, source, notes
+        )
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        returning id
+        """,
+        (
+            organization_id,
+            payload["period_start"],
+            payload["period_end"],
+            payload["channel"],
+            payload["metric"],
+            payload["value"],
+            payload.get("source", "manual"),
+            payload.get("notes"),
+        ),
+    ).fetchone()["id"]
+
+
+def update_performance_metric(conn, organization_id: UUID, metric_id: UUID, updates: dict[str, Any]) -> bool:
+    return _update_scoped_row(conn, "performance_metrics", organization_id, metric_id, updates, touch_updated_at=False)
+
+
+def delete_performance_metric(conn, organization_id: UUID, metric_id: UUID) -> bool:
+    return _delete_scoped_row(conn, "performance_metrics", organization_id, metric_id)
+
+
 def unique_org_slug(conn, base_slug: str) -> str:
     slug = _slugify(base_slug)
     candidate = slug
@@ -364,6 +509,44 @@ def unique_org_slug(conn, base_slug: str) -> str:
         candidate = f"{slug}-{suffix}"
         suffix += 1
     return candidate
+
+
+def _update_scoped_row(
+    conn,
+    table: str,
+    organization_id: UUID,
+    row_id: UUID,
+    updates: dict[str, Any],
+    touch_updated_at: bool = True,
+) -> bool:
+    if not updates:
+        return True
+
+    update_values = dict(updates)
+    if touch_updated_at:
+        update_values["updated_at"] = "now()"
+        set_clause = ", ".join(
+            [f"{column} = now()" if column == "updated_at" else f"{column} = %s" for column in update_values]
+        )
+        params = [value for column, value in update_values.items() if column != "updated_at"]
+    else:
+        set_clause = ", ".join([f"{column} = %s" for column in update_values])
+        params = list(update_values.values())
+
+    params.extend([row_id, organization_id])
+    updated = conn.execute(
+        f"update {table} set {set_clause} where id = %s and organization_id = %s returning id",
+        params,
+    ).fetchone()
+    return updated is not None
+
+
+def _delete_scoped_row(conn, table: str, organization_id: UUID, row_id: UUID) -> bool:
+    deleted = conn.execute(
+        f"delete from {table} where id = %s and organization_id = %s returning id",
+        (row_id, organization_id),
+    ).fetchone()
+    return deleted is not None
 
 
 def _slugify(value: str) -> str:

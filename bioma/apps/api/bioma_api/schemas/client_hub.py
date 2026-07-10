@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from typing import Any, Literal
@@ -9,6 +9,9 @@ ClientStatus = Literal["onboarding", "active", "paused", "archived"]
 ArtifactVisibility = Literal["internal", "client"]
 DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
 ApprovalStatus = Literal["pending", "approved", "rejected", "cancelled"]
+LeadStage = Literal["new", "qualifying", "meeting", "proposal", "won", "lost"]
+FinancialRecordKind = Literal["contract", "invoice"]
+FinancialRecordStatus = Literal["draft", "open", "paid", "overdue", "cancelled"]
 
 
 class ClientSummary(BaseModel):
@@ -134,3 +137,119 @@ class ApprovalDecisionRequest(BaseModel):
 
 class DeliverableStatusRequest(BaseModel):
     status: DeliverableStatus
+
+
+class LeadSummary(BaseModel):
+    id: UUID
+    name: str
+    company: str | None = None
+    role_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    linkedin_url: str | None = None
+    source: str | None = None
+    stage: LeadStage
+    expected_value: float | None = None
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LeadCreateRequest(BaseModel):
+    name: str
+    company: str | None = None
+    role_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    linkedin_url: str | None = None
+    source: str | None = None
+    stage: LeadStage = "new"
+    expected_value: float | None = None
+    notes: str | None = None
+
+
+class LeadUpdateRequest(BaseModel):
+    name: str | None = None
+    company: str | None = None
+    role_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    linkedin_url: str | None = None
+    source: str | None = None
+    stage: LeadStage | None = None
+    expected_value: float | None = None
+    notes: str | None = None
+
+
+class FinancialRecordSummary(BaseModel):
+    id: UUID
+    kind: FinancialRecordKind
+    title: str
+    amount: float | None = None
+    currency: str
+    status: FinancialRecordStatus
+    contract_start_at: date | None = None
+    contract_end_at: date | None = None
+    due_at: date | None = None
+    paid_at: date | None = None
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class FinancialRecordCreateRequest(BaseModel):
+    kind: FinancialRecordKind
+    title: str
+    amount: float | None = None
+    currency: str = "BRL"
+    status: FinancialRecordStatus = "open"
+    contract_start_at: date | None = None
+    contract_end_at: date | None = None
+    due_at: date | None = None
+    paid_at: date | None = None
+    notes: str | None = None
+
+
+class FinancialRecordUpdateRequest(BaseModel):
+    kind: FinancialRecordKind | None = None
+    title: str | None = None
+    amount: float | None = None
+    currency: str | None = None
+    status: FinancialRecordStatus | None = None
+    contract_start_at: date | None = None
+    contract_end_at: date | None = None
+    due_at: date | None = None
+    paid_at: date | None = None
+    notes: str | None = None
+
+
+class PerformanceMetricSummary(BaseModel):
+    id: UUID
+    period_start: date
+    period_end: date
+    channel: str
+    metric: str
+    value: float
+    source: str
+    notes: str | None = None
+    captured_at: datetime
+
+
+class PerformanceMetricCreateRequest(BaseModel):
+    period_start: date
+    period_end: date
+    channel: str
+    metric: str
+    value: float
+    source: str = "manual"
+    notes: str | None = None
+
+
+class PerformanceMetricUpdateRequest(BaseModel):
+    period_start: date | None = None
+    period_end: date | None = None
+    channel: str | None = None
+    metric: str | None = None
+    value: float | None = None
+    source: str | None = None
+    notes: str | None = None

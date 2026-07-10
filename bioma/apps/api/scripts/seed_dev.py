@@ -194,6 +194,105 @@ def ensure_sync_run(conn, organization_id, source: str, status: str, summary: st
     )
 
 
+def upsert_lead(conn, organization_id, name: str, company: str, role_title: str, stage: str, source: str) -> None:
+    row = conn.execute(
+        """
+        select id from leads
+        where organization_id = %s and name = %s and company = %s
+        """,
+        (organization_id, name, company),
+    ).fetchone()
+    if row:
+        conn.execute(
+            """
+            update leads
+            set role_title = %s, stage = %s, source = %s, updated_at = now()
+            where id = %s
+            """,
+            (role_title, stage, source, row["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into leads (organization_id, name, company, role_title, stage, source)
+        values (%s, %s, %s, %s, %s, %s)
+        """,
+        (organization_id, name, company, role_title, stage, source),
+    )
+
+
+def upsert_financial_record(
+    conn,
+    organization_id,
+    title: str,
+    kind: str,
+    amount: float,
+    status: str,
+    due_at: str | None,
+) -> None:
+    row = conn.execute(
+        """
+        select id from financial_records
+        where organization_id = %s and title = %s
+        """,
+        (organization_id, title),
+    ).fetchone()
+    if row:
+        conn.execute(
+            """
+            update financial_records
+            set kind = %s, amount = %s, status = %s, due_at = %s, updated_at = now()
+            where id = %s
+            """,
+            (kind, amount, status, due_at, row["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into financial_records (organization_id, title, kind, amount, status, due_at)
+        values (%s, %s, %s, %s, %s, %s)
+        """,
+        (organization_id, title, kind, amount, status, due_at),
+    )
+
+
+def upsert_performance_metric(
+    conn,
+    organization_id,
+    period_start: str,
+    period_end: str,
+    channel: str,
+    metric: str,
+    value: float,
+    source: str = "manual",
+) -> None:
+    row = conn.execute(
+        """
+        select id from performance_metrics
+        where organization_id = %s and period_start = %s and period_end = %s
+          and channel = %s and metric = %s
+        """,
+        (organization_id, period_start, period_end, channel, metric),
+    ).fetchone()
+    if row:
+        conn.execute(
+            """
+            update performance_metrics
+            set value = %s, source = %s, captured_at = now()
+            where id = %s
+            """,
+            (value, source, row["id"]),
+        )
+        return
+    conn.execute(
+        """
+        insert into performance_metrics (organization_id, period_start, period_end, channel, metric, value, source)
+        values (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (organization_id, period_start, period_end, channel, metric, value, source),
+    )
+
+
 def main() -> None:
     with connect() as conn:
         eg_id = upsert_org(conn, "EverGreen", "eg", "eg")
@@ -291,6 +390,16 @@ def main() -> None:
             "partial",
             '{"listas": 2, "tarefas": 3, "modo": "demo-read-only"}',
         )
+        upsert_lead(conn, hm_id, "Rafael Almeida", "TechGrowth", "CIO", "new", "LinkedIn")
+        upsert_lead(conn, hm_id, "Camila Ferreira", "InnovaBrand", "CMO", "qualifying", "Indicação")
+        upsert_lead(conn, hm_id, "João Silva", "DataMakers", "CEO", "meeting", "LinkedIn")
+        upsert_lead(conn, hm_id, "Ana Paula Santos", "HealthPlus", "CEO", "proposal", "Evento")
+        upsert_lead(conn, hm_id, "Victor Hugo", "Drive Tech", "CEO", "won", "LinkedIn")
+        upsert_financial_record(conn, hm_id, "Contrato HM - plano empresarial", "contract", 4500, "open", "2026-07-30")
+        upsert_financial_record(conn, hm_id, "Fatura julho", "invoice", 4500, "open", "2026-07-15")
+        upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "LinkedIn", "impressions", 753666)
+        upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "LinkedIn", "followers", 8642)
+        upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "CRM", "qualified_meetings", 18)
 
     print("seed ok")
     print("admin: eduardo@evergreengrowth.com.br / senha-dev-123")
