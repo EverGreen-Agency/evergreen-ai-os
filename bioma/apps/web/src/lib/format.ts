@@ -99,6 +99,38 @@ export function compactMetadata(metadata: Record<string, unknown>) {
     .join(" · ");
 }
 
+export type ContentSection = {
+  title: string;
+  lines: string[];
+};
+
+/**
+ * Divide o conteúdo textual de um artefato (briefing, brand book) em seções
+ * usando headings markdown (#, ##, ###) ou linhas inteiras em negrito como título.
+ */
+export function parseContentSections(content: string): ContentSection[] {
+  const sections: ContentSection[] = [];
+  let current: ContentSection | null = null;
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    const heading = line.match(/^#{1,4}\s+(.+?)\s*$/) ?? line.match(/^\*\*(.+?)\*\*:?\s*$/);
+    if (heading) {
+      current = { title: heading[1].trim(), lines: [] };
+      sections.push(current);
+      continue;
+    }
+    if (!line) continue;
+    if (!current) {
+      current = { title: "", lines: [] };
+      sections.push(current);
+    }
+    current.lines.push(line);
+  }
+
+  return sections;
+}
+
 export function isSessionError(error: Error) {
   const message = error.message.toLowerCase();
   return message.includes("sessão ausente") || message.includes("sessão inválida");

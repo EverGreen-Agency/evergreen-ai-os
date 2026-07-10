@@ -123,6 +123,17 @@ Não fazer ainda:
 - Criar estrutura de cliente no ClickUp sem revisão EG.
 - Misturar Social, Growth e Tech em uma lista única.
 
+## Decisões de escopo - 2026-07-10
+
+Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não produto a ser vendido; a plataforma é da EG):
+
+- **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
+- **CRM:** fora do MVP. A EG revende Kommo; a direção futura é uma **bridge Kommo** (espelho read-only do funil por cliente, mesmo padrão do ClickUp Bridge), não um CRM nativo.
+- **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
+- **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
+- **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
+- Financeiro e Notion: depois.
+
 ## Próximos passos priorizados
 
 ### P0 - Fechar MVP testável
@@ -142,18 +153,23 @@ Não fazer ainda:
 - [x] Criar backend mínimo de financeiro da reunião HM.
 - [x] Criar backend mínimo de métricas manuais para Analytics honesto.
 - [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
-- [ ] Criar checklist manual de QA assinado.
+- [x] Criar checklist manual de QA (seção "Checklist de QA visual"; assinatura ainda pendente).
 
 ### P1 - Aproximar da entrega HM
 
-- [ ] Aplicar logos/assets reais da EG e, quando houver, da HM.
-- [ ] Criar experiência específica de Briefing além do artefato textual.
-- [ ] Criar experiência específica de Brand Book além do artefato textual.
-- [ ] Criar calendário editorial rico, com visão semanal/mensal.
-- [ ] Criar visão de Analytics honesta, sem fingir dados reais.
-- [ ] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
+- [ ] Aplicar logos/assets finais da EG e, quando houver autorização, da HM; os SVGs atuais são placeholders.
+- [x] Criar experiência específica de Briefing além do artefato textual.
+- [x] Renderizar documentos estratégicos estruturados de forma genérica, incluindo brand book quando cadastrado.
+- [ ] Implementar geração, aprovação e versionamento específicos de Brand Book, caso retornem ao escopo.
+- [x] Criar calendário editorial semanal navegável alimentado por entregas reais.
+- [ ] Criar visão mensal do calendário editorial.
+- [x] Criar visão de Analytics honesta, sem fingir dados reais.
+- [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
+- [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
 
 ### P1.5 - Port do BIAds / Performance
+
+Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 
 - [x] Portar tabelas diárias de Google Ads, GA4 e Search Console para o Postgres do Bioma.
 - [x] Portar snapshots e auditoria de Google Tag Manager.
@@ -164,10 +180,11 @@ Não fazer ainda:
 - [x] Portar o coletor para worker Python com `google-auth` e providers isolados.
 - [x] Criar execução manual e agendada incremental (`--enqueue-all --drain`).
 - [x] Criar smokes de normalização, autorização, fila e falha auditável.
+- [x] Criar `TrendChart` no frontend com Recharts e tokens da marca.
 - [ ] Validar cada provider com credenciais reais de uma conta Google controlada pela EG.
 - [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
 - [ ] Configurar segredos e cron no staging da Railway.
-- [ ] Conectar as views do frontend aos endpoints reais de Performance.
+- [ ] Criar as páginas de Performance e conectá-las aos endpoints reais; o Analytics atual ainda é uma demonstração honesta.
 
 ### P2 - ClickUp real
 
@@ -198,6 +215,29 @@ Não fazer ainda:
 - [ ] Configurar variáveis por ambiente.
 - [ ] Rodar seed apenas em ambiente local/staging controlado.
 - [ ] Criar domínio temporário de staging.
+
+## Checklist de QA visual (manual)
+
+Executar com API + seed locais rodando e frontend em `npm run dev`, logado como EG admin e depois como cliente. Larguras de referência: desktop 1440px+, notebook com DevTools aberto (~1100px úteis) e mobile 390px.
+
+Para cada largura:
+
+- [ ] Login: hero e cartão legíveis, formulário utilizável, erro de credencial visível.
+- [ ] Cockpit: métricas, fila de trabalho e sinais sem overflow ou texto cortado.
+- [ ] Clientes: carteira + hub, selects de status e ações de aprovação acessíveis.
+- [ ] Conteúdo: briefing estruturado, brand book e calendário legíveis; calendário rola na horizontal sem quebrar a página.
+- [ ] Analytics: banner de demonstração visível e badge "exemplo" em todos os cards.
+- [ ] Integrações e Engenharia: listas e health rows sem overflow.
+- [ ] Modal de artefato: abre, edita, fecha; scroll interno funciona.
+- [ ] Contraste: nenhum texto creme sobre fundo claro nem texto escuro sobre fundo escuro.
+- [ ] Estados vazios honestos em todas as views; nenhum dado fake apresentado como real.
+- [ ] Paleta EG (musgo/baunilha/menta/âmbar) sem cores fora da marca.
+
+Assinatura:
+
+- [ ] QA desktop assinado por: ______ em ______
+- [ ] QA notebook com DevTools assinado por: ______ em ______
+- [ ] QA mobile assinado por: ______ em ______
 
 ## Critério de pronto do MVP v0
 
@@ -259,3 +299,6 @@ Formato:
 - 2026-07-09 - Codex - ver git log - ClickUp Bridge preparado para leitura real de listas/tasks e upsert local de entregáveis, mantendo HITL para escrita externa - compile backend, smoke API e smoke ClickUp mockado - pendente token/mapeamento real e staging.
 - 2026-07-10 - Codex - ver git log - Backend mínimo para CRM/funil, financeiro e métricas manuais da proposta HM - compile backend, migrate, seed, smoke API e smoke ClickUp - pendente frontend consumir endpoints e QA visual.
 - 2026-07-10 - Codex - ver git log - Port backend do BIAds: schema, API, fila Postgres e worker Google Ads/GA4/GSC/GTM - compile, migrate, seed, smokes API/ClickUp/Performance/worker/fila - pendente credenciais reais, comparação com Google, frontend e cron de staging.
+- 2026-07-09 - Antigravity - c52349e - Refatoração UI/UX: views extraídas do App (Login, Clients, Content, etc.), experiências de Brand Book, Calendário e Analytics, placeholders de logo - tsc, build frontend - pendências corrigidas na rodada seguinte (contraste, dados demo sem rótulo).
+- 2026-07-10 - Claude (Fable) - ver git log dcd2941..HEAD - Tema escuro musgo com tokens EG, assets de marca aplicados, Analytics/calendário com rotulagem honesta e dados reais, briefing/brand book estruturados por seções, ArtifactModal extraído e tipos sem any, checklist de QA visual criado - tsc, build frontend a cada commit - pendente QA visual assinado, visão mensal do calendário e assets finais de marca.
+- 2026-07-10 - Claude (Fable) - bccaf50/c9707e4 - Decisões de escopo registradas (CRM=Kommo bridge futuro, brand book adiado, calendário fica no ClickUp, port BIAds), documentos estratégicos generalizados sem hardcode de brand book, TrendChart recharts no Analytics com paleta validada, PLANO-PORT-BIADS.md criado - tsc, build frontend - pendente consolidação das worktrees pelo Juiz e execução do port (P1.5).
