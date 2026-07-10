@@ -264,7 +264,13 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"])
+        mapped_list_ids = client_hub_repo.list_clickup_list_ids(conn, client["organization_id"])
+        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_list_ids)
+        summary["deliverables"] = _upsert_clickup_tasks(conn, client["organization_id"], summary.get("tasks", []))
+        summary["write_policy"] = {
+            "clickup": "hitl_required",
+            "bioma": "local_upsert_from_clickup_read",
+        }
         client_hub_repo.record_sync_run(conn, client["organization_id"], sync_status, summary)
         client_hub_repo.write_audit(
             conn,
@@ -284,6 +290,49 @@ def _is_platform_admin(user: CurrentUserResponse) -> bool:
 def _require_platform_admin(user: CurrentUserResponse) -> None:
     if not _is_platform_admin(user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
+
+
+def _upsert_clickup_tasks(conn, organization_id: UUID, tasks: list[dict]) -> dict[str, int]:
+    created = 0
+    updated = 0
+    skipped = 0
+
+    for task in tasks:
+        task_id = task.get("id")
+        title = task.get("name")
+        if not task_id or not title:
+            skipped += 1
+            continue
+
+        result = client_hub_repo.upsert_clickup_deliverable(
+            conn,
+            organization_id,
+            task_id,
+            title,
+            _clickup_status_to_deliverable_status(task.get("status")),
+            task.get("due_at"),
+        )
+        if result == "created":
+            created += 1
+        elif result == "updated":
+            updated += 1
+        else:
+            skipped += 1
+
+    return {"created": created, "updated": updated, "skipped": skipped}
+
+
+def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
+    value = (status_name or "").lower()
+    if any(token in value for token in ("done", "complete", "conclu", "closed", "finalizado")):
+        return "done"
+    if any(token in value for token in ("block", "bloque", "impedido")):
+        return "blocked"
+    if any(token in value for token in ("approval", "aprova", "review", "valid")):
+        return "waiting_approval"
+    if any(token in value for token in ("progress", "andamento", "doing", "execu")):
+        return "in_progress"
+    return "planned"
 
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):

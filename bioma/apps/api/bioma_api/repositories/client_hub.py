@@ -131,6 +131,20 @@ def list_sync_runs(conn, organization_id: UUID):
     ).fetchall()
 
 
+def list_clickup_list_ids(conn, organization_id: UUID) -> list[str]:
+    rows = conn.execute(
+        """
+        select distinct clickup_list_id
+        from clickup_mappings
+        where organization_id = %s
+          and clickup_list_id is not null
+        order by clickup_list_id
+        """,
+        (organization_id,),
+    ).fetchall()
+    return [row["clickup_list_id"] for row in rows]
+
+
 def list_audit_logs(conn, organization_id: UUID):
     return conn.execute(
         """
@@ -220,6 +234,43 @@ def create_deliverable(
         """,
         (organization_id, title, status, due_at, clickup_task_id),
     ).fetchone()["id"]
+
+
+def upsert_clickup_deliverable(
+    conn,
+    organization_id: UUID,
+    clickup_task_id: str,
+    title: str,
+    status: str,
+    due_at: str | None,
+) -> str:
+    existing = conn.execute(
+        """
+        select id
+        from deliverables
+        where organization_id = %s and clickup_task_id = %s
+        """,
+        (organization_id, clickup_task_id),
+    ).fetchone()
+    if existing:
+        conn.execute(
+            """
+            update deliverables
+            set title = %s, status = %s, due_at = %s, updated_at = now()
+            where id = %s
+            """,
+            (title, status, due_at, existing["id"]),
+        )
+        return "updated"
+
+    conn.execute(
+        """
+        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
+        values (%s, %s, %s, %s, %s)
+        """,
+        (organization_id, title, status, due_at, clickup_task_id),
+    )
+    return "created"
 
 
 def update_deliverable(conn, organization_id: UUID, deliverable_id: UUID, updates: dict[str, Any]) -> bool:

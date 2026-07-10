@@ -151,10 +151,12 @@ Não fazer ainda:
 
 - [ ] Configurar `CLICKUP_API_TOKEN`.
 - [ ] Cadastrar mapeamento real de pasta/listas.
-- [ ] Ler tarefas reais.
-- [ ] Mapear status por lista: Social, Growth e Tech.
-- [ ] Registrar erros de sync de forma visível no cockpit.
-- [ ] Definir política de escrita: sempre HITL no MVP.
+- [x] Implementar leitura real de tarefas quando `CLICKUP_API_TOKEN` e pasta/listas estiverem configurados.
+- [x] Suportar leitura por `clickup_mappings` quando houver mapeamento de lista.
+- [x] Fazer upsert local de entregáveis por `clickup_task_id`.
+- [x] Registrar erros de sync no histórico retornado pelo portal.
+- [x] Definir política de escrita: sempre HITL no MVP.
+- [ ] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação.
 
 ### P3 - Segurança e qualidade
 
@@ -225,3 +227,4 @@ Formato:
 - 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.
 - 2026-07-09 - Codex - ver git log - Router Client Hub separado da camada de serviço - compile backend e smoke API - pendente quebrar SQL em repositório/testes unitários.
 - 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.
+- 2026-07-09 - Codex - ver git log - ClickUp Bridge preparado para leitura real de listas/tasks e upsert local de entregáveis, mantendo HITL para escrita externa - compile backend, smoke API e smoke ClickUp mockado - pendente token/mapeamento real e staging.

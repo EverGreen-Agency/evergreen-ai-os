@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     session_ttl_hours: int = 12
     clickup_api_token: str | None = None
     clickup_api_base_url: str = "https://api.clickup.com/api/v2"
+    clickup_task_page_limit: int = 3
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
