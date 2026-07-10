@@ -628,6 +628,20 @@ h3 {
   margin-top: 16px;
 }
 
+.content-main,
+.content-sidebar {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+.panel-footnote {
+  margin: 14px 0 0;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
 .surface.large {
   min-height: 280px;
 }
@@ -1165,16 +1179,47 @@ h3 {
 }
 
 .brand-book-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 8px 0;
   color: var(--accent);
   font-size: 14px;
 }
 
+.brand-book-section h4 svg {
+  flex: 0 0 auto;
+}
+
 .brand-book-section p {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 14px;
   line-height: 1.5;
   color: rgba(255, 244, 199, 0.85);
+}
+
+.brand-book-section p:last-child {
+  margin-bottom: 0;
+}
+
+.brand-book-section ul {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 244, 199, 0.85);
+}
+
+.brand-book-section ul:last-child {
+  margin-bottom: 0;
+}
+
+.brand-book-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .tags {
