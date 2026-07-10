@@ -1,5 +1,21 @@
 import { AlertTriangle, BarChart3, LineChart, TrendingUp, Users, Sparkles } from "lucide-react";
 import { SectionHeader } from "../components/shared";
+import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
+
+const demoTrend: TrendPoint[] = [
+  { label: "sem 1", value: 12400 },
+  { label: "sem 2", value: 15100 },
+  { label: "sem 3", value: 13800 },
+  { label: "sem 4", value: 18900 },
+  { label: "sem 5", value: 17600 },
+  { label: "sem 6", value: 22300 },
+  { label: "sem 7", value: 21100 },
+  { label: "sem 8", value: 26800 },
+  { label: "sem 9", value: 25400 },
+  { label: "sem 10", value: 30200 },
+  { label: "sem 11", value: 29100 },
+  { label: "sem 12", value: 34600 },
+];
 
 const demoMetrics = [
   { icon: Users, label: "Seguidores", value: "8.642", delta: "↑ 3,2% vs. período anterior", tone: "ok" },
@@ -52,11 +68,9 @@ export function AnalyticsView() {
 
       <div className="analytics-grid">
         <article className="surface">
-          <SectionHeader eyebrow="Evolução" title="Impressões" icon={LineChart} />
-          <div className="chart-placeholder">
-            <div className="chart-line" />
-            <p className="chart-demo-text">Gráfico de demonstração (dados não reais)</p>
-          </div>
+          <SectionHeader eyebrow="Evolução (exemplo)" title="Impressões" icon={LineChart} />
+          <TrendChart data={demoTrend} name="Impressões" />
+          <p className="panel-footnote">Série ilustrativa de demonstração — dados não reais.</p>
         </article>
 
         <article className="surface">
