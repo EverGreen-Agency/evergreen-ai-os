@@ -82,6 +82,7 @@ Arquivos sensíveis que não devem ser editados por duas IAs ao mesmo tempo:
 - `bioma/apps/web/src/views/CockpitView.tsx`
 - `bioma/apps/api/bioma_api/routers/client_hub.py`
 - `bioma/apps/api/bioma_api/services/client_hub.py`
+- `bioma/apps/api/bioma_api/repositories/client_hub.py`
 - `bioma/apps/api/migrations/*.sql`
 - `bioma/infra/docker-compose.yml`
 
@@ -133,6 +134,7 @@ Não fazer ainda:
 - [x] Validar build frontend.
 - [x] Separar constantes, helpers e componentes comuns para reduzir `App.tsx`.
 - [x] Separar router HTTP do serviço do Client Hub no backend.
+- [x] Separar SQL do Client Hub em repositório de persistência.
 - [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
 - [ ] Criar checklist manual de QA assinado.
 
@@ -222,3 +224,4 @@ Formato:
 - 2026-07-09 - Codex - ver git log - CRUD mínimo de cliente/artefato/entrega, auditoria no portal, smoke API e UI revisada - compile backend, migrate, seed, smoke API, tsc, build frontend - pendente assets reais, ClickUp real, QA visual e staging.
 - 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.
 - 2026-07-09 - Codex - ver git log - Router Client Hub separado da camada de serviço - compile backend e smoke API - pendente quebrar SQL em repositório/testes unitários.
+- 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.

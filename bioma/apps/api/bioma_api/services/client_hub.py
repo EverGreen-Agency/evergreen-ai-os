@@ -1,12 +1,11 @@
-import re
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from psycopg.types.json import Jsonb
 
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.integrations.clickup import sync_clickup_folder
+from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.client_hub import (
     ApprovalDecisionRequest,
@@ -24,10 +23,7 @@ from bioma_api.schemas.client_hub import (
 def list_clients(user: CurrentUserResponse) -> list[ClientSummary]:
     is_admin = _is_platform_admin(user)
     with connect() as conn:
-        rows = conn.execute(
-            _client_summary_sql(_client_access_filter()),
-            (is_admin, user.id),
-        ).fetchall()
+        rows = client_hub_repo.list_clients(conn, is_admin, user.id)
     return [ClientSummary(**row) for row in rows]
 
 
@@ -39,26 +35,19 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
 
     with connect() as conn:
         organization_name = (payload.organization_name or client_name).strip()
-        organization_slug = _unique_org_slug(conn, payload.organization_slug or organization_name)
-        organization_id = conn.execute(
-            """
-            insert into organizations (name, slug, type)
-            values (%s, %s, 'client')
-            returning id
-            """,
-            (organization_name, organization_slug),
-        ).fetchone()["id"]
-        client_id = conn.execute(
-            """
-            insert into clients (organization_id, name, status, responsible_name, clickup_folder_id)
-            values (%s, %s, %s, %s, %s)
-            returning id
-            """,
-            (organization_id, client_name, payload.status, payload.responsible_name, payload.clickup_folder_id),
-        ).fetchone()["id"]
-        _write_audit(
+        organization_slug = client_hub_repo.unique_org_slug(conn, payload.organization_slug or organization_name)
+        organization_id = client_hub_repo.create_organization(conn, organization_name, organization_slug)
+        client_id = client_hub_repo.create_client(
             conn,
-            user,
+            organization_id,
+            client_name,
+            payload.status,
+            payload.responsible_name,
+            payload.clickup_folder_id,
+        )
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
             organization_id,
             "client.created",
             {"client_id": str(client_id), "name": client_name},
@@ -70,87 +59,15 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
 def get_client_portal(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     is_admin = _is_platform_admin(user)
     with connect() as conn:
-        client = conn.execute(
-            _client_summary_sql(f"and c.id = %s {_client_access_filter()}"),
-            (client_id, is_admin, user.id),
-        ).fetchone()
+        client = client_hub_repo.get_client_summary(conn, client_id, is_admin, user.id)
         if not client:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
 
-        artifacts = conn.execute(
-            """
-            select id, title, kind, visibility, url, content, created_at
-            from artifacts
-            where organization_id = %s
-              and (%s or visibility = 'client')
-            order by created_at desc
-            limit 50
-            """,
-            (client["organization_id"], is_admin),
-        ).fetchall()
-
-        deliverables = conn.execute(
-            """
-            select id, title, status, due_at, clickup_task_id, updated_at
-            from deliverables
-            where organization_id = %s
-            order by
-              case status
-                when 'blocked' then 0
-                when 'waiting_approval' then 1
-                when 'in_progress' then 2
-                when 'planned' then 3
-                else 4
-              end,
-              due_at nulls last,
-              updated_at desc
-            limit 50
-            """,
-            (client["organization_id"],),
-        ).fetchall()
-
-        approvals = conn.execute(
-            """
-            select
-              a.id,
-              a.deliverable_id,
-              d.title as deliverable_title,
-              a.status,
-              a.comment,
-              a.created_at,
-              a.decided_at
-            from approvals a
-            left join deliverables d on d.id = a.deliverable_id
-            where a.organization_id = %s
-            order by
-              case a.status when 'pending' then 0 else 1 end,
-              a.created_at desc
-            limit 50
-            """,
-            (client["organization_id"],),
-        ).fetchall()
-
-        sync_runs = conn.execute(
-            """
-            select id, source, status, summary, started_at, finished_at
-            from sync_runs
-            where organization_id = %s
-            order by started_at desc
-            limit 20
-            """,
-            (client["organization_id"],),
-        ).fetchall()
-
-        audit_logs = conn.execute(
-            """
-            select id, actor_user_id, event_type, metadata, created_at
-            from audit_logs
-            where organization_id = %s
-            order by created_at desc
-            limit 20
-            """,
-            (client["organization_id"],),
-        ).fetchall()
+        artifacts = client_hub_repo.list_artifacts(conn, client["organization_id"], is_admin)
+        deliverables = client_hub_repo.list_deliverables(conn, client["organization_id"])
+        approvals = client_hub_repo.list_approvals(conn, client["organization_id"])
+        sync_runs = client_hub_repo.list_sync_runs(conn, client["organization_id"])
+        audit_logs = client_hub_repo.list_audit_logs(conn, client["organization_id"])
 
     return ClientPortalResponse(
         client=ClientSummary(**client),
@@ -169,21 +86,12 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
         client_updates = {key: updates[key] for key in ("name", "status", "responsible_name", "clickup_folder_id") if key in updates}
-        if client_updates:
-            set_clause = ", ".join([f"{column} = %s" for column in client_updates])
-            params = list(client_updates.values()) + [client_id]
-            conn.execute(
-                f"update clients set {set_clause}, updated_at = now() where id = %s",
-                params,
-            )
+        client_hub_repo.update_client(conn, client_id, client_updates)
         if "organization_name" in updates:
-            conn.execute(
-                "update organizations set name = %s, updated_at = now() where id = %s",
-                (updates["organization_name"], client["organization_id"]),
-            )
-        _write_audit(
+            client_hub_repo.update_organization_name(conn, client["organization_id"], updates["organization_name"])
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "client.updated",
             {"client_id": str(client_id), "fields": sorted(updates.keys())},
@@ -196,25 +104,19 @@ def create_artifact(client_id: UUID, payload: ArtifactCreateRequest, user: Curre
     _require_platform_admin(user)
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        artifact_id = conn.execute(
-            """
-            insert into artifacts (organization_id, title, kind, visibility, content, url, created_by)
-            values (%s, %s, %s, %s, %s, %s, %s)
-            returning id
-            """,
-            (
-                client["organization_id"],
-                payload.title,
-                payload.kind,
-                payload.visibility,
-                payload.content,
-                payload.url,
-                user.id,
-            ),
-        ).fetchone()["id"]
-        _write_audit(
+        artifact_id = client_hub_repo.create_artifact(
             conn,
-            user,
+            client["organization_id"],
+            payload.title,
+            payload.kind,
+            payload.visibility,
+            payload.content,
+            payload.url,
+            user.id,
+        )
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
             client["organization_id"],
             "artifact.created",
             {"client_id": str(client_id), "artifact_id": str(artifact_id), "title": payload.title},
@@ -234,18 +136,11 @@ def update_artifact(
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        if updates:
-            set_clause = ", ".join([f"{column} = %s" for column in updates])
-            params = list(updates.values()) + [artifact_id, client["organization_id"]]
-            updated = conn.execute(
-                f"update artifacts set {set_clause} where id = %s and organization_id = %s returning id",
-                params,
-            ).fetchone()
-            if not updated:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artefato não encontrado.")
-        _write_audit(
+        if not client_hub_repo.update_artifact(conn, client["organization_id"], artifact_id, updates):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artefato não encontrado.")
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "artifact.updated",
             {"client_id": str(client_id), "artifact_id": str(artifact_id), "fields": sorted(updates.keys())},
@@ -258,15 +153,11 @@ def delete_artifact(client_id: UUID, artifact_id: UUID, user: CurrentUserRespons
     _require_platform_admin(user)
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        deleted = conn.execute(
-            "delete from artifacts where id = %s and organization_id = %s returning id",
-            (artifact_id, client["organization_id"]),
-        ).fetchone()
-        if not deleted:
+        if not client_hub_repo.delete_artifact(conn, client["organization_id"], artifact_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artefato não encontrado.")
-        _write_audit(
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "artifact.deleted",
             {"client_id": str(client_id), "artifact_id": str(artifact_id)},
@@ -279,17 +170,17 @@ def create_deliverable(client_id: UUID, payload: DeliverableCreateRequest, user:
     _require_platform_admin(user)
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        deliverable_id = conn.execute(
-            """
-            insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
-            values (%s, %s, %s, %s, %s)
-            returning id
-            """,
-            (client["organization_id"], payload.title, payload.status, payload.due_at, payload.clickup_task_id),
-        ).fetchone()["id"]
-        _write_audit(
+        deliverable_id = client_hub_repo.create_deliverable(
             conn,
-            user,
+            client["organization_id"],
+            payload.title,
+            payload.status,
+            payload.due_at,
+            payload.clickup_task_id,
+        )
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
             client["organization_id"],
             "deliverable.created",
             {"client_id": str(client_id), "deliverable_id": str(deliverable_id), "title": payload.title},
@@ -309,23 +200,11 @@ def update_deliverable(
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        if updates:
-            set_clause = ", ".join([f"{column} = %s" for column in updates])
-            params = list(updates.values()) + [deliverable_id, client["organization_id"]]
-            updated = conn.execute(
-                f"""
-                update deliverables
-                set {set_clause}, updated_at = now()
-                where id = %s and organization_id = %s
-                returning id
-                """,
-                params,
-            ).fetchone()
-            if not updated:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
-        _write_audit(
+        if not client_hub_repo.update_deliverable(conn, client["organization_id"], deliverable_id, updates):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "deliverable.updated",
             {"client_id": str(client_id), "deliverable_id": str(deliverable_id), "fields": sorted(updates.keys())},
@@ -338,19 +217,11 @@ def delete_deliverable(client_id: UUID, deliverable_id: UUID, user: CurrentUserR
     _require_platform_admin(user)
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        conn.execute(
-            "delete from approvals where deliverable_id = %s and organization_id = %s",
-            (deliverable_id, client["organization_id"]),
-        )
-        deleted = conn.execute(
-            "delete from deliverables where id = %s and organization_id = %s returning id",
-            (deliverable_id, client["organization_id"]),
-        ).fetchone()
-        if not deleted:
+        if not client_hub_repo.delete_deliverable(conn, client["organization_id"], deliverable_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
-        _write_audit(
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "deliverable.deleted",
             {"client_id": str(client_id), "deliverable_id": str(deliverable_id)},
@@ -367,40 +238,19 @@ def decide_approval(
 ) -> ClientPortalResponse:
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        approval = conn.execute(
-            """
-            select id, deliverable_id, status
-            from approvals
-            where id = %s and organization_id = %s
-            """,
-            (approval_id, client["organization_id"]),
-        ).fetchone()
+        approval = client_hub_repo.get_approval(conn, client["organization_id"], approval_id)
         if not approval:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aprovação não encontrada.")
         if approval["status"] != "pending":
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aprovação já decidida.")
 
-        conn.execute(
-            """
-            update approvals
-            set status = %s, comment = coalesce(%s, comment), decided_by = %s, decided_at = now()
-            where id = %s
-            """,
-            (payload.status, payload.comment, user.id, approval_id),
-        )
+        client_hub_repo.decide_approval(conn, approval_id, payload.status, payload.comment, user.id)
         if approval["deliverable_id"]:
             next_status = "done" if payload.status == "approved" else "blocked"
-            conn.execute(
-                """
-                update deliverables
-                set status = %s, updated_at = now()
-                where id = %s and status = 'waiting_approval'
-                """,
-                (next_status, approval["deliverable_id"]),
-            )
-        _write_audit(
+            client_hub_repo.update_waiting_deliverable_status(conn, approval["deliverable_id"], next_status)
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "approval.decided",
             {"approval_id": str(approval_id), "status": payload.status},
@@ -415,16 +265,10 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
         sync_status, summary = sync_clickup_folder(client["clickup_folder_id"])
-        conn.execute(
-            """
-            insert into sync_runs (source, organization_id, status, summary, finished_at)
-            values ('clickup', %s, %s, %s, now())
-            """,
-            (client["organization_id"], sync_status, Jsonb(summary)),
-        )
-        _write_audit(
+        client_hub_repo.record_sync_run(conn, client["organization_id"], sync_status, summary)
+        client_hub_repo.write_audit(
             conn,
-            user,
+            user.id,
             client["organization_id"],
             "clickup.sync_requested",
             {"client_id": str(client_id), "status": sync_status},
@@ -442,75 +286,9 @@ def _require_platform_admin(user: CurrentUserResponse) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
 
 
-def _slugify(value: str) -> str:
-    normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return normalized or "cliente"
-
-
-def _unique_org_slug(conn, base_slug: str) -> str:
-    slug = _slugify(base_slug)
-    candidate = slug
-    suffix = 2
-    while conn.execute("select 1 from organizations where slug = %s", (candidate,)).fetchone():
-        candidate = f"{slug}-{suffix}"
-        suffix += 1
-    return candidate
-
-
-def _write_audit(conn, user: CurrentUserResponse, organization_id: UUID, event_type: str, metadata: dict) -> None:
-    conn.execute(
-        """
-        insert into audit_logs (actor_user_id, organization_id, event_type, metadata)
-        values (%s, %s, %s, %s)
-        """,
-        (user.id, organization_id, event_type, Jsonb(metadata)),
-    )
-
-
-def _client_access_filter() -> str:
-    return """
-      and (%s or c.organization_id in (
-        select organization_id from memberships where user_id = %s
-      ))
-    """
-
-
-def _client_summary_sql(extra_where: str = "") -> str:
-    return f"""
-        select
-          c.id,
-          c.organization_id,
-          o.name as organization_name,
-          o.slug as organization_slug,
-          c.name,
-          c.status,
-          c.responsible_name,
-          c.clickup_folder_id,
-          count(distinct d.id)::int as deliverables_total,
-          count(distinct a.id) filter (where a.status = 'pending')::int as approvals_pending,
-          count(distinct ar.id) filter (where ar.visibility = 'client')::int as artifacts_client
-        from clients c
-        join organizations o on o.id = c.organization_id
-        left join deliverables d on d.organization_id = c.organization_id
-        left join approvals a on a.organization_id = c.organization_id
-        left join artifacts ar on ar.organization_id = c.organization_id
-        where 1 = 1
-          {extra_where}
-        group by c.id, o.id
-        order by c.created_at desc
-    """
-
-
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
     is_admin = _is_platform_admin(user)
-    client = conn.execute(
-        """
-        select c.id, c.organization_id, c.clickup_folder_id
-        from clients c
-        where c.id = %s
-        """ + _client_access_filter(),
-        (client_id, is_admin, user.id),
-    ).fetchone()
+    client = client_hub_repo.find_accessible_client(conn, client_id, is_admin, user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     return client
