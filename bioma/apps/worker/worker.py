@@ -1,5 +1,4 @@
-def main() -> None:
-    print("Bioma worker placeholder. Add jobs only when the MVP needs them.")
+from bioma_worker.cli import main
 
 
 if __name__ == "__main__":

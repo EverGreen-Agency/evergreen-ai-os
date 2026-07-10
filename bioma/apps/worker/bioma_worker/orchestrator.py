@@ -1,0 +1,122 @@
+from datetime import date, timedelta
+from typing import Any
+
+from bioma_worker.config import get_settings
+from bioma_worker.db import connect
+from bioma_worker.google_client import GoogleApiClient
+from bioma_worker.providers import ga4, google_ads, gtm, search_console
+from bioma_worker import storage
+
+
+def run_next_sync() -> dict[str, Any] | None:
+    with connect() as conn:
+        sync_run = storage.claim_next_sync(conn)
+    if not sync_run:
+        return None
+
+    settings = get_settings()
+    google_client = GoogleApiClient(settings)
+    date_to = sync_run["date_to"] or date.today()
+    date_from = sync_run["date_from"] or (date_to - timedelta(days=30))
+
+    with connect() as conn:
+        connections = storage.list_connections(conn, sync_run["client_id"], sync_run["provider"] or "all")
+
+    results: dict[str, dict[str, Any]] = {}
+    total_records = 0
+    for connection in connections:
+        provider = connection["provider"]
+        result_key = f"{provider}:{connection['external_account_id']}"
+        try:
+            _validate_credentials_reference(connection)
+            with connect() as conn:
+                records = _sync_provider(
+                    conn,
+                    google_client,
+                    settings,
+                    sync_run["client_id"],
+                    connection,
+                    date_from,
+                    date_to,
+                )
+                storage.mark_connection_success(conn, connection["id"])
+            results[result_key] = {"provider": provider, "status": "ok", "records": records}
+            total_records += records
+        except Exception as exc:  # noqa: BLE001 - provider failures must be isolated
+            message = _safe_error(exc)
+            with connect() as conn:
+                storage.mark_connection_error(conn, connection["id"], message)
+            results[result_key] = {
+                "provider": provider,
+                "status": "error",
+                "records": 0,
+                "error": message,
+            }
+
+    success_count = sum(1 for result in results.values() if result["status"] == "ok")
+    error_count = sum(1 for result in results.values() if result["status"] == "error")
+    if success_count and error_count:
+        final_status = "partial"
+    elif success_count:
+        final_status = "ok"
+    else:
+        final_status = "error"
+
+    summary = {
+        "mode": "worker",
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+        "providers": results,
+    }
+    error_message = None
+    if not connections:
+        error_message = "Nenhuma conexão ativa encontrada para a sincronização."
+        summary["error"] = error_message
+    elif final_status == "error":
+        error_message = "Todos os providers falharam; consulte o resumo por provider."
+
+    with connect() as conn:
+        storage.complete_sync(
+            conn,
+            sync_run["id"],
+            final_status,
+            summary,
+            total_records,
+            error_code="PROVIDER_SYNC_FAILED" if final_status == "error" else None,
+            error_message=error_message,
+        )
+    return {"id": str(sync_run["id"]), "status": final_status, **summary}
+
+
+def _sync_provider(
+    conn,
+    client: GoogleApiClient,
+    settings,
+    client_id,
+    connection,
+    date_from: date,
+    date_to: date,
+) -> int:
+    provider = connection["provider"]
+    if provider == "google_ads":
+        return google_ads.sync(conn, client, settings, client_id, connection, date_from, date_to)
+    if provider == "ga4":
+        return ga4.sync(conn, client, client_id, connection, date_from, date_to)
+    if provider == "search_console":
+        return search_console.sync(conn, client, client_id, connection, date_from, date_to)
+    if provider == "gtm":
+        return gtm.sync(conn, client, client_id, connection)
+    raise RuntimeError(f"Provider não suportado: {provider}")
+
+
+def _validate_credentials_reference(connection: dict[str, Any]) -> None:
+    reference = connection.get("credentials_ref")
+    if reference and reference != "env:GOOGLE_SERVICE_ACCOUNT_JSON":
+        raise RuntimeError(
+            "credentials_ref não suportado neste ambiente; use env:GOOGLE_SERVICE_ACCOUNT_JSON ou integre um cofre."
+        )
+
+
+def _safe_error(exc: Exception) -> str:
+    message = str(exc).strip() or exc.__class__.__name__
+    return message[:2000]
