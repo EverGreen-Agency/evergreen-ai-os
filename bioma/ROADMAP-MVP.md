@@ -30,7 +30,7 @@ Antes de alterar escopo, fluxo de ClickUp ou lógica operacional, consulte:
 
 Data de referência: 2026-07-10.
 
-O MVP está tecnicamente testável e operável em ambiente local. Ainda não é produto final nem staging publicado.
+O MVP técnico local está testável e operável. O MVP comercial baseado na proposta HM ainda não está concluído nem publicado em staging.
 
 Funcional hoje:
 
@@ -51,6 +51,7 @@ Funcional hoje:
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
 - Módulo de Performance com schema multi-tenant, API de leitura e conexões por cliente.
 - Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
+- Backend mínimo de CRM, financeiro e métricas manuais, ainda sem telas integradas no frontend.
 
 Ainda demo/dry-run:
 
@@ -61,6 +62,8 @@ Ainda demo/dry-run:
 - Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
 - Permissões ainda são simples: `eg_admin` e `client_user`.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
+- Analytics usa série explicitamente demonstrativa; ainda não consome os endpoints reais de Performance.
+- LinkedIn orgânico e LinkedIn Ads, centrais no caso HM, ainda não foram integrados.
 
 ## Protocolo para múltiplas IAs
 
@@ -128,11 +131,13 @@ Não fazer ainda:
 Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não produto a ser vendido; a plataforma é da EG):
 
 - **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
-- **CRM:** fora do MVP. A EG revende Kommo; a direção futura é uma **bridge Kommo** (espelho read-only do funil por cliente, mesmo padrão do ClickUp Bridge), não um CRM nativo.
+- **CRM:** o backend mínimo do funil solicitado no caso HM existe, mas a tela ainda está pendente. Ele atende o MVP operacional, não pretende substituir um CRM completo. A direção futura preferida é uma **bridge Kommo** (espelho do funil por cliente, no padrão do ClickUp Bridge), pois a EG revende Kommo.
 - **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
 - **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
 - **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
-- Financeiro e Notion: depois.
+- **Financeiro:** backend mínimo concluído; tela e integração com a fonte financeira ainda pendentes.
+- **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
+- Notion: depois.
 
 ## Próximos passos priorizados
 
@@ -152,7 +157,8 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 - [x] Criar backend mínimo de CRM/funil de leads da proposta HM.
 - [x] Criar backend mínimo de financeiro da reunião HM.
 - [x] Criar backend mínimo de métricas manuais para Analytics honesto.
-- [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
+- [x] Fazer smoke visual assistido em desktop e mobile, sem overflow nas rotas principais.
+- [ ] Fazer QA visual humano em notebook com DevTools aberto e assinar o checklist.
 - [x] Criar checklist manual de QA (seção "Checklist de QA visual"; assinatura ainda pendente).
 
 ### P1 - Aproximar da entrega HM
@@ -185,6 +191,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
 - [ ] Configurar segredos e cron no staging da Railway.
 - [ ] Criar as páginas de Performance e conectá-las aos endpoints reais; o Analytics atual ainda é uma demonstração honesta.
+- [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
 ### P2 - ClickUp real
 
@@ -207,6 +214,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Teste básico de carga.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
+- [ ] Dividir o bundle principal do frontend; o build atual gera chunk JS de aproximadamente 601 kB antes de gzip.
 
 ### P4 - Staging
 
@@ -233,6 +241,13 @@ Para cada largura:
 - [ ] Estados vazios honestos em todas as views; nenhum dado fake apresentado como real.
 - [ ] Paleta EG (musgo/baunilha/menta/âmbar) sem cores fora da marca.
 
+Smoke assistido executado em 2026-07-10:
+
+- [x] Login e Cockpit em 1440x900 e 390x844 sem overflow horizontal.
+- [x] Rotas Clientes, Conteúdo, Analytics, Integrações e Engenharia abrem sem alerta de erro ou sessão ausente.
+- [x] Sessão EG admin, API online e dados do seed apresentados após login.
+- [ ] Interações detalhadas, notebook com DevTools, assets finais e assinatura humana continuam pendentes.
+
 Assinatura:
 
 - [ ] QA desktop assinado por: ______ em ______
@@ -258,6 +273,14 @@ O MVP v0 só pode ser considerado pronto para cliente real quando, além disso:
 - Staging está publicado.
 - QA visual/manual foi assinado.
 - Checklist LGPD foi revisado.
+
+Para aderir ao escopo comercial de referência HM, também faltam:
+
+- telas conectadas aos backends de CRM e financeiro;
+- páginas de Performance conectadas aos endpoints reais;
+- integração de LinkedIn orgânico e LinkedIn Ads;
+- validação real de ClickUp e dos providers de BI;
+- staging, assets finais e aceite visual humano.
 
 ## Status de testes
 
@@ -302,3 +325,4 @@ Formato:
 - 2026-07-09 - Antigravity - c52349e - Refatoração UI/UX: views extraídas do App (Login, Clients, Content, etc.), experiências de Brand Book, Calendário e Analytics, placeholders de logo - tsc, build frontend - pendências corrigidas na rodada seguinte (contraste, dados demo sem rótulo).
 - 2026-07-10 - Claude (Fable) - ver git log dcd2941..HEAD - Tema escuro musgo com tokens EG, assets de marca aplicados, Analytics/calendário com rotulagem honesta e dados reais, briefing/brand book estruturados por seções, ArtifactModal extraído e tipos sem any, checklist de QA visual criado - tsc, build frontend a cada commit - pendente QA visual assinado, visão mensal do calendário e assets finais de marca.
 - 2026-07-10 - Claude (Fable) - bccaf50/c9707e4 - Decisões de escopo registradas (CRM=Kommo bridge futuro, brand book adiado, calendário fica no ClickUp, port BIAds), documentos estratégicos generalizados sem hardcode de brand book, TrendChart recharts no Analytics com paleta validada, PLANO-PORT-BIADS.md criado - tsc, build frontend - pendente consolidação das worktrees pelo Juiz e execução do port (P1.5).
+- 2026-07-10 - Codex/Juiz - c143c7a - Worktrees de API e UI consolidadas no develop, conflito de roadmap resolvido e port backend do BIAds incorporado - tsc, build, migrations, seed, smokes API/ClickUp/Performance/worker/fila e smoke visual desktop/mobile - pendentes frontend CRM/financeiro/Performance, LinkedIn, integrações reais, staging, assets e aceite humano.
