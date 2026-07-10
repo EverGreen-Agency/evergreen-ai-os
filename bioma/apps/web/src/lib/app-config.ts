@@ -2,7 +2,7 @@ import { BookOpen, FileText, GitBranch, LayoutDashboard, Users, type LucideIcon 
 
 import type { ArtifactPayload, ClientPayload, ClientStatus, DeliverablePayload, DeliverableStatus } from "./api";
 
-export type ViewId = "cockpit" | "clientes" | "conteudo" | "integracoes" | "engenharia";
+export type ViewId = "cockpit" | "clientes" | "conteudo" | "integracoes" | "engenharia" | "analytics";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
@@ -30,7 +30,7 @@ export const deliverableStatusLabel: Record<DeliverableStatus, string> = {
 export const integrationRows = [
   { name: "ClickUp", status: "MVP", detail: "dry-run manual; próximo passo é leitura real de tasks por lista" },
   { name: "Drive", status: "Backlog", detail: "centralizar links e arquivos do cliente no hub" },
-  { name: "LinkedIn/Analytics", status: "Backlog", detail: "apenas quando houver fonte real, sem métricas inventadas" },
+  { name: "LinkedIn/Analytics", status: "MVP Demo", detail: "Demonstração visual do dashboard de performance (sem dados reais ainda)" },
   { name: "Autentique", status: "Backlog", detail: "contratos e assinaturas sem duplicar ferramenta jurídica" },
 ];
 
@@ -59,5 +59,6 @@ export const emptyDeliverableDraft: DeliverablePayload = {
 
 export function currentViewFromHash(): ViewId {
   const id = window.location.hash.replace("#", "") as ViewId;
+  if (id === "analytics") return id;
   return navItems.some((item) => item.id === id) ? id : "cockpit";
 }

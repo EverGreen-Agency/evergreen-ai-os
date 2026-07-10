@@ -1,30 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import {
-  Activity,
-  AlertCircle,
-  ArrowRight,
-  BookOpen,
-  Building2,
-  CalendarCheck,
-  CheckCircle2,
-  CircleDashed,
-  ClipboardCheck,
-  FileText,
-  GitBranch,
-  Link,
-  LockKeyhole,
-  LogIn,
-  LogOut,
-  Plus,
-  RefreshCw,
-  Save,
-  Search,
-  Server,
-  ShieldCheck,
-  Trash2,
-  Users,
-  X,
-} from "lucide-react";
+import { LogOut, Search, X, Save, Trash2, LayoutDashboard } from "lucide-react";
 import {
   api,
   type ApiHealth,
@@ -32,41 +7,37 @@ import {
   type ArtifactSummary,
   type ClientPayload,
   type ClientPortal,
-  type ClientStatus,
   type ClientSummary,
   type CurrentUser,
   type DeliverablePayload,
   type DeliverableStatus,
 } from "./lib/api";
-import { DockTitle, EmptyState, HealthRow, HubBlock, ProofItem, SectionHeader } from "./components/shared";
 import {
   currentViewFromHash,
-  deliverableStatusLabel,
   emptyArtifactDraft,
   emptyClientDraft,
   emptyDeliverableDraft,
-  integrationRows,
   navItems,
-  statusLabel,
   type ViewId,
 } from "./lib/app-config";
 import {
-  approvalStatusLabel,
   artifactKindLabel,
-  auditLabel,
-  clickUpSummary,
-  compactMetadata,
-  formatDateTime,
-  formatDueDate,
   isSessionError,
   normalizeArtifactPayload,
   normalizeClientPayload,
   normalizeDeliverablePayload,
 } from "./lib/format";
 import { CockpitView } from "./views/CockpitView";
+import { LoginView } from "./views/LoginView";
+import { ClientsView } from "./views/ClientsView";
+import { ContentView } from "./views/ContentView";
+import { IntegrationsView } from "./views/IntegrationsView";
+import { EngineeringView } from "./views/EngineeringView";
+import { AnalyticsView } from "./views/AnalyticsView";
+import { AdminDock } from "./components/AdminDock";
 
 export function App() {
-  const [view, setView] = useState<ViewId>(currentViewFromHash());
+  const [view, setView] = useState<ViewId | "analytics">(currentViewFromHash() as any);
   const [health, setHealth] = useState<ApiHealth | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
@@ -78,6 +49,7 @@ export function App() {
   const [dataError, setDataError] = useState("");
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
+  
   const [newClientDraft, setNewClientDraft] = useState<ClientPayload>(emptyClientDraft);
   const [clientDraft, setClientDraft] = useState<ClientPayload>(emptyClientDraft);
   const [artifactDraft, setArtifactDraft] = useState<ArtifactPayload>(emptyArtifactDraft);
@@ -107,7 +79,7 @@ export function App() {
   );
 
   useEffect(() => {
-    const handleHash = () => setView(currentViewFromHash());
+    const handleHash = () => setView(currentViewFromHash() as any);
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
@@ -189,8 +161,8 @@ export function App() {
     });
   }, [selectedArtifact]);
 
-  function navigate(nextView: ViewId) {
-    setView(nextView);
+  function navigate(nextView: string) {
+    setView(nextView as any);
     window.history.replaceState(null, "", `#${nextView}`);
   }
 
@@ -337,58 +309,15 @@ export function App() {
 
   if (!user) {
     return (
-      <main className="login-shell">
-        <section className="login-copy">
-          <div className="brand large">
-            <div className="brand-mark">EG</div>
-            <div>
-              <strong>Bioma</strong>
-              <span>EverGreen</span>
-            </div>
-          </div>
-          <div>
-            <p className="eyebrow invert">Plataforma operacional</p>
-            <h1>Operação, cliente e dados no mesmo lugar.</h1>
-            <p className="login-subtitle">
-              O primeiro MVP conecta o cockpit interno da EG ao Client Hub e às integrações que sustentam a entrega.
-            </p>
-          </div>
-          <div className="login-proof">
-            <ProofItem icon={Users} title="Client Hub" detail="Briefing, entregas e aprovações" />
-            <ProofItem icon={GitBranch} title="ClickUp Bridge" detail="Operação espelhada com controle" />
-            <ProofItem icon={ShieldCheck} title="Governança" detail="Sessão, escopo e auditoria" />
-          </div>
-        </section>
-
-        <section className="login-card" aria-label="Entrar no Bioma">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Acesso</p>
-              <h2>Entrar no Bioma</h2>
-            </div>
-            <LockKeyhole size={24} />
-          </div>
-          <form className="form-grid" onSubmit={handleLogin}>
-            <label>
-              E-mail
-              <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
-            </label>
-            <label>
-              Senha
-              <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
-            </label>
-            {loginError && <span className="form-error">{loginError}</span>}
-            <button type="submit" className="primary-button">
-              <LogIn size={18} />
-              Entrar
-            </button>
-          </form>
-          <div className="login-health">
-            <span className={apiOnline ? "dot online" : "dot"} />
-            {apiOnline ? "API online" : "API offline"}
-          </div>
-        </section>
-      </main>
+      <LoginView
+        email={email}
+        password={password}
+        loginError={loginError}
+        apiOnline={apiOnline}
+        onEmailChange={setEmail}
+        onPasswordChange={setPassword}
+        onSubmit={handleLogin}
+      />
     );
   }
 
@@ -413,6 +342,10 @@ export function App() {
               </button>
             );
           })}
+          <button className={view === "analytics" ? "active mt-2" : "mt-2"} type="button" onClick={() => navigate("analytics")}>
+            <LayoutDashboard size={18} />
+            Analytics
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -458,416 +391,73 @@ export function App() {
         )}
 
         {view === "clientes" && (
-          <section className="client-layout">
-            <article className="surface client-list-panel">
-              <SectionHeader eyebrow="Client Hub" title="Carteira" icon={Users} />
-              {clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
-              <div className="client-list">
-                {clients.map((client) => (
-                  <button
-                    className={client.id === selectedClientId ? "client-card selected" : "client-card"}
-                    key={client.id}
-                    type="button"
-                    onClick={() => setSelectedClientId(client.id)}
-                  >
-                    <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
-                    <strong>{client.name}</strong>
-                    <small>{client.responsible_name ?? "Sem responsável"}</small>
-                    <div className="client-card-meta">
-                      <span>{client.deliverables_total} entregas</span>
-                      <span>{client.approvals_pending} aprovações</span>
-                      <span>{client.artifacts_client} artefatos</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </article>
-
-            <article className="surface hub-panel">
-              <SectionHeader eyebrow="Hub do cliente" title={selectedClient?.name ?? "Selecione um cliente"} icon={ClipboardCheck} />
-              {loadingPortal && <EmptyState text="Carregando hub..." />}
-              {!loadingPortal && selectedClient && portal && (
-                <div className="hub-grid">
-                  <section className="hub-block highlight">
-                    <div>
-                      <span className={`status-pill ${selectedClient.status}`}>{statusLabel[selectedClient.status]}</span>
-                      <h3>{selectedClient.organization_name}</h3>
-                      <p>
-                        Responsável: <strong>{selectedClient.responsible_name ?? "não definido"}</strong>
-                      </p>
-                    </div>
-                    <div className="sync-summary">
-                      <GitBranch size={18} />
-                      <span>{clickUpSummary(selectedClient.clickup_folder_id, latestSync?.status)}</span>
-                      {isEgAdmin && (
-                        <button
-                          className="sync-button"
-                          type="button"
-                          onClick={handleClickUpSync}
-                          disabled={actionBusy === "clickup:sync"}
-                        >
-                          <RefreshCw size={14} />
-                          Sincronizar
-                        </button>
-                      )}
-                    </div>
-                  </section>
-
-                  <HubBlock title="Entregas" icon={CalendarCheck}>
-                    {portal.deliverables.length === 0 && <EmptyState compact text="Nenhuma entrega cadastrada." />}
-                    {portal.deliverables.map((deliverable) => (
-                      <div className="work-row" key={deliverable.id}>
-                        <CircleDashed size={16} />
-                        <div>
-                          <strong>{deliverable.title}</strong>
-                          <small>{formatDueDate(deliverable.due_at)} · {deliverable.clickup_task_id ?? "sem ClickUp"}</small>
-                        </div>
-                        <div className="row-tail">
-                          {isEgAdmin ? (
-                            <select
-                              className="status-select"
-                              value={deliverable.status}
-                              onChange={(event) => handleDeliverableStatus(deliverable.id, event.target.value as DeliverableStatus)}
-                              disabled={Boolean(actionBusy)}
-                              aria-label={`Status de ${deliverable.title}`}
-                            >
-                              {Object.entries(deliverableStatusLabel).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                  {label}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className={`status-pill ${deliverable.status}`}>{deliverableStatusLabel[deliverable.status]}</span>
-                          )}
-                          {isEgAdmin && (
-                            <button
-                              className="icon-button danger"
-                              type="button"
-                              onClick={() => handleDeleteDeliverable(deliverable.id)}
-                              aria-label={`Excluir ${deliverable.title}`}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </HubBlock>
-
-                  <HubBlock title="Aprovações" icon={CheckCircle2}>
-                    {portal.approvals.length === 0 && <EmptyState compact text="Nenhuma aprovação aberta." />}
-                    {portal.approvals.map((approval) => (
-                      <div className="work-row" key={approval.id}>
-                        <AlertCircle size={16} />
-                        <div>
-                          <strong>{approval.deliverable_title ?? "Aprovação"}</strong>
-                          <small>{approval.comment ?? "Sem comentário"}</small>
-                        </div>
-                        {approval.status === "pending" ? (
-                          <div className="row-actions">
-                            <button
-                              className="mini-button approve"
-                              type="button"
-                              onClick={() => handleApprovalDecision(approval.id, "approved")}
-                              disabled={Boolean(actionBusy)}
-                            >
-                              Aprovar
-                            </button>
-                            <button
-                              className="mini-button reject"
-                              type="button"
-                              onClick={() => handleApprovalDecision(approval.id, "rejected")}
-                              disabled={Boolean(actionBusy)}
-                            >
-                              Reprovar
-                            </button>
-                          </div>
-                        ) : (
-                          <span className={`decision-pill ${approval.status}`}>{approvalStatusLabel(approval.status)}</span>
-                        )}
-                      </div>
-                    ))}
-                  </HubBlock>
-
-                  <HubBlock title="Artefatos" icon={FileText}>
-                    {portal.artifacts.length === 0 && <EmptyState compact text="Nenhum artefato publicado." />}
-                    {portal.artifacts.map((artifact) => (
-                      <button className="artifact-row" key={artifact.id} type="button" onClick={() => setSelectedArtifact(artifact)}>
-                        <div>
-                          <strong>{artifact.title}</strong>
-                          <small>
-                            {artifactKindLabel(artifact.kind)} · {artifact.visibility === "client" ? "cliente" : "interno"}
-                          </small>
-                        </div>
-                        <ArrowRight size={16} />
-                      </button>
-                    ))}
-                  </HubBlock>
-                </div>
-              )}
-            </article>
-          </section>
+          <ClientsView
+            clients={clients}
+            selectedClientId={selectedClientId}
+            selectedClient={selectedClient}
+            portal={portal}
+            loadingPortal={loadingPortal}
+            latestSync={latestSync?.status}
+            isEgAdmin={isEgAdmin}
+            actionBusy={actionBusy}
+            onSelectClient={setSelectedClientId}
+            onClickUpSync={handleClickUpSync}
+            onDeliverableStatus={handleDeliverableStatus}
+            onDeleteDeliverable={handleDeleteDeliverable}
+            onApprovalDecision={handleApprovalDecision}
+            onSelectArtifact={setSelectedArtifact}
+          />
         )}
 
-        {view === "conteudo" && selectedClient && portal && (
-          <section className="content-layout">
-            <article className="surface">
-              <SectionHeader eyebrow="Base estratégica" title="Briefing, brand book e calendário" icon={BookOpen} />
-              <div className="artifact-board">
-                {portal.artifacts.map((artifact) => (
-                  <button className="artifact-tile" key={artifact.id} type="button" onClick={() => setSelectedArtifact(artifact)}>
-                    <span>{artifactKindLabel(artifact.kind)}</span>
-                    <strong>{artifact.title}</strong>
-                    <small>{artifact.content ?? "Sem conteúdo textual cadastrado."}</small>
-                  </button>
-                ))}
-                {portal.artifacts.length === 0 && <EmptyState text="Cadastre o primeiro briefing ou brand book deste cliente." />}
-              </div>
-            </article>
-
-            <article className="surface">
-              <SectionHeader eyebrow="Agenda editorial" title="Próximas entregas" icon={CalendarCheck} />
-              <div className="timeline-list">
-                {portal.deliverables.map((deliverable) => (
-                  <div className="timeline-row" key={deliverable.id}>
-                    <span>{formatDueDate(deliverable.due_at)}</span>
-                    <strong>{deliverable.title}</strong>
-                    <small>{deliverableStatusLabel[deliverable.status]}</small>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
+        {view === "conteudo" && (
+          <ContentView
+            selectedClient={selectedClient}
+            portal={portal}
+            onSelectArtifact={setSelectedArtifact}
+          />
         )}
-
-        {view === "conteudo" && (!selectedClient || !portal) && <EmptyState text="Selecione um cliente para ver conteúdo." />}
 
         {view === "integracoes" && (
-          <section className="content-grid">
-            <article className="surface large">
-              <SectionHeader eyebrow="Integrações" title="Backlog técnico" icon={GitBranch} />
-              <div className="integration-list">
-                {integrationRows.map((integration) => (
-                  <div className="integration-row" key={integration.name}>
-                    <strong>{integration.name}</strong>
-                    <span>{integration.detail}</span>
-                    <small>{integration.status}</small>
-                  </div>
-                ))}
-              </div>
-            </article>
-            <article className="surface">
-              <SectionHeader eyebrow="ClickUp Bridge" title="Estado atual" icon={Link} />
-              <div className="health-list">
-                <HealthRow icon={GitBranch} label="Mapeamento" ok={Boolean(selectedClient?.clickup_folder_id)} value={selectedClient?.clickup_folder_id ?? "pendente"} />
-                <HealthRow icon={Activity} label="Último sync" ok={latestSync?.status !== "error"} value={latestSync?.status ?? "sem execução"} />
-                <HealthRow icon={ShieldCheck} label="Escrita automática" ok={false} value="bloqueada no MVP" />
-              </div>
-              {isEgAdmin && selectedClientId && (
-                <button className="primary-button wide" type="button" onClick={handleClickUpSync} disabled={actionBusy === "clickup:sync"}>
-                  <RefreshCw size={16} />
-                  Rodar sync dry-run
-                </button>
-              )}
-            </article>
-          </section>
+          <IntegrationsView
+            selectedClient={selectedClient}
+            latestSync={latestSync}
+            isEgAdmin={isEgAdmin}
+            actionBusy={actionBusy}
+            onClickUpSync={handleClickUpSync}
+          />
         )}
 
         {view === "engenharia" && (
-          <section className="content-grid">
-            <article className="surface large">
-              <SectionHeader eyebrow="Auditoria" title="Histórico recente" icon={FileText} />
-              <div className="timeline-list">
-                {portal?.audit_logs.map((log) => (
-                  <div className="timeline-row" key={log.id}>
-                    <span>{formatDateTime(log.created_at)}</span>
-                    <strong>{auditLabel(log.event_type)}</strong>
-                    <small>{compactMetadata(log.metadata)}</small>
-                  </div>
-                ))}
-                {!portal?.audit_logs.length && <EmptyState text="Sem eventos de auditoria para o cliente selecionado." />}
-              </div>
-            </article>
-            <article className="surface">
-              <SectionHeader eyebrow="Saúde local" title="Runtime" icon={Server} />
-              <div className="health-list">
-                <HealthRow icon={Activity} label="API" ok={apiOnline} value={apiOnline ? "ok" : "down"} />
-                <HealthRow icon={ShieldCheck} label="Auth" ok={Boolean(user)} value={user ? "sessão ativa" : "sem sessão"} />
-                <HealthRow icon={Server} label="Dados" ok={clients.length > 0} value={`${clients.length} cliente(s)`} />
-              </div>
-            </article>
-          </section>
+          <EngineeringView
+            portal={portal}
+            apiOnline={apiOnline}
+            user={user}
+            clients={clients}
+          />
+        )}
+        
+        {view === "analytics" && (
+          <AnalyticsView />
         )}
 
         {isEgAdmin && (
-          <section className="admin-dock" aria-label="Operações EG">
-            <form className="dock-panel" onSubmit={handleCreateClient}>
-              <DockTitle icon={Building2} title="Novo cliente" />
-              <div className="form-grid two">
-                <label>
-                  Cliente
-                  <input
-                    value={newClientDraft.name ?? ""}
-                    onChange={(event) => setNewClientDraft({ ...newClientDraft, name: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Organização
-                  <input
-                    value={newClientDraft.organization_name ?? ""}
-                    onChange={(event) => setNewClientDraft({ ...newClientDraft, organization_name: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Responsável EG
-                  <input
-                    value={newClientDraft.responsible_name ?? ""}
-                    onChange={(event) => setNewClientDraft({ ...newClientDraft, responsible_name: event.target.value })}
-                  />
-                </label>
-                <label>
-                  ClickUp folder
-                  <input
-                    value={newClientDraft.clickup_folder_id ?? ""}
-                    onChange={(event) => setNewClientDraft({ ...newClientDraft, clickup_folder_id: event.target.value })}
-                  />
-                </label>
-              </div>
-              <button className="primary-button" type="submit" disabled={actionBusy === "client:create"}>
-                <Plus size={16} />
-                Criar cliente
-              </button>
-            </form>
-
-            {selectedClient && (
-              <form className="dock-panel" onSubmit={handleUpdateClient}>
-                <DockTitle icon={Save} title="Editar cliente selecionado" />
-                <div className="form-grid two">
-                  <label>
-                    Nome
-                    <input value={clientDraft.name ?? ""} onChange={(event) => setClientDraft({ ...clientDraft, name: event.target.value })} />
-                  </label>
-                  <label>
-                    Status
-                    <select
-                      value={clientDraft.status ?? "onboarding"}
-                      onChange={(event) => setClientDraft({ ...clientDraft, status: event.target.value as ClientStatus })}
-                    >
-                      {Object.entries(statusLabel).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Responsável
-                    <input
-                      value={clientDraft.responsible_name ?? ""}
-                      onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    ClickUp folder
-                    <input
-                      value={clientDraft.clickup_folder_id ?? ""}
-                      onChange={(event) => setClientDraft({ ...clientDraft, clickup_folder_id: event.target.value })}
-                    />
-                  </label>
-                </div>
-                <button className="secondary-button" type="submit" disabled={actionBusy === "client:update"}>
-                  <Save size={16} />
-                  Salvar cliente
-                </button>
-              </form>
-            )}
-
-            {selectedClientId && (
-              <>
-                <form className="dock-panel" onSubmit={handleCreateArtifact}>
-                  <DockTitle icon={FileText} title="Novo artefato" />
-                  <div className="form-grid">
-                    <label>
-                      Título
-                      <input value={artifactDraft.title} onChange={(event) => setArtifactDraft({ ...artifactDraft, title: event.target.value })} />
-                    </label>
-                    <div className="form-grid two">
-                      <label>
-                        Tipo
-                        <select value={artifactDraft.kind} onChange={(event) => setArtifactDraft({ ...artifactDraft, kind: event.target.value })}>
-                          <option value="briefing">Briefing</option>
-                          <option value="brand_book">Brand book</option>
-                          <option value="calendar">Calendário</option>
-                          <option value="integration_map">Mapa de integração</option>
-                        </select>
-                      </label>
-                      <label>
-                        Visibilidade
-                        <select
-                          value={artifactDraft.visibility}
-                          onChange={(event) =>
-                            setArtifactDraft({ ...artifactDraft, visibility: event.target.value as ArtifactPayload["visibility"] })
-                          }
-                        >
-                          <option value="client">Cliente</option>
-                          <option value="internal">Interno EG</option>
-                        </select>
-                      </label>
-                    </div>
-                    <label>
-                      Conteúdo
-                      <textarea value={artifactDraft.content ?? ""} onChange={(event) => setArtifactDraft({ ...artifactDraft, content: event.target.value })} />
-                    </label>
-                  </div>
-                  <button className="primary-button" type="submit" disabled={actionBusy === "artifact:create"}>
-                    <Plus size={16} />
-                    Publicar artefato
-                  </button>
-                </form>
-
-                <form className="dock-panel" onSubmit={handleCreateDeliverable}>
-                  <DockTitle icon={CalendarCheck} title="Nova entrega" />
-                  <div className="form-grid">
-                    <label>
-                      Título
-                      <input
-                        value={deliverableDraft.title}
-                        onChange={(event) => setDeliverableDraft({ ...deliverableDraft, title: event.target.value })}
-                      />
-                    </label>
-                    <div className="form-grid two">
-                      <label>
-                        Status
-                        <select
-                          value={deliverableDraft.status}
-                          onChange={(event) => setDeliverableDraft({ ...deliverableDraft, status: event.target.value as DeliverableStatus })}
-                        >
-                          {Object.entries(deliverableStatusLabel).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Prazo
-                        <input
-                          value={deliverableDraft.due_at ?? ""}
-                          type="datetime-local"
-                          onChange={(event) => setDeliverableDraft({ ...deliverableDraft, due_at: event.target.value })}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <button className="primary-button" type="submit" disabled={actionBusy === "deliverable:create"}>
-                    <Plus size={16} />
-                    Criar entrega
-                  </button>
-                </form>
-              </>
-            )}
-          </section>
+          <AdminDock
+            selectedClient={selectedClient}
+            selectedClientId={selectedClientId}
+            actionBusy={actionBusy}
+            newClientDraft={newClientDraft}
+            setNewClientDraft={setNewClientDraft}
+            clientDraft={clientDraft}
+            setClientDraft={setClientDraft}
+            artifactDraft={artifactDraft}
+            setArtifactDraft={setArtifactDraft}
+            deliverableDraft={deliverableDraft}
+            setDeliverableDraft={setDeliverableDraft}
+            handleCreateClient={handleCreateClient}
+            handleUpdateClient={handleUpdateClient}
+            handleCreateArtifact={handleCreateArtifact}
+            handleCreateDeliverable={handleCreateDeliverable}
+          />
         )}
       </section>
 

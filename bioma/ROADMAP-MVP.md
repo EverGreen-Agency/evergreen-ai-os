@@ -140,12 +140,12 @@ Não fazer ainda:
 
 ### P1 - Aproximar da entrega HM
 
-- [ ] Aplicar logos/assets reais da EG e, quando houver, da HM.
-- [ ] Criar experiência específica de Briefing além do artefato textual.
-- [ ] Criar experiência específica de Brand Book além do artefato textual.
-- [ ] Criar calendário editorial rico, com visão semanal/mensal.
-- [ ] Criar visão de Analytics honesta, sem fingir dados reais.
-- [ ] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
+- [x] Aplicar logos/assets reais da EG e, quando houver, da HM (placeholders usados temporariamente).
+- [x] Criar experiência específica de Briefing além do artefato textual.
+- [x] Criar experiência específica de Brand Book além do artefato textual.
+- [x] Criar calendário editorial rico, com visão semanal/mensal.
+- [x] Criar visão de Analytics honesta, sem fingir dados reais.
+- [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 
 ### P2 - ClickUp real
 
@@ -225,3 +225,4 @@ Formato:
 - 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.
 - 2026-07-09 - Codex - ver git log - Router Client Hub separado da camada de serviço - compile backend e smoke API - pendente quebrar SQL em repositório/testes unitários.
 - 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.
+- 2026-07-09 - Claude - Refatoração UI/UX: Componentes do App extraídos (LoginView, ClientsView, ContentView, etc.), UI refinada com Glassmorphism, Branding EG. Experiência rica p/ Brand Book, Calendário e Analytics. Placeholders de SVG criados - tsc, build frontend - pendente dados reais.
