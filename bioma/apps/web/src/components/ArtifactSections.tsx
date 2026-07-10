@@ -78,11 +78,11 @@ export function ArtifactSectionGrid({ content, emptyText }: { content: string | 
   const sections = parseContentSections(content);
 
   return (
-    <div className="brand-book-details">
+    <div className="doc-grid">
       {sections.map((section, index) => {
         const Icon = sectionIcon(section.title);
         return (
-          <div className="brand-book-section" key={`${section.title}-${index}`}>
+          <div className="doc-section" key={`${section.title}-${index}`}>
             {section.title && (
               <h4>
                 <Icon size={14} /> {section.title}

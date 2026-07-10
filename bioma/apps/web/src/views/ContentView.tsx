@@ -1,4 +1,4 @@
-import { BookOpen, CalendarCheck, Download, PenLine, Sparkles } from "lucide-react";
+import { BookOpen, CalendarCheck, PenLine } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { ArtifactSectionGrid } from "../components/ArtifactSections";
 import { BriefingPanel } from "../components/BriefingPanel";
@@ -21,10 +21,9 @@ export function ContentView({
   }
 
   const briefing = portal.artifacts.find((artifact) => artifact.kind === "briefing") ?? null;
-  const brandBook = portal.artifacts.find((artifact) => artifact.kind === "brand_book") ?? null;
-  const otherArtifacts = portal.artifacts.filter(
-    (artifact) => artifact.kind !== "brand_book" && artifact.kind !== "briefing",
-  );
+  // Brand book, calendário, mapas etc. são tratados como documentos genéricos:
+  // a entrega muda por cliente, a plataforma não hardcoda um tipo específico.
+  const documents = portal.artifacts.filter((artifact) => artifact.kind !== "briefing");
 
   return (
     <section className="content-layout">
@@ -34,38 +33,29 @@ export function ContentView({
         </article>
 
         <article className="surface">
-          <SectionHeader eyebrow="Base estratégica" title="Brand book" icon={Sparkles} />
-          {brandBook ? (
-            <div className="brand-book-card">
-              <div className="brand-book-header">
+          <SectionHeader eyebrow="Entregas estratégicas" title="Documentos do cliente" icon={BookOpen} />
+          {documents.length === 0 && (
+            <EmptyState text="Nenhum documento estratégico cadastrado (brand book, mapas, planos)." />
+          )}
+          {documents.map((document) => (
+            <div className="doc-card" key={document.id}>
+              <div className="doc-card-header">
                 <div>
-                  <h3>{brandBook.title}</h3>
-                  <small>Construído a partir do briefing e das entrevistas de onboarding.</small>
+                  <span className="doc-kind">{artifactKindLabel(document.kind)}</span>
+                  <h3>{document.title}</h3>
                 </div>
-                <div className="brand-book-actions">
-                  <button type="button" className="ghost-button dark" onClick={() => onSelectArtifact(brandBook)}>
-                    <PenLine size={14} /> Editar brand book
+                <div className="doc-card-actions">
+                  <button type="button" className="ghost-button dark" onClick={() => onSelectArtifact(document)}>
+                    <PenLine size={14} /> Editar
                   </button>
                 </div>
               </div>
-
               <ArtifactSectionGrid
-                content={brandBook.content}
-                emptyText="Brand book sem conteúdo textual. Edite o artefato para preencher as seções."
+                content={document.content}
+                emptyText="Documento sem conteúdo textual. Edite o artefato para preencher as seções."
               />
-
-              <div className="brand-book-footer">
-                <button className="primary-button" type="button" disabled title="Fluxo de aprovação de artefato ainda não disponível">
-                  Aprovar brand book (em breve)
-                </button>
-                <button className="secondary-button" type="button" disabled title="Integração Notion ainda não disponível">
-                  <Download size={14} /> Exportar para Notion (em breve)
-                </button>
-              </div>
             </div>
-          ) : (
-            <EmptyState text="Nenhum brand book cadastrado. Crie um artefato do tipo Brand book para este cliente." />
-          )}
+          ))}
         </article>
 
         <article className="surface">
@@ -75,20 +65,6 @@ export function ContentView({
       </div>
 
       <div className="content-sidebar">
-        <article className="surface">
-          <SectionHeader eyebrow="Biblioteca" title="Outros artefatos" icon={BookOpen} />
-          <div className="artifact-board">
-            {otherArtifacts.map((artifact) => (
-              <button className="artifact-tile" key={artifact.id} type="button" onClick={() => onSelectArtifact(artifact)}>
-                <span>{artifactKindLabel(artifact.kind)}</span>
-                <strong>{artifact.title}</strong>
-                {artifact.content && <small>{artifact.content.substring(0, 80)}…</small>}
-              </button>
-            ))}
-            {otherArtifacts.length === 0 && <EmptyState compact text="Nenhum outro artefato." />}
-          </div>
-        </article>
-
         <article className="surface">
           <SectionHeader eyebrow="Agenda" title="Próximas entregas" icon={CalendarCheck} />
           <div className="timeline-list">

@@ -27,6 +27,10 @@
   --accent: var(--mint);
   --accent-deep: var(--mint-deep);
 
+  /* Séries de gráfico — validadas p/ contraste e CVD no surface escuro */
+  --chart-1: #27a861;
+  --chart-2: #b8893a;
+
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -1115,8 +1119,8 @@ h3 {
   cursor: pointer;
 }
 
-/* --- Brand Book --- */
-.brand-book-card {
+/* --- Documentos estratégicos (brand book, mapas, planos) --- */
+.doc-card {
   background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1124,7 +1128,7 @@ h3 {
   margin-top: 16px;
 }
 
-.brand-book-header {
+.doc-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -1133,52 +1137,39 @@ h3 {
   margin-bottom: 24px;
 }
 
-.brand-book-header h3 {
+.doc-card-header h3 {
   font-size: 20px;
   color: var(--text);
-  margin-bottom: 4px;
+  margin: 4px 0 0;
 }
 
-.brand-book-header small {
-  color: var(--text-dim);
+.doc-kind {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.brand-book-pill-list {
+.doc-card-actions {
   display: flex;
   gap: 8px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.brand-book-pill-list span {
-  background: rgba(255, 244, 199, 0.08);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dim);
-  cursor: pointer;
-}
-
-.brand-book-pill-list span.active {
-  background: var(--accent);
-  color: var(--moss-900);
-}
-
-.brand-book-details {
+.doc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
 }
 
-.brand-book-section {
+.doc-section {
   background: rgba(6, 26, 19, 0.55);
   padding: 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
 }
 
-.brand-book-section h4 {
+.doc-section h4 {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1187,22 +1178,22 @@ h3 {
   font-size: 14px;
 }
 
-.brand-book-section h4 svg {
+.doc-section h4 svg {
   flex: 0 0 auto;
 }
 
-.brand-book-section p {
+.doc-section p {
   margin: 0 0 8px;
   font-size: 14px;
   line-height: 1.5;
   color: rgba(255, 244, 199, 0.85);
 }
 
-.brand-book-section p:last-child {
+.doc-section p:last-child {
   margin-bottom: 0;
 }
 
-.brand-book-section ul {
+.doc-section ul {
   display: grid;
   gap: 6px;
   margin: 0 0 8px;
@@ -1212,36 +1203,8 @@ h3 {
   color: rgba(255, 244, 199, 0.85);
 }
 
-.brand-book-section ul:last-child {
+.doc-section ul:last-child {
   margin-bottom: 0;
-}
-
-.brand-book-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tag {
-  background: rgba(255, 244, 199, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.brand-book-footer {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
 }
 
 /* --- Calendário editorial --- */
@@ -1431,38 +1394,9 @@ h3 {
   gap: 24px;
 }
 
-.chart-placeholder {
-  height: 250px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  margin-top: 20px;
-}
-
-.chart-line {
-  position: absolute;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--mint), var(--amber), transparent);
-  animation: chartScan 3s infinite linear;
-}
-
-@keyframes chartScan {
-  0% { transform: translateY(50px) rotate(5deg); }
-  50% { transform: translateY(-50px) rotate(-5deg); }
-  100% { transform: translateY(50px) rotate(5deg); }
-}
-
-.chart-demo-text {
-  color: rgba(255, 244, 199, 0.35);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  z-index: 1;
+.trend-chart {
+  min-width: 0;
+  margin-top: 8px;
 }
 
 .insights-list {
