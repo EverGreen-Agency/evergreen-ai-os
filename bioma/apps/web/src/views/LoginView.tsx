@@ -23,7 +23,9 @@ export function LoginView({
     <main className="login-shell">
       <section className="login-copy">
         <div className="brand large">
-          <div className="brand-mark">EG</div>
+          <div className="brand-mark">
+            <img src="/assets/brand/eg-symbol.svg" alt="Símbolo EverGreen" width={64} height={64} />
+          </div>
           <div>
             <strong>Bioma</strong>
             <span>EverGreen</span>

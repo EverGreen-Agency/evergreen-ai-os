@@ -325,7 +325,9 @@ export function App() {
     <main className="app-shell">
       <aside className="sidebar" aria-label="Navegação principal">
         <div className="brand">
-          <div className="brand-mark">EG</div>
+          <div className="brand-mark">
+            <img src="/assets/brand/eg-symbol.svg" alt="Símbolo EverGreen" width={52} height={52} />
+          </div>
           <div>
             <strong>Bioma</strong>
             <span>MVP v0</span>
