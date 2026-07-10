@@ -63,3 +63,5 @@ bioma/**/dist/
 bioma/**/tsconfig.tsbuildinfo
 bioma/**/.pytest_cache/
 bioma/**/__pycache__/
+
+Descritivo-Foton.md
