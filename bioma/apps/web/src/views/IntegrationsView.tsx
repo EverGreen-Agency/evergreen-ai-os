@@ -1,6 +1,7 @@
 import { GitBranch, Link, Activity, ShieldCheck, RefreshCw } from "lucide-react";
 import { SectionHeader, HealthRow } from "../components/shared";
 import { integrationRows } from "../lib/app-config";
+import type { ClientSummary, SyncRunSummary } from "../lib/api";
 
 export function IntegrationsView({
   selectedClient,
@@ -9,8 +10,8 @@ export function IntegrationsView({
   actionBusy,
   onClickUpSync,
 }: {
-  selectedClient: any;
-  latestSync: any;
+  selectedClient: ClientSummary | null;
+  latestSync: SyncRunSummary | null;
   isEgAdmin: boolean;
   actionBusy: string | null;
   onClickUpSync: () => void;

@@ -2,7 +2,7 @@ import { Users, ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCir
 import { SectionHeader, EmptyState, HubBlock } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel } from "../lib/format";
-import type { ClientSummary, ClientPortal, DeliverableStatus } from "../lib/api";
+import type { ArtifactSummary, ClientSummary, ClientPortal, DeliverableStatus } from "../lib/api";
 
 export function ClientsView({
   clients,
@@ -33,7 +33,7 @@ export function ClientsView({
   onDeliverableStatus: (id: string, status: DeliverableStatus) => void;
   onDeleteDeliverable: (id: string) => void;
   onApprovalDecision: (id: string, status: "approved" | "rejected") => void;
-  onSelectArtifact: (artifact: any) => void;
+  onSelectArtifact: (artifact: ArtifactSummary) => void;
 }) {
   return (
     <section className="client-layout">

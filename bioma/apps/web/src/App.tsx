@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { LogOut, Search, X, Save, Trash2, LayoutDashboard } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import {
   api,
   type ApiHealth,
@@ -21,7 +21,6 @@ import {
   type ViewId,
 } from "./lib/app-config";
 import {
-  artifactKindLabel,
   isSessionError,
   normalizeArtifactPayload,
   normalizeClientPayload,
@@ -35,9 +34,10 @@ import { IntegrationsView } from "./views/IntegrationsView";
 import { EngineeringView } from "./views/EngineeringView";
 import { AnalyticsView } from "./views/AnalyticsView";
 import { AdminDock } from "./components/AdminDock";
+import { ArtifactModal } from "./components/ArtifactModal";
 
 export function App() {
-  const [view, setView] = useState<ViewId | "analytics">(currentViewFromHash() as any);
+  const [view, setView] = useState<ViewId>(currentViewFromHash());
   const [health, setHealth] = useState<ApiHealth | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
@@ -79,7 +79,7 @@ export function App() {
   );
 
   useEffect(() => {
-    const handleHash = () => setView(currentViewFromHash() as any);
+    const handleHash = () => setView(currentViewFromHash());
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
@@ -161,8 +161,8 @@ export function App() {
     });
   }, [selectedArtifact]);
 
-  function navigate(nextView: string) {
-    setView(nextView as any);
+  function navigate(nextView: ViewId) {
+    setView(nextView);
     window.history.replaceState(null, "", `#${nextView}`);
   }
 
@@ -344,10 +344,6 @@ export function App() {
               </button>
             );
           })}
-          <button className={view === "analytics" ? "active mt-2" : "mt-2"} type="button" onClick={() => navigate("analytics")}>
-            <LayoutDashboard size={18} />
-            Analytics
-          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -464,81 +460,16 @@ export function App() {
       </section>
 
       {selectedArtifact && (
-        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedArtifact(null)}>
-          <section
-            className="artifact-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={selectedArtifact.title}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button className="modal-close" type="button" onClick={() => setSelectedArtifact(null)} aria-label="Fechar artefato">
-              <X size={18} />
-            </button>
-            {isEgAdmin ? (
-              <form className="form-grid" onSubmit={handleUpdateArtifact}>
-                <p className="eyebrow">{artifactKindLabel(selectedArtifact.kind)}</p>
-                <label>
-                  Título
-                  <input
-                    value={artifactEditDraft.title}
-                    onChange={(event) => setArtifactEditDraft({ ...artifactEditDraft, title: event.target.value })}
-                  />
-                </label>
-                <div className="form-grid two">
-                  <label>
-                    Tipo
-                    <select
-                      value={artifactEditDraft.kind}
-                      onChange={(event) => setArtifactEditDraft({ ...artifactEditDraft, kind: event.target.value })}
-                    >
-                      <option value="briefing">Briefing</option>
-                      <option value="brand_book">Brand book</option>
-                      <option value="calendar">Calendário</option>
-                      <option value="integration_map">Mapa de integração</option>
-                    </select>
-                  </label>
-                  <label>
-                    Visibilidade
-                    <select
-                      value={artifactEditDraft.visibility}
-                      onChange={(event) =>
-                        setArtifactEditDraft({ ...artifactEditDraft, visibility: event.target.value as ArtifactPayload["visibility"] })
-                      }
-                    >
-                      <option value="client">Cliente</option>
-                      <option value="internal">Interno EG</option>
-                    </select>
-                  </label>
-                </div>
-                <label>
-                  Conteúdo
-                  <textarea
-                    value={artifactEditDraft.content ?? ""}
-                    onChange={(event) => setArtifactEditDraft({ ...artifactEditDraft, content: event.target.value })}
-                  />
-                </label>
-                <div className="modal-actions">
-                  <button className="primary-button" type="submit" disabled={actionBusy === "artifact:update"}>
-                    <Save size={16} />
-                    Salvar
-                  </button>
-                  <button className="danger-button" type="button" onClick={handleDeleteArtifact} disabled={actionBusy === "artifact:delete"}>
-                    <Trash2 size={16} />
-                    Excluir
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <p className="eyebrow">{artifactKindLabel(selectedArtifact.kind)}</p>
-                <h2>{selectedArtifact.title}</h2>
-                <p>{selectedArtifact.content ?? "Artefato sem conteúdo textual cadastrado."}</p>
-                <small>{selectedArtifact.visibility === "client" ? "Visível para cliente" : "Uso interno EG"}</small>
-              </>
-            )}
-          </section>
-        </div>
+        <ArtifactModal
+          artifact={selectedArtifact}
+          isEgAdmin={isEgAdmin}
+          actionBusy={actionBusy}
+          draft={artifactEditDraft}
+          setDraft={setArtifactEditDraft}
+          onSubmit={handleUpdateArtifact}
+          onDelete={handleDeleteArtifact}
+          onClose={() => setSelectedArtifact(null)}
+        />
       )}
     </main>
   );

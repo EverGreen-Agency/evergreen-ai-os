@@ -1,4 +1,4 @@
-import { BookOpen, FileText, GitBranch, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientPayload, ClientStatus, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -8,6 +8,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
   { id: "clientes", label: "Clientes", icon: Users },
   { id: "conteudo", label: "Conteúdo", icon: BookOpen },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "integracoes", label: "Integrações", icon: GitBranch },
   { id: "engenharia", label: "Engenharia", icon: FileText },
 ];
@@ -59,6 +60,5 @@ export const emptyDeliverableDraft: DeliverablePayload = {
 
 export function currentViewFromHash(): ViewId {
   const id = window.location.hash.replace("#", "") as ViewId;
-  if (id === "analytics") return id;
   return navItems.some((item) => item.id === id) ? id : "cockpit";
 }
