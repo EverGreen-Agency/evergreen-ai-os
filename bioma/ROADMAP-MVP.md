@@ -120,6 +120,17 @@ Não fazer ainda:
 - Criar estrutura de cliente no ClickUp sem revisão EG.
 - Misturar Social, Growth e Tech em uma lista única.
 
+## Decisões de escopo - 2026-07-10
+
+Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não produto a ser vendido; a plataforma é da EG):
+
+- **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
+- **CRM:** fora do MVP. A EG revende Kommo; a direção futura é uma **bridge Kommo** (espelho read-only do funil por cliente, mesmo padrão do ClickUp Bridge), não um CRM nativo.
+- **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
+- **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
+- **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
+- Financeiro e Notion: depois.
+
 ## Próximos passos priorizados
 
 ### P0 - Fechar MVP testável
@@ -146,6 +157,17 @@ Não fazer ainda:
 - [x] Criar calendário editorial rico com visão semanal navegável alimentada por entregas reais (visão mensal ainda pendente).
 - [x] Criar visão de Analytics honesta, sem fingir dados reais.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
+
+### P1.5 - BI de performance (port BIAds)
+
+Spec completa em `bioma/PLANO-PORT-BIADS.md`. Backend primeiro (pós-consolidação das worktrees).
+
+- [ ] F1: migrations das tabelas `*_daily` + `performance_connections` + extensão de `sync_runs`.
+- [ ] F2: worker Python (Redis) com sync Google Ads.
+- [ ] F3: providers GA4 e Search Console.
+- [ ] F4: snapshot e auditoria GTM.
+- [ ] F5: páginas Performance no frontend (tema EG, TanStack Query, `TrendChart` já criado).
+- [ ] F6: cron 2x/dia + sync manual em Settings.
 
 ### P2 - ClickUp real
 
@@ -250,3 +272,4 @@ Formato:
 - 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.
 - 2026-07-09 - Antigravity - c52349e - Refatoração UI/UX: views extraídas do App (Login, Clients, Content, etc.), experiências de Brand Book, Calendário e Analytics, placeholders de logo - tsc, build frontend - pendências corrigidas na rodada seguinte (contraste, dados demo sem rótulo).
 - 2026-07-10 - Claude (Fable) - ver git log dcd2941..HEAD - Tema escuro musgo com tokens EG, assets de marca aplicados, Analytics/calendário com rotulagem honesta e dados reais, briefing/brand book estruturados por seções, ArtifactModal extraído e tipos sem any, checklist de QA visual criado - tsc, build frontend a cada commit - pendente QA visual assinado, visão mensal do calendário e assets finais de marca.
+- 2026-07-10 - Claude (Fable) - bccaf50/c9707e4 - Decisões de escopo registradas (CRM=Kommo bridge futuro, brand book adiado, calendário fica no ClickUp, port BIAds), documentos estratégicos generalizados sem hardcode de brand book, TrendChart recharts no Analytics com paleta validada, PLANO-PORT-BIADS.md criado - tsc, build frontend - pendente consolidação das worktrees pelo Juiz e execução do port (P1.5).
