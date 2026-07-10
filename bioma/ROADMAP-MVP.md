@@ -136,14 +136,14 @@ Não fazer ainda:
 - [x] Separar router HTTP do serviço do Client Hub no backend.
 - [x] Separar SQL do Client Hub em repositório de persistência.
 - [ ] Fazer QA visual manual em desktop, notebook com DevTools aberto e mobile.
-- [ ] Criar checklist manual de QA assinado.
+- [x] Criar checklist manual de QA (seção "Checklist de QA visual"; assinatura ainda pendente).
 
 ### P1 - Aproximar da entrega HM
 
 - [x] Aplicar logos/assets reais da EG e, quando houver, da HM (placeholders usados temporariamente).
 - [x] Criar experiência específica de Briefing além do artefato textual.
 - [x] Criar experiência específica de Brand Book além do artefato textual.
-- [x] Criar calendário editorial rico, com visão semanal/mensal.
+- [x] Criar calendário editorial rico com visão semanal navegável alimentada por entregas reais (visão mensal ainda pendente).
 - [x] Criar visão de Analytics honesta, sem fingir dados reais.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 
@@ -174,6 +174,29 @@ Não fazer ainda:
 - [ ] Configurar variáveis por ambiente.
 - [ ] Rodar seed apenas em ambiente local/staging controlado.
 - [ ] Criar domínio temporário de staging.
+
+## Checklist de QA visual (manual)
+
+Executar com API + seed locais rodando e frontend em `npm run dev`, logado como EG admin e depois como cliente. Larguras de referência: desktop 1440px+, notebook com DevTools aberto (~1100px úteis) e mobile 390px.
+
+Para cada largura:
+
+- [ ] Login: hero e cartão legíveis, formulário utilizável, erro de credencial visível.
+- [ ] Cockpit: métricas, fila de trabalho e sinais sem overflow ou texto cortado.
+- [ ] Clientes: carteira + hub, selects de status e ações de aprovação acessíveis.
+- [ ] Conteúdo: briefing estruturado, brand book e calendário legíveis; calendário rola na horizontal sem quebrar a página.
+- [ ] Analytics: banner de demonstração visível e badge "exemplo" em todos os cards.
+- [ ] Integrações e Engenharia: listas e health rows sem overflow.
+- [ ] Modal de artefato: abre, edita, fecha; scroll interno funciona.
+- [ ] Contraste: nenhum texto creme sobre fundo claro nem texto escuro sobre fundo escuro.
+- [ ] Estados vazios honestos em todas as views; nenhum dado fake apresentado como real.
+- [ ] Paleta EG (musgo/baunilha/menta/âmbar) sem cores fora da marca.
+
+Assinatura:
+
+- [ ] QA desktop assinado por: ______ em ______
+- [ ] QA notebook com DevTools assinado por: ______ em ______
+- [ ] QA mobile assinado por: ______ em ______
 
 ## Critério de pronto do MVP v0
 
@@ -225,4 +248,5 @@ Formato:
 - 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.
 - 2026-07-09 - Codex - ver git log - Router Client Hub separado da camada de serviço - compile backend e smoke API - pendente quebrar SQL em repositório/testes unitários.
 - 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.
-- 2026-07-09 - Claude - Refatoração UI/UX: Componentes do App extraídos (LoginView, ClientsView, ContentView, etc.), UI refinada com Glassmorphism, Branding EG. Experiência rica p/ Brand Book, Calendário e Analytics. Placeholders de SVG criados - tsc, build frontend - pendente dados reais.
+- 2026-07-09 - Antigravity - c52349e - Refatoração UI/UX: views extraídas do App (Login, Clients, Content, etc.), experiências de Brand Book, Calendário e Analytics, placeholders de logo - tsc, build frontend - pendências corrigidas na rodada seguinte (contraste, dados demo sem rótulo).
+- 2026-07-10 - Claude (Fable) - ver git log dcd2941..HEAD - Tema escuro musgo com tokens EG, assets de marca aplicados, Analytics/calendário com rotulagem honesta e dados reais, briefing/brand book estruturados por seções, ArtifactModal extraído e tipos sem any, checklist de QA visual criado - tsc, build frontend a cada commit - pendente QA visual assinado, visão mensal do calendário e assets finais de marca.

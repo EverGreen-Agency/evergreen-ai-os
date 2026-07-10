@@ -1408,10 +1408,6 @@ h3 {
   flex-wrap: wrap;
 }
 
-.analytics-metrics {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .analytics-card {
   background: var(--surface-soft);
   border: 1px solid var(--border);
@@ -1540,7 +1536,8 @@ h3 {
   .hero-grid,
   .content-grid,
   .content-layout,
-  .client-layout {
+  .client-layout,
+  .analytics-grid {
     grid-template-columns: 1fr;
   }
 
