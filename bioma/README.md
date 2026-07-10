@@ -95,6 +95,7 @@ cd apps/api
 python scripts/migrate.py
 python scripts/seed_dev.py
 python scripts/smoke_api.py
+python scripts/smoke_clickup.py
 ```
 
 Frontend:

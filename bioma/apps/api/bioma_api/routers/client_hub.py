@@ -14,6 +14,15 @@ from bioma_api.schemas.client_hub import (
     ClientUpdateRequest,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
+    FinancialRecordCreateRequest,
+    FinancialRecordSummary,
+    FinancialRecordUpdateRequest,
+    LeadCreateRequest,
+    LeadSummary,
+    LeadUpdateRequest,
+    PerformanceMetricCreateRequest,
+    PerformanceMetricSummary,
+    PerformanceMetricUpdateRequest,
 )
 from bioma_api.services import client_hub as client_hub_service
 
@@ -123,3 +132,111 @@ def sync_clickup(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> ClientPortalResponse:
     return client_hub_service.sync_clickup(client_id, user)
+
+
+@router.get("/{client_id}/leads", response_model=list[LeadSummary])
+def list_leads(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[LeadSummary]:
+    return client_hub_service.list_leads(client_id, user)
+
+
+@router.post("/{client_id}/leads", response_model=list[LeadSummary], status_code=status.HTTP_201_CREATED)
+def create_lead(
+    client_id: UUID,
+    payload: LeadCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[LeadSummary]:
+    return client_hub_service.create_lead(client_id, payload, user)
+
+
+@router.patch("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
+def update_lead(
+    client_id: UUID,
+    lead_id: UUID,
+    payload: LeadUpdateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[LeadSummary]:
+    return client_hub_service.update_lead(client_id, lead_id, payload, user)
+
+
+@router.delete("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
+def delete_lead(
+    client_id: UUID,
+    lead_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[LeadSummary]:
+    return client_hub_service.delete_lead(client_id, lead_id, user)
+
+
+@router.get("/{client_id}/finance", response_model=list[FinancialRecordSummary])
+def list_financial_records(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[FinancialRecordSummary]:
+    return client_hub_service.list_financial_records(client_id, user)
+
+
+@router.post("/{client_id}/finance", response_model=list[FinancialRecordSummary], status_code=status.HTTP_201_CREATED)
+def create_financial_record(
+    client_id: UUID,
+    payload: FinancialRecordCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[FinancialRecordSummary]:
+    return client_hub_service.create_financial_record(client_id, payload, user)
+
+
+@router.patch("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
+def update_financial_record(
+    client_id: UUID,
+    record_id: UUID,
+    payload: FinancialRecordUpdateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[FinancialRecordSummary]:
+    return client_hub_service.update_financial_record(client_id, record_id, payload, user)
+
+
+@router.delete("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
+def delete_financial_record(
+    client_id: UUID,
+    record_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[FinancialRecordSummary]:
+    return client_hub_service.delete_financial_record(client_id, record_id, user)
+
+
+@router.get("/{client_id}/metrics", response_model=list[PerformanceMetricSummary])
+def list_performance_metrics(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PerformanceMetricSummary]:
+    return client_hub_service.list_performance_metrics(client_id, user)
+
+
+@router.post("/{client_id}/metrics", response_model=list[PerformanceMetricSummary], status_code=status.HTTP_201_CREATED)
+def create_performance_metric(
+    client_id: UUID,
+    payload: PerformanceMetricCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PerformanceMetricSummary]:
+    return client_hub_service.create_performance_metric(client_id, payload, user)
+
+
+@router.patch("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
+def update_performance_metric(
+    client_id: UUID,
+    metric_id: UUID,
+    payload: PerformanceMetricUpdateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PerformanceMetricSummary]:
+    return client_hub_service.update_performance_metric(client_id, metric_id, payload, user)
+
+
+@router.delete("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
+def delete_performance_metric(
+    client_id: UUID,
+    metric_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PerformanceMetricSummary]:
+    return client_hub_service.delete_performance_metric(client_id, metric_id, user)

@@ -17,6 +17,15 @@ from bioma_api.schemas.client_hub import (
     ClientUpdateRequest,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
+    FinancialRecordCreateRequest,
+    FinancialRecordSummary,
+    FinancialRecordUpdateRequest,
+    LeadCreateRequest,
+    LeadSummary,
+    LeadUpdateRequest,
+    PerformanceMetricCreateRequest,
+    PerformanceMetricSummary,
+    PerformanceMetricUpdateRequest,
 )
 
 
@@ -264,7 +273,13 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"])
+        mapped_list_ids = client_hub_repo.list_clickup_list_ids(conn, client["organization_id"])
+        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_list_ids)
+        summary["deliverables"] = _upsert_clickup_tasks(conn, client["organization_id"], summary.get("tasks", []))
+        summary["write_policy"] = {
+            "clickup": "hitl_required",
+            "bioma": "local_upsert_from_clickup_read",
+        }
         client_hub_repo.record_sync_run(conn, client["organization_id"], sync_status, summary)
         client_hub_repo.write_audit(
             conn,
@@ -277,6 +292,190 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
     return get_client_portal(client_id, user)
 
 
+def list_leads(client_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        rows = client_hub_repo.list_leads(conn, client["organization_id"])
+    return [LeadSummary(**row) for row in rows]
+
+
+def create_lead(client_id: UUID, payload: LeadCreateRequest, user: CurrentUserResponse) -> list[LeadSummary]:
+    lead_data = payload.model_dump()
+    _require_non_empty(lead_data.get("name"), "Nome do lead é obrigatório.")
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        lead_id = client_hub_repo.create_lead(conn, client["organization_id"], lead_data)
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "lead.created",
+            {"client_id": str(client_id), "lead_id": str(lead_id), "name": lead_data["name"]},
+        )
+    return list_leads(client_id, user)
+
+
+def update_lead(
+    client_id: UUID,
+    lead_id: UUID,
+    payload: LeadUpdateRequest,
+    user: CurrentUserResponse,
+) -> list[LeadSummary]:
+    updates = payload.model_dump(exclude_unset=True)
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.update_lead(conn, client["organization_id"], lead_id, updates):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "lead.updated",
+            {"client_id": str(client_id), "lead_id": str(lead_id), "fields": sorted(updates.keys())},
+        )
+    return list_leads(client_id, user)
+
+
+def delete_lead(client_id: UUID, lead_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.delete_lead(conn, client["organization_id"], lead_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "lead.deleted",
+            {"client_id": str(client_id), "lead_id": str(lead_id)},
+        )
+    return list_leads(client_id, user)
+
+
+def list_financial_records(client_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        rows = client_hub_repo.list_financial_records(conn, client["organization_id"])
+    return [FinancialRecordSummary(**row) for row in rows]
+
+
+def create_financial_record(
+    client_id: UUID,
+    payload: FinancialRecordCreateRequest,
+    user: CurrentUserResponse,
+) -> list[FinancialRecordSummary]:
+    record_data = payload.model_dump()
+    _require_non_empty(record_data.get("title"), "Título financeiro é obrigatório.")
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        record_id = client_hub_repo.create_financial_record(conn, client["organization_id"], record_data)
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "financial_record.created",
+            {"client_id": str(client_id), "record_id": str(record_id), "title": record_data["title"]},
+        )
+    return list_financial_records(client_id, user)
+
+
+def update_financial_record(
+    client_id: UUID,
+    record_id: UUID,
+    payload: FinancialRecordUpdateRequest,
+    user: CurrentUserResponse,
+) -> list[FinancialRecordSummary]:
+    updates = payload.model_dump(exclude_unset=True)
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.update_financial_record(conn, client["organization_id"], record_id, updates):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "financial_record.updated",
+            {"client_id": str(client_id), "record_id": str(record_id), "fields": sorted(updates.keys())},
+        )
+    return list_financial_records(client_id, user)
+
+
+def delete_financial_record(client_id: UUID, record_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.delete_financial_record(conn, client["organization_id"], record_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "financial_record.deleted",
+            {"client_id": str(client_id), "record_id": str(record_id)},
+        )
+    return list_financial_records(client_id, user)
+
+
+def list_performance_metrics(client_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        rows = client_hub_repo.list_performance_metrics(conn, client["organization_id"])
+    return [PerformanceMetricSummary(**row) for row in rows]
+
+
+def create_performance_metric(
+    client_id: UUID,
+    payload: PerformanceMetricCreateRequest,
+    user: CurrentUserResponse,
+) -> list[PerformanceMetricSummary]:
+    metric_data = payload.model_dump()
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        metric_id = client_hub_repo.create_performance_metric(conn, client["organization_id"], metric_data)
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "performance_metric.created",
+            {"client_id": str(client_id), "metric_id": str(metric_id), "metric": metric_data["metric"]},
+        )
+    return list_performance_metrics(client_id, user)
+
+
+def update_performance_metric(
+    client_id: UUID,
+    metric_id: UUID,
+    payload: PerformanceMetricUpdateRequest,
+    user: CurrentUserResponse,
+) -> list[PerformanceMetricSummary]:
+    updates = payload.model_dump(exclude_unset=True)
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.update_performance_metric(conn, client["organization_id"], metric_id, updates):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "performance_metric.updated",
+            {"client_id": str(client_id), "metric_id": str(metric_id), "fields": sorted(updates.keys())},
+        )
+    return list_performance_metrics(client_id, user)
+
+
+def delete_performance_metric(client_id: UUID, metric_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        if not client_hub_repo.delete_performance_metric(conn, client["organization_id"], metric_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "performance_metric.deleted",
+            {"client_id": str(client_id), "metric_id": str(metric_id)},
+        )
+    return list_performance_metrics(client_id, user)
+
+
 def _is_platform_admin(user: CurrentUserResponse) -> bool:
     return any(org.slug == "eg" and org.role == Role.eg_admin for org in user.organizations)
 
@@ -284,6 +483,54 @@ def _is_platform_admin(user: CurrentUserResponse) -> bool:
 def _require_platform_admin(user: CurrentUserResponse) -> None:
     if not _is_platform_admin(user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
+
+
+def _require_non_empty(value: str | None, detail: str) -> None:
+    if not value or not value.strip():
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
+
+
+def _upsert_clickup_tasks(conn, organization_id: UUID, tasks: list[dict]) -> dict[str, int]:
+    created = 0
+    updated = 0
+    skipped = 0
+
+    for task in tasks:
+        task_id = task.get("id")
+        title = task.get("name")
+        if not task_id or not title:
+            skipped += 1
+            continue
+
+        result = client_hub_repo.upsert_clickup_deliverable(
+            conn,
+            organization_id,
+            task_id,
+            title,
+            _clickup_status_to_deliverable_status(task.get("status")),
+            task.get("due_at"),
+        )
+        if result == "created":
+            created += 1
+        elif result == "updated":
+            updated += 1
+        else:
+            skipped += 1
+
+    return {"created": created, "updated": updated, "skipped": skipped}
+
+
+def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
+    value = (status_name or "").lower()
+    if any(token in value for token in ("done", "complete", "conclu", "closed", "finalizado")):
+        return "done"
+    if any(token in value for token in ("block", "bloque", "impedido")):
+        return "blocked"
+    if any(token in value for token in ("approval", "aprova", "review", "valid")):
+        return "waiting_approval"
+    if any(token in value for token in ("progress", "andamento", "doing", "execu")):
+        return "in_progress"
+    return "planned"
 
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
