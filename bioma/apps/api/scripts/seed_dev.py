@@ -6,6 +6,7 @@ sys.path.insert(0, str(ROOT))
 
 from bioma_api.db import connect
 from bioma_api.security import hash_password
+from performance_seed import seed_performance
 
 
 DEV_PASSWORD = "senha-dev-123"
@@ -318,6 +319,10 @@ def main() -> None:
             """,
             (hm_id,),
         )
+        hm_client_id = conn.execute(
+            "select id from clients where organization_id = %s",
+            (hm_id,),
+        ).fetchone()["id"]
 
         upsert_artifact(
             conn,
@@ -400,6 +405,7 @@ def main() -> None:
         upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "LinkedIn", "impressions", 753666)
         upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "LinkedIn", "followers", 8642)
         upsert_performance_metric(conn, hm_id, "2026-06-01", "2026-06-30", "CRM", "qualified_meetings", 18)
+        seed_performance(conn, hm_client_id, hm_id)
 
     print("seed ok")
     print("admin: eduardo@evergreengrowth.com.br / senha-dev-123")

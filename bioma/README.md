@@ -42,6 +42,7 @@ Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada n
 ```bash
 cp infra/env/api.example.env infra/env/api.local.env
 cp infra/env/web.example.env infra/env/web.local.env
+cp infra/env/worker.example.env infra/env/worker.local.env
 ```
 
 2. Suba banco e Redis locais:
@@ -81,6 +82,23 @@ npm install
 npm run dev
 ```
 
+5. Worker de Performance:
+
+```bash
+cd apps/worker
+python -m venv .venv
+pip install -r requirements.txt
+python -m bioma_worker.cli --drain
+```
+
+O worker usa `sync_runs` no Postgres como fila durável. A API responde `202 queued`; o processamento Google ocorre fora da requisição HTTP. Para um agendamento incremental, use `python -m bioma_worker.cli --enqueue-all --drain --days 3` em um Railway Cron.
+
+Para executar o worker sob demanda no Docker:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile worker run --rm worker
+```
+
 Usuários de desenvolvimento:
 
 - `eduardo@evergreengrowth.com.br` / `senha-dev-123`
@@ -96,6 +114,15 @@ python scripts/migrate.py
 python scripts/seed_dev.py
 python scripts/smoke_api.py
 python scripts/smoke_clickup.py
+python scripts/smoke_performance.py
+```
+
+Worker:
+
+```bash
+cd apps/worker
+python scripts/smoke_worker.py
+python scripts/smoke_queue.py
 ```
 
 Frontend:

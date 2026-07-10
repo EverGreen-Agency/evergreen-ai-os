@@ -28,7 +28,7 @@ Antes de alterar escopo, fluxo de ClickUp ou lógica operacional, consulte:
 
 ## Estado atual
 
-Data de referência: 2026-07-09.
+Data de referência: 2026-07-10.
 
 O MVP está tecnicamente testável e operável em ambiente local. Ainda não é produto final nem staging publicado.
 
@@ -49,6 +49,8 @@ Funcional hoje:
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
 - Área documentada para assets em `apps/web/public/assets/`.
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
+- Módulo de Performance com schema multi-tenant, API de leitura e conexões por cliente.
+- Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
 
 Ainda demo/dry-run:
 
@@ -56,6 +58,7 @@ Ainda demo/dry-run:
 - ClickUp ainda não sincroniza tarefas reais sem token e mapeamento real.
 - Briefing, brand book e calendário existem como artefatos editáveis, não como módulos ricos completos.
 - Analytics não deve exibir números reais enquanto não houver fonte real conectada.
+- Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
 - Permissões ainda são simples: `eg_admin` e `client_user`.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
 
@@ -150,6 +153,22 @@ Não fazer ainda:
 - [ ] Criar visão de Analytics honesta, sem fingir dados reais.
 - [ ] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 
+### P1.5 - Port do BIAds / Performance
+
+- [x] Portar tabelas diárias de Google Ads, GA4 e Search Console para o Postgres do Bioma.
+- [x] Portar snapshots e auditoria de Google Tag Manager.
+- [x] Unificar logs de sincronização em `sync_runs`.
+- [x] Criar `performance_connections` por cliente sem armazenar segredo em texto puro.
+- [x] Criar endpoints de overview, campanhas, aquisição GA4, consultas GSC e snapshots GTM.
+- [x] Criar fila durável `queued/running/ok/partial/error` com lock no Postgres.
+- [x] Portar o coletor para worker Python com `google-auth` e providers isolados.
+- [x] Criar execução manual e agendada incremental (`--enqueue-all --drain`).
+- [x] Criar smokes de normalização, autorização, fila e falha auditável.
+- [ ] Validar cada provider com credenciais reais de uma conta Google controlada pela EG.
+- [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
+- [ ] Configurar segredos e cron no staging da Railway.
+- [ ] Conectar as views do frontend aos endpoints reais de Performance.
+
 ### P2 - ClickUp real
 
 - [ ] Configurar `CLICKUP_API_TOKEN`.
@@ -208,6 +227,13 @@ Testes rodados nesta rodada:
 - `python scripts/migrate.py`
 - `python scripts/seed_dev.py`
 - `python scripts/smoke_api.py`
+- `python scripts/smoke_clickup.py`
+- `python scripts/smoke_performance.py`
+- `python apps/worker/scripts/smoke_worker.py`
+- `python apps/worker/scripts/smoke_queue.py`
+- `docker compose -f infra/docker-compose.yml --profile worker config --quiet`
+- `docker compose -f infra/docker-compose.yml --profile worker build worker`
+- `docker compose -f infra/docker-compose.yml --profile worker run --rm worker`
 - `npx tsc -b`
 - `npm.cmd run build`
 
@@ -232,3 +258,4 @@ Formato:
 - 2026-07-09 - Codex - ver git log - SQL do Client Hub extraído para repositório de persistência - compile backend e smoke API - pendente testes unitários e integração ClickUp real.
 - 2026-07-09 - Codex - ver git log - ClickUp Bridge preparado para leitura real de listas/tasks e upsert local de entregáveis, mantendo HITL para escrita externa - compile backend, smoke API e smoke ClickUp mockado - pendente token/mapeamento real e staging.
 - 2026-07-10 - Codex - ver git log - Backend mínimo para CRM/funil, financeiro e métricas manuais da proposta HM - compile backend, migrate, seed, smoke API e smoke ClickUp - pendente frontend consumir endpoints e QA visual.
+- 2026-07-10 - Codex - ver git log - Port backend do BIAds: schema, API, fila Postgres e worker Google Ads/GA4/GSC/GTM - compile, migrate, seed, smokes API/ClickUp/Performance/worker/fila - pendente credenciais reais, comparação com Google, frontend e cron de staging.
