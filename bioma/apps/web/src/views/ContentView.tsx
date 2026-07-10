@@ -1,5 +1,6 @@
 import { BookOpen, CalendarCheck, Sparkles, Download } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
+import { EditorialCalendar } from "../components/EditorialCalendar";
 import { artifactKindLabel, formatDueDate } from "../lib/format";
 import { deliverableStatusLabel } from "../lib/app-config";
 import type { ClientSummary, ClientPortal } from "../lib/api";
@@ -81,44 +82,7 @@ export function ContentView({
         )}
         
         <h3 className="section-title mt-4"><CalendarCheck size={18}/> Calendário editorial</h3>
-        <div className="editorial-calendar">
-           <div className="calendar-grid">
-              {/* Fake calendar grid just to show the UX concept without relying on real data */}
-              <div className="calendar-day">
-                 <h5>Seg 19</h5>
-                 <div className="calendar-item carrossel">
-                    <span className="item-type">Carrossel</span>
-                    <p>5 métricas que revelam a saúde do seu marketing</p>
-                    <small>10:00</small>
-                 </div>
-              </div>
-              <div className="calendar-day">
-                 <h5>Ter 20</h5>
-                 <div className="calendar-item post">
-                    <span className="item-type">Post (Imagem)</span>
-                    <p>Como definir ICP sem achismos</p>
-                    <small>14:00</small>
-                 </div>
-              </div>
-              <div className="calendar-day">
-                 <h5>Qua 21</h5>
-                 <div className="calendar-item video">
-                    <span className="item-type">Video (Reels)</span>
-                    <p>ROI de conteúdo: como medir de verdade</p>
-                    <small>16:00</small>
-                 </div>
-              </div>
-              <div className="calendar-day">
-                 <h5>Qui 22</h5>
-                 <div className="calendar-item artigo">
-                    <span className="item-type">Artigo</span>
-                    <p>Briefing perfeito: 8 elementos essenciais</p>
-                    <small>10:00</small>
-                 </div>
-              </div>
-           </div>
-        </div>
-
+        <EditorialCalendar deliverables={portal.deliverables} />
       </article>
 
       <div className="content-sidebar">

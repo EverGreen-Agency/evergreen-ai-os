@@ -1208,29 +1208,56 @@ h3 {
   margin-bottom: 16px;
 }
 
-.editorial-calendar {
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.calendar-range {
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-scroll {
   overflow-x: auto;
   padding-bottom: 8px;
 }
 
 .calendar-grid {
   display: flex;
-  gap: 16px;
-  min-width: 800px;
+  gap: 12px;
+  min-width: 840px;
 }
 
 .calendar-day {
   flex: 1;
+  min-width: 0;
+  min-height: 140px;
   background: rgba(255, 244, 199, 0.02);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px;
 }
 
+.calendar-day.today {
+  border-color: rgba(58, 201, 123, 0.45);
+}
+
 .calendar-day h5 {
   margin: 0 0 12px 0;
   color: var(--text-dim);
   font-size: 14px;
+  text-transform: capitalize;
 }
 
 .calendar-item {
@@ -1241,10 +1268,17 @@ h3 {
   margin-bottom: 10px;
 }
 
-.calendar-item.carrossel { border-left-color: var(--mint); }
-.calendar-item.post { border-left-color: var(--cream); }
-.calendar-item.video { border-left-color: var(--amber); }
-.calendar-item.artigo { border-left-color: var(--mint-deep); }
+.calendar-item.planned { border-left-color: var(--mint-deep); }
+.calendar-item.in_progress { border-left-color: var(--mint); }
+.calendar-item.waiting_approval { border-left-color: var(--amber); }
+.calendar-item.done { border-left-color: rgba(255, 244, 199, 0.55); }
+.calendar-item.blocked { border-left-color: var(--danger); }
+
+.calendar-note {
+  margin: 10px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
 
 .item-type {
   font-size: 11px;
@@ -1264,6 +1298,37 @@ h3 {
 
 .calendar-item small {
   color: var(--text-faint);
+}
+
+/* --- Demo / dados não reais --- */
+.demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 172, 75, 0.45);
+  border-radius: 8px;
+  color: var(--amber-soft);
+  background: rgba(217, 172, 75, 0.12);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.demo-banner svg {
+  flex: 0 0 auto;
+}
+
+.demo-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--amber-soft);
+  background: rgba(217, 172, 75, 0.22);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 /* --- Analytics --- */
@@ -1306,6 +1371,17 @@ h3 {
   background: var(--surface-soft);
   border: 1px solid var(--border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-card span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.analytics-card .demo-badge {
+  margin-left: auto;
 }
 
 .analytics-grid {
