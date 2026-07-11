@@ -53,13 +53,15 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
 
 def session_cookie_kwargs(expires_at: datetime) -> dict[str, object]:
     settings = get_settings()
-    secure = settings.app_env != "local"
     max_age = max(0, int((expires_at - datetime.now(timezone.utc)).total_seconds()))
-    return {
+    kwargs: dict[str, object] = {
         "key": settings.session_cookie_name,
         "httponly": True,
-        "secure": secure,
-        "samesite": "lax",
+        "secure": settings.cookie_secure,
+        "samesite": settings.session_cookie_samesite,
         "max_age": max_age,
         "path": "/",
     }
+    if settings.session_cookie_domain:
+        kwargs["domain"] = settings.session_cookie_domain
+    return kwargs

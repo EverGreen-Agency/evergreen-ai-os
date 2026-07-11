@@ -67,7 +67,7 @@ export type ApprovalSummary = {
 export type SyncRunSummary = {
   id: string;
   source: string;
-  status: "ok" | "error" | "partial";
+  status: "queued" | "running" | "ok" | "error" | "partial";
   summary: Record<string, unknown>;
   started_at: string;
   finished_at: string | null;
@@ -190,6 +190,11 @@ export const api = {
   deleteDeliverable: (clientId: string, deliverableId: string) =>
     request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
       method: "DELETE",
+    }),
+  createApproval: (clientId: string, deliverableId: string, comment?: string) =>
+    request<ClientPortal>(`/clients/${clientId}/approvals`, {
+      method: "POST",
+      body: JSON.stringify({ deliverable_id: deliverableId, comment }),
     }),
   decideApproval: (clientId: string, approvalId: string, status: Exclude<ApprovalStatus, "pending">) =>
     request<ClientPortal>(`/clients/${clientId}/approvals/${approvalId}`, {

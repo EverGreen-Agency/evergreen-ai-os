@@ -72,6 +72,10 @@ def main() -> None:
     assert queued_sync.json()["status"] == "queued"
     queued_sync_id = queued_sync.json()["id"]
 
+    portal_with_queued_sync = admin.get(f"/clients/{hm_client_id}")
+    assert_status(portal_with_queued_sync, 200, "portal aceita sync enfileirado")
+    assert any(item["id"] == queued_sync_id for item in portal_with_queued_sync.json()["sync_runs"])
+
     suffix = uuid4().hex[:8]
     created = admin.post(
         "/clients",

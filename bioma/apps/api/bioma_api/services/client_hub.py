@@ -8,6 +8,7 @@ from bioma_api.integrations.clickup import sync_clickup_folder
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.client_hub import (
+    ApprovalCreateRequest,
     ApprovalDecisionRequest,
     ArtifactCreateRequest,
     ArtifactUpdateRequest,
@@ -234,6 +235,55 @@ def delete_deliverable(client_id: UUID, deliverable_id: UUID, user: CurrentUserR
             client["organization_id"],
             "deliverable.deleted",
             {"client_id": str(client_id), "deliverable_id": str(deliverable_id)},
+        )
+
+    return get_client_portal(client_id, user)
+
+
+def create_approval(
+    client_id: UUID,
+    payload: ApprovalCreateRequest,
+    user: CurrentUserResponse,
+) -> ClientPortalResponse:
+    _require_platform_admin(user)
+    with connect() as conn:
+        client = _accessible_client(conn, client_id, user)
+        deliverable = client_hub_repo.get_deliverable(
+            conn,
+            client["organization_id"],
+            payload.deliverable_id,
+        )
+        if not deliverable:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
+
+        if client_hub_repo.get_pending_approval(conn, client["organization_id"], payload.deliverable_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Esta entrega já possui uma aprovação pendente.",
+            )
+
+        approval_id = client_hub_repo.create_approval(
+            conn,
+            client["organization_id"],
+            payload.deliverable_id,
+            user.id,
+            payload.comment,
+        )
+        client_hub_repo.update_deliverable(
+            conn,
+            client["organization_id"],
+            payload.deliverable_id,
+            {"status": "waiting_approval"},
+        )
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "approval.requested",
+            {
+                "approval_id": str(approval_id),
+                "deliverable_id": str(payload.deliverable_id),
+            },
         )
 
     return get_client_portal(client_id, user)

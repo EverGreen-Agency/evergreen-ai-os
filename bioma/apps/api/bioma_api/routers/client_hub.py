@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.client_hub import (
+    ApprovalCreateRequest,
     ApprovalDecisionRequest,
     ArtifactCreateRequest,
     ArtifactUpdateRequest,
@@ -114,6 +115,15 @@ def delete_deliverable(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> ClientPortalResponse:
     return client_hub_service.delete_deliverable(client_id, deliverable_id, user)
+
+
+@router.post("/{client_id}/approvals", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
+def create_approval(
+    client_id: UUID,
+    payload: ApprovalCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> ClientPortalResponse:
+    return client_hub_service.create_approval(client_id, payload, user)
 
 
 @router.patch("/{client_id}/approvals/{approval_id}", response_model=ClientPortalResponse)

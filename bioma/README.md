@@ -15,6 +15,8 @@ bioma/
   infra/
     docker-compose.yml
     env/
+  DEPLOY.md       # staging, produção e rollback
+  EXECUCAO-MVP.md # fila operacional entre LLMs
 ```
 
 Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada na Vercel é o app web, e o backend publicado na Railway/Fly é a API HTTP. Na prática, `web` equivale ao frontend e `api` equivale ao backend.
@@ -24,8 +26,8 @@ Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada n
 - Frontend: React + Vite + TypeScript.
 - Backend: FastAPI + Python.
 - Banco: Postgres direto.
-- Cache/fila futura: Redis.
-- Deploy: Vercel para `apps/web`; Railway para `apps/api`, Postgres, Redis e worker.
+- Fila atual: Postgres (`sync_runs`). Redis permanece opcional para uma evolução futura.
+- Deploy atual: Vercel para `apps/web`; Railway para API, Postgres e jobs. Redis não é provisionado no staging atual.
 - Fly: alternativa futura se houver exigência real de região, runtime ou rede.
 
 ## Branding

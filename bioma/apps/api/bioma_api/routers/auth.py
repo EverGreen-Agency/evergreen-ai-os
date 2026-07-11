@@ -67,7 +67,14 @@ def logout(request: Request, response: Response) -> dict[str, str]:
                 "update sessions set revoked_at = now() where token_hash = %s and revoked_at is null",
                 (hash_session_token(token),),
             )
-    response.delete_cookie(settings.session_cookie_name, path="/")
+    response.delete_cookie(
+        settings.session_cookie_name,
+        path="/",
+        domain=settings.session_cookie_domain,
+        secure=settings.cookie_secure,
+        httponly=True,
+        samesite=settings.session_cookie_samesite,
+    )
     return {"status": "ok"}
 
 

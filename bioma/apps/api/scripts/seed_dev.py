@@ -1,10 +1,12 @@
 from pathlib import Path
+import os
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from bioma_api.db import connect
+from bioma_api.config import get_settings
 from bioma_api.security import hash_password
 from performance_seed import seed_performance
 
@@ -295,6 +297,13 @@ def upsert_performance_metric(
 
 
 def main() -> None:
+    settings = get_settings()
+    allow_non_local = os.getenv("ALLOW_DEV_SEED", "").lower() in {"1", "true", "yes"}
+    if settings.app_env != "local" and not allow_non_local:
+        raise RuntimeError(
+            "seed_dev.py é bloqueado fora de local. Use ALLOW_DEV_SEED=true apenas em staging controlado."
+        )
+
     with connect() as conn:
         eg_id = upsert_org(conn, "EverGreen", "eg", "eg")
         hm_id = upsert_org(conn, "HM Conexões Poderosas", "hm-conexoes", "client")

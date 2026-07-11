@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+RUN groupadd --system bioma && useradd --system --gid bioma --create-home bioma
+
+COPY --chown=bioma:bioma . .
+
+USER bioma
 
 CMD ["python", "-m", "bioma_worker.cli"]

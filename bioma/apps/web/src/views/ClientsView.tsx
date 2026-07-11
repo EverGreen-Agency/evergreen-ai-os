@@ -17,6 +17,7 @@ export function ClientsView({
   onClickUpSync,
   onDeliverableStatus,
   onDeleteDeliverable,
+  onRequestApproval,
   onApprovalDecision,
   onSelectArtifact,
 }: {
@@ -32,6 +33,7 @@ export function ClientsView({
   onClickUpSync: () => void;
   onDeliverableStatus: (id: string, status: DeliverableStatus) => void;
   onDeleteDeliverable: (id: string) => void;
+  onRequestApproval: (id: string) => void;
   onApprovalDecision: (id: string, status: "approved" | "rejected") => void;
   onSelectArtifact: (artifact: ArtifactSummary) => void;
 }) {
@@ -118,6 +120,20 @@ export function ClientsView({
                     ) : (
                       <span className={`status-pill ${deliverable.status}`}>{deliverableStatusLabel[deliverable.status]}</span>
                     )}
+                    {isEgAdmin &&
+                      deliverable.status !== "done" &&
+                      !portal.approvals.some(
+                        (approval) => approval.deliverable_id === deliverable.id && approval.status === "pending",
+                      ) && (
+                        <button
+                          className="mini-button approve"
+                          type="button"
+                          onClick={() => onRequestApproval(deliverable.id)}
+                          disabled={Boolean(actionBusy)}
+                        >
+                          Pedir aprovação
+                        </button>
+                      )}
                     {isEgAdmin && (
                       <button
                         className="icon-button danger"

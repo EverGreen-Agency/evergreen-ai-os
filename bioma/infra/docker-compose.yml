@@ -37,8 +37,8 @@ services:
       DATABASE_URL: postgresql://bioma:bioma@postgres:5432/bioma
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
-      SESSION_SECRET: local-dev-only
-      ENCRYPTION_KEY: local-dev-only
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_SAMESITE: lax
     ports:
       - "8000:8000"
     depends_on:

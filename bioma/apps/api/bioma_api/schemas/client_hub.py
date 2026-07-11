@@ -60,7 +60,7 @@ class ApprovalSummary(BaseModel):
 class SyncRunSummary(BaseModel):
     id: UUID
     source: str
-    status: Literal["ok", "error", "partial"]
+    status: Literal["queued", "running", "ok", "error", "partial"]
     summary: dict[str, Any]
     started_at: datetime
     finished_at: datetime | None = None
@@ -128,6 +128,11 @@ class DeliverableUpdateRequest(BaseModel):
     status: DeliverableStatus | None = None
     due_at: datetime | None = None
     clickup_task_id: str | None = None
+
+
+class ApprovalCreateRequest(BaseModel):
+    deliverable_id: UUID
+    comment: str | None = None
 
 
 class ApprovalDecisionRequest(BaseModel):

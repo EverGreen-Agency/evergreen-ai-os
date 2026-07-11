@@ -303,6 +303,41 @@ def delete_deliverable(conn, organization_id: UUID, deliverable_id: UUID) -> boo
     return deleted is not None
 
 
+def get_deliverable(conn, organization_id: UUID, deliverable_id: UUID):
+    return conn.execute(
+        "select id, status from deliverables where id = %s and organization_id = %s",
+        (deliverable_id, organization_id),
+    ).fetchone()
+
+
+def get_pending_approval(conn, organization_id: UUID, deliverable_id: UUID):
+    return conn.execute(
+        """
+        select id
+        from approvals
+        where organization_id = %s and deliverable_id = %s and status = 'pending'
+        """,
+        (organization_id, deliverable_id),
+    ).fetchone()
+
+
+def create_approval(
+    conn,
+    organization_id: UUID,
+    deliverable_id: UUID,
+    requested_by: UUID,
+    comment: str | None,
+) -> UUID:
+    return conn.execute(
+        """
+        insert into approvals (organization_id, deliverable_id, requested_by, status, comment)
+        values (%s, %s, %s, 'pending', %s)
+        returning id
+        """,
+        (organization_id, deliverable_id, requested_by, comment),
+    ).fetchone()["id"]
+
+
 def get_approval(conn, organization_id: UUID, approval_id: UUID):
     return conn.execute(
         """

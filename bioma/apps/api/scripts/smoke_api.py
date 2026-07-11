@@ -2,12 +2,15 @@ from pathlib import Path
 import sys
 from uuid import uuid4
 
+from pydantic import ValidationError
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from fastapi.testclient import TestClient
 
 from bioma_api.db import connect
+from bioma_api.config import Settings
 from bioma_api.main import app
 
 
@@ -27,6 +30,25 @@ def login(client: TestClient, email: str) -> None:
 
 
 def main() -> None:
+    staging_settings = Settings(
+        app_env="staging",
+        database_url="postgresql://bioma:secret@postgres.internal:5432/bioma",
+        cors_origins="https://staging.bioma.example.com",
+        session_cookie_secure=True,
+    )
+    assert staging_settings.cookie_secure is True
+    assert staging_settings.cors_origin_list == ["https://staging.bioma.example.com"]
+    try:
+        Settings(
+            app_env="production",
+            database_url="postgresql://bioma:bioma@localhost:5432/bioma",
+            cors_origins="http://localhost:5173",
+        )
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("configuração de produção insegura deveria ser rejeitada")
+
     admin = TestClient(app)
     guest = TestClient(app)
     client_user = TestClient(app)
@@ -42,6 +64,7 @@ def main() -> None:
     assert cors.headers.get("access-control-allow-origin") == "http://127.0.0.1:5173"
 
     assert_status(guest.get("/health"), 200, "health")
+    assert_status(guest.get("/health/ready"), 200, "readiness")
 
     login(admin, ADMIN_EMAIL)
     login(client_user, CLIENT_EMAIL)
@@ -58,6 +81,41 @@ def main() -> None:
 
     blocked_sync = client_user.post(f"/clients/{hm_client_id}/sync/clickup")
     assert_status(blocked_sync, 403, "client cannot sync clickup")
+
+    approval_deliverable = admin.post(
+        f"/clients/{hm_client_id}/deliverables",
+        json={"title": "Entrega para aprovação smoke", "status": "in_progress"},
+    )
+    assert_status(approval_deliverable, 201, "create deliverable for approval")
+    approval_deliverable_id = next(
+        item["id"]
+        for item in approval_deliverable.json()["deliverables"]
+        if item["title"] == "Entrega para aprovação smoke"
+    )
+    requested_approval = admin.post(
+        f"/clients/{hm_client_id}/approvals",
+        json={"deliverable_id": approval_deliverable_id, "comment": "Validar entrega smoke."},
+    )
+    assert_status(requested_approval, 201, "request approval")
+    approval_id = next(
+        item["id"]
+        for item in requested_approval.json()["approvals"]
+        if item["deliverable_id"] == approval_deliverable_id and item["status"] == "pending"
+    )
+    decided_approval = client_user.patch(
+        f"/clients/{hm_client_id}/approvals/{approval_id}",
+        json={"status": "approved", "comment": "Aprovado pelo smoke."},
+    )
+    assert_status(decided_approval, 200, "client decides approval")
+    assert any(
+        item["id"] == approval_deliverable_id and item["status"] == "done"
+        for item in decided_approval.json()["deliverables"]
+    )
+    assert_status(
+        admin.delete(f"/clients/{hm_client_id}/deliverables/{approval_deliverable_id}"),
+        200,
+        "cleanup approval deliverable",
+    )
 
     suffix = uuid4().hex[:8]
     created = admin.post(

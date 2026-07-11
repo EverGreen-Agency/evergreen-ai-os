@@ -26,6 +26,11 @@ Antes de alterar escopo, fluxo de ClickUp ou lógica operacional, consulte:
 - `_opensquad/_memory/knowledge/inputs-mega-plataforma/Reuniao-HM_Conexoes.md`
 - `_opensquad/_memory/knowledge/inputs-mega-plataforma/Proposta_EverGreen_HM_Conexoes_Poderosas_v3.md`
 
+Documentos operacionais:
+
+- `bioma/EXECUCAO-MVP.md`: fila atômica, dependências, dono e handoff entre LLMs.
+- `bioma/DEPLOY.md`: runbook de staging, produção e rollback.
+
 ## Estado atual
 
 Data de referência: 2026-07-10.
@@ -44,6 +49,7 @@ Funcional hoje:
 - Criar, editar e excluir artefatos como EG admin.
 - Criar, atualizar status e excluir entregáveis como EG admin.
 - Aprovar/reprovar pendência pelo front.
+- EG admin consegue solicitar aprovação de uma entrega pelo front; o cliente decide no próprio hub.
 - Cliente enxerga apenas o próprio hub no seed.
 - ClickUp Bridge em modo manual/dry-run.
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
@@ -52,6 +58,7 @@ Funcional hoje:
 - Módulo de Performance com schema multi-tenant, API de leitura e conexões por cliente.
 - Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
 - Backend mínimo de CRM, financeiro e métricas manuais, ainda sem telas integradas no frontend.
+- Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 
 Ainda demo/dry-run:
 
@@ -157,6 +164,8 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 - [x] Criar backend mínimo de CRM/funil de leads da proposta HM.
 - [x] Criar backend mínimo de financeiro da reunião HM.
 - [x] Criar backend mínimo de métricas manuais para Analytics honesto.
+- [x] Corrigir contrato de `sync_runs` para `queued/running/ok/partial/error`.
+- [x] Criar solicitação de aprovação EG → cliente sem depender do seed.
 - [x] Fazer smoke visual assistido em desktop e mobile, sem overflow nas rotas principais.
 - [ ] Fazer QA visual humano em notebook com DevTools aberto e assinar o checklist.
 - [x] Criar checklist manual de QA (seção "Checklist de QA visual"; assinatura ainda pendente).
@@ -215,9 +224,23 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
 - [ ] Dividir o bundle principal do frontend; o build atual gera chunk JS de aproximadamente 601 kB antes de gzip.
+- [ ] Criar convite/provisionamento de usuário cliente sem seed.
+- [ ] Criar recuperação/rotação segura de senha.
+- [ ] Implementar rate limit de login.
+- [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
+- [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
+- [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
 
 ### P4 - Staging
 
+- [x] Criar runbook de deploy e rollback.
+- [x] Criar Config as Code para API e jobs Railway.
+- [x] Criar configuração Vercel para o app Vite.
+- [x] Criar readiness check com Postgres.
+- [x] Bloquear seed demo fora de ambiente autorizado.
+- [x] Criar bootstrap seguro de EG admin.
+- [x] Criar smoke remoto não destrutivo.
+- [x] Criar CI para build e smokes.
 - [ ] Subir API e Postgres na Railway.
 - [ ] Subir Web na Vercel.
 - [ ] Configurar variáveis por ambiente.
@@ -326,3 +349,4 @@ Formato:
 - 2026-07-10 - Claude (Fable) - ver git log dcd2941..HEAD - Tema escuro musgo com tokens EG, assets de marca aplicados, Analytics/calendário com rotulagem honesta e dados reais, briefing/brand book estruturados por seções, ArtifactModal extraído e tipos sem any, checklist de QA visual criado - tsc, build frontend a cada commit - pendente QA visual assinado, visão mensal do calendário e assets finais de marca.
 - 2026-07-10 - Claude (Fable) - bccaf50/c9707e4 - Decisões de escopo registradas (CRM=Kommo bridge futuro, brand book adiado, calendário fica no ClickUp, port BIAds), documentos estratégicos generalizados sem hardcode de brand book, TrendChart recharts no Analytics com paleta validada, PLANO-PORT-BIADS.md criado - tsc, build frontend - pendente consolidação das worktrees pelo Juiz e execução do port (P1.5).
 - 2026-07-10 - Codex/Juiz - c143c7a - Worktrees de API e UI consolidadas no develop, conflito de roadmap resolvido e port backend do BIAds incorporado - tsc, build, migrations, seed, smokes API/ClickUp/Performance/worker/fila e smoke visual desktop/mobile - pendentes frontend CRM/financeiro/Performance, LinkedIn, integrações reais, staging, assets e aceite humano.
+- 2026-07-10 - Codex - ver git log - Hardening para deploy, CI, Config as Code, bootstrap admin, smoke remoto, fluxo real de solicitação de aprovação e fila operacional multi-LLM - pendente criar staging externo, conectar credenciais e executar os gates de produção.

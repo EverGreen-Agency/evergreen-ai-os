@@ -14,11 +14,15 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",")],
-    allow_origin_regex=r"^http://(localhost|127\.0\.0\.1):(5173|5174)$",
+    allow_origins=settings.cors_origin_list,
+    allow_origin_regex=(
+        r"^http://(localhost|127\.0\.0\.1):(5173|5174)$"
+        if settings.app_env == "local"
+        else None
+    ),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 app.include_router(auth.router)

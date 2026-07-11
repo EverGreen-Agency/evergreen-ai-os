@@ -62,7 +62,7 @@ export function App() {
   const selectedClient = portal?.client ?? clients.find((client) => client.id === selectedClientId) ?? null;
   const isEgAdmin =
     user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
-  const latestSync = portal?.sync_runs[0] ?? null;
+  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
 
   const pendingApprovals = portal?.approvals.filter((approval) => approval.status === "pending") ?? [];
   const activeDeliverables =
@@ -297,6 +297,13 @@ export function App() {
     await runPortalAction(`deliverable:${deliverableId}:delete`, () => api.deleteDeliverable(selectedClientId, deliverableId));
   }
 
+  async function handleRequestApproval(deliverableId: string) {
+    if (!selectedClientId) return;
+    await runPortalAction(`approval:${deliverableId}:request`, () =>
+      api.createApproval(selectedClientId, deliverableId, "Aguardando validação do cliente."),
+    );
+  }
+
   async function handleApprovalDecision(approvalId: string, status: "approved" | "rejected") {
     if (!selectedClientId) return;
     await runPortalAction(`approval:${approvalId}:${status}`, () => api.decideApproval(selectedClientId, approvalId, status));
@@ -402,6 +409,7 @@ export function App() {
             onClickUpSync={handleClickUpSync}
             onDeliverableStatus={handleDeliverableStatus}
             onDeleteDeliverable={handleDeleteDeliverable}
+            onRequestApproval={handleRequestApproval}
             onApprovalDecision={handleApprovalDecision}
             onSelectArtifact={setSelectedArtifact}
           />
