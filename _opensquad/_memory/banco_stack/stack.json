@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-07-08",
+  "updated_at": "2026-07-11",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",
@@ -356,6 +356,24 @@
       "adr": "ADR-0007@mod-multitenant",
       "source": "https://bullmq.io",
       "id": "bullmq"
+    },
+    {
+      "name": "Render",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Your fastest path to production for APIs & web apps Intuitive infrastructure to scale any app or agent from your first user to your billionth.",
+      "adr": "",
+      "source": "https://render.com/",
+      "id": "render"
+    },
+    {
+      "name": "Netlify",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Push your ideas to the web Create with AI or code, deploy instantly on production infrastructure. One platform to build and ship.",
+      "adr": "",
+      "source": "https://www.netlify.com/",
+      "id": "netlify"
     }
   ]
 }
