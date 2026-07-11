@@ -80,11 +80,29 @@ jobs:
           du -sh dist
           ls -la dist
 
+      - name: Prepare Vercel output
+        shell: bash
+        run: |
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static
+          cp -R dist/. .vercel/output/static/
+          cat > .vercel/output/config.json <<'JSON'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          JSON
+          test -f .vercel/output/static/index.html
+          test -f .vercel/output/config.json
+
       - name: Deploy
         id: deploy
         shell: bash
         run: |
-          DEPLOYMENT_URL="$(npx vercel@latest deploy dist ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
+          DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL"
 

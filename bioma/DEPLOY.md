@@ -186,7 +186,7 @@ BIOMA_PRODUCTION_API_BASE_URL=https://api.bioma.<dominio-eg>
 
 Se `BIOMA_STAGING_API_BASE_URL` nao existir, o workflow usa `https://api-staging.bioma.evergreenmkt.com.br`. Para producao, configure `BIOMA_PRODUCTION_API_BASE_URL` antes de liberar `main`.
 
-O workflow builda localmente com `npm run build` e faz `vercel deploy dist`. Nao usa `vercel build --prebuilt`, porque o app e Vite estatico e o erro de CI indicou falha na deteccao do output `dist` durante o fluxo prebuilt.
+O workflow builda localmente com `npm run build`, copia `dist` para `.vercel/output/static` e faz `vercel deploy --prebuilt`. Nao usar `vercel deploy dist` enquanto o projeto Vercel estiver com Root Directory `bioma/apps/web`, porque a CLI pode aplicar o root novamente e procurar `dist/bioma/apps/web`.
 
 Comportamento:
 
