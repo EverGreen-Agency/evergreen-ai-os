@@ -101,7 +101,12 @@ jobs:
       - name: Deploy
         id: deploy
         shell: bash
+        # The Vercel project already has Root Directory=bioma/apps/web.
+        # Run the CLI from the monorepo root so that directory is applied once.
+        working-directory: ${{ github.workspace }}
         run: |
+          test -f bioma/apps/web/.vercel/output/static/index.html
+          test -f bioma/apps/web/.vercel/output/config.json
           DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL"
