@@ -32,6 +32,7 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_STAGING_ALIAS: ${{ secrets.VERCEL_STAGING_ALIAS }}
+      DEFAULT_VERCEL_STAGING_ALIAS: staging.bioma.evergreenmkt.com.br
     steps:
       - uses: actions/checkout@v4
 
@@ -81,8 +82,11 @@ jobs:
           echo "Deployment URL: $DEPLOYMENT_URL"
 
       - name: Alias staging
-        if: ${{ steps.target.outputs.target == 'staging' && env.VERCEL_STAGING_ALIAS != '' }}
-        run: npx vercel@latest alias set "${{ steps.deploy.outputs.url }}" "$VERCEL_STAGING_ALIAS" --token="$VERCEL_TOKEN"
+        if: ${{ steps.target.outputs.target == 'staging' }}
+        shell: bash
+        run: |
+          ALIAS_DOMAIN="${VERCEL_STAGING_ALIAS:-$DEFAULT_VERCEL_STAGING_ALIAS}"
+          npx vercel@latest alias set "${{ steps.deploy.outputs.url }}" "$ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
 
       - name: Summary
         shell: bash

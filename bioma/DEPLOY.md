@@ -133,7 +133,12 @@ VITE_API_BASE_URL=https://api-staging.bioma.evergreenmkt.com.br
 
 Quando os dominios finais estiverem configurados, atualizar `CORS_ORIGINS` na API com a URL exata da Vercel/domino.
 
-Validacao em 2026-07-11: as URLs `https://api-staging.bioma.evergreenmkt.com.br/health` e `https://staging.bioma.evergreenmkt.com.br` retornaram `404`. Antes do smoke remoto completo, confirmar no Railway/Vercel se os dominios estao associados aos projetos corretos e se o DNS ja propagou.
+Validacao em 2026-07-11: as URLs `https://api-staging.bioma.evergreenmkt.com.br/health` e `https://staging.bioma.evergreenmkt.com.br` retornaram `404`.
+
+Diagnostico:
+
+- API: DNS aponta para Railway, mas a resposta tem `x-railway-fallback: true`; associar `api-staging.bioma.evergreenmkt.com.br` ao service `bioma-api` correto no Railway.
+- Web: DNS aponta para Vercel, mas a resposta tem `X-Vercel-Error: DEPLOYMENT_NOT_FOUND`; rodar o workflow `Bioma Web Deploy` com secrets corretos para publicar e aplicar o alias de staging.
 
 ### Deploy Vercel via GitHub Actions
 
@@ -147,11 +152,13 @@ VERCEL_ORG_ID=<org/team id da Vercel>
 VERCEL_PROJECT_ID=<project id do projeto bioma>
 ```
 
-Secret opcional para staging com URL fixa:
+Secret opcional para sobrescrever o alias de staging:
 
 ```text
 VERCEL_STAGING_ALIAS=staging.bioma.<dominio-eg>
 ```
+
+Se `VERCEL_STAGING_ALIAS` nao existir, o workflow usa `staging.bioma.evergreenmkt.com.br` como alias padrao.
 
 Comportamento:
 
