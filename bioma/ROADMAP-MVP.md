@@ -251,7 +251,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Subir Web na Vercel.
 - [ ] Configurar variáveis por ambiente.
 - [ ] Rodar seed apenas em ambiente local/staging controlado.
-- [ ] Criar domínio temporário de staging.
+- [ ] Corrigir e validar domínio temporário de staging: web `staging.bioma.evergreenmkt.com.br`, API `api-staging.bioma.evergreenmkt.com.br` atualmente retornam `404`.
 
 ## Checklist de QA visual (manual)
 
@@ -358,3 +358,4 @@ Formato:
 - 2026-07-10 - Codex - ver git log - Hardening para deploy, CI, Config as Code, bootstrap admin, smoke remoto, fluxo real de solicitação de aprovação e fila operacional multi-LLM - pendente criar staging externo, conectar credenciais e executar os gates de produção.
 - 2026-07-11 - Codex - ver git log - Deploy do MVP redirecionado para Railway/Vercel, CRM/funil e financeiro ligados ao frontend, Analytics conectado ao backend de Performance e hardening mínimo de auth/payload/rate-limit - tsc, build web, compile backend/worker, smokes API/ClickUp/Performance/worker/fila - pendente staging externo, credenciais reais, páginas profundas de Performance, QA humano e LGPD.
 - 2026-07-11 - Codex - ver git log - GitHub Action para deploy Vercel via token admin, code-splitting de Analytics/Comercial e smoke de sessão expirada - tsc, build web, smoke API - pendente secrets GitHub/Vercel, URLs públicas para smoke remoto e validação humana.
+- 2026-07-11 - Codex - ver git log - URLs de staging registradas e smoke HTTP público tentado - `api-staging.bioma.evergreenmkt.com.br` e `staging.bioma.evergreenmkt.com.br` retornaram 404 - pendente associar domínios aos projetos corretos ou aguardar propagação DNS.

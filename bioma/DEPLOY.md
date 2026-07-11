@@ -27,7 +27,7 @@ Preferir web e API sob o mesmo dominio registravel:
 
 | Ambiente | Web | API |
 |---|---|---|
-| Staging | `staging.bioma.<dominio-eg>` | `api-staging.bioma.<dominio-eg>` |
+| Staging | `staging.bioma.evergreenmkt.com.br` | `api-staging.bioma.evergreenmkt.com.br` |
 | Producao | `bioma.<dominio-eg>` | `api.bioma.<dominio-eg>` |
 
 Com isso, usar `SESSION_COOKIE_SECURE=true` e `SESSION_COOKIE_SAMESITE=lax`.
@@ -85,7 +85,7 @@ Variaveis da API em staging:
 ```text
 APP_ENV=staging
 DATABASE_URL=<injetado pelo Railway Postgres>
-CORS_ORIGINS=https://staging.bioma.<dominio-eg>
+CORS_ORIGINS=https://staging.bioma.evergreenmkt.com.br
 SESSION_COOKIE_NAME=bioma_staging_session
 SESSION_COOKIE_SECURE=true
 SESSION_COOKIE_SAMESITE=lax
@@ -128,10 +128,12 @@ Variaveis:
 
 ```text
 VITE_APP_ENV=staging
-VITE_API_BASE_URL=https://api-staging.bioma.<dominio-eg>
+VITE_API_BASE_URL=https://api-staging.bioma.evergreenmkt.com.br
 ```
 
 Quando os dominios finais estiverem configurados, atualizar `CORS_ORIGINS` na API com a URL exata da Vercel/domino.
+
+Validacao em 2026-07-11: as URLs `https://api-staging.bioma.evergreenmkt.com.br/health` e `https://staging.bioma.evergreenmkt.com.br` retornaram `404`. Antes do smoke remoto completo, confirmar no Railway/Vercel se os dominios estao associados aos projetos corretos e se o DNS ja propagou.
 
 ### Deploy Vercel via GitHub Actions
 
@@ -162,7 +164,7 @@ Se a integracao Git nativa da Vercel estiver ativa no mesmo projeto, desativar o
 ## 4. Validar staging
 
 ```powershell
-$env:BIOMA_API_BASE_URL='https://api-staging.bioma.<dominio-eg>'
+$env:BIOMA_API_BASE_URL='https://api-staging.bioma.evergreenmkt.com.br'
 $env:BIOMA_SMOKE_EMAIL='<admin-de-staging>'
 $env:BIOMA_SMOKE_PASSWORD='<secret>'
 $env:BIOMA_SESSION_COOKIE_NAME='bioma_staging_session'
