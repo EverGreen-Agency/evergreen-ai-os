@@ -65,9 +65,25 @@ def main() -> None:
 
     assert_status(guest.get("/health"), 200, "health")
     assert_status(guest.get("/health/ready"), 200, "readiness")
+    assert_status(guest.get("/auth/me"), 401, "missing session")
+    for _ in range(5):
+        assert_status(
+            guest.post("/auth/login", json={"email": "rate-limit@example.com", "password": "wrong"}),
+            401,
+            "failed login before rate limit",
+        )
+    assert_status(
+        guest.post("/auth/login", json={"email": "rate-limit@example.com", "password": "wrong"}),
+        429,
+        "login rate limit",
+    )
 
     login(admin, ADMIN_EMAIL)
     login(client_user, CLIENT_EMAIL)
+    assert_status(admin.get("/auth/me"), 200, "active session")
+    assert_status(admin.post("/auth/logout"), 200, "logout revokes session")
+    assert_status(admin.get("/auth/me"), 401, "revoked session")
+    login(admin, ADMIN_EMAIL)
 
     clients_response = admin.get("/clients")
     assert_status(clients_response, 200, "admin list clients")
@@ -185,6 +201,8 @@ def main() -> None:
         },
     )
     assert_status(lead, 201, "create lead")
+    invalid_lead = admin.post(f"/clients/{created_client_id}/leads", json={"company": "Sem nome"})
+    assert_status(invalid_lead, 422, "invalid lead payload")
     lead_id = lead.json()[0]["id"]
     moved_lead = admin.patch(f"/clients/{created_client_id}/leads/{lead_id}", json={"stage": "meeting"})
     assert_status(moved_lead, 200, "update lead")

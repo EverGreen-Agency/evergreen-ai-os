@@ -32,22 +32,22 @@ Estados:
 | CORE-001 | DONE | Full-stack | Corrigir estados `queued/running` do Client Hub | nenhuma | smoke Performance + portal |
 | CORE-002 | DONE | Full-stack | Criar solicitação de aprovação EG → cliente | CORE-001 | smoke API + build web |
 | DPL-001 | DONE | Backend | Cookie/CORS por ambiente e `/health/ready` | nenhuma | compile + smoke API |
-| DPL-002 | DONE | DevOps | Config as Code Fly/Vercel | DPL-001 | validar TOML/JSON + Docker build |
+| DPL-002 | DONE | DevOps | Config as Code Railway/Vercel | DPL-001 | validar JSON + Docker build |
 | DPL-003 | DONE | QA/DevOps | CI web/API/worker no GitHub Actions | DPL-002 | workflow parse + execução no PR |
 | DPL-004 | DONE | Backend | Bloquear seed e criar bootstrap admin seguro | DPL-001 | bootstrap em banco descartável |
-| DPL-005 | BLOCKED | Operação | Criar staging Fly `gru` + Managed Postgres | DPL-001..004 | deploy + `/health/ready` |
+| DPL-005 | BLOCKED | Operação | Criar staging Railway + Postgres | DPL-001..004 | deploy + `/health/ready` |
 | DPL-006 | BLOCKED | Operação | Criar staging Vercel e domínios | DPL-005 | build + login no browser |
 | DPL-007 | BLOCKED | QA | Smoke remoto de staging | DPL-006 | `smoke_remote.py` |
 
-Bloqueio de DPL-005..007: acesso às contas Fly/Vercel, domínio e secrets.
+Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
 
 ### Onda 1 — Superfícies comerciais do MVP
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| WEB-CRM-001 | TODO | Frontend | Kanban de leads consumindo endpoints CRM existentes | CORE-002 | build + fluxo criar/mover lead |
-| WEB-FIN-001 | TODO | Frontend | Tela financeira consumindo contratos/faturas existentes | CORE-002 | build + CRUD financeiro |
-| WEB-PERF-001 | TODO | Frontend | Analytics consumir overview real de Performance | CORE-001 | build + dados seed marcados demo |
+| WEB-CRM-001 | DONE | Frontend | Kanban de leads consumindo endpoints CRM existentes | CORE-002 | build + fluxo criar/mover lead |
+| WEB-FIN-001 | DONE | Frontend | Tela financeira consumindo contratos/faturas existentes | CORE-002 | build + CRUD financeiro |
+| WEB-PERF-001 | DONE | Frontend | Analytics consumir overview real de Performance | CORE-001 | build + dados seed marcados demo |
 | WEB-PERF-002 | TODO | Frontend | Páginas Ads, GA4, GSC e GTM | WEB-PERF-001 | build + estados vazio/erro/freshness |
 | AUTH-001 | TODO | Full-stack | EG admin cria/convida usuário cliente | DPL-004 | smoke de convite + isolamento |
 | AUTH-002 | TODO | Full-stack | Fluxo seguro de recuperação/rotação de senha | AUTH-001 | token expirável + teste |
@@ -73,9 +73,10 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| SEC-001 | TODO | Backend | Testar sessão expirada e revogada | DPL-001 | teste automatizado |
-| SEC-002 | TODO | Backend | Massa de payload inválido e limites | CORE-002 | teste automatizado |
-| SEC-003 | TODO | Backend | Rate limit de login | DPL-005 | teste de excesso e reset |
+| SEC-001A | DONE | Backend | Testar sessão revogada | DPL-001 | smoke API |
+| SEC-001B | TODO | Backend | Testar sessão expirada | DPL-001 | teste automatizado |
+| SEC-002 | DONE | Backend | Massa mínima de payload inválido | CORE-002 | smoke API |
+| SEC-003 | DONE | Backend | Rate limit de login em processo único | DPL-005 | teste de excesso |
 | SEC-004 | TODO | QA | Carga básica em leitura/login | DPL-006 | relatório p95/erro |
 | SEC-005 | TODO | Segurança | ZAP/Burp em staging autorizado | DPL-006 | relatório e correções P0/P1 |
 | CONTRACT-001 | TODO | Full-stack | Gerar tipos TS a partir do OpenAPI e eliminar drift manual | WEB-PERF-001 | CI detecta contrato divergente |
@@ -89,7 +90,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| PRD-001 | DONE | Produto | Runtime backend definido: Fly `gru` + Managed Postgres | nenhuma | decisão registrada em `DEPLOY.md` |
+| PRD-001 | DONE | Produto | Runtime backend MVP definido: Railway + Postgres | nenhuma | decisão registrada em `DEPLOY.md` |
 | PRD-002 | BLOCKED | Release | PR `develop -> main` | ondas 1..3, AUTH-001 | CI verde e review |
 | PRD-003 | BLOCKED | Operação | Infra e banco de produção isolados | PRD-001..002 | `/health/ready` |
 | PRD-004 | BLOCKED | Release | Deploy web/API/jobs | PRD-003 | smoke remoto |

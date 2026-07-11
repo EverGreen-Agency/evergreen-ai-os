@@ -33,6 +33,7 @@ import { ContentView } from "./views/ContentView";
 import { IntegrationsView } from "./views/IntegrationsView";
 import { EngineeringView } from "./views/EngineeringView";
 import { AnalyticsView } from "./views/AnalyticsView";
+import { OperationsView } from "./views/OperationsView";
 import { AdminDock } from "./components/AdminDock";
 import { ArtifactModal } from "./components/ArtifactModal";
 
@@ -423,6 +424,14 @@ export function App() {
           />
         )}
 
+        {view === "comercial" && (
+          <OperationsView
+            selectedClientId={selectedClientId}
+            selectedClient={selectedClient}
+            isEgAdmin={isEgAdmin}
+          />
+        )}
+
         {view === "integracoes" && (
           <IntegrationsView
             selectedClient={selectedClient}
@@ -442,9 +451,7 @@ export function App() {
           />
         )}
 
-        {view === "analytics" && (
-          <AnalyticsView />
-        )}
+        {view === "analytics" && <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />}
 
         {isEgAdmin && (
           <AdminDock

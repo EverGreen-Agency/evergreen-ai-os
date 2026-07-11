@@ -1,105 +1,177 @@
-import { AlertTriangle, BarChart3, LineChart, TrendingUp, Users, Sparkles } from "lucide-react";
-import { SectionHeader } from "../components/shared";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, BarChart3, LineChart, RefreshCw, Sparkles, Target, TrendingUp } from "lucide-react";
+import { EmptyState, SectionHeader } from "../components/shared";
 import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
+import { api, type AdsCampaignSummary, type ClientSummary, type PerformanceOverview } from "../lib/api";
 
-const demoTrend: TrendPoint[] = [
-  { label: "sem 1", value: 12400 },
-  { label: "sem 2", value: 15100 },
-  { label: "sem 3", value: 13800 },
-  { label: "sem 4", value: 18900 },
-  { label: "sem 5", value: 17600 },
-  { label: "sem 6", value: 22300 },
-  { label: "sem 7", value: 21100 },
-  { label: "sem 8", value: 26800 },
-  { label: "sem 9", value: 25400 },
-  { label: "sem 10", value: 30200 },
-  { label: "sem 11", value: 29100 },
-  { label: "sem 12", value: 34600 },
-];
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(Math.round(value));
+}
 
-const demoMetrics = [
-  { icon: Users, label: "Seguidores", value: "8.642", delta: "↑ 3,2% vs. período anterior", tone: "ok" },
-  { icon: BarChart3, label: "Impressões", value: "753.666", delta: "↑ 60,5% vs. período anterior", tone: "ok" },
-  { icon: TrendingUp, label: "Alcance", value: "312.889", delta: "↑ 48,0% vs. período anterior", tone: "ok" },
-  { icon: LineChart, label: "Taxa de Engajamento", value: "4,2%", delta: "↓ 1,1% vs. período anterior", tone: "bad" },
-];
+function formatMoneyMicros(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value / 1_000_000);
+}
 
-export function AnalyticsView() {
+function formatPercent(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 2 }).format(value);
+}
+
+function providerLabel(provider: string) {
+  return {
+    google_ads: "Google Ads",
+    ga4: "GA4",
+    search_console: "Search Console",
+    gtm: "GTM",
+  }[provider] ?? provider;
+}
+
+export function AnalyticsView({
+  selectedClientId,
+  selectedClient,
+}: {
+  selectedClientId: string | null;
+  selectedClient: ClientSummary | null;
+}) {
+  const [overview, setOverview] = useState<PerformanceOverview | null>(null);
+  const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!selectedClientId) {
+      setOverview(null);
+      setCampaigns([]);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    Promise.all([api.performanceOverview(selectedClientId), api.adsCampaigns(selectedClientId)])
+      .then(([nextOverview, nextCampaigns]) => {
+        setOverview(nextOverview);
+        setCampaigns(nextCampaigns);
+      })
+      .catch((err: Error) => setError(err.message || "Não foi possível carregar Performance."))
+      .finally(() => setLoading(false));
+  }, [selectedClientId]);
+
+  const trend = useMemo<TrendPoint[]>(
+    () => overview?.daily.map((point) => ({ label: point.date.slice(5), value: point.impressions })) ?? [],
+    [overview],
+  );
+  const hasSyncedSource = overview?.freshness.some((source) => source.last_synced_at) ?? false;
+  const demoMode = !hasSyncedSource;
+
+  if (!selectedClientId || !selectedClient) {
+    return <EmptyState text="Selecione um cliente para ver Analytics." />;
+  }
+
+  if (loading) {
+    return <EmptyState text="Carregando Performance..." />;
+  }
+
+  const ads = overview?.ads;
+
   return (
     <section className="analytics-layout">
-      <div className="demo-banner" role="status">
-        <AlertTriangle size={18} />
-        <span>
-          Demonstração da experiência de Analytics. Nenhum dado real: a integração com o LinkedIn ainda não está
-          conectada. Todos os números abaixo são exemplos ilustrativos.
-        </span>
-      </div>
+      {error && <div className="notice error">{error}</div>}
+      {demoMode && (
+        <div className="demo-banner" role="status">
+          <AlertTriangle size={18} />
+          <span>
+            Performance está conectada ao backend do Bioma, mas ainda sem credenciais reais validadas. Os números podem
+            vir do seed de demonstração até o primeiro sync Google/ClickUp controlado.
+          </span>
+        </div>
+      )}
 
       <div className="analytics-header">
         <div>
-          <h2>Analytics do LinkedIn (Perfil pessoal)</h2>
-          <p>Prévia do layout de desempenho consolidado.</p>
+          <h2>Performance de {selectedClient.name}</h2>
+          <p>
+            {overview
+              ? `${overview.period_start} até ${overview.period_end}`
+              : "Sem dados de Performance para o período atual."}
+          </p>
         </div>
         <div className="analytics-actions">
           <button className="ghost-button dark" type="button" disabled>
-            Últimos 30 dias
-          </button>
-          <button className="ghost-button dark" type="button" disabled>
-            Exportar
+            <RefreshCw size={16} />
+            Sync manual pelo backend
           </button>
         </div>
       </div>
 
       <div className="metrics analytics-metrics">
-        {demoMetrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <article className="metric-card analytics-card" key={metric.label}>
-              <span>
-                <Icon size={16} /> {metric.label}
-                <em className="demo-badge">exemplo</em>
-              </span>
-              <strong>{metric.value}</strong>
-              <small className={metric.tone}>{metric.delta}</small>
-            </article>
-          );
-        })}
+        <article className="metric-card analytics-card">
+          <span>
+            <BarChart3 size={16} /> Impressões {demoMode && <em className="demo-badge">demo</em>}
+          </span>
+          <strong>{formatNumber(ads?.impressions ?? 0)}</strong>
+          <small>Google Ads agregado</small>
+        </article>
+        <article className="metric-card analytics-card">
+          <span>
+            <TrendingUp size={16} /> Cliques {demoMode && <em className="demo-badge">demo</em>}
+          </span>
+          <strong>{formatNumber(ads?.clicks ?? 0)}</strong>
+          <small>CTR {formatPercent(ads?.ctr ?? 0)}</small>
+        </article>
+        <article className="metric-card analytics-card">
+          <span>
+            <Target size={16} /> Conversões {demoMode && <em className="demo-badge">demo</em>}
+          </span>
+          <strong>{formatNumber(ads?.conversions ?? 0)}</strong>
+          <small>ROAS {(ads?.roas ?? 0).toFixed(2)}</small>
+        </article>
+        <article className="metric-card analytics-card">
+          <span>
+            <LineChart size={16} /> Investimento {demoMode && <em className="demo-badge">demo</em>}
+          </span>
+          <strong>{formatMoneyMicros(ads?.cost_micros ?? 0)}</strong>
+          <small>CPA {formatMoneyMicros(ads?.cpa_micros ?? 0)}</small>
+        </article>
       </div>
 
       <div className="analytics-grid">
         <article className="surface">
-          <SectionHeader eyebrow="Evolução (exemplo)" title="Impressões" icon={LineChart} />
-          <TrendChart data={demoTrend} name="Impressões" />
-          <p className="panel-footnote">Série ilustrativa de demonstração — dados não reais.</p>
+          <SectionHeader eyebrow="Evolução" title="Impressões por dia" icon={LineChart} />
+          {trend.length > 0 ? <TrendChart data={trend} name="Impressões" /> : <EmptyState compact text="Sem série diária." />}
+          <p className="panel-footnote">Dados lidos do endpoint real de Performance do Bioma.</p>
         </article>
 
         <article className="surface">
-          <SectionHeader eyebrow="AI Insights (exemplo)" title="Insights Estratégicos" icon={Sparkles} />
-          <div className="insights-list">
-            <div className="insight-item">
-              <div className="insight-icon ok">
-                <TrendingUp size={16} />
+          <SectionHeader eyebrow="Freshness" title="Fontes conectadas" icon={Sparkles} />
+          <div className="health-list">
+            {overview?.freshness.map((source) => (
+              <div className="health-row" key={source.provider}>
+                <span className={source.status === "error" ? "dot" : "dot online"} />
+                <span>{providerLabel(source.provider)}</span>
+                <strong className={source.status === "error" ? "bad" : "ok"}>
+                  {source.last_synced_at ? new Date(source.last_synced_at).toLocaleDateString("pt-BR") : "sem sync"}
+                </strong>
               </div>
-              <div>
-                <strong>Postagens sobre estratégia renderam 2.4x mais impressões.</strong>
-                <p>Exemplo de recomendação gerada quando houver dados reais conectados.</p>
-              </div>
-            </div>
-            <div className="insight-item">
-              <div className="insight-icon">
-                <Users size={16} />
-              </div>
-              <div>
-                <strong>Interações de 1º grau estão em alta.</strong>
-                <p>Exemplo de recomendação gerada quando houver dados reais conectados.</p>
-              </div>
-            </div>
+            ))}
+            {!overview?.freshness.length && <EmptyState compact text="Nenhuma conexão de Performance." />}
           </div>
-          <button className="primary-button wide mt-3" type="button" disabled>
-            Ver plano de ação (demo)
-          </button>
         </article>
       </div>
+
+      <article className="surface">
+        <SectionHeader eyebrow="Google Ads" title="Campanhas" icon={BarChart3} />
+        <div className="table-list">
+          {campaigns.map((campaign) => (
+            <div className="table-row" key={campaign.campaign_id}>
+              <strong>{campaign.campaign_name}</strong>
+              <span>{campaign.channel_type}</span>
+              <span>{formatNumber(campaign.impressions)} imp.</span>
+              <span>{formatNumber(campaign.clicks)} cliques</span>
+              <span>{formatMoneyMicros(campaign.cost_micros)}</span>
+            </div>
+          ))}
+          {campaigns.length === 0 && <EmptyState compact text="Nenhuma campanha retornada." />}
+        </div>
+      </article>
     </section>
   );
 }

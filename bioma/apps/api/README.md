@@ -14,6 +14,8 @@ Responsabilidades iniciais:
 - publicação de artefatos para o Client Hub;
 - healthcheck para staging e produção.
 
+Deploy do MVP: Railway, com root directory `bioma/apps/api` e `railway.json`.
+
 ## Banco local
 
 Com o Docker do Bioma rodando:

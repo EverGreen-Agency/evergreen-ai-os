@@ -64,6 +64,134 @@ export type ApprovalSummary = {
   decided_at: string | null;
 };
 
+export type LeadStage = "new" | "qualifying" | "meeting" | "proposal" | "won" | "lost";
+
+export type LeadSummary = {
+  id: string;
+  name: string;
+  company: string | null;
+  role_title: string | null;
+  email: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  source: string | null;
+  stage: LeadStage;
+  expected_value: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LeadPayload = {
+  name: string;
+  company?: string | null;
+  role_title?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  linkedin_url?: string | null;
+  source?: string | null;
+  stage?: LeadStage;
+  expected_value?: number | null;
+  notes?: string | null;
+};
+
+export type FinancialRecordKind = "contract" | "invoice";
+export type FinancialRecordStatus = "draft" | "open" | "paid" | "overdue" | "cancelled";
+
+export type FinancialRecordSummary = {
+  id: string;
+  kind: FinancialRecordKind;
+  title: string;
+  amount: number | null;
+  currency: string;
+  status: FinancialRecordStatus;
+  contract_start_at: string | null;
+  contract_end_at: string | null;
+  due_at: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FinancialRecordPayload = {
+  kind: FinancialRecordKind;
+  title: string;
+  amount?: number | null;
+  currency?: string;
+  status?: FinancialRecordStatus;
+  contract_start_at?: string | null;
+  contract_end_at?: string | null;
+  due_at?: string | null;
+  paid_at?: string | null;
+  notes?: string | null;
+};
+
+export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm";
+
+export type PerformanceOverview = {
+  client_id: string;
+  period_start: string;
+  period_end: string;
+  freshness: Array<{
+    provider: PerformanceProvider;
+    status: "active" | "inactive" | "error";
+    last_synced_at: string | null;
+    last_error_at: string | null;
+    last_error_message: string | null;
+  }>;
+  ads: {
+    impressions: number;
+    clicks: number;
+    cost_micros: number;
+    conversions: number;
+    conversion_value: number;
+    ctr: number;
+    cpc_micros: number;
+    cpa_micros: number;
+    roas: number;
+  };
+  daily: Array<{
+    date: string;
+    impressions: number;
+    clicks: number;
+    cost_micros: number;
+    conversions: number;
+    conversion_value: number;
+  }>;
+  insights: Array<{
+    id: string;
+    source: string;
+    category: string;
+    severity: "info" | "warning" | "critical";
+    title: string;
+    description: string;
+    recommendation: string | null;
+    period_start: string;
+    period_end: string;
+    current_value: number | null;
+    comparison_value: number | null;
+    status: "active" | "archived" | "resolved";
+    created_at: string;
+  }>;
+};
+
+export type AdsCampaignSummary = {
+  campaign_id: string;
+  campaign_name: string;
+  campaign_status: string;
+  channel_type: string;
+  budget_micros: number | null;
+  impressions: number;
+  clicks: number;
+  cost_micros: number;
+  conversions: number;
+  conversion_value: number;
+  ctr: number;
+  cpa_micros: number;
+  roas: number;
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -205,4 +333,37 @@ export const api = {
     request<ClientPortal>(`/clients/${clientId}/sync/clickup`, {
       method: "POST",
     }),
+  leads: (clientId: string) => request<LeadSummary[]>(`/clients/${clientId}/leads`),
+  createLead: (clientId: string, payload: LeadPayload) =>
+    request<LeadSummary[]>(`/clients/${clientId}/leads`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateLead: (clientId: string, leadId: string, payload: Partial<LeadPayload>) =>
+    request<LeadSummary[]>(`/clients/${clientId}/leads/${leadId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteLead: (clientId: string, leadId: string) =>
+    request<LeadSummary[]>(`/clients/${clientId}/leads/${leadId}`, {
+      method: "DELETE",
+    }),
+  finance: (clientId: string) => request<FinancialRecordSummary[]>(`/clients/${clientId}/finance`),
+  createFinancialRecord: (clientId: string, payload: FinancialRecordPayload) =>
+    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateFinancialRecord: (clientId: string, recordId: string, payload: Partial<FinancialRecordPayload>) =>
+    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance/${recordId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteFinancialRecord: (clientId: string, recordId: string) =>
+    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance/${recordId}`, {
+      method: "DELETE",
+    }),
+  performanceOverview: (clientId: string) => request<PerformanceOverview>(`/clients/${clientId}/performance`),
+  adsCampaigns: (clientId: string) =>
+    request<AdsCampaignSummary[]>(`/clients/${clientId}/performance/google-ads/campaigns`),
 };

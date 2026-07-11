@@ -1394,6 +1394,92 @@ h3 {
   gap: 24px;
 }
 
+.operations-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: 16px;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(180px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.kanban-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 320px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 244, 199, 0.03);
+}
+
+.kanban-column h3 {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.lead-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.lead-card strong,
+.lead-card small,
+.lead-card p {
+  overflow-wrap: anywhere;
+}
+
+.lead-card small,
+.lead-card p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.table-list {
+  display: grid;
+  gap: 8px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) repeat(4, minmax(96px, auto));
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.table-row strong,
+.table-row span {
+  overflow-wrap: anywhere;
+}
+
+.table-row span {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
 .trend-chart {
   min-width: 0;
   margin-top: 8px;
@@ -1471,6 +1557,7 @@ h3 {
   .content-grid,
   .content-layout,
   .client-layout,
+  .operations-grid,
   .analytics-grid {
     grid-template-columns: 1fr;
   }
@@ -1525,7 +1612,8 @@ h3 {
   .hub-block.highlight,
   .timeline-row,
   .integration-row,
-  .work-row {
+  .work-row,
+  .table-row {
     align-items: stretch;
     grid-template-columns: 1fr;
   }

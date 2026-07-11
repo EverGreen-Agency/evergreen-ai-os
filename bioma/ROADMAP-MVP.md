@@ -57,7 +57,8 @@ Funcional hoje:
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
 - Módulo de Performance com schema multi-tenant, API de leitura e conexões por cliente.
 - Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
-- Backend mínimo de CRM, financeiro e métricas manuais, ainda sem telas integradas no frontend.
+- CRM/funil e financeiro com backend e telas mínimas integradas no frontend.
+- Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 
 Ainda demo/dry-run:
@@ -69,7 +70,7 @@ Ainda demo/dry-run:
 - Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
 - Permissões ainda são simples: `eg_admin` e `client_user`.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
-- Analytics usa série explicitamente demonstrativa; ainda não consome os endpoints reais de Performance.
+- Analytics consome endpoints reais de Performance, mas ainda pode exibir dados de seed enquanto não houver sync real.
 - LinkedIn orgânico e LinkedIn Ads, centrais no caso HM, ainda não foram integrados.
 
 ## Protocolo para múltiplas IAs
@@ -138,11 +139,11 @@ Não fazer ainda:
 Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não produto a ser vendido; a plataforma é da EG):
 
 - **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
-- **CRM:** o backend mínimo do funil solicitado no caso HM existe, mas a tela ainda está pendente. Ele atende o MVP operacional, não pretende substituir um CRM completo. A direção futura preferida é uma **bridge Kommo** (espelho do funil por cliente, no padrão do ClickUp Bridge), pois a EG revende Kommo.
+- **CRM:** o backend mínimo do funil solicitado no caso HM existe e a tela mínima já está integrada. Ele atende o MVP operacional, não pretende substituir um CRM completo. A direção futura preferida é uma **bridge Kommo** (espelho do funil por cliente, no padrão do ClickUp Bridge), pois a EG revende Kommo.
 - **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
 - **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
 - **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
-- **Financeiro:** backend mínimo concluído; tela e integração com a fonte financeira ainda pendentes.
+- **Financeiro:** backend e tela mínima concluídos; integração com a fonte financeira real ainda pendente.
 - **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
 - Notion: depois.
 
@@ -179,6 +180,7 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 - [x] Criar calendário editorial semanal navegável alimentado por entregas reais.
 - [ ] Criar visão mensal do calendário editorial.
 - [x] Criar visão de Analytics honesta, sem fingir dados reais.
+- [x] Conectar Analytics principal aos endpoints reais de Performance.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 - [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
 
@@ -198,8 +200,9 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Criar `TrendChart` no frontend com Recharts e tokens da marca.
 - [ ] Validar cada provider com credenciais reais de uma conta Google controlada pela EG.
 - [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
-- [ ] Configurar segredos e jobs no staging Fly após validar contas Google controladas.
-- [ ] Criar as páginas de Performance e conectá-las aos endpoints reais; o Analytics atual ainda é uma demonstração honesta.
+- [ ] Configurar segredos e jobs no staging Railway após validar contas Google controladas.
+- [x] Conectar a visão principal de Analytics aos endpoints reais de Performance; dados sem sync real continuam marcados como demo.
+- [ ] Criar páginas profundas de Performance: Ads, GA4, GSC e GTM.
 - [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
 ### P2 - ClickUp real
@@ -218,15 +221,17 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Smoke test de autorização entre `eg_admin` e `client_user`.
 - [x] Smoke test básico de BOLA/IDOR para outro cliente.
 - [x] Teste de CORS local.
-- [ ] Teste de sessão expirada/revogada.
-- [ ] Teste de validação de payload com massa inválida.
+- [x] Teste de sessão revogada.
+- [ ] Teste de sessão expirada.
+- [x] Teste mínimo de validação de payload com massa inválida.
 - [ ] Teste básico de carga.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
 - [ ] Dividir o bundle principal do frontend; o build atual gera chunk JS de aproximadamente 601 kB antes de gzip.
 - [ ] Criar convite/provisionamento de usuário cliente sem seed.
 - [ ] Criar recuperação/rotação segura de senha.
-- [ ] Implementar rate limit de login.
+- [x] Implementar rate limit de login em processo único.
+- [ ] Migrar rate limit para Redis/Postgres antes de múltiplas réplicas.
 - [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
 - [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
 - [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
@@ -234,14 +239,14 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 ### P4 - Staging
 
 - [x] Criar runbook de deploy e rollback.
-- [x] Criar Config as Code Fly para API em staging e produção; jobs entram depois da validação de integrações reais.
+- [x] Criar Config as Code Railway para API/worker; jobs entram depois da validação de integrações reais.
 - [x] Criar configuração Vercel para o app Vite.
 - [x] Criar readiness check com Postgres.
 - [x] Bloquear seed demo fora de ambiente autorizado.
 - [x] Criar bootstrap seguro de EG admin.
 - [x] Criar smoke remoto não destrutivo.
 - [x] Criar CI para build e smokes.
-- [ ] Subir API e Managed Postgres no Fly `gru`.
+- [ ] Subir API e Postgres no Railway.
 - [ ] Subir Web na Vercel.
 - [ ] Configurar variáveis por ambiente.
 - [ ] Rodar seed apenas em ambiente local/staging controlado.
@@ -299,8 +304,8 @@ O MVP v0 só pode ser considerado pronto para cliente real quando, além disso:
 
 Para aderir ao escopo comercial de referência HM, também faltam:
 
-- telas conectadas aos backends de CRM e financeiro;
-- páginas de Performance conectadas aos endpoints reais;
+- QA humano das telas CRM, financeiro e Analytics;
+- páginas profundas de Performance conectadas aos endpoints reais;
 - integração de LinkedIn orgânico e LinkedIn Ads;
 - validação real de ClickUp e dos providers de BI;
 - staging, assets finais e aceite visual humano.
@@ -350,3 +355,4 @@ Formato:
 - 2026-07-10 - Claude (Fable) - bccaf50/c9707e4 - Decisões de escopo registradas (CRM=Kommo bridge futuro, brand book adiado, calendário fica no ClickUp, port BIAds), documentos estratégicos generalizados sem hardcode de brand book, TrendChart recharts no Analytics com paleta validada, PLANO-PORT-BIADS.md criado - tsc, build frontend - pendente consolidação das worktrees pelo Juiz e execução do port (P1.5).
 - 2026-07-10 - Codex/Juiz - c143c7a - Worktrees de API e UI consolidadas no develop, conflito de roadmap resolvido e port backend do BIAds incorporado - tsc, build, migrations, seed, smokes API/ClickUp/Performance/worker/fila e smoke visual desktop/mobile - pendentes frontend CRM/financeiro/Performance, LinkedIn, integrações reais, staging, assets e aceite humano.
 - 2026-07-10 - Codex - ver git log - Hardening para deploy, CI, Config as Code, bootstrap admin, smoke remoto, fluxo real de solicitação de aprovação e fila operacional multi-LLM - pendente criar staging externo, conectar credenciais e executar os gates de produção.
+- 2026-07-11 - Codex - ver git log - Deploy do MVP redirecionado para Railway/Vercel, CRM/funil e financeiro ligados ao frontend, Analytics conectado ao backend de Performance e hardening mínimo de auth/payload/rate-limit - tsc, build web, compile backend/worker, smokes API/ClickUp/Performance/worker/fila - pendente staging externo, credenciais reais, páginas profundas de Performance, QA humano e LGPD.

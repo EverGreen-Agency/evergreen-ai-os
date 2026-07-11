@@ -1,42 +1,44 @@
 # Deploy do Bioma
 
-Este runbook é a fonte operacional para staging e produção. Ele evita que uma nova sessão/LLM confunda ambientes, banco ou credenciais.
+Este runbook e a fonte operacional para staging e producao do MVP. Ele separa o que pode ser feito por codigo do que depende de conta, dominio e secrets.
 
-## Decisão vigente — 2026-07-11
+## Decisao vigente - 2026-07-11
 
 - **Web:** Vercel.
-- **API e banco:** Fly.io, ambos em `gru` (São Paulo).
-- **Ambientes:** apps e clusters Managed Postgres totalmente separados para `staging` e `production`.
-- **Jobs:** não entram no primeiro deploy vazio. Quando ClickUp/Google tiverem contas controladas, usar uma app worker Fly separada com Cron Manager ou GitHub Actions; não usar uma Machine agendada como garantia de cron de 5 minutos.
-- **Redis:** não é necessário hoje. A fila `sync_runs` é durável no Postgres.
+- **API e Postgres:** Railway, por custo e velocidade no MVP.
+- **Worker:** Railway job/service separado somente quando ClickUp/Google tiverem credenciais reais validadas.
+- **Fly:** alternativa futura se houver exigencia forte de regiao Brasil, rede privada mais controlada ou postura de producao mais rigida.
+- **Redis:** nao e necessario hoje. A fila `sync_runs` e duravel no Postgres.
 
-Essa escolha mantém uma única plataforma para o runtime backend, reduz a troca Railway → Fly e deixa API/banco na mesma região brasileira. Não usar Postgres não gerenciado em volume para dados de cliente.
+Railway e o caminho pratico para staging e primeira producao. Fly Managed Postgres fica caro para a fase atual.
 
 ## Topologia
 
 ```text
 Navegador
-  └─ Vercel: bioma-web
-       └─ HTTPS público → Fly: bioma-api
-                            └─ rede privada Fly → Managed Postgres (gru)
+  -> Vercel: bioma-web
+      -> HTTPS publico -> Railway: bioma-api
+                          -> Railway Postgres
 ```
 
-## Domínios e sessão
+## Dominios e sessao
 
-Preferir web e API sob o mesmo domínio registrável:
+Preferir web e API sob o mesmo dominio registravel:
 
 | Ambiente | Web | API |
 |---|---|---|
 | Staging | `staging.bioma.<dominio-eg>` | `api-staging.bioma.<dominio-eg>` |
-| Produção | `bioma.<dominio-eg>` | `api.bioma.<dominio-eg>` |
+| Producao | `bioma.<dominio-eg>` | `api.bioma.<dominio-eg>` |
 
-Com isso, usar `SESSION_COOKIE_SECURE=true` e `SESSION_COOKIE_SAMESITE=lax`. O cookie permanece host-only na API, mas web e API continuam same-site. Não liberar produção em `vercel.app` + `fly.dev`: isso exigiria `SameSite=None` e é mais frágil para autenticação por cookie.
+Com isso, usar `SESSION_COOKIE_SECURE=true` e `SESSION_COOKIE_SAMESITE=lax`.
 
-## Estratégia de branches
+Para deploy temporario sem dominio proprio, `vercel.app` + dominio Railway podem exigir ajuste de cookie/CORS. Nao considerar esse modo como release final.
+
+## Branches
 
 - `develop`: staging.
-- `main`: produção, somente após PR aprovado de `develop`.
-- Feature branch: preview de web na Vercel; nunca conectar preview a banco de produção.
+- `main`: producao, depois de PR aprovado.
+- Feature branch: preview web na Vercel; nunca conectar preview a banco de producao.
 
 ## 1. Gate local e CI
 
@@ -59,45 +61,79 @@ npm.cmd run build
 
 O CI em `.github/workflows/bioma-ci.yml` precisa estar verde antes de qualquer deploy.
 
-## 2. Preparar Fly staging
+## 2. Preparar Railway staging
 
-Pré-requisitos humanos: conta Fly autenticada, organização Fly, domínio EG e um administrador EG para bootstrap. Os nomes abaixo são sugestões e precisam ser únicos globalmente no Fly.
+Bloqueios humanos: conta Railway autenticada, projeto Railway, dominio EG, secrets e administrador EG para bootstrap.
 
-```powershell
-flyctl auth login
-flyctl apps create bioma-eg-api-staging --org <organizacao-fly>
-flyctl mpg create --name bioma-eg-db-staging --org <organizacao-fly> --region gru --plan Basic --volume-size 10
-flyctl mpg attach <cluster-id-staging> --app bioma-eg-api-staging --database bioma --username bioma
+Estrutura recomendada no Railway:
+
+- Project: `bioma-staging`
+- Service: `bioma-api`
+- Database: Postgres
+- Service futuro: `bioma-worker`
+
+Root directory da API:
+
+```text
+bioma/apps/api
 ```
 
-O `attach` grava `DATABASE_URL` como secret na API. Depois configure, sem registrar valores no Git:
+O arquivo `bioma/apps/api/railway.json` define Dockerfile, start command e healthcheck `/health/ready`.
 
-```powershell
-flyctl secrets set --app bioma-eg-api-staging `
-  CORS_ORIGINS=https://staging.bioma.<dominio-eg> `
-  BOOTSTRAP_ADMIN_EMAIL=<email-eg> `
-  BOOTSTRAP_ADMIN_PASSWORD=<senha-aleatoria-16-ou-mais> `
-  BOOTSTRAP_ADMIN_DISPLAY_NAME=<nome>
+Variaveis da API em staging:
 
-flyctl deploy bioma\apps\api --config bioma\apps\api\fly.staging.toml --app bioma-eg-api-staging
+```text
+APP_ENV=staging
+DATABASE_URL=<injetado pelo Railway Postgres>
+CORS_ORIGINS=https://staging.bioma.<dominio-eg>
+SESSION_COOKIE_NAME=bioma_staging_session
+SESSION_COOKIE_SECURE=true
+SESSION_COOKIE_SAMESITE=lax
+BOOTSTRAP_ADMIN_EMAIL=<email-eg>
+BOOTSTRAP_ADMIN_PASSWORD=<senha-aleatoria-16-ou-mais>
+BOOTSTRAP_ADMIN_DISPLAY_NAME=<nome>
 ```
 
-Após o deploy, execute uma única vez no shell da app:
+Depois do primeiro deploy, rodar uma unica vez no shell/job da API:
 
 ```powershell
-flyctl ssh console --app bioma-eg-api-staging -C "python scripts/bootstrap_admin.py"
+python scripts/bootstrap_admin.py
 ```
 
-Em seguida, crie na Vercel o projeto `bioma-staging` com root directory `bioma/apps/web`, branch `develop`, build `npm run build`, output `dist` e:
+Nao rodar `seed_dev.py` em producao. Seed so local ou staging controlado.
+
+## 3. Preparar Vercel staging
+
+Projeto: `bioma-staging`
+
+Root directory:
+
+```text
+bioma/apps/web
+```
+
+Build:
+
+```text
+npm run build
+```
+
+Output:
+
+```text
+dist
+```
+
+Variaveis:
 
 ```text
 VITE_APP_ENV=staging
 VITE_API_BASE_URL=https://api-staging.bioma.<dominio-eg>
 ```
 
-Somente depois de os dois domínios estarem configurados, atualize `CORS_ORIGINS` com a URL final exata e redeploy a API.
+Quando os dominios finais estiverem configurados, atualizar `CORS_ORIGINS` na API com a URL exata da Vercel/domino.
 
-## 3. Validar staging
+## 4. Validar staging
 
 ```powershell
 $env:BIOMA_API_BASE_URL='https://api-staging.bioma.<dominio-eg>'
@@ -107,26 +143,44 @@ $env:BIOMA_SESSION_COOKIE_NAME='bioma_staging_session'
 python bioma\apps\api\scripts\smoke_remote.py
 ```
 
-Validar também no navegador: login/logout, isolamento EG/cliente, CRUD, aprovação, responsividade e estados vazios. ClickUp e Google só entram após contas de teste, token e mapeamento controlados.
+Validar tambem no navegador:
 
-## 4. Produção
+- login/logout;
+- isolamento EG/cliente;
+- CRUD de cliente, entregas, artefatos, CRM e financeiro;
+- aprovacoes;
+- Analytics sem dados falsos marcados como reais;
+- responsividade desktop, DevTools aberto e mobile.
 
-Produção só começa depois dos gates do `ROADMAP-MVP.md`: frontend de CRM/financeiro/Performance ligado, integrações validadas, convite/reset/rate limit, QA humano, LGPD e restore drill.
+## 5. Worker e integracoes reais
 
-Repita a topologia com nomes e banco novos:
+Nao subir worker continuo antes de existir credencial real.
+
+Quando houver contas controladas:
 
 ```powershell
-flyctl apps create bioma-eg-api-prod --org <organizacao-fly>
-flyctl mpg create --name bioma-eg-db-prod --org <organizacao-fly> --region gru --plan Basic --volume-size 10
-flyctl mpg attach <cluster-id-prod> --app bioma-eg-api-prod --database bioma --username bioma
-flyctl deploy bioma\apps\api --config bioma\apps\api\fly.production.toml --app bioma-eg-api-prod
+python -m bioma_worker.cli --enqueue-all --drain --days 3
 ```
 
-Use `main`, domínio de produção, secrets próprios e `bootstrap_admin.py` uma vez. Não copiar seed, senha, banco ou token de staging.
+No Railway, usar o service `bioma-worker` com root `bioma/apps/worker` e `railway.json`. Para execucao periodica, configurar cron/job no Railway se disponivel no plano; se nao, usar GitHub Actions chamando um endpoint/job autorizado ou executar manualmente ate validar volume.
 
-## Rollback e recuperação
+## 6. Producao
 
-- App: `fly releases` identifica a release saudável; redeploy do commit anterior só funciona com migrations aditivas e retrocompatíveis.
-- Banco: restaurar o Managed Postgres em ambiente separado, validar e só então apontar a API; nunca aplicar rollback destrutivo de schema durante incidente.
-- Credencial: revogar/rotacionar o secret e redeploy apenas da app afetada.
-- Sync externo: pausar o scheduler/worker antes de investigar duplicidade.
+Producao so depois dos gates do `ROADMAP-MVP.md`:
+
+- frontend de CRM, financeiro e Performance conectado;
+- ClickUp real validado;
+- Google providers validados;
+- convite/reset/rate limit;
+- QA humano;
+- checklist LGPD;
+- smoke remoto verde.
+
+Replicar a topologia em outro projeto/ambiente Railway com banco isolado. Nao copiar seed, senha, banco ou token de staging.
+
+## Rollback
+
+- App: redeploy do commit anterior se as migrations forem aditivas e retrocompativeis.
+- Banco: restaurar backup em ambiente separado, validar e so entao apontar a API.
+- Credencial: revogar/rotacionar secret e redeploy apenas do servico afetado.
+- Sync externo: pausar worker/job antes de investigar duplicidade.

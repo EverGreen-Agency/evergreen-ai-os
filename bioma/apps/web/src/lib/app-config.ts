@@ -1,12 +1,13 @@
-import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientPayload, ClientStatus, DeliverablePayload, DeliverableStatus } from "./api";
 
-export type ViewId = "cockpit" | "clientes" | "conteudo" | "integracoes" | "engenharia" | "analytics";
+export type ViewId = "cockpit" | "clientes" | "comercial" | "conteudo" | "integracoes" | "engenharia" | "analytics";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
   { id: "clientes", label: "Clientes", icon: Users },
+  { id: "comercial", label: "Comercial", icon: WalletCards },
   { id: "conteudo", label: "Conteúdo", icon: BookOpen },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "integracoes", label: "Integrações", icon: GitBranch },

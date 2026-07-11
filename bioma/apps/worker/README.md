@@ -44,7 +44,7 @@ Enfileirar todos os clientes ativos com janela incremental de três dias e proce
 python -m bioma_worker.cli --enqueue-all --drain --days 3
 ```
 
-Esse último comando é o candidato para uma job isolada no Fly Cron Manager. Ele evita duplicar uma execução que já esteja `queued` ou `running` para o mesmo cliente.
+Esse último comando é o candidato para uma job isolada no Railway. Ele evita duplicar uma execução que já esteja `queued` ou `running` para o mesmo cliente.
 
 ## Testes
 

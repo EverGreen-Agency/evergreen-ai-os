@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     session_cookie_secure: bool | None = None
     session_cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     session_cookie_domain: str | None = None
+    login_rate_limit_attempts: int = 5
+    login_rate_limit_window_seconds: int = 300
     clickup_api_token: str | None = None
     clickup_api_base_url: str = "https://api.clickup.com/api/v2"
     clickup_task_page_limit: int = 3
