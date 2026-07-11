@@ -82,10 +82,15 @@ jobs:
 
       - name: Prepare Vercel output
         shell: bash
+        # `vercel deploy --prebuilt` always reads .vercel/output from the
+        # directory where the CLI is invoked. The CLI runs from the monorepo
+        # root because the remote project already defines bioma/apps/web as
+        # its Root Directory.
+        working-directory: ${{ github.workspace }}
         run: |
           rm -rf .vercel/output
           mkdir -p .vercel/output/static
-          cp -R dist/. .vercel/output/static/
+          cp -R bioma/apps/web/dist/. .vercel/output/static/
           cat > .vercel/output/config.json <<'JSON'
           {
             "version": 3,
@@ -105,8 +110,8 @@ jobs:
         # Run the CLI from the monorepo root so that directory is applied once.
         working-directory: ${{ github.workspace }}
         run: |
-          test -f bioma/apps/web/.vercel/output/static/index.html
-          test -f bioma/apps/web/.vercel/output/config.json
+          test -f .vercel/output/static/index.html
+          test -f .vercel/output/config.json
           DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL"
