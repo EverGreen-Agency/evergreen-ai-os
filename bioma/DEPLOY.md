@@ -80,6 +80,21 @@ bioma/apps/api
 
 O arquivo `bioma/apps/api/railway.json` define Dockerfile, start command e healthcheck `/health/ready`.
 
+Start command da API:
+
+```text
+python scripts/start.py
+```
+
+Esse script roda migrations e depois inicia o Uvicorn no mesmo processo. Nao usar `python scripts/migrate.py && uvicorn ...` no Railway, porque o shell/expansao de porta pode variar e a API pode nunca bindar a porta antes do healthcheck.
+
+Porta:
+
+- nao configure porta no DNS/domino;
+- o dominio do Railway aponta para o service;
+- a API deve bindar `0.0.0.0:$PORT`;
+- se `PORT` nao existir localmente, o fallback e `8000`.
+
 Variaveis da API em staging:
 
 ```text
@@ -101,6 +116,8 @@ python scripts/bootstrap_admin.py
 ```
 
 Nao rodar `seed_dev.py` em producao. Seed so local ou staging controlado.
+
+`bootstrap_admin.py` existe para criar o primeiro usuario EG admin em staging/producao sem rodar seed demo. Ele deve ser executado uma vez por ambiente, com `BOOTSTRAP_ADMIN_EMAIL` e `BOOTSTRAP_ADMIN_PASSWORD` definidos. Depois, rotacionar/remover a senha de bootstrap.
 
 ## 3. Preparar Vercel staging
 
@@ -159,6 +176,17 @@ VERCEL_STAGING_ALIAS=staging.bioma.<dominio-eg>
 ```
 
 Se `VERCEL_STAGING_ALIAS` nao existir, o workflow usa `staging.bioma.evergreenmkt.com.br` como alias padrao.
+
+Secrets opcionais para o build Vite:
+
+```text
+BIOMA_STAGING_API_BASE_URL=https://api-staging.bioma.evergreenmkt.com.br
+BIOMA_PRODUCTION_API_BASE_URL=https://api.bioma.<dominio-eg>
+```
+
+Se `BIOMA_STAGING_API_BASE_URL` nao existir, o workflow usa `https://api-staging.bioma.evergreenmkt.com.br`. Para producao, configure `BIOMA_PRODUCTION_API_BASE_URL` antes de liberar `main`.
+
+O workflow builda localmente com `npm run build` e faz `vercel deploy dist`. Nao usa `vercel build --prebuilt`, porque o app e Vite estatico e o erro de CI indicou falha na deteccao do output `dist` durante o fluxo prebuilt.
 
 Comportamento:
 

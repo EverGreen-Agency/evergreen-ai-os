@@ -67,17 +67,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Pull Vercel environment
-        run: npx vercel@latest pull --yes --environment=${{ steps.target.outputs.vercel_environment }} --token="$VERCEL_TOKEN"
-
       - name: Build
-        run: npx vercel@latest build ${{ steps.target.outputs.deploy_flags }} --token="$VERCEL_TOKEN"
+        env:
+          VITE_APP_ENV: ${{ steps.target.outputs.target }}
+          VITE_API_BASE_URL: ${{ steps.target.outputs.target == 'production' && secrets.BIOMA_PRODUCTION_API_BASE_URL || secrets.BIOMA_STAGING_API_BASE_URL || 'https://api-staging.bioma.evergreenmkt.com.br' }}
+        run: npm run build
+
+      - name: Debug build output
+        run: |
+          pwd
+          test -f dist/index.html
+          du -sh dist
+          ls -la dist
 
       - name: Deploy
         id: deploy
         shell: bash
         run: |
-          DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.deploy_flags }} --token="$VERCEL_TOKEN" | tail -n 1)"
+          DEPLOYMENT_URL="$(npx vercel@latest deploy dist ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL"
 

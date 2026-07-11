@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python scripts/migrate.py && python -m uvicorn bioma_api.main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "startCommand": "python scripts/start.py",
     "healthcheckPath": "/health/ready",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
