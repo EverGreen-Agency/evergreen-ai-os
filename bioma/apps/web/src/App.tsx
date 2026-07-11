@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { LogOut, Search } from "lucide-react";
 import {
   api,
@@ -32,10 +32,15 @@ import { ClientsView } from "./views/ClientsView";
 import { ContentView } from "./views/ContentView";
 import { IntegrationsView } from "./views/IntegrationsView";
 import { EngineeringView } from "./views/EngineeringView";
-import { AnalyticsView } from "./views/AnalyticsView";
-import { OperationsView } from "./views/OperationsView";
 import { AdminDock } from "./components/AdminDock";
 import { ArtifactModal } from "./components/ArtifactModal";
+
+const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
+const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
+
+function ViewLoadingFallback() {
+  return <div className="notice">Carregando módulo...</div>;
+}
 
 export function App() {
   const [view, setView] = useState<ViewId>(currentViewFromHash());
@@ -425,11 +430,13 @@ export function App() {
         )}
 
         {view === "comercial" && (
-          <OperationsView
-            selectedClientId={selectedClientId}
-            selectedClient={selectedClient}
-            isEgAdmin={isEgAdmin}
-          />
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <OperationsView
+              selectedClientId={selectedClientId}
+              selectedClient={selectedClient}
+              isEgAdmin={isEgAdmin}
+            />
+          </Suspense>
         )}
 
         {view === "integracoes" && (
@@ -451,7 +458,11 @@ export function App() {
           />
         )}
 
-        {view === "analytics" && <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />}
+        {view === "analytics" && (
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />
+          </Suspense>
+        )}
 
         {isEgAdmin && (
           <AdminDock

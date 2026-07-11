@@ -9,9 +9,10 @@ sys.path.insert(0, str(ROOT))
 
 from fastapi.testclient import TestClient
 
+from bioma_api.config import Settings, get_settings
 from bioma_api.db import connect
-from bioma_api.config import Settings
 from bioma_api.main import app
+from bioma_api.security import hash_session_token
 
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
@@ -27,6 +28,18 @@ def assert_status(response, expected: int, label: str) -> None:
 def login(client: TestClient, email: str) -> None:
     response = client.post("/auth/login", json={"email": email, "password": DEV_PASSWORD})
     assert_status(response, 200, f"login {email}")
+
+
+def expire_current_session(client: TestClient) -> None:
+    settings = get_settings()
+    token = client.cookies.get(settings.session_cookie_name)
+    if not token:
+        raise AssertionError("sessão esperada no cookie para teste de expiração")
+    with connect() as conn:
+        conn.execute(
+            "update sessions set expires_at = now() - interval '1 second' where token_hash = %s",
+            (hash_session_token(token),),
+        )
 
 
 def main() -> None:
@@ -81,6 +94,9 @@ def main() -> None:
     login(admin, ADMIN_EMAIL)
     login(client_user, CLIENT_EMAIL)
     assert_status(admin.get("/auth/me"), 200, "active session")
+    expire_current_session(admin)
+    assert_status(admin.get("/auth/me"), 401, "expired session")
+    login(admin, ADMIN_EMAIL)
     assert_status(admin.post("/auth/logout"), 200, "logout revokes session")
     assert_status(admin.get("/auth/me"), 401, "revoked session")
     login(admin, ADMIN_EMAIL)

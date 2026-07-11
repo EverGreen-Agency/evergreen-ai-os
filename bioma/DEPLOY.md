@@ -133,6 +133,32 @@ VITE_API_BASE_URL=https://api-staging.bioma.<dominio-eg>
 
 Quando os dominios finais estiverem configurados, atualizar `CORS_ORIGINS` na API com a URL exata da Vercel/domino.
 
+### Deploy Vercel via GitHub Actions
+
+O workflow `.github/workflows/bioma-web-deploy.yml` faz deploy do web usando credenciais do dono/admin salvas como GitHub Secrets. Isso permite que contribuidores enviem codigo para o GitHub sem exigir seat na Vercel.
+
+Secrets obrigatorios no GitHub:
+
+```text
+VERCEL_TOKEN=<token do dono/admin na Vercel>
+VERCEL_ORG_ID=<org/team id da Vercel>
+VERCEL_PROJECT_ID=<project id do projeto bioma>
+```
+
+Secret opcional para staging com URL fixa:
+
+```text
+VERCEL_STAGING_ALIAS=staging.bioma.<dominio-eg>
+```
+
+Comportamento:
+
+- push em `develop`: deploy Vercel preview/staging;
+- push em `main`: deploy Vercel production com `--prod`;
+- execução manual (`workflow_dispatch`): permite escolher `staging` ou `production`.
+
+Se a integracao Git nativa da Vercel estiver ativa no mesmo projeto, desativar o auto-deploy dela ou aceitar que havera deploy duplicado. A fonte de verdade recomendada para o Bioma e o workflow do GitHub.
+
 ## 4. Validar staging
 
 ```powershell

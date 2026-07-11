@@ -222,12 +222,12 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Smoke test básico de BOLA/IDOR para outro cliente.
 - [x] Teste de CORS local.
 - [x] Teste de sessão revogada.
-- [ ] Teste de sessão expirada.
+- [x] Teste de sessão expirada.
 - [x] Teste mínimo de validação de payload com massa inválida.
 - [ ] Teste básico de carga.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
-- [ ] Dividir o bundle principal do frontend; o build atual gera chunk JS de aproximadamente 601 kB antes de gzip.
+- [x] Dividir o bundle principal do frontend; o build atual reduziu o chunk inicial para aproximadamente 243 kB antes de gzip.
 - [ ] Criar convite/provisionamento de usuário cliente sem seed.
 - [ ] Criar recuperação/rotação segura de senha.
 - [x] Implementar rate limit de login em processo único.
@@ -241,6 +241,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Criar runbook de deploy e rollback.
 - [x] Criar Config as Code Railway para API/worker; jobs entram depois da validação de integrações reais.
 - [x] Criar configuração Vercel para o app Vite.
+- [x] Criar GitHub Action para deploy Vercel usando token do dono/admin, sem exigir seat Vercel de todo colaborador.
 - [x] Criar readiness check com Postgres.
 - [x] Bloquear seed demo fora de ambiente autorizado.
 - [x] Criar bootstrap seguro de EG admin.
@@ -356,3 +357,4 @@ Formato:
 - 2026-07-10 - Codex/Juiz - c143c7a - Worktrees de API e UI consolidadas no develop, conflito de roadmap resolvido e port backend do BIAds incorporado - tsc, build, migrations, seed, smokes API/ClickUp/Performance/worker/fila e smoke visual desktop/mobile - pendentes frontend CRM/financeiro/Performance, LinkedIn, integrações reais, staging, assets e aceite humano.
 - 2026-07-10 - Codex - ver git log - Hardening para deploy, CI, Config as Code, bootstrap admin, smoke remoto, fluxo real de solicitação de aprovação e fila operacional multi-LLM - pendente criar staging externo, conectar credenciais e executar os gates de produção.
 - 2026-07-11 - Codex - ver git log - Deploy do MVP redirecionado para Railway/Vercel, CRM/funil e financeiro ligados ao frontend, Analytics conectado ao backend de Performance e hardening mínimo de auth/payload/rate-limit - tsc, build web, compile backend/worker, smokes API/ClickUp/Performance/worker/fila - pendente staging externo, credenciais reais, páginas profundas de Performance, QA humano e LGPD.
+- 2026-07-11 - Codex - ver git log - GitHub Action para deploy Vercel via token admin, code-splitting de Analytics/Comercial e smoke de sessão expirada - tsc, build web, smoke API - pendente secrets GitHub/Vercel, URLs públicas para smoke remoto e validação humana.
