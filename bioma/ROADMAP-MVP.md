@@ -198,7 +198,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Criar `TrendChart` no frontend com Recharts e tokens da marca.
 - [ ] Validar cada provider com credenciais reais de uma conta Google controlada pela EG.
 - [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
-- [ ] Configurar segredos e cron no staging da Railway.
+- [ ] Configurar segredos e jobs no staging Fly após validar contas Google controladas.
 - [ ] Criar as páginas de Performance e conectá-las aos endpoints reais; o Analytics atual ainda é uma demonstração honesta.
 - [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
@@ -234,14 +234,14 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 ### P4 - Staging
 
 - [x] Criar runbook de deploy e rollback.
-- [x] Criar Config as Code para API e jobs Railway.
+- [x] Criar Config as Code Fly para API em staging e produção; jobs entram depois da validação de integrações reais.
 - [x] Criar configuração Vercel para o app Vite.
 - [x] Criar readiness check com Postgres.
 - [x] Bloquear seed demo fora de ambiente autorizado.
 - [x] Criar bootstrap seguro de EG admin.
 - [x] Criar smoke remoto não destrutivo.
 - [x] Criar CI para build e smokes.
-- [ ] Subir API e Postgres na Railway.
+- [ ] Subir API e Managed Postgres no Fly `gru`.
 - [ ] Subir Web na Vercel.
 - [ ] Configurar variáveis por ambiente.
 - [ ] Rodar seed apenas em ambiente local/staging controlado.

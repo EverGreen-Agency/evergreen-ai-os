@@ -19,7 +19,7 @@ bioma/
   EXECUCAO-MVP.md # fila operacional entre LLMs
 ```
 
-Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada na Vercel é o app web, e o backend publicado na Railway/Fly é a API HTTP. Na prática, `web` equivale ao frontend e `api` equivale ao backend.
+Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada na Vercel é o app web, e o backend publicado no Fly é a API HTTP. Na prática, `web` equivale ao frontend e `api` equivale ao backend.
 
 ## Stack decidida
 
@@ -27,7 +27,7 @@ Uso `web` e `api` porque são nomes de deploy e runtime: a interface publicada n
 - Backend: FastAPI + Python.
 - Banco: Postgres direto.
 - Fila atual: Postgres (`sync_runs`). Redis permanece opcional para uma evolução futura.
-- Deploy atual: Vercel para `apps/web`; Railway para API, Postgres e jobs. Redis não é provisionado no staging atual.
+- Deploy definido: Vercel para `apps/web`; Fly `gru` para API e Managed Postgres. Jobs Fly entram quando houver integrações reais para executar. Redis não é necessário no staging atual.
 - Fly: alternativa futura se houver exigência real de região, runtime ou rede.
 
 ## Branding
@@ -93,7 +93,7 @@ pip install -r requirements.txt
 python -m bioma_worker.cli --drain
 ```
 
-O worker usa `sync_runs` no Postgres como fila durável. A API responde `202 queued`; o processamento Google ocorre fora da requisição HTTP. Para um agendamento incremental, use `python -m bioma_worker.cli --enqueue-all --drain --days 3` em um Railway Cron.
+O worker usa `sync_runs` no Postgres como fila durável. A API responde `202 queued`; o processamento Google ocorre fora da requisição HTTP. Para um agendamento incremental, use `python -m bioma_worker.cli --enqueue-all --drain --days 3` em uma job isolada do Fly Cron Manager, somente depois da validação das contas Google.
 
 Para executar o worker sob demanda no Docker:
 

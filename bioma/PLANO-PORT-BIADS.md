@@ -24,14 +24,14 @@ Este documento é a spec distribuível para quem executar o port (Codex/Juiz no 
 | Supabase Auth | Sessão cookie existente do Bioma (`eg_admin`/`client_user`) |
 | RLS `user_can_access_client` | Autorização app-level no service layer, mesmo padrão do `client_hub` (client_user só vê o próprio cliente) |
 | Edge Function Deno `run-sync` | Worker Python (`apps/worker/`) com `google-auth`; no MVP, `sync_runs` no Postgres funciona como fila durável com `FOR UPDATE SKIP LOCKED` |
-| `pg_cron` 2x/dia | Comando incremental do worker acionado por Railway Cron; Redis/RQ só entra se a volumetria justificar |
+| `pg_cron` 2x/dia | Comando incremental do worker acionado por job isolada no Fly Cron Manager; Redis/RQ só entra se a volumetria justificar |
 | Tabelas `*_daily`, snapshots GTM | Migrations novas no Postgres do Bioma, mesmos nomes/colunas (aproveitar schema validado) + FK para `clients.id` do Bioma |
 | `sync_runs` do BIAds | **Unificar** com o `sync_runs` existente do Bioma (acrescentar `provider`, `date_from`, `date_to`) |
 | Service account JSON por cliente | Armazenamento cifrado (tabela de credenciais ou secret por ambiente); nunca em texto puro — LGPD |
 | Páginas React + TanStack Query | Novas views no `apps/web` do Bioma, tema EG (tokens de `styles.css`); adotar TanStack Query nas telas de BI; `TrendChart` (recharts, cores `--chart-1/--chart-2` validadas) já existe |
 | `MetricCard`/`ChartCard`/`DataTable` | Portar para `src/components/bi/` convertendo Tailwind → tokens CSS do Bioma |
 | Filtros de período na URL (`useFilters`) | Portar como está (padrão bom) |
-| GitHub Pages + Actions | Não portar; deploy segue o P4 do roadmap (Vercel/Railway) |
+| GitHub Pages + Actions | Não portar; deploy segue o P4 do roadmap (Vercel/Fly) |
 | Motor de insights automatizados | Não portar (o próprio BIAds removeu na fase 6) |
 
 ## Fases sugeridas

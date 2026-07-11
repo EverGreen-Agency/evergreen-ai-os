@@ -32,14 +32,14 @@ Estados:
 | CORE-001 | DONE | Full-stack | Corrigir estados `queued/running` do Client Hub | nenhuma | smoke Performance + portal |
 | CORE-002 | DONE | Full-stack | Criar solicitação de aprovação EG → cliente | CORE-001 | smoke API + build web |
 | DPL-001 | DONE | Backend | Cookie/CORS por ambiente e `/health/ready` | nenhuma | compile + smoke API |
-| DPL-002 | DONE | DevOps | Config as Code Railway/Vercel | DPL-001 | validar JSON + Docker build |
+| DPL-002 | DONE | DevOps | Config as Code Fly/Vercel | DPL-001 | validar TOML/JSON + Docker build |
 | DPL-003 | DONE | QA/DevOps | CI web/API/worker no GitHub Actions | DPL-002 | workflow parse + execução no PR |
 | DPL-004 | DONE | Backend | Bloquear seed e criar bootstrap admin seguro | DPL-001 | bootstrap em banco descartável |
-| DPL-005 | BLOCKED | Operação | Criar staging Railway | DPL-001..004 | deploy + `/health/ready` |
+| DPL-005 | BLOCKED | Operação | Criar staging Fly `gru` + Managed Postgres | DPL-001..004 | deploy + `/health/ready` |
 | DPL-006 | BLOCKED | Operação | Criar staging Vercel e domínios | DPL-005 | build + login no browser |
 | DPL-007 | BLOCKED | QA | Smoke remoto de staging | DPL-006 | `smoke_remote.py` |
 
-Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
+Bloqueio de DPL-005..007: acesso às contas Fly/Vercel, domínio e secrets.
 
 ### Onda 1 — Superfícies comerciais do MVP
 
@@ -89,7 +89,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| PRD-001 | BLOCKED | Produto | Gate formal Railway internacional vs Fly `gru` | LGPD-001, OPS-001 | decisão registrada |
+| PRD-001 | DONE | Produto | Runtime backend definido: Fly `gru` + Managed Postgres | nenhuma | decisão registrada em `DEPLOY.md` |
 | PRD-002 | BLOCKED | Release | PR `develop -> main` | ondas 1..3, AUTH-001 | CI verde e review |
 | PRD-003 | BLOCKED | Operação | Infra e banco de produção isolados | PRD-001..002 | `/health/ready` |
 | PRD-004 | BLOCKED | Release | Deploy web/API/jobs | PRD-003 | smoke remoto |
