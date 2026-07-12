@@ -65,3 +65,6 @@ bioma/**/.pytest_cache/
 bioma/**/__pycache__/
 
 Descritivo-Foton.md
+
+.vercel
+.env*.local

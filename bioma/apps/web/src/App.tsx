@@ -28,13 +28,17 @@ import {
 } from "./lib/format";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
-import { ClientsView } from "./views/ClientsView";
-import { ContentView } from "./views/ContentView";
-import { IntegrationsView } from "./views/IntegrationsView";
-import { EngineeringView } from "./views/EngineeringView";
 import { AdminDock } from "./components/AdminDock";
 import { ArtifactModal } from "./components/ArtifactModal";
 
+const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
+const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
+const IntegrationsView = lazy(() =>
+  import("./views/IntegrationsView").then((module) => ({ default: module.IntegrationsView })),
+);
+const EngineeringView = lazy(() =>
+  import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })),
+);
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
 
@@ -402,31 +406,36 @@ export function App() {
         )}
 
         {view === "clientes" && (
-          <ClientsView
-            clients={clients}
-            selectedClientId={selectedClientId}
-            selectedClient={selectedClient}
-            portal={portal}
-            loadingPortal={loadingPortal}
-            latestSync={latestSync?.status}
-            isEgAdmin={isEgAdmin}
-            actionBusy={actionBusy}
-            onSelectClient={setSelectedClientId}
-            onClickUpSync={handleClickUpSync}
-            onDeliverableStatus={handleDeliverableStatus}
-            onDeleteDeliverable={handleDeleteDeliverable}
-            onRequestApproval={handleRequestApproval}
-            onApprovalDecision={handleApprovalDecision}
-            onSelectArtifact={setSelectedArtifact}
-          />
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <ClientsView
+              clients={clients}
+              selectedClientId={selectedClientId}
+              selectedClient={selectedClient}
+              portal={portal}
+              loadingPortal={loadingPortal}
+              latestSync={latestSync?.status}
+              isEgAdmin={isEgAdmin}
+              actionBusy={actionBusy}
+              onSelectClient={setSelectedClientId}
+              onClickUpSync={handleClickUpSync}
+              onDeliverableStatus={handleDeliverableStatus}
+              onDeleteDeliverable={handleDeleteDeliverable}
+              onRequestApproval={handleRequestApproval}
+              onApprovalDecision={handleApprovalDecision}
+              onSelectArtifact={setSelectedArtifact}
+            />
+          </Suspense>
         )}
 
         {view === "conteudo" && (
-          <ContentView
-            selectedClient={selectedClient}
-            portal={portal}
-            onSelectArtifact={setSelectedArtifact}
-          />
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <ContentView
+              selectedClient={selectedClient}
+              portal={portal}
+              isEgAdmin={isEgAdmin}
+              onSelectArtifact={setSelectedArtifact}
+            />
+          </Suspense>
         )}
 
         {view === "comercial" && (
@@ -440,22 +449,26 @@ export function App() {
         )}
 
         {view === "integracoes" && (
-          <IntegrationsView
-            selectedClient={selectedClient}
-            latestSync={latestSync}
-            isEgAdmin={isEgAdmin}
-            actionBusy={actionBusy}
-            onClickUpSync={handleClickUpSync}
-          />
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <IntegrationsView
+              selectedClient={selectedClient}
+              latestSync={latestSync}
+              isEgAdmin={isEgAdmin}
+              actionBusy={actionBusy}
+              onClickUpSync={handleClickUpSync}
+            />
+          </Suspense>
         )}
 
         {view === "engenharia" && (
-          <EngineeringView
-            portal={portal}
-            apiOnline={apiOnline}
-            user={user}
-            clients={clients}
-          />
+          <Suspense fallback={<ViewLoadingFallback />}>
+            <EngineeringView
+              portal={portal}
+              apiOnline={apiOnline}
+              user={user}
+              clients={clients}
+            />
+          </Suspense>
         )}
 
         {view === "analytics" && (

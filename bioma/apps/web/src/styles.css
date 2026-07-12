@@ -1394,6 +1394,85 @@ h3 {
   gap: 24px;
 }
 
+.files-upload-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.files-upload-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.files-upload-form input,
+.files-upload-form select {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(255, 244, 199, 0.04);
+}
+
+.performance-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.performance-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.performance-tab.active {
+  background: var(--surface-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.performance-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gtm-snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.insight-icon.severity-info,
+.insight-icon.severity-low {
+  color: var(--text-dim);
+}
+
+.insight-icon.severity-medium,
+.insight-icon.severity-warning {
+  color: var(--amber);
+}
+
+.insight-icon.severity-high,
+.insight-icon.severity-critical {
+  color: var(--danger-soft);
+}
+
 .operations-layout {
   display: grid;
   gap: 16px;

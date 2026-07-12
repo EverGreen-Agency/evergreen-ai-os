@@ -192,6 +192,68 @@ export type AdsCampaignSummary = {
   roas: number;
 };
 
+export type Ga4AcquisitionSummary = {
+  source: string;
+  medium: string;
+  campaign: string;
+  sessions: number;
+  total_users: number;
+  new_users: number;
+  engaged_sessions: number;
+  engagement_rate: number;
+  key_events: number;
+};
+
+export type GscQuerySummary = {
+  query: string;
+  country: string;
+  device: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+};
+
+export type TrackingFindingSummary = {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  severity: "info" | "low" | "medium" | "high" | "critical";
+  status: "open" | "resolved" | "ignored";
+  created_at: string;
+};
+
+export type GtmSnapshotSummary = {
+  id: string;
+  collected_at: string;
+  account_id: string;
+  container_id: string;
+  workspace_id: string | null;
+  published_version: string | null;
+  tags_count: number;
+  triggers_count: number;
+  variables_count: number;
+  findings: TrackingFindingSummary[];
+};
+
+export type ClientFileVisibility = "internal" | "client";
+
+export type ClientFileSummary = {
+  id: string;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+  visibility: ClientFileVisibility;
+  uploaded_by: string | null;
+  created_at: string;
+};
+
+export type ClientFileDownload = {
+  url: string;
+  expires_in: number;
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -246,7 +308,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) {
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -366,4 +428,21 @@ export const api = {
   performanceOverview: (clientId: string) => request<PerformanceOverview>(`/clients/${clientId}/performance`),
   adsCampaigns: (clientId: string) =>
     request<AdsCampaignSummary[]>(`/clients/${clientId}/performance/google-ads/campaigns`),
+  ga4Acquisition: (clientId: string) =>
+    request<Ga4AcquisitionSummary[]>(`/clients/${clientId}/performance/ga4/acquisition`),
+  gscQueries: (clientId: string) =>
+    request<GscQuerySummary[]>(`/clients/${clientId}/performance/search-console/queries`),
+  gtmSnapshots: (clientId: string) =>
+    request<GtmSnapshotSummary[]>(`/clients/${clientId}/performance/gtm/snapshots`),
+  listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
+  uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("visibility", visibility);
+    return request<ClientFileSummary[]>(`/clients/${clientId}/files`, { method: "POST", body: formData });
+  },
+  fileDownloadUrl: (clientId: string, fileId: string) =>
+    request<ClientFileDownload>(`/clients/${clientId}/files/${fileId}/download`),
+  deleteFile: (clientId: string, fileId: string) =>
+    request<ClientFileSummary[]>(`/clients/${clientId}/files/${fileId}`, { method: "DELETE" }),
 };

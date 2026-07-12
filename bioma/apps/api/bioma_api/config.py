@@ -20,12 +20,25 @@ class Settings(BaseSettings):
     clickup_api_token: str | None = None
     clickup_api_base_url: str = "https://api.clickup.com/api/v2"
     clickup_task_page_limit: int = 3
+    storage_s3_bucket: str | None = None
+    storage_s3_region: str = "auto"
+    storage_s3_endpoint_url: str | None = None
+    storage_s3_access_key_id: str | None = None
+    storage_s3_secret_access_key: str | None = None
+    storage_s3_force_path_style: bool = True
+    storage_max_upload_mb: int = 20
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip().rstrip("/") for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def storage_configured(self) -> bool:
+        return bool(
+            self.storage_s3_bucket and self.storage_s3_access_key_id and self.storage_s3_secret_access_key
+        )
 
     @property
     def cookie_secure(self) -> bool:

@@ -3,6 +3,7 @@ import { SectionHeader, EmptyState } from "../components/shared";
 import { ArtifactSectionGrid } from "../components/ArtifactSections";
 import { BriefingPanel } from "../components/BriefingPanel";
 import { EditorialCalendar } from "../components/EditorialCalendar";
+import { FilesPanel } from "../components/FilesPanel";
 import { artifactKindLabel, formatDueDate } from "../lib/format";
 import { deliverableStatusLabel } from "../lib/app-config";
 import type { ArtifactSummary, ClientSummary, ClientPortal } from "../lib/api";
@@ -10,10 +11,12 @@ import type { ArtifactSummary, ClientSummary, ClientPortal } from "../lib/api";
 export function ContentView({
   selectedClient,
   portal,
+  isEgAdmin,
   onSelectArtifact,
 }: {
   selectedClient: ClientSummary | null;
   portal: ClientPortal | null;
+  isEgAdmin: boolean;
   onSelectArtifact: (artifact: ArtifactSummary) => void;
 }) {
   if (!selectedClient || !portal) {
@@ -78,6 +81,8 @@ export function ContentView({
             {portal.deliverables.length === 0 && <EmptyState compact text="Sem entregas" />}
           </div>
         </article>
+
+        <FilesPanel clientId={selectedClient.id} isEgAdmin={isEgAdmin} />
       </div>
     </section>
   );
