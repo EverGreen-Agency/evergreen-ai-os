@@ -106,6 +106,29 @@ Usuários de desenvolvimento:
 - `eduardo@evergreengrowth.com.br` / `senha-dev-123`
 - `henrique@hmconexoes.com.br` / `senha-dev-123`
 
+## Storage de arquivos (FILE-001)
+
+Upload de documentos usa um bucket S3-compatible (Cloudflare R2, Backblaze B2 ou AWS S3). Sem as variáveis `STORAGE_S3_*` configuradas, os endpoints de upload/download retornam `503` de forma controlada — o resto da API continua funcionando.
+
+Variáveis (`infra/env/api.local.env`): `STORAGE_S3_BUCKET`, `STORAGE_S3_REGION`, `STORAGE_S3_ENDPOINT_URL`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY`, `STORAGE_S3_FORCE_PATH_STYLE`, `STORAGE_MAX_UPLOAD_MB`.
+
+Para testar localmente sem credenciais de nuvem, suba um MinIO (S3-compatible) com o perfil `storage`:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile storage up -d storage
+```
+
+Console em `http://localhost:9001` (usuário `bioma-local` / senha `bioma-local-secret`). Crie o bucket `bioma-dev-files` (uma vez) e aponte a API para ele:
+
+```bash
+STORAGE_S3_BUCKET=bioma-dev-files
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ENDPOINT_URL=http://localhost:9000
+STORAGE_S3_ACCESS_KEY_ID=bioma-local
+STORAGE_S3_SECRET_ACCESS_KEY=bioma-local-secret
+STORAGE_S3_FORCE_PATH_STYLE=true
+```
+
 ## Validação
 
 API:
@@ -117,6 +140,7 @@ python scripts/seed_dev.py
 python scripts/smoke_api.py
 python scripts/smoke_clickup.py
 python scripts/smoke_performance.py
+python scripts/smoke_files.py  # exige STORAGE_S3_* configurado (ver seção Storage acima)
 ```
 
 Worker:

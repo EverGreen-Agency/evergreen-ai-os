@@ -60,6 +60,7 @@ Funcional hoje:
 - CRM/funil e financeiro com backend e telas mínimas integradas no frontend.
 - Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
+- Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
 
 Ainda demo/dry-run:
 
@@ -202,7 +203,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Comparar amostras coletadas com as interfaces de Google Ads, GA4, GSC e GTM.
 - [ ] Configurar segredos e jobs no staging Railway após validar contas Google controladas.
 - [x] Conectar a visão principal de Analytics aos endpoints reais de Performance; dados sem sync real continuam marcados como demo.
-- [ ] Criar páginas profundas de Performance: Ads, GA4, GSC e GTM.
+- [x] Criar páginas profundas de Performance: Ads, GA4, GSC e GTM.
 - [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
 ### P2 - ClickUp real
@@ -227,7 +228,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Teste básico de carga.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
-- [x] Dividir o bundle principal do frontend; o build atual reduziu o chunk inicial para aproximadamente 243 kB antes de gzip.
+- [x] Dividir o bundle principal do frontend; Clientes, Conteúdo, Integrações e Engenharia agora são lazy-load, reduzindo o chunk inicial para aproximadamente 227 kB antes de gzip (era 243 kB).
 - [ ] Criar convite/provisionamento de usuário cliente sem seed.
 - [ ] Criar recuperação/rotação segura de senha.
 - [x] Implementar rate limit de login em processo único.
@@ -360,3 +361,6 @@ Formato:
 - 2026-07-11 - Codex - ver git log - GitHub Action para deploy Vercel via token admin, code-splitting de Analytics/Comercial e smoke de sessão expirada - tsc, build web, smoke API - pendente secrets GitHub/Vercel, URLs públicas para smoke remoto e validação humana.
 - 2026-07-11 - Codex - ver git log - URLs de staging registradas e smoke HTTP público tentado - `api-staging.bioma.evergreenmkt.com.br` e `staging.bioma.evergreenmkt.com.br` retornaram 404 - pendente associar domínios aos projetos corretos ou aguardar propagação DNS.
 - 2026-07-11 - Codex - ver git log - Railway API start trocado para `python scripts/start.py` e GitHub Action Vercel passou a fazer build local + `vercel deploy dist` para evitar erro de output `dist` no fluxo prebuilt - compile/smokes API, build web e smokes worker executados - pendente redeploy Railway/Vercel e smoke remoto.
+- 2026-07-11 - Claude Code (Sonnet 5) - CLAIM WEB-PERF-002 - Páginas profundas de Performance (Google Ads, GA4, Search Console, GTM) como abas dentro de Analytics, consumindo os endpoints reais já existentes do backend (`api.ts`: `ga4Acquisition`, `gscQueries`, `gtmSnapshots`), com estados de carregamento/vazio/erro e banner de freshness por provedor quando a fonte não tem sync real - `npx tsc -b`, `npm run build` (chunk principal mantém ~243 kB, `AnalyticsView` isolado em chunk lazy) - pendente QA visual das novas abas e validação com credenciais Google reais.
+- 2026-07-11 - Claude Code (Sonnet 5) - CLAIM WEB-BUNDLE-001 - Lazy-load das views Clientes, Conteúdo, Integrações e Engenharia em `App.tsx` (mesmo padrão `React.lazy`/`Suspense` já usado em Analytics/Comercial), reduzindo o chunk principal de ~243 kB para ~227 kB antes de gzip - `npx tsc -b`, `npm run build` - pendente nenhuma; próxima folga de bundle viria de dividir o chunk pesado do `AnalyticsView` (recharts).
+- 2026-07-12 - Claude Code (Sonnet 5) - CLAIM FILE-001 - Upload/storage de documentos com visibilidade por cliente: migration `client_files`, router/service/repository `files` seguindo o padrão de `performance`/`client_hub` (EG admin sobe/exclui, `client_user` só lê arquivos `visibility=client`), cliente S3-compatible (`services/storage.py`, boto3, endpoint configurável para funcionar com R2/B2/MinIO/AWS), limite de tamanho configurável (`STORAGE_MAX_UPLOAD_MB`), download via URL assinada com expiração curta, painel `FilesPanel` no front dentro de Conteúdo, perfil `storage` (MinIO) no `docker-compose.yml` para dev local sem depender de credencial de nuvem - compile backend, `scripts/smoke_files.py` (upload/list/autorização/limite de tamanho/download real via URL assinada/exclusão) rodado de ponta a ponta contra MinIO local, smokes API/ClickUp/Performance sem regressão, `npx tsc -b`, `npm run build`, fluxo completo testado manualmente no navegador (upload, download do conteúdo real, exclusão) - pendente credenciais de bucket real (R2/B2/S3) em staging/produção; AUTH-002 (rotação de senha) e AUTH-001 (convite sem seed) seguem TODO.

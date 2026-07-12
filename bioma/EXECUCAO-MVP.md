@@ -48,11 +48,11 @@ Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
 | WEB-CRM-001 | DONE | Frontend | Kanban de leads consumindo endpoints CRM existentes | CORE-002 | build + fluxo criar/mover lead |
 | WEB-FIN-001 | DONE | Frontend | Tela financeira consumindo contratos/faturas existentes | CORE-002 | build + CRUD financeiro |
 | WEB-PERF-001 | DONE | Frontend | Analytics consumir overview real de Performance | CORE-001 | build + dados seed marcados demo |
-| WEB-PERF-002 | TODO | Frontend | Páginas Ads, GA4, GSC e GTM | WEB-PERF-001 | build + estados vazio/erro/freshness |
+| WEB-PERF-002 | DONE | Frontend | Páginas Ads, GA4, GSC e GTM | WEB-PERF-001 | build + estados vazio/erro/freshness |
 | AUTH-001 | TODO | Full-stack | EG admin cria/convida usuário cliente | DPL-004 | smoke de convite + isolamento |
 | AUTH-002 | TODO | Full-stack | Fluxo seguro de recuperação/rotação de senha | AUTH-001 | token expirável + teste |
-| FILE-001 | TODO | Full-stack | Upload/storage de documentos com visibilidade por cliente | AUTH-001 | upload, leitura autorizada e exclusão |
-| WEB-BUNDLE-001 | TODO | Frontend | Dividir bundle principal e lazy-load de views | WEB-PERF-002 | build sem chunk principal > 500 kB |
+| FILE-001 | DONE | Full-stack | Upload/storage de documentos com visibilidade por cliente | AUTH-001 | upload, leitura autorizada e exclusão |
+| WEB-BUNDLE-001 | DONE | Frontend | Dividir bundle principal e lazy-load de views | WEB-PERF-002 | build sem chunk principal > 500 kB |
 
 Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma IA frontend por vez.
 
