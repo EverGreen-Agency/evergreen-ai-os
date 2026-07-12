@@ -24,9 +24,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: bioma/apps/web
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -64,55 +61,24 @@ jobs:
 
           echo "target=$REQUESTED_TARGET" >> "$GITHUB_OUTPUT"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        env:
-          VITE_APP_ENV: ${{ steps.target.outputs.target }}
-          VITE_API_BASE_URL: ${{ steps.target.outputs.target == 'production' && secrets.BIOMA_PRODUCTION_API_BASE_URL || secrets.BIOMA_STAGING_API_BASE_URL || 'https://api-staging.bioma.evergreenmkt.com.br' }}
-        run: npm run build
-
-      - name: Debug build output
+      - name: Build gate (type-check + local build)
+        working-directory: bioma/apps/web
         run: |
-          pwd
-          test -f dist/index.html
-          du -sh dist
-          ls -la dist
+          npm ci
+          npm run build
 
-      - name: Prepare Vercel output
-        shell: bash
-        # `vercel deploy --prebuilt` always reads .vercel/output from the
-        # directory where the CLI is invoked. The CLI runs from the monorepo
-        # root because the remote project already defines bioma/apps/web as
-        # its Root Directory.
-        working-directory: ${{ github.workspace }}
-        run: |
-          rm -rf .vercel/output
-          mkdir -p .vercel/output/static
-          cp -R bioma/apps/web/dist/. .vercel/output/static/
-          cat > .vercel/output/config.json <<'JSON'
-          {
-            "version": 3,
-            "routes": [
-              { "handle": "filesystem" },
-              { "src": "/(.*)", "dest": "/index.html" }
-            ]
-          }
-          JSON
-          test -f .vercel/output/static/index.html
-          test -f .vercel/output/config.json
-
+      # O projeto Vercel tem Root Directory=bioma/apps/web. `vercel deploy`
+      # (sem --prebuilt) rodado a partir da raiz do monorepo faz o Vercel
+      # aplicar esse Root Directory uma única vez e buildar no servidor dele,
+      # usando as env vars configuradas no dashboard (Preview/Production).
+      # Não usar --prebuilt aqui: combinado com Root Directory != raiz, ele
+      # deixou deployments presos em "Building..." indefinidamente (BLOCKED,
+      # sem log de build) em vez de falhar ou concluir.
       - name: Deploy
         id: deploy
         shell: bash
-        # The Vercel project already has Root Directory=bioma/apps/web.
-        # Run the CLI from the monorepo root so that directory is applied once.
-        working-directory: ${{ github.workspace }}
         run: |
-          test -f .vercel/output/static/index.html
-          test -f .vercel/output/config.json
-          DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
+          DEPLOYMENT_URL="$(npx vercel@latest deploy ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
           echo "Deployment URL: $DEPLOYMENT_URL"
 
