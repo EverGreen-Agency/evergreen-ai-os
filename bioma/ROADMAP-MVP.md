@@ -148,6 +148,20 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 - **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
 - Notion: depois.
 
+## Decisões de escopo - 2026-07-14
+
+Decisões do Eduardo (rodada de brainstorm com Claude; contexto: deploy em produção via integração Git da Vercel + Railway, dev local):
+
+- **Multi-tenant:** v1 fica flat (EG → clientes), mas preparada para hierarquia white-label: adicionar `parent_organization_id` nullable em `organizations` e não hardcodar `eg` em código novo. Hierarquia completa (agência → clientes dela) fica para quando houver demanda real.
+- **Cliente piloto:** dar acesso a 1 cliente real em 2–4 semanas. Isso torna AUTH-001, LGPD-001 e assets finais P0 imediato.
+- **AUTH-001 (convite):** mecânica escolhida = link de convite copiável com token expirável de uso único; EG admin envia por WhatsApp; usuário define a própria senha. Provedor de e-mail pluga depois no mesmo token.
+- **Escopo do piloto:** cliente vê Hub + Conteúdo + Arquivos. Analytics fica oculto até haver sync Google real do próprio cliente — primeiro uso prático do feature-gating.
+- **Feature-gating:** criar agora a noção de módulos habilitados por organização (campo/JSON no banco + checagem no backend). Stripe/billing só depois.
+- **LGPD:** Eduardo decidiu LGPD-001 completo ANTES do acesso do piloto (não o mínimo viável). O checklist precisa começar imediatamente, em paralelo ao código, para não virar gargalo das 2–4 semanas.
+- **Domínio de produção:** `bioma.evergreenmkt.com.br` (web) + `api.bioma.evergreenmkt.com.br` (API), `SESSION_COOKIE_DOMAIN=.bioma.evergreenmkt.com.br`, SameSite=Lax.
+- **Storage:** fonte de verdade dos arquivos = bucket S3-compatible (Railway Buckets agora; código FILE-001 já é agnóstico via env `STORAGE_S3_*`). Cloudinary não entra como storage primário; se o módulo de social media precisar de transformação de imagem, entra camada na frente do bucket (imgproxy self-hosted ou Cloudinary fetch mode) — alinhado à visão mega-plataforma de infra própria.
+- **Tailwind:** removido (tinha sido instalado sem ativação). Design system continua nos tokens CSS de `styles.css`; Tailwind só volta como decisão deliberada de redesign.
+
 ## Próximos passos priorizados
 
 ### P0 - Fechar MVP testável
