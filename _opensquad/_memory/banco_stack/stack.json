@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-07-11",
+  "updated_at": "2026-07-14",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",
@@ -374,6 +374,15 @@
       "adr": "",
       "source": "https://www.netlify.com/",
       "id": "netlify"
+    },
+    {
+      "name": "Salvy",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Planos de celular para empresas: sem burocracia e sem fidelidade Chip, eSIM ou número virtual. A Salvy é a solução de telefonia móvel para times que não querem perder tempo e dinheiro com as velhas operadoras. Acho que compete com minha ideia de Operado para Devs...",
+      "adr": "",
+      "source": "https://salvy.com.br/",
+      "id": "salvy"
     }
   ]
 }

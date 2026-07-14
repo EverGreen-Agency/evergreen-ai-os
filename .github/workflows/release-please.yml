@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      # path aponta para o pacote do web: a raiz do monorepo não tem
+      # package.json, então sem isso o release-please falha/versiona errado.
+      # src/lib/version.ts NÃO é atualizado automaticamente; para isso é
+      # preciso migrar para config-file com extra-files.
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+          path: bioma/apps/web

@@ -8,17 +8,20 @@ import { artifactKindLabel, formatDueDate } from "../lib/format";
 import { deliverableStatusLabel } from "../lib/app-config";
 import type { ArtifactSummary, ClientSummary, ClientPortal } from "../lib/api";
 
-export function ContentView({
-  selectedClient,
-  portal,
-  isEgAdmin,
-  onSelectArtifact,
-}: {
-  selectedClient: ClientSummary | null;
-  portal: ClientPortal | null;
-  isEgAdmin: boolean;
-  onSelectArtifact: (artifact: ArtifactSummary) => void;
-}) {
+import { useUiStore } from "../store/uiStore";
+import { useCurrentUser, useClients, useClientPortal } from "../hooks/useBiomaApi";
+
+export function ContentView() {
+  const { selectedClientId, setSelectedArtifact } = useUiStore();
+  const { data: user } = useCurrentUser();
+  const { data: clientsData } = useClients();
+  const { data: portalData } = useClientPortal(selectedClientId);
+
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+  const portal = portalData ?? null;
+  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+
   if (!selectedClient || !portal) {
     return <EmptyState text="Selecione um cliente para ver conteúdo." />;
   }
@@ -32,7 +35,7 @@ export function ContentView({
     <section className="content-layout">
       <div className="content-main">
         <article className="surface">
-          <BriefingPanel briefing={briefing} onEdit={onSelectArtifact} />
+          <BriefingPanel briefing={briefing} onEdit={setSelectedArtifact} />
         </article>
 
         <article className="surface">
@@ -48,7 +51,7 @@ export function ContentView({
                   <h3>{document.title}</h3>
                 </div>
                 <div className="doc-card-actions">
-                  <button type="button" className="ghost-button dark" onClick={() => onSelectArtifact(document)}>
+                  <button type="button" className="ghost-button dark" onClick={() => setSelectedArtifact(document)}>
                     <PenLine size={14} /> Editar
                   </button>
                 </div>

@@ -1,23 +1,42 @@
 import { GitBranch, Link, Activity, ShieldCheck, RefreshCw } from "lucide-react";
 import { SectionHeader, HealthRow } from "../components/shared";
 import { integrationRows } from "../lib/app-config";
-import type { ClientSummary, SyncRunSummary } from "../lib/api";
+import { useUiStore } from "../store/uiStore";
+import { useApiHealth, useCurrentUser, useClients, useClientPortal, useSyncClickUp } from "../hooks/useBiomaApi";
 
-export function IntegrationsView({
-  selectedClient,
-  latestSync,
-  isEgAdmin,
-  actionBusy,
-  onClickUpSync,
-}: {
-  selectedClient: ClientSummary | null;
-  latestSync: SyncRunSummary | null;
-  isEgAdmin: boolean;
-  actionBusy: string | null;
-  onClickUpSync: () => void;
-}) {
+export function IntegrationsView() {
+  const { selectedClientId } = useUiStore();
+  const { data: healthData } = useApiHealth();
+  const { data: user } = useCurrentUser();
+  const { data: clientsData } = useClients();
+  const { data: portalData } = useClientPortal(selectedClientId);
+  
+  const syncClickUp = useSyncClickUp();
+
+  const apiOnline = healthData?.status === "ok";
+  const userRole = user?.organizations[0]?.role;
+  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+  const portal = portalData ?? null;
+  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
+
+  function handleClickUpSync() {
+    if (selectedClientId) {
+      syncClickUp.mutate(selectedClientId);
+    }
+  }
+
   return (
     <section className="content-grid">
+      <article className="surface">
+        <SectionHeader eyebrow="Sistema" title="Status do Bioma" icon={Activity} />
+        <div className="health-list">
+          <HealthRow icon={Activity} label="API Backend" ok={apiOnline} value={apiOnline ? "online" : "offline"} />
+          <HealthRow icon={ShieldCheck} label="Nível de acesso" ok={true} value={userRole === "eg_admin" ? "EG admin" : "Cliente"} />
+        </div>
+      </article>
       <article className="surface large">
         <SectionHeader eyebrow="Integrações" title="Backlog técnico" icon={GitBranch} />
         <div className="integration-list">
@@ -38,7 +57,7 @@ export function IntegrationsView({
           <HealthRow icon={ShieldCheck} label="Escrita automática" ok={false} value="bloqueada no MVP" />
         </div>
         {isEgAdmin && selectedClient && (
-          <button className="primary-button wide" type="button" onClick={onClickUpSync} disabled={actionBusy === "clickup:sync"}>
+          <button className="primary-button wide" type="button" onClick={handleClickUpSync} disabled={syncClickUp.isPending}>
             <RefreshCw size={16} />
             Rodar sync dry-run
           </button>

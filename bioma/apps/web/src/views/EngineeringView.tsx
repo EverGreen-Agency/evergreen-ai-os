@@ -1,19 +1,20 @@
 import { FileText, Server, Activity, ShieldCheck } from "lucide-react";
 import { SectionHeader, HealthRow, EmptyState } from "../components/shared";
 import { formatDateTime, auditLabel, compactMetadata } from "../lib/format";
-import type { ClientPortal, CurrentUser, ClientSummary } from "../lib/api";
+import { useUiStore } from "../store/uiStore";
+import { useApiHealth, useCurrentUser, useClients, useClientPortal } from "../hooks/useBiomaApi";
 
-export function EngineeringView({
-  portal,
-  apiOnline,
-  user,
-  clients,
-}: {
-  portal: ClientPortal | null;
-  apiOnline: boolean;
-  user: CurrentUser | null;
-  clients: ClientSummary[];
-}) {
+export function EngineeringView() {
+  const { selectedClientId } = useUiStore();
+  const { data: healthData } = useApiHealth();
+  const { data: user } = useCurrentUser();
+  const { data: clientsData } = useClients();
+  const { data: portalData } = useClientPortal(selectedClientId);
+
+  const apiOnline = healthData?.status === "ok";
+  const clients = clientsData ?? [];
+  const portal = portalData ?? null;
+
   return (
     <section className="content-grid">
       <article className="surface large">

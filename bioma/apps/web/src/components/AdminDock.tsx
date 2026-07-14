@@ -2,41 +2,54 @@ import { FormEvent } from "react";
 import { Building2, Plus, Save, FileText, CalendarCheck } from "lucide-react";
 import { DockTitle } from "./shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
-import type { ClientPayload, ArtifactPayload, DeliverablePayload, ClientStatus, DeliverableStatus } from "../lib/api";
+import { useUiStore } from "../store/uiStore";
+import { useCreateClient, useUpdateClient, useCreateArtifact, useCreateDeliverable } from "../hooks/useBiomaApi";
+import type { ClientStatus, DeliverableStatus, ArtifactPayload } from "../lib/api";
 
-export function AdminDock({
-  selectedClient,
-  selectedClientId,
-  actionBusy,
-  newClientDraft,
-  setNewClientDraft,
-  clientDraft,
-  setClientDraft,
-  artifactDraft,
-  setArtifactDraft,
-  deliverableDraft,
-  setDeliverableDraft,
-  handleCreateClient,
-  handleUpdateClient,
-  handleCreateArtifact,
-  handleCreateDeliverable,
-}: {
-  selectedClient: any;
-  selectedClientId: string | null;
-  actionBusy: string | null;
-  newClientDraft: ClientPayload;
-  setNewClientDraft: (payload: ClientPayload) => void;
-  clientDraft: ClientPayload;
-  setClientDraft: (payload: ClientPayload) => void;
-  artifactDraft: ArtifactPayload;
-  setArtifactDraft: (payload: ArtifactPayload) => void;
-  deliverableDraft: DeliverablePayload;
-  setDeliverableDraft: (payload: DeliverablePayload) => void;
-  handleCreateClient: (event: FormEvent<HTMLFormElement>) => void;
-  handleUpdateClient: (event: FormEvent<HTMLFormElement>) => void;
-  handleCreateArtifact: (event: FormEvent<HTMLFormElement>) => void;
-  handleCreateDeliverable: (event: FormEvent<HTMLFormElement>) => void;
-}) {
+export function AdminDock({ selectedClient }: { selectedClient: any }) {
+  const {
+    selectedClientId,
+    actionBusy,
+    newClientDraft,
+    setNewClientDraft,
+    clientDraft,
+    setClientDraft,
+    artifactDraft,
+    setArtifactDraft,
+    deliverableDraft,
+    setDeliverableDraft,
+  } = useUiStore();
+
+  const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
+  const createArtifact = useCreateArtifact();
+  const createDeliverable = useCreateDeliverable();
+
+  const handleCreateClient = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    createClient.mutate(newClientDraft);
+  };
+
+  const handleUpdateClient = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedClientId) return;
+    updateClient.mutate({ id: selectedClientId, payload: clientDraft });
+  };
+
+  const handleCreateArtifact = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedClientId) return;
+    createArtifact.mutate({ clientId: selectedClientId, payload: artifactDraft });
+  };
+
+  const handleCreateDeliverable = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedClientId) return;
+    createDeliverable.mutate({ clientId: selectedClientId, payload: deliverableDraft });
+  };
+
+  const isBusy = Boolean(actionBusy) || createClient.isPending || updateClient.isPending || createArtifact.isPending || createDeliverable.isPending;
+
   return (
     <section className="admin-dock" aria-label="Operações EG">
       <form className="dock-panel" onSubmit={handleCreateClient}>
@@ -71,7 +84,7 @@ export function AdminDock({
             />
           </label>
         </div>
-        <button className="primary-button" type="submit" disabled={actionBusy === "client:create"}>
+        <button className="primary-button" type="submit" disabled={isBusy}>
           <Plus size={16} />
           Criar cliente
         </button>
@@ -113,7 +126,7 @@ export function AdminDock({
               />
             </label>
           </div>
-          <button className="secondary-button" type="submit" disabled={actionBusy === "client:update"}>
+          <button className="secondary-button" type="submit" disabled={isBusy}>
             <Save size={16} />
             Salvar cliente
           </button>
@@ -157,7 +170,7 @@ export function AdminDock({
                 <textarea value={artifactDraft.content ?? ""} onChange={(event) => setArtifactDraft({ ...artifactDraft, content: event.target.value })} />
               </label>
             </div>
-            <button className="primary-button" type="submit" disabled={actionBusy === "artifact:create"}>
+            <button className="primary-button" type="submit" disabled={isBusy}>
               <Plus size={16} />
               Publicar artefato
             </button>
@@ -197,7 +210,7 @@ export function AdminDock({
                 </label>
               </div>
             </div>
-            <button className="primary-button" type="submit" disabled={actionBusy === "deliverable:create"}>
+            <button className="primary-button" type="submit" disabled={isBusy}>
               <Plus size={16} />
               Criar entrega
             </button>

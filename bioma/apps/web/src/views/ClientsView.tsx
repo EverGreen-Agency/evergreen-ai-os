@@ -2,53 +2,50 @@ import { Users, ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCir
 import { SectionHeader, EmptyState, HubBlock } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel } from "../lib/format";
-import type { ArtifactSummary, ClientSummary, ClientPortal, DeliverableStatus } from "../lib/api";
+import type { ArtifactSummary, DeliverableStatus } from "../lib/api";
+import { AdminDock } from "../components/AdminDock";
+import { useUiStore } from "../store/uiStore";
+import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
 
-export function ClientsView({
-  clients,
-  selectedClientId,
-  selectedClient,
-  portal,
-  loadingPortal,
-  latestSync,
-  isEgAdmin,
-  actionBusy,
-  onSelectClient,
-  onClickUpSync,
-  onDeliverableStatus,
-  onDeleteDeliverable,
-  onRequestApproval,
-  onApprovalDecision,
-  onSelectArtifact,
-}: {
-  clients: ClientSummary[];
-  selectedClientId: string | null;
-  selectedClient: ClientSummary | null;
-  portal: ClientPortal | null;
-  loadingPortal: boolean;
-  latestSync: string | undefined;
-  isEgAdmin: boolean;
-  actionBusy: string | null;
-  onSelectClient: (id: string) => void;
-  onClickUpSync: () => void;
-  onDeliverableStatus: (id: string, status: DeliverableStatus) => void;
-  onDeleteDeliverable: (id: string) => void;
-  onRequestApproval: (id: string) => void;
-  onApprovalDecision: (id: string, status: "approved" | "rejected") => void;
-  onSelectArtifact: (artifact: ArtifactSummary) => void;
-}) {
+export function ClientsView() {
+  const {
+    selectedClientId,
+    setSelectedClientId,
+    setSelectedArtifact,
+  } = useUiStore();
+
+  const { data: user } = useCurrentUser();
+  const isEgAdmin = user?.email?.endsWith("@evergreenmkt.com.br") ?? false;
+
+  const { data: clientsData, isLoading: loadingClients } = useClients();
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+
+  const { data: portalData, isLoading: loadingPortal } = useClientPortal(selectedClientId);
+  const portal = portalData ?? null;
+  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup")?.status;
+
+  const syncClickUp = useSyncClickUp();
+  const updateDeliverable = useUpdateDeliverable();
+  const deleteDeliverable = useDeleteDeliverable();
+  const createApproval = useCreateApproval();
+  const decideApproval = useDecideApproval();
+
+  const isBusy = syncClickUp.isPending || updateDeliverable.isPending || deleteDeliverable.isPending || createApproval.isPending || decideApproval.isPending;
+
   return (
     <section className="client-layout">
       <article className="surface client-list-panel">
         <SectionHeader eyebrow="Client Hub" title="Carteira" icon={Users} />
-        {clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
+        {loadingClients && <EmptyState text="Carregando clientes..." />}
+        {!loadingClients && clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
         <div className="client-list">
           {clients.map((client) => (
             <button
               className={client.id === selectedClientId ? "client-card selected" : "client-card"}
               key={client.id}
               type="button"
-              onClick={() => onSelectClient(client.id)}
+              onClick={() => setSelectedClientId(client.id)}
             >
               <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
               <strong>{client.name}</strong>
@@ -83,8 +80,8 @@ export function ClientsView({
                   <button
                     className="sync-button"
                     type="button"
-                    onClick={onClickUpSync}
-                    disabled={actionBusy === "clickup:sync"}
+                    onClick={() => syncClickUp.mutate(selectedClient.id)}
+                    disabled={isBusy}
                   >
                     <RefreshCw size={14} />
                     Sincronizar
@@ -107,8 +104,8 @@ export function ClientsView({
                       <select
                         className="status-select"
                         value={deliverable.status}
-                        onChange={(event) => onDeliverableStatus(deliverable.id, event.target.value as DeliverableStatus)}
-                        disabled={Boolean(actionBusy)}
+                        onChange={(event) => updateDeliverable.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id, payload: { status: event.target.value as DeliverableStatus } })}
+                        disabled={isBusy}
                         aria-label={`Status de ${deliverable.title}`}
                       >
                         {Object.entries(deliverableStatusLabel).map(([value, label]) => (
@@ -128,8 +125,8 @@ export function ClientsView({
                         <button
                           className="mini-button approve"
                           type="button"
-                          onClick={() => onRequestApproval(deliverable.id)}
-                          disabled={Boolean(actionBusy)}
+                          onClick={() => createApproval.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id })}
+                          disabled={isBusy}
                         >
                           Pedir aprovação
                         </button>
@@ -138,8 +135,9 @@ export function ClientsView({
                       <button
                         className="icon-button danger"
                         type="button"
-                        onClick={() => onDeleteDeliverable(deliverable.id)}
+                        onClick={() => deleteDeliverable.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id })}
                         aria-label={`Excluir ${deliverable.title}`}
+                        disabled={isBusy}
                       >
                         <Trash2 size={15} />
                       </button>
@@ -163,16 +161,16 @@ export function ClientsView({
                       <button
                         className="mini-button approve"
                         type="button"
-                        onClick={() => onApprovalDecision(approval.id, "approved")}
-                        disabled={Boolean(actionBusy)}
+                        onClick={() => decideApproval.mutate({ clientId: selectedClient.id, approvalId: approval.id, status: "approved" })}
+                        disabled={isBusy}
                       >
                         Aprovar
                       </button>
                       <button
                         className="mini-button reject"
                         type="button"
-                        onClick={() => onApprovalDecision(approval.id, "rejected")}
-                        disabled={Boolean(actionBusy)}
+                        onClick={() => decideApproval.mutate({ clientId: selectedClient.id, approvalId: approval.id, status: "rejected" })}
+                        disabled={isBusy}
                       >
                         Reprovar
                       </button>
@@ -187,7 +185,7 @@ export function ClientsView({
             <HubBlock title="Artefatos" icon={FileText}>
               {portal.artifacts.length === 0 && <EmptyState compact text="Nenhum artefato publicado." />}
               {portal.artifacts.map((artifact) => (
-                <button className="artifact-row" key={artifact.id} type="button" onClick={() => onSelectArtifact(artifact)}>
+                <button className="artifact-row" key={artifact.id} type="button" onClick={() => setSelectedArtifact(artifact)}>
                   <div>
                     <strong>{artifact.title}</strong>
                     <small>
@@ -201,6 +199,10 @@ export function ClientsView({
           </div>
         )}
       </article>
+
+      {isEgAdmin && (
+        <AdminDock selectedClient={selectedClient} />
+      )}
     </section>
   );
 }

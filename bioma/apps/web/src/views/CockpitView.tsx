@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   CalendarCheck,
@@ -10,29 +12,38 @@ import {
 } from "lucide-react";
 
 import { deliverableStatusLabel, statusLabel } from "../lib/app-config";
-import type { ClientSummary, CurrentUser, DeliverableSummary } from "../lib/api";
 import { formatDueDate } from "../lib/format";
 import { EmptyState, HealthRow, SectionHeader } from "../components/shared";
+import { useUiStore } from "../store/uiStore";
+import { useCurrentUser, useClients, useClientPortal } from "../hooks/useBiomaApi";
 
-export function CockpitView({
-  user,
-  selectedClient,
-  metrics,
-  pendingApprovals,
-  activeDeliverables,
-  latestSync,
-  onGoClients,
-  onGoContent,
-}: {
-  user: CurrentUser;
-  selectedClient: ClientSummary | null;
-  metrics: Array<{ label: string; value: string; delta: string; tone: string }>;
-  pendingApprovals: Array<{ id: string; deliverable_title: string | null; comment: string | null }>;
-  activeDeliverables: DeliverableSummary[];
-  latestSync: string | undefined;
-  onGoClients: () => void;
-  onGoContent: () => void;
-}) {
+export function CockpitView() {
+  const navigate = useNavigate();
+  const { selectedClientId } = useUiStore();
+  const { data: user } = useCurrentUser();
+  const { data: clientsData } = useClients();
+  const { data: portalData } = useClientPortal(selectedClientId);
+
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+  const portal = portalData ?? null;
+  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup")?.status;
+
+  const pendingApprovals = portal?.approvals.filter((approval) => approval.status === "pending") ?? [];
+  const activeDeliverables = portal?.deliverables.filter((deliverable) => deliverable.status !== "done" && deliverable.status !== "blocked") ?? [];
+
+  const metrics = useMemo(
+    () => [
+      { label: "Clientes", value: String(clients.length), delta: "carteira no Bioma", tone: "green" },
+      { label: "Aprovações", value: String(pendingApprovals.length), delta: "pendências abertas", tone: "amber" },
+      { label: "Entregas", value: String(activeDeliverables.length), delta: "ativas ou planejadas", tone: "mint" },
+      { label: "Artefatos", value: String(portal?.artifacts.length ?? 0), delta: "briefing, brand book e mapas", tone: "cream" },
+    ],
+    [activeDeliverables.length, clients.length, pendingApprovals.length, portal?.artifacts.length],
+  );
+
+  if (!user) return null;
+
   return (
     <>
       <section className="hero-grid">
@@ -54,11 +65,11 @@ export function CockpitView({
             </small>
           </div>
           <div className="quick-actions">
-            <button type="button" onClick={onGoClients}>
+            <button type="button" onClick={() => navigate("/clientes")}>
               <Users size={16} />
               Abrir clientes
             </button>
-            <button type="button" onClick={onGoContent}>
+            <button type="button" onClick={() => navigate("/conteudo")}>
               <BookOpen size={16} />
               Ver conteúdo
             </button>

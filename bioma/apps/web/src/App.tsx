@@ -1,45 +1,20 @@
-import { FormEvent, Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, lazy, useEffect, useState } from "react";
 import { LogOut, Search } from "lucide-react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import {
-  api,
-  type ApiHealth,
-  type ArtifactPayload,
-  type ArtifactSummary,
-  type ClientPayload,
-  type ClientPortal,
-  type ClientSummary,
-  type CurrentUser,
-  type DeliverablePayload,
-  type DeliverableStatus,
-} from "./lib/api";
-import {
-  currentViewFromHash,
-  emptyArtifactDraft,
-  emptyClientDraft,
-  emptyDeliverableDraft,
-  navItems,
-  type ViewId,
-} from "./lib/app-config";
-import {
-  isSessionError,
-  normalizeArtifactPayload,
-  normalizeClientPayload,
-  normalizeDeliverablePayload,
-} from "./lib/format";
+import { navItems } from "./lib/app-config";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { APP_VERSION } from "./lib/version";
+import { useUiStore } from "./store/uiStore";
+import { useApiHealth, useCurrentUser, useClients, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
+import { normalizeArtifactPayload } from "./lib/format";
+import { emptyArtifactDraft } from "./lib/app-config";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
 const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
-const IntegrationsView = lazy(() =>
-  import("./views/IntegrationsView").then((module) => ({ default: module.IntegrationsView })),
-);
-const EngineeringView = lazy(() =>
-  import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })),
-);
+const IntegrationsView = lazy(() => import("./views/IntegrationsView").then((module) => ({ default: module.IntegrationsView })));
+const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
 
@@ -50,107 +25,46 @@ function ViewLoadingFallback() {
 export function App() {
   const routerNavigate = useNavigate();
   const location = useLocation();
-  const [health, setHealth] = useState<ApiHealth | null>(null);
-  const [user, setUser] = useState<CurrentUser | null>(null);
+
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [clients, setClients] = useState<ClientSummary[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [portal, setPortal] = useState<ClientPortal | null>(null);
-  const [dataError, setDataError] = useState("");
-  const [loadingPortal, setLoadingPortal] = useState(false);
-  const [actionBusy, setActionBusy] = useState<string | null>(null);
 
-  const [newClientDraft, setNewClientDraft] = useState<ClientPayload>(emptyClientDraft);
-  const [clientDraft, setClientDraft] = useState<ClientPayload>(emptyClientDraft);
-  const [artifactDraft, setArtifactDraft] = useState<ArtifactPayload>(emptyArtifactDraft);
-  const [deliverableDraft, setDeliverableDraft] = useState<DeliverablePayload>(emptyDeliverableDraft);
-  const [selectedArtifact, setSelectedArtifact] = useState<ArtifactSummary | null>(null);
-  const [artifactEditDraft, setArtifactEditDraft] = useState<ArtifactPayload>(emptyArtifactDraft);
+  const { data: healthData } = useApiHealth();
+  const { data: user } = useCurrentUser();
+  const login = useLogin();
+  const logout = useLogout();
 
-  const apiOnline = health?.status === "ok";
-  const activeOrg = user?.organizations[0] ?? null;
-  const selectedClient = portal?.client ?? clients.find((client) => client.id === selectedClientId) ?? null;
-  const isEgAdmin =
-    user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
-  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
+  const {
+    selectedClientId,
+    setSelectedClientId,
+    selectedArtifact,
+    setSelectedArtifact,
+    artifactEditDraft,
+    setArtifactEditDraft,
+    dataError,
+  } = useUiStore();
 
-  const pendingApprovals = portal?.approvals.filter((approval) => approval.status === "pending") ?? [];
-  const activeDeliverables =
-    portal?.deliverables.filter((deliverable) => deliverable.status !== "done" && deliverable.status !== "blocked") ?? [];
+  const { data: clientsData } = useClients();
+  const clients = clientsData ?? [];
 
-  const metrics = useMemo(
-    () => [
-      { label: "Clientes", value: String(clients.length), delta: "carteira no Bioma", tone: "green" },
-      { label: "Aprovações", value: String(pendingApprovals.length), delta: "pendências abertas", tone: "amber" },
-      { label: "Entregas", value: String(activeDeliverables.length), delta: "ativas ou planejadas", tone: "mint" },
-      { label: "Artefatos", value: String(portal?.artifacts.length ?? 0), delta: "briefing, brand book e mapas", tone: "cream" },
-    ],
-    [activeDeliverables.length, clients.length, pendingApprovals.length, portal?.artifacts.length],
-  );
+  const updateArtifact = useUpdateArtifact();
+  const deleteArtifact = useDeleteArtifact();
 
-  useEffect(() => {
-    api
-      .health()
-      .then(setHealth)
-      .catch(() => setHealth(null));
-
-    api
-      .me()
-      .then(setUser)
-      .catch(() => {});
-  }, []);
+  const apiOnline = healthData?.status === "ok";
+  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
 
   useEffect(() => {
     if (!user && location.pathname !== "/") {
       routerNavigate("/");
     }
-  }, [user]);
+  }, [user, location.pathname, routerNavigate]);
 
   useEffect(() => {
-    if (!user) {
-      setClients([]);
-      setSelectedClientId(null);
-      setPortal(null);
-      return;
+    if (clients.length > 0 && !selectedClientId) {
+      setSelectedClientId(clients[0].id);
     }
-
-    setDataError("");
-    refreshClients().catch((error: Error) => handleAppError(error, "Não foi possível carregar clientes."));
-  }, [user]);
-
-  useEffect(() => {
-    if (!selectedClientId) {
-      setPortal(null);
-      return;
-    }
-
-    setLoadingPortal(true);
-    setDataError("");
-    api
-      .clientPortal(selectedClientId)
-      .then((data) => {
-        setPortal(data);
-        setDataError("");
-      })
-      .catch((error: Error) => handleAppError(error, "Não foi possível carregar o hub."))
-      .finally(() => setLoadingPortal(false));
-  }, [selectedClientId]);
-
-  useEffect(() => {
-    if (!selectedClient) {
-      setClientDraft(emptyClientDraft);
-      return;
-    }
-    setClientDraft({
-      name: selectedClient.name,
-      organization_name: selectedClient.organization_name,
-      status: selectedClient.status,
-      responsible_name: selectedClient.responsible_name ?? "",
-      clickup_folder_id: selectedClient.clickup_folder_id ?? "",
-    });
-  }, [selectedClient]);
+  }, [clients, selectedClientId, setSelectedClientId]);
 
   useEffect(() => {
     if (!selectedArtifact) {
@@ -164,153 +78,48 @@ export function App() {
       content: selectedArtifact.content ?? "",
       url: selectedArtifact.url ?? "",
     });
-  }, [selectedArtifact]);
-
-  async function refreshClients(preferredId?: string) {
-    if (!user) return;
-    const data = await api.clients();
-    setClients(data);
-    setDataError("");
-    const nextId = preferredId ?? selectedClientId ?? data[0]?.id ?? null;
-    setSelectedClientId(data.some((client) => client.id === nextId) ? nextId : data[0]?.id ?? null);
-  }
-
-  function resetSession(message = "Sua sessão expirou. Entre novamente para continuar.") {
-    setUser(null);
-    setPortal(null);
-    setClients([]);
-    setSelectedClientId(null);
-    setDataError("");
-    setLoginError(message);
-    routerNavigate("/");
-  }
-
-  function handleAppError(error: Error, fallback: string) {
-    if (isSessionError(error)) {
-      resetSession();
-      return;
-    }
-    setDataError(error.message || fallback);
-  }
+  }, [selectedArtifact, setArtifactEditDraft]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoginError("");
-    try {
-      const data = await api.login(email, password);
-      setUser(data.user);
-      setPassword("");
-      setDataError("");
-      routerNavigate("/");
-    } catch (error) {
-      setLoginError(error instanceof Error ? error.message : "Credenciais inválidas ou banco não migrado.");
-    }
-  }
-
-  async function handleLogout() {
-    await api.logout().catch(() => {});
-    setUser(null);
-    setPortal(null);
-    setClients([]);
-    setSelectedClientId(null);
-    setDataError("");
-    routerNavigate("/");
-  }
-
-  async function runPortalAction(key: string, action: () => Promise<ClientPortal>) {
-    setActionBusy(key);
-    setDataError("");
-    try {
-      const data = await action();
-      setPortal(data);
-      setDataError("");
-      await refreshClients(data.client.id);
-      return data;
-    } catch (error) {
-      if (error instanceof Error) {
-        handleAppError(error, "Não foi possível concluir a ação.");
-      } else {
-        setDataError("Não foi possível concluir a ação.");
+    login.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          setPassword("");
+          routerNavigate("/");
+        },
+        onError: (error) => {
+          setLoginError(error instanceof Error ? error.message : "Credenciais inválidas ou banco não migrado.");
+        }
       }
-      return null;
-    } finally {
-      setActionBusy(null);
-    }
+    );
   }
 
-  async function handleCreateClient(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const payload = normalizeClientPayload(newClientDraft);
-    const data = await runPortalAction("client:create", () => api.createClient(payload));
-    if (data) {
-      setNewClientDraft(emptyClientDraft);
-      routerNavigate("/clientes");
-    }
+  function handleLogout() {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        setSelectedClientId(null);
+        routerNavigate("/");
+      }
+    });
   }
 
-  async function handleUpdateClient(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedClientId) return;
-    await runPortalAction("client:update", () => api.updateClient(selectedClientId, normalizeClientPayload(clientDraft)));
-  }
-
-  async function handleCreateArtifact(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedClientId) return;
-    const payload = normalizeArtifactPayload(artifactDraft);
-    const data = await runPortalAction("artifact:create", () => api.createArtifact(selectedClientId, payload));
-    if (data) setArtifactDraft(emptyArtifactDraft);
-  }
-
-  async function handleUpdateArtifact(event: FormEvent<HTMLFormElement>) {
+  function handleUpdateArtifact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClientId || !selectedArtifact) return;
     const payload = normalizeArtifactPayload(artifactEditDraft);
-    await runPortalAction("artifact:update", () => api.updateArtifact(selectedClientId, selectedArtifact.id, payload));
-    setSelectedArtifact(null);
+    updateArtifact.mutate({ clientId: selectedClientId, artifactId: selectedArtifact.id, payload }, {
+      onSuccess: () => setSelectedArtifact(null)
+    });
   }
 
-  async function handleDeleteArtifact() {
+  function handleDeleteArtifact() {
     if (!selectedClientId || !selectedArtifact) return;
-    await runPortalAction("artifact:delete", () => api.deleteArtifact(selectedClientId, selectedArtifact.id));
-    setSelectedArtifact(null);
-  }
-
-  async function handleCreateDeliverable(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedClientId) return;
-    const payload = normalizeDeliverablePayload(deliverableDraft);
-    const data = await runPortalAction("deliverable:create", () => api.createDeliverable(selectedClientId, payload));
-    if (data) setDeliverableDraft(emptyDeliverableDraft);
-  }
-
-  async function handleDeliverableStatus(deliverableId: string, status: DeliverableStatus) {
-    if (!selectedClientId) return;
-    await runPortalAction(`deliverable:${deliverableId}:${status}`, () =>
-      api.updateDeliverable(selectedClientId, deliverableId, { status }),
-    );
-  }
-
-  async function handleDeleteDeliverable(deliverableId: string) {
-    if (!selectedClientId) return;
-    await runPortalAction(`deliverable:${deliverableId}:delete`, () => api.deleteDeliverable(selectedClientId, deliverableId));
-  }
-
-  async function handleRequestApproval(deliverableId: string) {
-    if (!selectedClientId) return;
-    await runPortalAction(`approval:${deliverableId}:request`, () =>
-      api.createApproval(selectedClientId, deliverableId, "Aguardando validação do cliente."),
-    );
-  }
-
-  async function handleApprovalDecision(approvalId: string, status: "approved" | "rejected") {
-    if (!selectedClientId) return;
-    await runPortalAction(`approval:${approvalId}:${status}`, () => api.decideApproval(selectedClientId, approvalId, status));
-  }
-
-  async function handleClickUpSync() {
-    if (!selectedClientId) return;
-    await runPortalAction("clickup:sync", () => api.syncClickUp(selectedClientId));
+    deleteArtifact.mutate({ clientId: selectedClientId, artifactId: selectedArtifact.id }, {
+      onSuccess: () => setSelectedArtifact(null)
+    });
   }
 
   if (!user) {
@@ -366,7 +175,7 @@ export function App() {
               <Search size={18} />
               <span>Clientes, entregas, artefatos e integrações</span>
             </div>
-            <button className="ghost-button dark" type="button" onClick={handleLogout}>
+            <button className="ghost-button dark" type="button" onClick={handleLogout} disabled={logout.isPending}>
               <LogOut size={16} />
               Sair
             </button>
@@ -376,102 +185,41 @@ export function App() {
         {dataError && <div className="notice error">{dataError}</div>}
 
         <Routes>
-          <Route path="/" element={
-            <CockpitView
-              user={user}
-              selectedClient={selectedClient}
-              metrics={metrics}
-              pendingApprovals={pendingApprovals}
-              activeDeliverables={activeDeliverables}
-              latestSync={latestSync?.status}
-              onGoClients={() => routerNavigate("/clientes")}
-              onGoContent={() => routerNavigate("/conteudo")}
-            />
-          } />
+          <Route path="/" element={<CockpitView />} />
 
           <Route path="/clientes" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <ClientsView
-                clients={clients}
-                selectedClientId={selectedClientId}
-                selectedClient={selectedClient}
-                portal={portal}
-                loadingPortal={loadingPortal}
-                latestSync={latestSync?.status}
-                isEgAdmin={isEgAdmin}
-                actionBusy={actionBusy}
-                onSelectClient={setSelectedClientId}
-                onClickUpSync={handleClickUpSync}
-                onDeliverableStatus={handleDeliverableStatus}
-                onDeleteDeliverable={handleDeleteDeliverable}
-                onRequestApproval={handleRequestApproval}
-                onApprovalDecision={handleApprovalDecision}
-                onSelectArtifact={setSelectedArtifact}
-                newClientDraft={newClientDraft}
-                setNewClientDraft={setNewClientDraft}
-                clientDraft={clientDraft}
-                setClientDraft={setClientDraft}
-                artifactDraft={artifactDraft}
-                setArtifactDraft={setArtifactDraft}
-                deliverableDraft={deliverableDraft}
-                setDeliverableDraft={setDeliverableDraft}
-                handleCreateClient={handleCreateClient}
-                handleUpdateClient={handleUpdateClient}
-                handleCreateArtifact={handleCreateArtifact}
-                handleCreateDeliverable={handleCreateDeliverable}
-              />
+              <ClientsView />
             </Suspense>
           } />
 
           <Route path="/conteudo" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <ContentView
-                selectedClient={selectedClient}
-                portal={portal}
-                isEgAdmin={isEgAdmin}
-                onSelectArtifact={setSelectedArtifact}
-              />
+              <ContentView />
             </Suspense>
           } />
 
           <Route path="/comercial" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <OperationsView
-                selectedClientId={selectedClientId}
-                selectedClient={selectedClient}
-                isEgAdmin={isEgAdmin}
-              />
+              <OperationsView />
             </Suspense>
           } />
 
           <Route path="/integracoes" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <IntegrationsView
-                selectedClient={selectedClient}
-                latestSync={latestSync}
-                isEgAdmin={isEgAdmin}
-                actionBusy={actionBusy}
-                onClickUpSync={handleClickUpSync}
-                apiOnline={apiOnline}
-                userRole={activeOrg?.role}
-              />
+              <IntegrationsView />
             </Suspense>
           } />
 
           <Route path="/engenharia" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <EngineeringView
-                portal={portal}
-                apiOnline={apiOnline}
-                user={user}
-                clients={clients}
-              />
+              <EngineeringView />
             </Suspense>
           } />
 
           <Route path="/analytics" element={
             <Suspense fallback={<ViewLoadingFallback />}>
-              <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />
+              <AnalyticsView />
             </Suspense>
           } />
 
@@ -483,7 +231,7 @@ export function App() {
         <ArtifactModal
           artifact={selectedArtifact}
           isEgAdmin={isEgAdmin}
-          actionBusy={actionBusy}
+          actionBusy={updateArtifact.isPending || deleteArtifact.isPending ? "artifact" : null}
           draft={artifactEditDraft}
           setDraft={setArtifactEditDraft}
           onSubmit={handleUpdateArtifact}

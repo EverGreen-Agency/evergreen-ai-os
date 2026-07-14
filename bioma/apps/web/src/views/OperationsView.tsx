@@ -1,9 +1,7 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { Building2, CircleDollarSign, Plus, Trash2, WalletCards } from "lucide-react";
 import { EmptyState, SectionHeader } from "../components/shared";
 import {
-  api,
-  type ClientSummary,
   type FinancialRecordKind,
   type FinancialRecordPayload,
   type FinancialRecordStatus,
@@ -12,6 +10,19 @@ import {
   type LeadStage,
   type LeadSummary,
 } from "../lib/api";
+import { useUiStore } from "../store/uiStore";
+import {
+  useCurrentUser,
+  useClients,
+  useLeads,
+  useCreateLead,
+  useUpdateLead,
+  useDeleteLead,
+  useFinance,
+  useCreateFinancialRecord,
+  useUpdateFinancialRecord,
+  useDeleteFinancialRecord
+} from "../hooks/useBiomaApi";
 
 const leadStages: Array<{ id: LeadStage; label: string }> = [
   { id: "new", label: "Novo" },
@@ -59,21 +70,33 @@ function toNullableNumber(value: string) {
   return normalized ? Number(normalized) : null;
 }
 
-export function OperationsView({
-  selectedClientId,
-  selectedClient,
-  isEgAdmin,
-}: {
-  selectedClientId: string | null;
-  selectedClient: ClientSummary | null;
-  isEgAdmin: boolean;
-}) {
-  const [leads, setLeads] = useState<LeadSummary[]>([]);
-  const [finance, setFinance] = useState<FinancialRecordSummary[]>([]);
+export function OperationsView() {
+  const { selectedClientId } = useUiStore();
+  const { data: user } = useCurrentUser();
+  const { data: clientsData } = useClients();
+
+  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+
+  const { data: leadsData, error: leadsError } = useLeads(selectedClientId);
+  const { data: financeData, error: financeError } = useFinance(selectedClientId);
+
+  const createLead = useCreateLead();
+  const updateLead = useUpdateLead();
+  const deleteLead = useDeleteLead();
+
+  const createFinance = useCreateFinancialRecord();
+  const updateFinance = useUpdateFinancialRecord();
+  const deleteFinance = useDeleteFinancialRecord();
+
   const [leadDraft, setLeadDraft] = useState<LeadPayload>(emptyLead);
   const [financialDraft, setFinancialDraft] = useState<FinancialRecordPayload>(emptyFinancial);
-  const [busy, setBusy] = useState("");
-  const [error, setError] = useState("");
+
+  const leads = leadsData ?? [];
+  const finance = financeData ?? [];
+
+  const error = leadsError ? leadsError.message : financeError ? financeError.message : "";
 
   const forecast = useMemo(
     () => leads.reduce((total, lead) => total + (lead.stage !== "lost" ? lead.expected_value ?? 0 : 0), 0),
@@ -84,71 +107,40 @@ export function OperationsView({
     [finance],
   );
 
-  useEffect(() => {
-    if (!selectedClientId) {
-      setLeads([]);
-      setFinance([]);
-      return;
-    }
-
-    setError("");
-    Promise.all([api.leads(selectedClientId), api.finance(selectedClientId)])
-      .then(([nextLeads, nextFinance]) => {
-        setLeads(nextLeads);
-        setFinance(nextFinance);
-      })
-      .catch((err: Error) => setError(err.message || "Não foi possível carregar comercial/financeiro."));
-  }, [selectedClientId]);
-
-  async function runAction<T>(key: string, action: () => Promise<T>, onSuccess: (data: T) => void) {
-    setBusy(key);
-    setError("");
-    try {
-      const data = await action();
-      onSuccess(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ação não concluída.");
-    } finally {
-      setBusy("");
-    }
-  }
-
   function handleCreateLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClientId || !leadDraft.name.trim()) return;
-    runAction("lead:create", () => api.createLead(selectedClientId, leadDraft), (data) => {
-      setLeads(data);
-      setLeadDraft(emptyLead);
+    createLead.mutate({ clientId: selectedClientId, payload: leadDraft }, {
+      onSuccess: () => setLeadDraft(emptyLead)
     });
   }
 
   function handleStageChange(lead: LeadSummary, stage: LeadStage) {
     if (!selectedClientId) return;
-    runAction(`lead:${lead.id}:stage`, () => api.updateLead(selectedClientId, lead.id, { stage }), setLeads);
+    updateLead.mutate({ clientId: selectedClientId, leadId: lead.id, payload: { stage } });
   }
 
   function handleDeleteLead(lead: LeadSummary) {
     if (!selectedClientId) return;
-    runAction(`lead:${lead.id}:delete`, () => api.deleteLead(selectedClientId, lead.id), setLeads);
+    deleteLead.mutate({ clientId: selectedClientId, leadId: lead.id });
   }
 
   function handleCreateFinancial(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClientId || !financialDraft.title.trim()) return;
-    runAction("finance:create", () => api.createFinancialRecord(selectedClientId, financialDraft), (data) => {
-      setFinance(data);
-      setFinancialDraft(emptyFinancial);
+    createFinance.mutate({ clientId: selectedClientId, payload: financialDraft }, {
+      onSuccess: () => setFinancialDraft(emptyFinancial)
     });
   }
 
   function handleFinancialStatus(record: FinancialRecordSummary, status: FinancialRecordStatus) {
     if (!selectedClientId) return;
-    runAction(`finance:${record.id}:status`, () => api.updateFinancialRecord(selectedClientId, record.id, { status }), setFinance);
+    updateFinance.mutate({ clientId: selectedClientId, recordId: record.id, payload: { status } });
   }
 
   function handleDeleteFinancial(record: FinancialRecordSummary) {
     if (!selectedClientId) return;
-    runAction(`finance:${record.id}:delete`, () => api.deleteFinancialRecord(selectedClientId, record.id), setFinance);
+    deleteFinance.mutate({ clientId: selectedClientId, recordId: record.id });
   }
 
   if (!selectedClient || !selectedClientId) {
@@ -190,7 +182,7 @@ export function OperationsView({
                           className="status-select"
                           value={lead.stage}
                           onChange={(event) => handleStageChange(lead, event.target.value as LeadStage)}
-                          disabled={Boolean(busy)}
+                          disabled={updateLead.isPending}
                         >
                           {leadStages.map((option) => (
                             <option key={option.id} value={option.id}>
@@ -227,7 +219,7 @@ export function OperationsView({
                       className="status-select"
                       value={record.status}
                       onChange={(event) => handleFinancialStatus(record, event.target.value as FinancialRecordStatus)}
-                      disabled={Boolean(busy)}
+                      disabled={updateFinance.isPending}
                     >
                       {financialStatuses.map((option) => (
                         <option key={option.id} value={option.id}>
@@ -285,7 +277,7 @@ export function OperationsView({
               Observação
               <textarea value={leadDraft.notes ?? ""} onChange={(event) => setLeadDraft({ ...leadDraft, notes: event.target.value })} />
             </label>
-            <button className="primary-button" type="submit" disabled={busy === "lead:create"}>
+            <button className="primary-button" type="submit" disabled={createLead.isPending}>
               <Plus size={16} />
               Criar lead
             </button>
@@ -336,7 +328,7 @@ export function OperationsView({
                 onChange={(event) => setFinancialDraft({ ...financialDraft, notes: event.target.value })}
               />
             </label>
-            <button className="primary-button" type="submit" disabled={busy === "finance:create"}>
+            <button className="primary-button" type="submit" disabled={createFinance.isPending}>
               <Plus size={16} />
               Criar registro
             </button>

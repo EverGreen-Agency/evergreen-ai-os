@@ -22,6 +22,8 @@ import {
   type PerformanceOverview,
   type PerformanceProvider,
 } from "../lib/api";
+import { useUiStore } from "../store/uiStore";
+import { useClients } from "../hooks/useBiomaApi";
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(Math.round(value));
@@ -266,13 +268,11 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   );
 }
 
-export function AnalyticsView({
-  selectedClientId,
-  selectedClient,
-}: {
-  selectedClientId: string | null;
-  selectedClient: ClientSummary | null;
-}) {
+export function AnalyticsView() {
+  const { selectedClientId } = useUiStore();
+  const { data: clientsData } = useClients();
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
   const [loading, setLoading] = useState(false);

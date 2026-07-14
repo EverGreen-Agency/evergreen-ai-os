@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ClientPayload, ArtifactPayload, DeliverablePayload } from "../lib/api";
+import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload } from "../lib/api";
 
 export function useApiHealth() {
   return useQuery({
@@ -154,6 +154,122 @@ export function useSyncClickUp() {
     mutationFn: (clientId: string) => api.syncClickUp(clientId),
     onSuccess: (data) => {
       queryClient.setQueryData(["portal", data.client.id], data);
+    },
+  });
+}
+
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => api.login(email, password),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["user"], data.user);
+    },
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.logout(),
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}
+
+// --- LEADS ---
+
+export function useLeads(clientId: string | null) {
+  return useQuery({
+    queryKey: ["leads", clientId],
+    queryFn: () => {
+      if (!clientId) throw new Error("No client ID provided");
+      return api.leads(clientId);
+    },
+    enabled: Boolean(clientId),
+  });
+}
+
+export function useCreateLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, payload }: { clientId: string; payload: LeadPayload }) => api.createLead(clientId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["leads", variables.clientId], data);
+    },
+  });
+}
+
+export function useUpdateLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, leadId, payload }: { clientId: string; leadId: string; payload: Partial<LeadPayload> }) =>
+      api.updateLead(clientId, leadId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["leads", variables.clientId], data);
+    },
+  });
+}
+
+export function useDeleteLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, leadId }: { clientId: string; leadId: string }) => api.deleteLead(clientId, leadId),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["leads", variables.clientId], data);
+    },
+  });
+}
+
+// --- FINANCE ---
+
+export function useFinance(clientId: string | null) {
+  return useQuery({
+    queryKey: ["finance", clientId],
+    queryFn: () => {
+      if (!clientId) throw new Error("No client ID provided");
+      return api.finance(clientId);
+    },
+    enabled: Boolean(clientId),
+  });
+}
+
+export function useCreateFinancialRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, payload }: { clientId: string; payload: FinancialRecordPayload }) =>
+      api.createFinancialRecord(clientId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["finance", variables.clientId], data);
+    },
+  });
+}
+
+export function useUpdateFinancialRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      recordId,
+      payload,
+    }: {
+      clientId: string;
+      recordId: string;
+      payload: Partial<FinancialRecordPayload>;
+    }) => api.updateFinancialRecord(clientId, recordId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["finance", variables.clientId], data);
+    },
+  });
+}
+
+export function useDeleteFinancialRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, recordId }: { clientId: string; recordId: string }) => api.deleteFinancialRecord(clientId, recordId),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["finance", variables.clientId], data);
     },
   });
 }
