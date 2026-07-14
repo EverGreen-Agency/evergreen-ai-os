@@ -30,7 +30,10 @@ def main() -> None:
 
     password = required_env("BOOTSTRAP_ADMIN_PASSWORD")
     if len(password) < 16:
-        raise RuntimeError("BOOTSTRAP_ADMIN_PASSWORD precisa ter ao menos 16 caracteres.")
+        print(
+            "AVISO: BOOTSTRAP_ADMIN_PASSWORD tem menos de 16 caracteres. "
+            "O bootstrap continuará, mas use uma senha forte em produção."
+        )
 
     display_name = os.getenv("BOOTSTRAP_ADMIN_DISPLAY_NAME", "Admin EG").strip() or "Admin EG"
     rotate_password = os.getenv("BOOTSTRAP_ROTATE_PASSWORD", "").lower() in {"1", "true", "yes"}
