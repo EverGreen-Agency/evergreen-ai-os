@@ -1,5 +1,6 @@
 import { FormEvent, Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { LogOut, Search } from "lucide-react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   api,
   type ApiHealth,
@@ -28,8 +29,8 @@ import {
 } from "./lib/format";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
-import { AdminDock } from "./components/AdminDock";
 import { ArtifactModal } from "./components/ArtifactModal";
+import { APP_VERSION } from "./lib/version";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
 const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
@@ -47,7 +48,8 @@ function ViewLoadingFallback() {
 }
 
 export function App() {
-  const [view, setView] = useState<ViewId>(currentViewFromHash());
+  const routerNavigate = useNavigate();
+  const location = useLocation();
   const [health, setHealth] = useState<ApiHealth | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
@@ -89,12 +91,6 @@ export function App() {
   );
 
   useEffect(() => {
-    const handleHash = () => setView(currentViewFromHash());
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
-  }, []);
-
-  useEffect(() => {
     api
       .health()
       .then(setHealth)
@@ -107,9 +103,8 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!user && window.location.hash) {
-      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-      setView("cockpit");
+    if (!user && location.pathname !== "/") {
+      routerNavigate("/");
     }
   }, [user]);
 
@@ -171,11 +166,6 @@ export function App() {
     });
   }, [selectedArtifact]);
 
-  function navigate(nextView: ViewId) {
-    setView(nextView);
-    window.history.replaceState(null, "", `#${nextView}`);
-  }
-
   async function refreshClients(preferredId?: string) {
     if (!user) return;
     const data = await api.clients();
@@ -192,8 +182,7 @@ export function App() {
     setSelectedClientId(null);
     setDataError("");
     setLoginError(message);
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-    setView("cockpit");
+    routerNavigate("/");
   }
 
   function handleAppError(error: Error, fallback: string) {
@@ -212,7 +201,7 @@ export function App() {
       setUser(data.user);
       setPassword("");
       setDataError("");
-      navigate("cockpit");
+      routerNavigate("/");
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Credenciais inválidas ou banco não migrado.");
     }
@@ -225,7 +214,7 @@ export function App() {
     setClients([]);
     setSelectedClientId(null);
     setDataError("");
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    routerNavigate("/");
   }
 
   async function runPortalAction(key: string, action: () => Promise<ClientPortal>) {
@@ -255,7 +244,7 @@ export function App() {
     const data = await runPortalAction("client:create", () => api.createClient(payload));
     if (data) {
       setNewClientDraft(emptyClientDraft);
-      navigate("clientes");
+      routerNavigate("/clientes");
     }
   }
 
@@ -343,33 +332,27 @@ export function App() {
       <aside className="sidebar" aria-label="Navegação principal">
         <div className="brand">
           <div className="brand-mark">
-            <img src="/assets/brand/eg-symbol.svg" alt="Símbolo EverGreen" width={52} height={52} />
+            <img src="/assets/brand/eg-symbol.png" alt="Símbolo EverGreen" width={52} height={52} />
           </div>
           <div>
             <strong>Bioma</strong>
-            <span>MVP v0</span>
+            <span>v{APP_VERSION}</span>
           </div>
         </div>
 
         <nav className="nav-list">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const path = item.id === "cockpit" ? "/" : `/${item.id}`;
+            const isActive = location.pathname === path || (item.id !== "cockpit" && location.pathname.startsWith(path));
             return (
-              <button className={view === item.id ? "active" : ""} key={item.id} type="button" onClick={() => navigate(item.id)}>
+              <button className={isActive ? "active" : ""} key={item.id} type="button" onClick={() => routerNavigate(path)}>
                 <Icon size={18} />
                 {item.label}
               </button>
             );
           })}
         </nav>
-
-        <div className="sidebar-footer">
-          <span className={apiOnline ? "dot online" : "dot"} />
-          <div>
-            <strong>{apiOnline ? "API online" : "API offline"}</strong>
-            <span>{activeOrg?.role === "eg_admin" ? "EG admin" : "Cliente"}</span>
-          </div>
-        </div>
       </aside>
 
       <section className="workspace">
@@ -392,110 +375,108 @@ export function App() {
 
         {dataError && <div className="notice error">{dataError}</div>}
 
-        {view === "cockpit" && (
-          <CockpitView
-            user={user}
-            selectedClient={selectedClient}
-            metrics={metrics}
-            pendingApprovals={pendingApprovals}
-            activeDeliverables={activeDeliverables}
-            latestSync={latestSync?.status}
-            onGoClients={() => navigate("clientes")}
-            onGoContent={() => navigate("conteudo")}
-          />
-        )}
-
-        {view === "clientes" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <ClientsView
-              clients={clients}
-              selectedClientId={selectedClientId}
-              selectedClient={selectedClient}
-              portal={portal}
-              loadingPortal={loadingPortal}
-              latestSync={latestSync?.status}
-              isEgAdmin={isEgAdmin}
-              actionBusy={actionBusy}
-              onSelectClient={setSelectedClientId}
-              onClickUpSync={handleClickUpSync}
-              onDeliverableStatus={handleDeliverableStatus}
-              onDeleteDeliverable={handleDeleteDeliverable}
-              onRequestApproval={handleRequestApproval}
-              onApprovalDecision={handleApprovalDecision}
-              onSelectArtifact={setSelectedArtifact}
-            />
-          </Suspense>
-        )}
-
-        {view === "conteudo" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <ContentView
-              selectedClient={selectedClient}
-              portal={portal}
-              isEgAdmin={isEgAdmin}
-              onSelectArtifact={setSelectedArtifact}
-            />
-          </Suspense>
-        )}
-
-        {view === "comercial" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <OperationsView
-              selectedClientId={selectedClientId}
-              selectedClient={selectedClient}
-              isEgAdmin={isEgAdmin}
-            />
-          </Suspense>
-        )}
-
-        {view === "integracoes" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <IntegrationsView
-              selectedClient={selectedClient}
-              latestSync={latestSync}
-              isEgAdmin={isEgAdmin}
-              actionBusy={actionBusy}
-              onClickUpSync={handleClickUpSync}
-            />
-          </Suspense>
-        )}
-
-        {view === "engenharia" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <EngineeringView
-              portal={portal}
-              apiOnline={apiOnline}
+        <Routes>
+          <Route path="/" element={
+            <CockpitView
               user={user}
-              clients={clients}
+              selectedClient={selectedClient}
+              metrics={metrics}
+              pendingApprovals={pendingApprovals}
+              activeDeliverables={activeDeliverables}
+              latestSync={latestSync?.status}
+              onGoClients={() => routerNavigate("/clientes")}
+              onGoContent={() => routerNavigate("/conteudo")}
             />
-          </Suspense>
-        )}
+          } />
 
-        {view === "analytics" && (
-          <Suspense fallback={<ViewLoadingFallback />}>
-            <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />
-          </Suspense>
-        )}
+          <Route path="/clientes" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ClientsView
+                clients={clients}
+                selectedClientId={selectedClientId}
+                selectedClient={selectedClient}
+                portal={portal}
+                loadingPortal={loadingPortal}
+                latestSync={latestSync?.status}
+                isEgAdmin={isEgAdmin}
+                actionBusy={actionBusy}
+                onSelectClient={setSelectedClientId}
+                onClickUpSync={handleClickUpSync}
+                onDeliverableStatus={handleDeliverableStatus}
+                onDeleteDeliverable={handleDeleteDeliverable}
+                onRequestApproval={handleRequestApproval}
+                onApprovalDecision={handleApprovalDecision}
+                onSelectArtifact={setSelectedArtifact}
+                newClientDraft={newClientDraft}
+                setNewClientDraft={setNewClientDraft}
+                clientDraft={clientDraft}
+                setClientDraft={setClientDraft}
+                artifactDraft={artifactDraft}
+                setArtifactDraft={setArtifactDraft}
+                deliverableDraft={deliverableDraft}
+                setDeliverableDraft={setDeliverableDraft}
+                handleCreateClient={handleCreateClient}
+                handleUpdateClient={handleUpdateClient}
+                handleCreateArtifact={handleCreateArtifact}
+                handleCreateDeliverable={handleCreateDeliverable}
+              />
+            </Suspense>
+          } />
 
-        {isEgAdmin && (
-          <AdminDock
-            selectedClient={selectedClient}
-            selectedClientId={selectedClientId}
-            actionBusy={actionBusy}
-            newClientDraft={newClientDraft}
-            setNewClientDraft={setNewClientDraft}
-            clientDraft={clientDraft}
-            setClientDraft={setClientDraft}
-            artifactDraft={artifactDraft}
-            setArtifactDraft={setArtifactDraft}
-            deliverableDraft={deliverableDraft}
-            setDeliverableDraft={setDeliverableDraft}
-            handleCreateClient={handleCreateClient}
-            handleUpdateClient={handleUpdateClient}
-            handleCreateArtifact={handleCreateArtifact}
-            handleCreateDeliverable={handleCreateDeliverable}
-          />
-        )}
+          <Route path="/conteudo" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ContentView
+                selectedClient={selectedClient}
+                portal={portal}
+                isEgAdmin={isEgAdmin}
+                onSelectArtifact={setSelectedArtifact}
+              />
+            </Suspense>
+          } />
+
+          <Route path="/comercial" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <OperationsView
+                selectedClientId={selectedClientId}
+                selectedClient={selectedClient}
+                isEgAdmin={isEgAdmin}
+              />
+            </Suspense>
+          } />
+
+          <Route path="/integracoes" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <IntegrationsView
+                selectedClient={selectedClient}
+                latestSync={latestSync}
+                isEgAdmin={isEgAdmin}
+                actionBusy={actionBusy}
+                onClickUpSync={handleClickUpSync}
+                apiOnline={apiOnline}
+                userRole={activeOrg?.role}
+              />
+            </Suspense>
+          } />
+
+          <Route path="/engenharia" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <EngineeringView
+                portal={portal}
+                apiOnline={apiOnline}
+                user={user}
+                clients={clients}
+              />
+            </Suspense>
+          } />
+
+          <Route path="/analytics" element={
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <AnalyticsView selectedClientId={selectedClientId} selectedClient={selectedClient} />
+            </Suspense>
+          } />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </section>
 
       {selectedArtifact && (
