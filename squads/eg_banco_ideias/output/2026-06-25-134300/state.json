@@ -1,0 +1,18 @@
+{
+  "squad": "eg_banco_ideias",
+  "status": "completed",
+  "step": { "current": 2, "total": 2, "label": "step_registro" },
+  "agents": [
+    {
+      "id": "curador",
+      "name": "Curador",
+      "icon": "💡",
+      "status": "done",
+      "desk": { "col": 1, "row": 1 }
+    }
+  ],
+  "handoff": null,
+  "startedAt": "2026-06-25T13:43:00Z",
+  "updatedAt": "2026-06-25T13:48:00Z",
+  "completedAt": "2026-06-25T13:48:00Z"
+}

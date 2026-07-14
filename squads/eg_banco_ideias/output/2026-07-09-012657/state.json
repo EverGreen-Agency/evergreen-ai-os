@@ -1,0 +1,30 @@
+﻿{
+    "squad":  "Banco de Ideias EG",
+    "status":  "completed",
+    "step":  {
+                 "current":  2,
+                 "total":  2,
+                 "label":  "step_registro"
+             },
+    "agents":  [
+                   {
+                       "id":  "curador",
+                       "name":  "Curador",
+                       "icon":  "💡",
+                       "status":  "done",
+                       "desk":  {
+                                    "col":  1,
+                                    "row":  1
+                                }
+                   }
+               ],
+    "handoff":  {
+                    "from":  "curador",
+                    "to":  "curador",
+                    "message":  "Triagem validou o recorte Bioma MVP v0 sem duplicatas ou links quebrados.",
+                    "completedAt":  "2026-07-09T04:28:16.7532543Z"
+                },
+    "startedAt":  "2026-07-09T04:27:23.3768024Z",
+    "updatedAt":  "2026-07-09T04:32:02.5966031Z",
+    "completedAt":  "2026-07-09T04:32:02.5966031Z"
+}

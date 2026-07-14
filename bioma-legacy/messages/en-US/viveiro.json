@@ -1,0 +1,147 @@
+{
+  "viveiro": {
+    "title": "Viveiro",
+    "subtitle": "EG's operational surface: ideas, tech radar, engineering, architecture and the legacy dashboard inventory.",
+    "nav": {
+      "overview": "Overview",
+      "ideas": "Ideas",
+      "radar": "Radar",
+      "engineering": "Engineering",
+      "architecture": "Architecture",
+      "legacy": "Legacy",
+      "status": "Status",
+      "governance": "Governance"
+    },
+    "unavailable": {
+      "title": "Internal memory unavailable in this environment",
+      "body": "The _opensquad/_memory directory was not found (deployed without the internal repo?). Set INTERNAL_MEMORY_PATH or run Bioma inside the evergreen-ai-os monorepo."
+    },
+    "overview": {
+      "open": "Open",
+      "ideasTitle": "Idea Bank",
+      "ideasCount": "{count, plural, =1 {1 active idea} other {# active ideas}}",
+      "radarTitle": "Tech Radar",
+      "radarCount": "{count, plural, =1 {1 technology} other {# technologies}}",
+      "engineeringTitle": "Engineering",
+      "modulesCount": "{count, plural, =1 {1 module} other {# modules}}",
+      "withSpec": "With spec",
+      "withAdrs": "With ADRs",
+      "withTasks": "With tasks",
+      "legacyTitle": "Legacy /dashboard",
+      "legacyCount": "{count, plural, =1 {1 inventoried item} other {# inventoried items}}",
+      "architectureLink": "View architecture decisions (D1–D7) →",
+      "sourceMissing": "Source unavailable in this environment."
+    },
+    "ideas": {
+      "filters": {
+        "category": "Category",
+        "stage": "Stage",
+        "partOf": "Part of",
+        "all": "All",
+        "apply": "Filter",
+        "clear": "Clear filters"
+      },
+      "count": "{count, plural, =1 {1 idea} other {# ideas}}",
+      "archivedHidden": "({count, plural, =1 {1 archived hidden} other {# archived hidden}})",
+      "columns": {
+        "title": "Idea",
+        "category": "Category",
+        "stage": "Stage",
+        "horizon": "Horizon",
+        "partOf": "Part of",
+        "readiness": "Readiness"
+      },
+      "stages": {
+        "capture": "Capture",
+        "evaluation": "Evaluation",
+        "processing": "Processing",
+        "project": "Project",
+        "company": "Company"
+      },
+      "empty": "No ideas match these filters."
+    },
+    "radar": {
+      "count": "{count, plural, =1 {1 technology on the radar} other {# technologies on the radar}}",
+      "updatedAt": "updated {date}",
+      "columns": {
+        "tech": "Technology",
+        "ring": "Ring",
+        "note": "Note",
+        "adr": "ADR"
+      },
+      "rings": {
+        "adopt": "Adopt",
+        "trial": "Trial",
+        "assess": "Assess",
+        "hold": "Hold"
+      },
+      "quadrants": {
+        "languages": "Languages",
+        "frameworks": "Frameworks",
+        "tools": "Tools",
+        "platforms-infra": "Platforms & Infra"
+      },
+      "filters": {
+        "all": "All"
+      }
+    },
+    "engineering": {
+      "count": "{count, plural, =1 {1 module in _memory/engenharia} other {# modules in _memory/engenharia}}",
+      "columns": {
+        "module": "Module",
+        "spec": "Spec",
+        "status": "Status",
+        "date": "Date",
+        "adrs": "ADRs",
+        "tasks": "Tasks"
+      },
+      "specUntitled": "(untitled spec)",
+      "noSpec": "no spec.md",
+      "tasksYes": "yes",
+      "tasksNo": "no",
+      "empty": "No modules found.",
+      "sourceHint": "Source: _opensquad/_memory/engenharia/[id]/ (spec.md, adr/*.md, tasks.md). Read live from the repo — no copies.",
+      "phasesHint": "Modules grouped by roadmap phase (maturity matrix). Click to open spec, ADRs and tasks.",
+      "noPhase": "No phase in matrix",
+      "chips": {
+        "spec": "spec",
+        "noSpec": "no spec",
+        "adrs": "{count} ADR(s)",
+        "tasks": "tasks"
+      },
+      "detail": {
+        "nextGate": "Next gate",
+        "dependsOn": "depends on",
+        "enables": "enables",
+        "contains": "contains",
+        "noSpec": "This module has no spec.md yet.",
+        "back": "Back to Engineering"
+      }
+    },
+    "architecture": {
+      "principlesTitle": "House engineering principles",
+      "decisionsTitle": "Architecture decisions (D1–D7)",
+      "decisionsEmpty": "No decisions found in arquitetura.md.",
+      "toolsTitle": "External tools",
+      "toolsHint": "Inventory of what EG uses/subscribes to today and the platform decision for each (keep · absorb · resell · assess).",
+      "toolsEmpty": "ferramentas-externas.md not found."
+    },
+    "legacy": {
+      "intro": "Inventory of the old Vite dashboard/ (this area's historical embryo). Each area is classified with a final decision; when already ported, the equivalent Bioma URL is shown. The old dashboard does not need to be running for anything here.",
+      "todoEditing": "TODO: editing the Idea Bank and the Stack from Viveiro (schema validation + summarized diff + audit trail — spec CA2) is deferred to the next cut. Until then this cut is read-only and writes stay in the current flow (Curador/git).",
+      "columns": {
+        "area": "Area",
+        "legacyPath": "Where it lives in the legacy",
+        "decision": "Decision",
+        "biomaUrl": "Bioma equivalent",
+        "note": "Note"
+      },
+      "decisions": {
+        "portar": "Port",
+        "descartar": "Discard",
+        "manter_temporario": "Keep temporarily",
+        "substituido": "Replaced"
+      }
+    }
+  }
+}

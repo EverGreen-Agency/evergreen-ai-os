@@ -1,0 +1,111 @@
+{
+  "common": {
+    "appName": "Bioma",
+    "loading": "Carregando…",
+    "save": "Salvar",
+    "create": "Criar",
+    "delete": "Excluir",
+    "cancel": "Cancelar",
+    "actions": "Ações",
+    "errors": {
+      "invalid_input": "Dados inválidos — confira os campos.",
+      "forbidden": "Você não tem permissão para esta ação.",
+      "invalid_credentials": "E-mail ou senha inválidos.",
+      "db_error": "Erro ao salvar. Tente novamente.",
+      "user_create_failed": "Não foi possível criar o usuário.",
+      "unknown": "Erro inesperado."
+    }
+  },
+  "login": {
+    "title": "Entrar no Bioma",
+    "subtitle": "A plataforma de operação da EG",
+    "email": "E-mail",
+    "password": "Senha",
+    "submit": "Entrar",
+    "submitting": "Entrando…"
+  },
+  "shell": {
+    "logout": "Sair",
+    "switchOrg": "Trocar organização",
+    "admin": "Administração",
+    "vault": "Cofre",
+    "home": "Início",
+    "suspended": {
+      "title": "Acesso suspenso",
+      "body": "O acesso desta organização está suspenso. Fale com o administrador da plataforma para regularizar."
+    },
+    "noOrg": {
+      "title": "Sem organização",
+      "body": "Seu usuário não está vinculado a nenhuma organização ativa."
+    },
+    "viveiro": "Viveiro"
+  },
+  "landing": {
+    "welcome": "Olá, {name}",
+    "orgContext": "Você está operando em",
+    "modulesTitle": "Módulos",
+    "modulesSoon": "Em breve",
+    "modules": {
+      "clientHub": "Hub do Cliente",
+      "clientHubDesc": "Portal de entregas, aprovações e acompanhamento.",
+      "bi": "BI & Dashboards",
+      "biDesc": "Métricas de Ads e funil em tempo real.",
+      "financeiro": "Financeiro",
+      "financeiroDesc": "Faturamento, cobranças e margem.",
+      "conhecimento": "Conhecimento",
+      "conhecimentoDesc": "Memória viva de contexto e provas."
+    },
+    "notes": {
+      "title": "Notas do tenant",
+      "empty": "Nenhuma nota ainda — crie a primeira.",
+      "newTitle": "Título",
+      "newBody": "Conteúdo (opcional)",
+      "add": "Adicionar nota"
+    }
+  },
+  "admin": {
+    "title": "Administração da plataforma",
+    "orgs": {
+      "title": "Organizações",
+      "name": "Nome",
+      "slug": "Slug",
+      "type": "Tipo",
+      "parent": "Org pai",
+      "status": "Status",
+      "active": "Ativa",
+      "suspended": "Suspensa",
+      "suspend": "Suspender",
+      "reactivate": "Reativar",
+      "createTitle": "Nova organização",
+      "types": {
+        "platform": "Plataforma",
+        "client": "Cliente",
+        "partner_agency": "Agência parceira",
+        "agency_client": "Cliente de agência",
+        "independent": "SaaS independente"
+      }
+    },
+    "members": {
+      "title": "Novo membro",
+      "email": "E-mail",
+      "displayName": "Nome",
+      "password": "Senha provisória",
+      "org": "Organização",
+      "role": "Papel",
+      "roles": {
+        "super_admin": "Super admin (EG)",
+        "tenant_admin": "Admin do tenant",
+        "operator": "Operador",
+        "client_viewer": "Cliente (visualização)"
+      }
+    },
+    "audit": {
+      "title": "Auditoria recente",
+      "when": "Quando",
+      "actor": "Ator",
+      "action": "Ação",
+      "resource": "Recurso",
+      "empty": "Nenhum evento registrado."
+    }
+  }
+}

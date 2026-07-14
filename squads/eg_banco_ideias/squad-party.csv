@@ -1,0 +1,2 @@
+agent_name,role,displayName,icon,file_path
+curador,Curador de Ideias,Curador,💡,./agents/curador.agent.md

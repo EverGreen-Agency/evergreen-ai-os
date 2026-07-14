@@ -1,0 +1,25 @@
+{
+  "squad": "eg_meta",
+  "status": "completed",
+  "step": {
+    "current": 2,
+    "total": 2,
+    "label": "step_aplicacao"
+  },
+  "agents": [
+    {
+      "id": "otimizador",
+      "name": "Otimizador",
+      "icon": "🔧",
+      "status": "done",
+      "desk": {
+        "col": 1,
+        "row": 1
+      }
+    }
+  ],
+  "handoff": null,
+  "startedAt": "2026-07-07T18:02:27.8059409-03:00",
+  "updatedAt": "2026-07-07T18:08:36.8394616-03:00",
+  "completedAt": "2026-07-07T18:08:36.8394616-03:00"
+}

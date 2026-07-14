@@ -1,0 +1,100 @@
+name: Bioma Web Deploy
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "bioma/apps/web/**"
+      - ".github/workflows/bioma-web-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Ambiente de deploy"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: bioma-web-deploy-${{ github.ref }}-${{ github.event.inputs.target || 'auto' }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_STAGING_ALIAS: ${{ secrets.VERCEL_STAGING_ALIAS }}
+      DEFAULT_VERCEL_STAGING_ALIAS: staging.bioma.evergreenmkt.com.br
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bioma/apps/web/package-lock.json
+
+      - name: Resolve target
+        id: target
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            REQUESTED_TARGET="${{ github.event.inputs.target }}"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            REQUESTED_TARGET="production"
+          else
+            REQUESTED_TARGET="staging"
+          fi
+
+          if [[ "$REQUESTED_TARGET" == "production" ]]; then
+            echo "vercel_environment=production" >> "$GITHUB_OUTPUT"
+            echo "deploy_flags=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "vercel_environment=preview" >> "$GITHUB_OUTPUT"
+            echo "deploy_flags=" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "target=$REQUESTED_TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Build gate (type-check + local build)
+        working-directory: bioma/apps/web
+        run: |
+          npm ci
+          npm run build
+
+      # O projeto Vercel tem Root Directory=bioma/apps/web. `vercel deploy`
+      # (sem --prebuilt) rodado a partir da raiz do monorepo faz o Vercel
+      # aplicar esse Root Directory uma única vez e buildar no servidor dele,
+      # usando as env vars configuradas no dashboard (Preview/Production).
+      # Não usar --prebuilt aqui: combinado com Root Directory != raiz, ele
+      # deixou deployments presos em "Building..." indefinidamente (BLOCKED,
+      # sem log de build) em vez de falhar ou concluir.
+      - name: Deploy
+        id: deploy
+        shell: bash
+        run: |
+          DEPLOYMENT_URL="$(npx vercel@latest deploy ${{ steps.target.outputs.deploy_flags }} --yes --token="$VERCEL_TOKEN" | tail -n 1)"
+          echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          echo "Deployment URL: $DEPLOYMENT_URL"
+
+      - name: Alias staging
+        if: ${{ steps.target.outputs.target == 'staging' }}
+        shell: bash
+        run: |
+          ALIAS_DOMAIN="${VERCEL_STAGING_ALIAS:-$DEFAULT_VERCEL_STAGING_ALIAS}"
+          npx vercel@latest alias set "${{ steps.deploy.outputs.url }}" "$ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### Bioma Web Deploy"
+            echo ""
+            echo "- Target: ${{ steps.target.outputs.target }}"
+            echo "- URL: ${{ steps.deploy.outputs.url }}"
+          } >> "$GITHUB_STEP_SUMMARY"

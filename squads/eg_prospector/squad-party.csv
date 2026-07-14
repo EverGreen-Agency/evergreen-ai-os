@@ -1,0 +1,4 @@
+agent_name,role,displayName,icon,file_path
+icp_definer,Definidor de ICP,ICP,🎯,./agents/icp_definer.agent.md
+hunter,Caçador de Leads,Hunter,🏹,./agents/hunter.agent.md
+qualifier,Qualificador de Leads,Qualifier,⚖️,./agents/qualifier.agent.md

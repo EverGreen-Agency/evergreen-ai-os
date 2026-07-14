@@ -6,17 +6,18 @@
   box-sizing: border-box;
 }
 
+/* EverGreen MKT brand palette — verde musgo / baunilha / menta. */
 :root {
-  --bg-primary: #101018;
-  --bg-secondary: #1a1a2e;
-  --bg-sidebar: #141422;
-  --border: #2a2a3e;
-  --text-primary: #e0e0e0;
-  --text-secondary: #8888a0;
-  --accent-cyan: #00d4ff;
-  --accent-green: #00e676;
-  --accent-amber: #ffab00;
-  --accent-red: #ff5252;
+  --bg-primary: #09231b;      /* verde musgo — fundo principal */
+  --bg-secondary: #0e2c22;    /* musgo levemente mais claro — cards */
+  --bg-sidebar: #071c15;      /* musgo mais escuro — sidebar/header */
+  --border: #1d4536;          /* borda musgo */
+  --text-primary: #fff4c7;    /* baunilha — texto principal */
+  --text-secondary: #8fb4a3;  /* sage/menta apagado — texto secundário */
+  --accent-cyan: #3ac97b;     /* menta — acento primário (nome mantido p/ compat) */
+  --accent-green: #3ac97b;    /* menta */
+  --accent-amber: #ffab00;    /* âmbar — atenção */
+  --accent-red: #ff6b5c;      /* coral — risco */
 }
 
 html,
@@ -25,7 +26,7 @@ body,
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
 }

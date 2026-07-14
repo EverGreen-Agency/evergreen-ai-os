@@ -1,0 +1,4 @@
+agent_name,role,displayName,icon,file_path
+especificador,Especificador (SDD),Especificador,📋,./agents/especificador.agent.md
+decisor_tecnico,Decisor Técnico (ADR),Decisor,⚖️,./agents/decisor_tecnico.agent.md
+scaffolder,Scaffolder,Scaffolder,🏗️,./agents/scaffolder.agent.md

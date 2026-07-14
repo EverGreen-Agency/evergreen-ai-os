@@ -1,0 +1,30 @@
+name: "EG Setup e Onboarding"
+icon: "🚀"
+version: "1.0"
+description: "Squad de pós-vendas focado em estruturar o ambiente de gestão (ClickUp), CRM (Kommo) e kit de boas-vindas do cliente de forma interativa e passo a passo."
+
+pipeline:
+  - id: step_contexto
+    agent: analista_onboarding
+    description: "Analisa transcrições e anotações para definir o escopo contratado e dados da empresa. Interage com o usuário para confirmar os dados antes de prosseguir."
+    interactive: true
+
+  - id: step_clickup
+    agent: arquiteto_clickup
+    description: "Com base no escopo, gera o checklist e o plano de arquitetura de pastas, listas e views do ClickUp. Apresenta o plano ao usuário para aprovação."
+    interactive: true
+
+  - id: step_kommo
+    agent: especialista_kommo
+    description: "Se CRM estiver no escopo, desenha o pipeline, tags e automações baseadas no Playbook do Kommo. Pede aprovação do usuário."
+    interactive: true
+
+  - id: step_kit
+    agent: especialista_kits
+    description: "Define a personalização da carta de boas-vindas e regras do Kit Físico da EverGreen."
+    interactive: true
+
+  - id: step_final
+    agent: gerente_cs
+    description: "Consolida os checklists aprovados em um documento técnico estruturado e gera a mensagem de boas-vindas contendo o Link Único."
+    interactive: false

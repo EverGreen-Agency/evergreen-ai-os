@@ -11,13 +11,63 @@ import type { SquadInfo, SquadState, WsMessage } from "../types/state";
 
 function resolveSquadsDir(): string {
   const candidates = [
-    path.resolve(process.cwd(), "../squads"),  // started from dashboard/
-    path.resolve(process.cwd(), "squads"),     // started from project root
+    path.resolve(process.cwd(), "../squads"),
+    path.resolve(process.cwd(), "squads"),
   ];
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
   }
-  return path.resolve(process.cwd(), "../squads"); // default (will be created on demand)
+  return path.resolve(process.cwd(), "../squads");
+}
+
+function resolveMemoryPath(relative: string): string {
+  const candidates = [
+    path.resolve(process.cwd(), "../_opensquad/_memory", relative),
+    path.resolve(process.cwd(), "_opensquad/_memory", relative),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
+}
+
+function resolveIdeasPath(): string {
+  return resolveMemoryPath("banco_ideias/ideas.json");
+}
+
+function resolveArchPath(): string {
+  return resolveMemoryPath("banco_arquitetura/arquitetura.md");
+}
+
+function resolveStackPath(): string {
+  return resolveMemoryPath("banco_stack/stack.json");
+}
+
+function resolveClientsDir(): string {
+  return resolveMemoryPath("clients");
+}
+
+// Reads every clients/<id>/config.json into an array for /api/clients.
+async function readClients(clientsDir: string): Promise<unknown[]> {
+  let entries;
+  try {
+    entries = await fsp.readdir(clientsDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const clients: unknown[] = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const cfgPath = path.join(clientsDir, entry.name, "config.json");
+    try {
+      const raw = await fsp.readFile(cfgPath, "utf-8");
+      const cfg = JSON.parse(raw);
+      clients.push({ ...cfg, _dir: entry.name, _is_template: entry.name === "_template" });
+    } catch {
+      // No config.json or invalid — skip
+    }
+  }
+  return clients;
 }
 
 async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
@@ -37,15 +87,29 @@ async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
     const yamlPath = path.join(squadsDir, entry.name, "squad.yaml");
     try {
       const raw = await fsp.readFile(yamlPath, "utf-8");
-      const parsed = parseYaml(raw);
-      const s = parsed?.squad;
-      if (s) {
+      const parsed = parseYaml(raw) as Record<string, unknown>;
+      // Support both canonical `squad:` wrapper and flat root-level format
+      const s = (parsed?.squad ?? parsed) as Record<string, unknown>;
+      if (s && typeof s === "object") {
+        // Derive agent list: explicit agents field OR infer from pipeline steps
+        let agents: string[] = [];
+        if (Array.isArray(s.agents)) {
+          agents = (s.agents as unknown[]).filter((a): a is string => typeof a === "string");
+        } else if (Array.isArray(s.pipeline)) {
+          const seen = new Set<string>();
+          for (const step of s.pipeline as Record<string, unknown>[]) {
+            if (typeof step?.agent === "string" && !seen.has(step.agent)) {
+              seen.add(step.agent);
+              agents.push(step.agent);
+            }
+          }
+        }
         squads.push({
           code: typeof s.code === "string" ? s.code : entry.name,
           name: typeof s.name === "string" ? s.name : entry.name,
           description: typeof s.description === "string" ? s.description : "",
           icon: typeof s.icon === "string" ? s.icon : "\u{1F4CB}",
-          agents: Array.isArray(s.agents) ? (s.agents as unknown[]).filter((a): a is string => typeof a === "string") : [],
+          agents,
         });
         continue;
       }
@@ -134,7 +198,12 @@ export function squadWatcherPlugin(): Plugin {
       }
 
       const squadsDir = resolveSquadsDir();
+      const ideasPath = resolveIdeasPath();
+      const stackPath = resolveStackPath();
+      const clientsDir = resolveClientsDir();
+      const archPath = resolveArchPath();
       server.config.logger.info(`[squad-watcher] squads dir: ${squadsDir}`);
+      server.config.logger.info(`[squad-watcher] ideas path: ${ideasPath}`);
 
       // Create WebSocket server with noServer to avoid intercepting Vite's HMR
       const wss = new WebSocketServer({ noServer: true });
@@ -162,17 +231,166 @@ export function squadWatcherPlugin(): Plugin {
         server.config.logger.error(`[squad-watcher] failed to create squads dir: ${err.message}`);
       });
 
-      // REST API fallback — serves snapshot over HTTP for polling clients
+      // REST API — snapshot + ideas endpoints
       server.middlewares.use(async (req, res, next) => {
-        if (req.url !== "/api/snapshot") return next();
+        // GET /api/snapshot
+        if (req.url === "/api/snapshot" && req.method === "GET") {
+          try {
+            const snapshot = await buildSnapshot(squadsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify(snapshot));
+          } catch {
+            res.writeHead(500);
+            res.end("Internal Server Error");
+          }
+          return;
+        }
+
+        // GET /api/ideas
+        if (req.url === "/api/ideas" && req.method === "GET") {
+          try {
+            const raw = await fsp.readFile(ideasPath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "ideas.json not found" }));
+          }
+          return;
+        }
+
+        // GET /api/ideas/doc?id=xxx
+        if (req.url?.startsWith("/api/ideas/doc") && req.method === "GET") {
+          try {
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const id = url.searchParams.get("id");
+            if (!id || /[^a-zA-Z0-9_-]/.test(id)) {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: "invalid id" }));
+              return;
+            }
+            const docPath = resolveMemoryPath(`banco_ideias/docs/${id}.md`);
+            const raw = await fsp.readFile(docPath, "utf-8");
+            res.setHeader("Content-Type", "text/plain");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "doc not found" }));
+          }
+          return;
+        }
+
+        // GET /api/stack
+        if (req.url === "/api/stack" && req.method === "GET") {
+          try {
+            const raw = await fsp.readFile(stackPath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(raw);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: "stack.json not found" }));
+          }
+          return;
+        }
+
+        // GET /api/clients
+        if (req.url === "/api/clients" && req.method === "GET") {
+          try {
+            const clients = await readClients(clientsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify({ clients }));
+          } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: "failed to read clients" }));
+          }
+          return;
+        }
+
+        // POST /api/stack — write updated stack back to stack.json
+        if (req.url === "/api/stack" && req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+          req.on("end", async () => {
+            try {
+              const payload = JSON.parse(body) as { techs: unknown[] };
+              const existing = JSON.parse(await fsp.readFile(stackPath, "utf-8"));
+              const updated = {
+                ...existing,
+                updated_at: new Date().toISOString().split("T")[0],
+                techs: payload.techs,
+              };
+              await fsp.writeFile(stackPath, JSON.stringify(updated, null, 2), "utf-8");
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ ok: true }));
+            } catch (err) {
+              res.writeHead(500);
+              res.end(JSON.stringify({ error: String(err) }));
+            }
+          });
+          return;
+        }
+
+        // GET /api/architecture — returns arquitetura.md + live squad scan
+        if (req.url === "/api/architecture" && req.method === "GET") {
+          try {
+            const md = await fsp.readFile(archPath, "utf-8").catch(() => "");
+            const squads = await discoverSquads(squadsDir);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Cache-Control", "no-cache");
+            res.end(JSON.stringify({ md, squads }));
+          } catch {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: "failed to read architecture" }));
+          }
+          return;
+        }
+
+        // POST /api/ideas — write updated ideas array back to ideas.json
+        if (req.url === "/api/ideas" && req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+          req.on("end", async () => {
+            try {
+              const payload = JSON.parse(body) as { ideas: unknown[] };
+              const existing = JSON.parse(await fsp.readFile(ideasPath, "utf-8"));
+              const updated = {
+                ...existing,
+                updated_at: new Date().toISOString().split("T")[0],
+                ideas: payload.ideas,
+              };
+              await fsp.writeFile(ideasPath, JSON.stringify(updated, null, 2), "utf-8");
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ ok: true }));
+            } catch (err) {
+              res.writeHead(500);
+              res.end(JSON.stringify({ error: String(err) }));
+            }
+          });
+          return;
+        }
+
+        next();
+      });
+
+      // Watch ideas.json for changes from the Curador
+      const ideasWatcher = chokidarWatch(ideasPath, {
+        ignoreInitial: true,
+        awaitWriteFinish: { stabilityThreshold: 400, pollInterval: 50 },
+      });
+      ideasWatcher.on("change", async () => {
         try {
-          const snapshot = await buildSnapshot(squadsDir);
-          res.setHeader("Content-Type", "application/json");
-          res.setHeader("Cache-Control", "no-cache");
-          res.end(JSON.stringify(snapshot));
+          const raw = await fsp.readFile(ideasPath, "utf-8");
+          const bank = JSON.parse(raw);
+          if (Array.isArray(bank?.ideas)) {
+            broadcast(wss, { type: "IDEAS_UPDATE", ideas: bank.ideas });
+          }
         } catch {
-          res.writeHead(500);
-          res.end("Internal Server Error");
+          // Partial write — next event will have the complete file
         }
       });
 
@@ -226,6 +444,7 @@ export function squadWatcherPlugin(): Plugin {
 
       server.httpServer.on("close", () => {
         watcher.close();
+        ideasWatcher.close();
       });
     },
   };

@@ -1,0 +1,41 @@
+{
+  "lgpd": {
+    "hint": "Data governance (LGPD): processing purposes, consents and the external-AI rule.",
+    "counts": "{purposes} purpose(s) · {consents} active consent(s)",
+    "classes": {
+      "title": "Data classes and external AI",
+      "rule": "secret, pii and restricted_ai NEVER leave to external LLMs. financial and legal only with a registered purpose carrying an explicit exception. public, internal and client pass the gate normally. Every AI adapter must validate via src/server/ai/policy.ts."
+    },
+    "purposes": {
+      "title": "Processing purposes",
+      "formTitle": "New purpose",
+      "empty": "No purposes registered.",
+      "org": "Organization",
+      "purpose": "Purpose (operational description)",
+      "legalBasis": "Legal basis (LGPD art. 7)",
+      "dataClasses": "Covered data classes",
+      "externalAi": "Allow external AI for these classes (explicit exception)",
+      "aiAllowed": "external AI OK",
+      "aiBlocked": "no external AI",
+      "bases": {
+        "consentimento": "Consent",
+        "legitimo_interesse": "Legitimate interest",
+        "execucao_contrato": "Contract execution",
+        "obrigacao_legal": "Legal obligation"
+      }
+    },
+    "consents": {
+      "title": "Consents",
+      "formTitle": "Record consent",
+      "empty": "No consents recorded.",
+      "purpose": "Purpose",
+      "subjectLabel": "Subject identifier (pseudonym)",
+      "subjectPlaceholder": "e.g. client-subject-01",
+      "subjectHint": "Never use a real name/e-mail here — PII stays out of this table.",
+      "active": "active",
+      "revoked": "revoked",
+      "revoke": "Revoke",
+      "needPurpose": "Register a purpose before recording consents."
+    }
+  }
+}

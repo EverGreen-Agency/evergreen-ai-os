@@ -1,0 +1,10 @@
+name: "Dispatcher / Triagem"
+icon: "🔀"
+version: "1.0"
+description: "Squad reativo que analisa solicitações livres do usuário, identifica o contexto e inicia automaticamente o squad apropriado para executar a tarefa."
+
+pipeline:
+  - id: step_triagem
+    agent: roteador
+    description: "Analisa o input livre do usuário, determina o tipo de demanda (ex: Onboarding, Otimização de Anúncios) e invoca a execução do respectivo squad."
+    interactive: true

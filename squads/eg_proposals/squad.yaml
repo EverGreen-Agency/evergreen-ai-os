@@ -1,0 +1,15 @@
+name: "Propostas Comerciais EG"
+icon: "📝"
+version: "1.0"
+description: "Recebe uma oportunidade (vaga de plataforma freelance, brief ou descrição) e gera uma proposta comercial EG altamente conversiva. Scout extrai as dores e o contexto; Closer escreve a proposta no formato e tom da EverGreen. É reativo: você traz a oportunidade. A geração de LISTAS de prospecção é do squad eg_prospector."
+
+pipeline:
+  - id: step_scout
+    agent: scout
+    description: "Recebe o texto bruto da vaga/oportunidade (ou URL), limpa o ruído e extrai um briefing estruturado: contexto, dores, entregáveis, stack/skills. Identifica se é Tech/Software ou Growth/MKT."
+    interactive: false
+
+  - id: step_closer
+    agent: closer
+    description: "Recebe o briefing do Scout e escreve a proposta comercial EG (formato fixo, tom executivo, lei do 80/20). Para projetos Tech, consulta o Banco de Stack (Tech Radar) em vez de fixar tecnologias. Apresenta a proposta para revisão antes de finalizar."
+    interactive: true

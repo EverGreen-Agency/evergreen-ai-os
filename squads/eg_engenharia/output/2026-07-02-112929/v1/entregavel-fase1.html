@@ -1,0 +1,680 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 16mm 14mm; }
+:root{ --musgo:#4f5d3f; --musgo2:#6b7a56; --baunilha:#f5f1e6; --menta:#bcd3bf; --linha:#c9c6ba; --mut:#7d7a70; }
+* { box-sizing:border-box; }
+body{ font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; color:#2b2b2b; line-height:1.5; font-size:12.5px; margin:0; }
+.doc h1{ font-size:21px; color:var(--musgo); border-bottom:2px solid var(--menta); padding-bottom:6px; margin:26px 0 10px; }
+.doc h2{ font-size:16px; color:var(--musgo); margin:20px 0 8px; }
+.doc h3{ font-size:13.5px; color:var(--musgo2); margin:14px 0 6px; }
+.doc p, .doc li{ font-size:12.5px; }
+.doc table{ border-collapse:collapse; width:100%; margin:10px 0; font-size:11.5px; }
+.doc th,.doc td{ border:1px solid var(--linha); padding:5px 8px; text-align:left; vertical-align:top; }
+.doc th{ background:#eef0e8; color:var(--musgo); }
+.doc code{ font-family:"Consolas","Courier New",monospace; }
+.doc pre{ background:#faf9f4; border:1px solid var(--linha); border-radius:5px; padding:8px 10px;
+  font-family:"Consolas","Courier New",monospace; font-size:9.2px; line-height:1.25; overflow:hidden; white-space:pre; }
+.doc blockquote{ border-left:3px solid var(--menta); margin:10px 0; padding:2px 12px; color:#555; background:#fbfaf6; }
+.doc hr{ border:0; border-top:1px solid var(--linha); margin:16px 0; }
+.cover{ height:255mm; display:flex; flex-direction:column; justify-content:center; padding:0 6mm; }
+.cover .brand{ font-size:13px; letter-spacing:2px; color:var(--musgo2); text-transform:uppercase; }
+.cover h1{ font-size:34px; color:var(--musgo); margin:10px 0 4px; border:0; }
+.cover h2{ font-size:19px; color:#444; font-weight:400; margin:0 0 26px; }
+.cover .meta{ font-size:13px; color:#555; line-height:1.9; border-top:2px solid var(--menta); padding-top:16px; max-width:420px; }
+.cover .tagbox{ margin-top:26px; background:#eef0e8; border-left:4px solid var(--musgo); padding:12px 16px; font-size:12px; color:#444; max-width:520px; }
+.pagebreak{ page-break-before:always; }
+.sechead{ background:var(--musgo); color:var(--baunilha); padding:10px 14px; border-radius:6px; font-size:15px; font-weight:600; margin:0 0 6px; }
+/* estilos dos wireframes visuais */
+
+  :root{
+    --musgo:#4f5d3f; --musgo-2:#6b7a56; --baunilha:#f5f1e6; --menta:#bcd3bf;
+    --linha:#c9c6ba; --box:#e9e6db; --box-2:#dcd8cc; --texto:#2b2b2b; --mut:#7d7a70;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--baunilha);color:var(--texto);
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;line-height:1.4}
+  header.top{background:var(--musgo);color:var(--baunilha);padding:22px 28px}
+  header.top h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.2px}
+  header.top p{margin:6px 0 0;font-size:13px;opacity:.85}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
+  .legend{font-size:12px;color:var(--mut);margin:0 0 22px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .screen{background:#fff;border:1px solid var(--linha);border-radius:8px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .screen .bar{background:var(--musgo);color:var(--baunilha);padding:9px 14px;font-size:13px;
+    display:flex;justify-content:space-between;align-items:center}
+  .screen .bar .tag{background:var(--menta);color:var(--musgo);border-radius:10px;
+    padding:1px 8px;font-size:11px;font-weight:700}
+  .screen .body{padding:14px 16px;min-height:230px}
+  .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin:10px 0 4px}
+  .fld{background:var(--box);border:1px solid var(--box-2);border-radius:5px;height:30px;
+    display:flex;align-items:center;padding:0 10px;font-size:12px;color:#555}
+  .fld.sel::after{content:"▾";margin-left:auto;color:#888}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .btn{background:var(--musgo);color:#fff;border-radius:5px;height:32px;display:inline-flex;
+    align-items:center;justify-content:center;padding:0 14px;font-size:12px;font-weight:600}
+  .btn.ghost{background:#fff;color:var(--musgo);border:1px solid var(--musgo)}
+  .btn.block{width:100%}
+  .chip{display:inline-block;font-size:11px;border:1px solid var(--linha);border-radius:12px;
+    padding:2px 9px;margin:2px 4px 2px 0;color:#555;background:#fafafa}
+  .list{border:1px solid var(--box-2);border-radius:6px;overflow:hidden;margin-top:6px}
+  .list .r{display:flex;gap:8px;padding:7px 10px;font-size:12px;border-top:1px solid #eee}
+  .list .r:first-child{border-top:0;background:#f3f1ea;color:var(--mut);font-weight:600}
+  .list .r span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st{font-size:11px;font-weight:700}
+  .ok{color:#3f7a3f}.go{color:#b6802a}.er{color:#b23b3b}.mut{color:var(--mut)}
+  .note{font-size:11px;color:var(--mut);margin-top:10px;border-left:2px solid var(--menta);padding-left:8px}
+  .steps{display:flex;gap:6px;font-size:11px;color:var(--mut);margin-bottom:8px}
+  .steps b{color:var(--musgo)}
+  .prog{height:8px;background:var(--box);border-radius:5px;overflow:hidden;margin:2px 0 8px}
+  .prog>i{display:block;height:100%;width:60%;background:var(--musgo-2)}
+  .stack .l{font-size:12px;padding:5px 0;border-top:1px solid #eee;display:flex;gap:8px}
+  .stack .l:first-child{border-top:0}
+  .big{font-size:15px;font-weight:700;color:var(--musgo)}
+  .foot{font-size:12px;color:var(--mut);margin-top:26px;text-align:center}
+  .drop{border:1.5px dashed var(--linha);border-radius:6px;padding:12px;text-align:center;
+    font-size:12px;color:var(--mut);background:#fbfaf6}
+
+.wrap{ max-width:100%; padding:0; }
+header.top{ border-radius:6px; }
+.grid{ grid-template-columns:repeat(2,1fr); gap:14px; }
+.screen{ break-inside:avoid; }
+</style></head><body>
+
+<div class="cover">
+  <div class="brand">EverGreen</div>
+  <h1>Automação de Protocolo no PJe</h1>
+  <h2>TRF1 — Especificação, Arquitetura e Telas · Fase 1</h2>
+  <div class="meta">
+    <b>Cliente:</b> Rian Palheta — escritório previdenciário (TRF1)<br>
+    <b>Fornecedor:</b> EverGreen (EG)<br>
+    <b>Data:</b> 2026-07-02 &nbsp;·&nbsp; <b>Versão:</b> 1.0 &nbsp;·&nbsp; <b>Status:</b> rascunho p/ validação
+  </div>
+  <div class="tagbox">Este documento é anexo do contrato: define o escopo acordado da Fase 1.
+  Itens marcados <b>[A CONFIRMAR]</b> dependem de resposta do cliente. As decisões de tecnologia são de responsabilidade da EG.</div>
+</div>
+
+<div class="doc pagebreak"><h1 id="documento-de-especificacao-arquitetura-e-escopo-fase-1">Documento de Especificação, Arquitetura e Escopo — Fase 1</h1>
+<h2 id="automacao-de-protocolo-no-pje-trf1">Automação de Protocolo no PJe — TRF1</h2>
+<ul>
+<li><strong>Cliente:</strong> Rian Palheta — escritório de advocacia (previdenciário), jurisdição TRF1</li>
+<li><strong>Fornecedor:</strong> EverGreen (EG)</li>
+<li><strong>Data:</strong> 2026-07-02 · <strong>Versão:</strong> 1.0 · <strong>Status:</strong> rascunho para validação do cliente</li>
+<li><strong>Natureza:</strong> este documento é <strong>anexo do contrato</strong>. Ele define o escopo acordado da Fase 1. Qualquer item fora dele entra como fase posterior / aditivo — não como "ajuste de corredor". Revisões e novas funcionalidades após o aceite são tratadas em fases seguintes.</li>
+</ul>
+<blockquote>
+<p><strong>Como validar:</strong> leia cada seção e confirme. Itens marcados <strong>[A CONFIRMAR]</strong> dependem de uma resposta sua. As decisões de tecnologia são de responsabilidade da EG (você não precisa validar a stack — apenas ciência); estão aqui por transparência e para constar no contrato.</p>
+</blockquote>
+<hr />
+<h2 id="1-objetivo">1. Objetivo</h2>
+<p>Reduzir o tempo de protocolo de processos no PJe/TRF1 de <strong>~10 minutos para 2–3 minutos por processo</strong>, através de uma <strong>aplicação web</strong> que reproduz o fluxo do PJe com <strong>modelos reutilizáveis</strong>, mantendo o advogado no controle e a assinatura por certificado digital.</p>
+<h2 id="2-contexto">2. Contexto</h2>
+<p>O escritório atua em direito previdenciário na jurisdição do <strong>TRF1</strong> e protocola hoje <strong>4–8 processos/dia (~60/mês)</strong> manualmente no PJe, repetindo os mesmos campos — a maior parte é idêntica dentro de um mesmo tipo de ação (ex.: salário-maternidade, aposentadoria); muda basicamente a parte (autor), o valor da causa e os documentos.</p>
+<p>O escritório testou o <strong>LegalMail</strong> (legalmail.com.br — cobrado por pacote de processos): funciona, mas o custo cresce com o volume. A decisão é ter uma <strong>solução própria</strong> para controlar custo e poder estender no futuro. O projeto originalmente publicado (app desktop, IA local, leitura de pasta) foi <strong>repensado na reunião de 02/07</strong> e passou a ser <strong>web, sem IA, sem OCR, com foco exclusivo no protocolo do TRF1</strong>.</p>
+<h2 id="3-escopo-da-fase-1-o-que-sera-entregue">3. Escopo da Fase 1 (o que <strong>será</strong> entregue)</h2>
+<ol>
+<li><strong>Aplicação web</strong> self-hosted, acessível por navegador (desktop e celular).</li>
+<li><strong>Fluxo de protocolo do PJe/TRF1</strong> reproduzido na ferramenta: matéria → jurisdição → classe judicial → assunto → partes → valor da causa → tutela → características do processo.</li>
+<li><strong>Lógica dinâmica encadeada</strong> do PJe: a escolha de um campo atualiza as opções dos seguintes (escolher a matéria muda a jurisdição, que muda a classe judicial), espelhando o sistema.</li>
+<li><strong>Campos condicionais</strong> conforme as características: pessoa física/jurídica, assistência, justiça gratuita, sigilo, informação pública.</li>
+<li><strong>Motor de modelos definidos por você:</strong> salvar um formulário preenchido como "modelo" nomeado por tipo de ação (ex.: "Salário-maternidade") e reutilizá-lo — auto-preenche os campos repetitivos. <strong>Novos modelos são criados pela própria interface, sem mexer em código.</strong></li>
+<li><strong>Upload dos documentos</strong> (petição inicial + comprobatórios) com definição da <strong>ordem de anexação</strong>.</li>
+<li><strong>Tratamento de PDF:</strong> validar cada arquivo, detectar corrupção e <strong>dividir/comprimir automaticamente</strong> os que passam de <strong>10 MB</strong>, antes de anexar.</li>
+<li><strong>Autenticação por certificado digital A1 (.pfx)</strong> e assinatura do peticionamento pelo próprio fluxo do PJe.</li>
+<li><strong>Automação do preenchimento e anexação</strong> na ordem correta, com você no controle: <strong>pré-visualização (dry-run)</strong> antes de enviar e <strong>confirmação explícita</strong> para o envio.</li>
+<li><strong>Captura e guarda do comprovante</strong> de protocolo.</li>
+<li><strong>Retomada em caso de falha</strong> no meio do protocolo (sem reenviar/duplicar).</li>
+<li><strong>Detecção de sessão expirada</strong> e reautenticação.</li>
+<li><strong>Log em arquivo</strong> + <strong>resumo pós-protocolo</strong> legível.</li>
+<li><strong>Arquitetura modular por tribunal:</strong> o TRF1 é o primeiro; outros tribunais entram como novo módulo, sem reescrever o núcleo.</li>
+</ol>
+<h2 id="4-fora-de-escopo-da-fase-1-fica-para-fases-seguintes-aditivo">4. Fora de Escopo da Fase 1 (fica para fases seguintes / aditivo)</h2>
+<ul>
+<li><strong>Outros tribunais</strong> além do TRF1.</li>
+<li><strong>Inteligência artificial</strong> / classificação automática de documentos.</li>
+<li><strong>OCR</strong> e <strong>leitura de pasta local</strong> da máquina (documentos entram por upload).</li>
+<li><strong>Certificado A3</strong> (token físico) — inviável em servidor remoto; ver §6.</li>
+<li><strong>Múltiplos autores / litisconsórcio.</strong></li>
+<li><strong>Perfis e permissões</strong> (advogado × estagiário) — o protocolo é tarefa padronizada.</li>
+<li><strong>Módulo de consulta de processos</strong> (baixar autos, manifestações, acompanhamento).</li>
+<li><strong>App desktop</strong> (.exe/.deb).</li>
+</ul>
+<h2 id="5-requisitos-funcionais">5. Requisitos Funcionais</h2>
+<table>
+<thead>
+<tr>
+<th>Nº</th>
+<th>O sistema deve…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF1</td>
+<td>Autenticar no PJe/TRF1 com <strong>certificado A1 (.pfx)</strong> fornecido por você.</td>
+</tr>
+<tr>
+<td>RF2</td>
+<td>Iniciar um protocolo por um formulário que reproduz os campos do PJe (matéria, jurisdição, classe, assunto, partes, valor da causa, tutela, características).</td>
+</tr>
+<tr>
+<td>RF3</td>
+<td>Aplicar a <strong>lógica dinâmica encadeada</strong> entre os campos, espelhando o PJe.</td>
+</tr>
+<tr>
+<td>RF4</td>
+<td><strong>Salvar</strong> um formulário como <strong>modelo</strong> e <strong>reutilizá-lo</strong>, auto-preenchendo os campos comuns.</td>
+</tr>
+<tr>
+<td>RF5</td>
+<td>Fazer <strong>upload</strong> dos documentos e definir a <strong>ordem de anexação</strong>.</td>
+</tr>
+<tr>
+<td>RF6</td>
+<td><strong>Validar</strong> cada PDF e <strong>dividir/comprimir</strong> automaticamente os &gt; 10 MB; barrar corrompidos.</td>
+</tr>
+<tr>
+<td>RF7</td>
+<td>Oferecer <strong>dry-run</strong> (mostra o que será enviado sem enviar).</td>
+</tr>
+<tr>
+<td>RF8</td>
+<td>Exigir <strong>confirmação explícita</strong> antes do envio real.</td>
+</tr>
+<tr>
+<td>RF9</td>
+<td>Executar o protocolo (preenchimento + assinatura + anexação) e <strong>capturar o comprovante</strong>.</td>
+</tr>
+<tr>
+<td>RF10</td>
+<td>Permitir <strong>retomar</strong> um protocolo interrompido sem duplicar.</td>
+</tr>
+<tr>
+<td>RF11</td>
+<td>Detectar <strong>sessão expirada</strong> e reautenticar.</td>
+</tr>
+<tr>
+<td>RF12</td>
+<td>Registrar <strong>log</strong> e apresentar <strong>resumo pós-protocolo</strong>.</td>
+</tr>
+<tr>
+<td>RF13</td>
+<td>Ser <strong>modular por tribunal</strong> (novo tribunal = novo módulo).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-requisitos-nao-funcionais">6. Requisitos Não-Funcionais</h2>
+<ul>
+<li><strong>Hospedagem:</strong> aplicação em <strong>Docker</strong>, rodando no seu próprio servidor; acesso via navegador (desktop/celular). <strong>[A CONFIRMAR: você hospeda no servidor de casa, como citado na reunião — a EG entrega a imagem + instruções de instalação.]</strong></li>
+<li><strong>Escala:</strong> ~60 protocolos/mês, uso do escritório. Não exige alta escala.</li>
+<li><strong>Segurança:</strong> dados sensíveis (documentos sob sigilo, credenciais, certificado). Certificado e senhas <strong>nunca em texto claro</strong>; <strong>sem dados sensíveis no log</strong>. <strong>NDA assinado pela EG.</strong></li>
+<li><strong>Confiabilidade:</strong> falhas recuperáveis (retomada); nunca deixar protocolo "meio-enviado" sem status claro.</li>
+<li><strong>Automação responsável:</strong> acesso <strong>autorizado</strong> (login/certificado fornecidos por você), <strong>sem burlar</strong> proteções do PJe.</li>
+<li><strong>Certificado A3:</strong> fora da Fase 1. Motivo técnico: o token físico precisa estar plugado na máquina onde o navegador roda; num servidor remoto isso não é acessível. Suporte a A3 exige repensar a topologia — Fase 2.</li>
+</ul>
+<h2 id="7-arquitetura-e-stack-responsabilidade-tecnica-da-eg">7. Arquitetura e Stack (responsabilidade técnica da EG)</h2>
+<blockquote>
+<p>A tecnologia que constava no anúncio original (app desktop, Python/TUI, IA local, empacotamento) foi revista: como combinado na reunião, a <strong>EG redefine a stack</strong> conforme o projeto passou a ser web. Cada decisão abaixo tem seu registro técnico (ADR) arquivado.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Camada</th>
+<th>Escolha</th>
+<th>Por quê (resumo)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Backend</strong></td>
+<td><strong>Python + FastAPI</strong>, monólito modular por tribunal</td>
+<td>Ecossistema maduro de automação e PDF; simples e adequado à escala. (ADR-0001)</td>
+</tr>
+<tr>
+<td><strong>Automação do PJe</strong></td>
+<td><strong>Playwright</strong> com o <strong>certificado A1</strong> apresentado ao navegador</td>
+<td>Robusto, sessão persistente (viabiliza retomada/reautenticação), dentro do uso legítimo do sistema. (ADR-0002)</td>
+</tr>
+<tr>
+<td><strong>Interface</strong></td>
+<td><strong>React + Vite + TypeScript</strong></td>
+<td>Ideal para o formulário dinâmico encadeado e o dry-run. (ADR-0003)</td>
+</tr>
+<tr>
+<td><strong>Dados</strong></td>
+<td><strong>SQLite</strong> na Fase 1 (migra para PostgreSQL na Fase 2)</td>
+<td>Simplicidade máxima para um servidor único; cresce quando entrar multi-usuário. (ADR-0004)</td>
+</tr>
+<tr>
+<td><strong>Entrega</strong></td>
+<td><strong>Docker (docker-compose)</strong> no seu servidor</td>
+<td>Você já usa Docker; dados sob seu controle; instalação reproduzível. (ADR-0005)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="8-criterios-de-aceite-como-sabemos-que-a-fase-1-esta-pronta">8. Critérios de Aceite (como sabemos que a Fase 1 está pronta)</h2>
+<ul>
+<li><strong>CA1</strong> — Com o certificado A1 do escritório, o sistema autentica no PJe/TRF1.</li>
+<li><strong>CA2</strong> — Um usuário protocola <strong>1 processo real de salário-maternidade</strong> no TRF1 ponta-a-ponta pela ferramenta (login → preenchimento via modelo → upload/ordenação → assinatura → envio → comprovante), com <strong>≤ 3 min de operação ativa</strong>.</li>
+<li><strong>CA3</strong> — Mudar a matéria muda coerentemente as opções seguintes (validado contra o PJe real).</li>
+<li><strong>CA4</strong> — Salvar e reusar um modelo auto-preenche corretamente os campos comuns.</li>
+<li><strong>CA5</strong> — PDF &gt; 10 MB é dividido/comprimido e aceito; PDF corrompido é barrado antes do envio.</li>
+<li><strong>CA6</strong> — O dry-run mostra o envio sem submeter; o envio real só ocorre após confirmação.</li>
+<li><strong>CA7</strong> — Um protocolo interrompido é retomado sem duplicar.</li>
+<li><strong>CA8</strong> — Há comprovante salvo, resumo legível e log da operação.</li>
+</ul>
+<h2 id="9-premissas-e-dependencias">9. Premissas e Dependências</h2>
+<p><strong>Travado com a EG (base do orçamento):</strong> Fase 1 só com certificado <strong>A1</strong>; tratamento automático de PDF incluído; aceite validado em <strong>1 ação de referência</strong> (salário-maternidade); litisconsórcio na Fase 2.</p>
+<p><strong>Depende de você, Rian:</strong>
+- <strong>[A CONFIRMAR]</strong> Acesso a <strong>ambiente de homologação/teste</strong> do PJe TRF1 + <strong>certificado A1</strong> para testes controlados.
+- <strong>[A CONFIRMAR]</strong> <strong>1 caso real anonimizado</strong> de salário-maternidade (petição + documentos) para a validação end-to-end.
+- <strong>[A CONFIRMAR]</strong> Mapa das <strong>particularidades do TRF1</strong> que mudam o formulário (pessoa física/jurídica, assistência, gratuidade, sigilo).
+- <strong>[A CONFIRMAR]</strong> Definição do <strong>servidor/infra</strong> onde a aplicação vai rodar.
+- <strong>NDA</strong> assinado (a EG confirma que assina).</p>
+<p><strong>Riscos principais e mitigação:</strong>
+- Mudança de layout/fluxo do PJe pode quebrar a automação → arquitetura modular, testes em homologação.
+- Particularidades do certificado A1 / assinatura → testar cedo com o certificado real.
+- Limites do PJe (10 MB, corrupção, timeouts) → tratamento de PDF, retries controlados, retomada.</p>
+<h2 id="10-proximos-passos">10. Próximos Passos</h2>
+<ol>
+<li>Você valida este documento (ou aponta ajustes).</li>
+<li>Com o aceite, ele vira <strong>anexo do contrato</strong> (escopo travado da Fase 1).</li>
+<li>A EG envia a <strong>proposta comercial</strong> (prazo e investimento) alinhada a este escopo.</li>
+</ol>
+<hr />
+<p><em>Documento gerado pela Engenharia EG (Spec-Driven Development). Registros técnicos: ADR-0001 a ADR-0005.</em></p></div>
+
+<div class="pagebreak"></div>
+<div class="doc"><h1 id="mapa-de-telas-e-fluxos-fase-1">Mapa de Telas e Fluxos — Fase 1</h1>
+<h2 id="automacao-de-protocolo-no-pje-trf1-complemento-do-documento-de-especificacao">Automação de Protocolo no PJe (TRF1) · complemento do Documento de Especificação</h2>
+<ul>
+<li><strong>Cliente:</strong> rian-pje-trf1 · <strong>Data:</strong> 2026-07-02 · <strong>Versão:</strong> 1.0 · <strong>Status:</strong> rascunho para validação</li>
+<li><strong>Para que serve:</strong> tirar a subjetividade das "telas e funcionalidades". Aqui cada tela, cada campo e o fluxo passo-a-passo estão desenhados — é a base concreta para o Rian validar e para fechar prazo/valores sem achismo.</li>
+<li><strong>Fidelidade:</strong> baixa (wireframe / esqueleto). O objetivo é <strong>layout e comportamento</strong>, não identidade visual. Cor, tipografia e polimento entram na etapa de UI.</li>
+</ul>
+<hr />
+<h2 id="1-inventario-de-telas-fase-1">1. Inventário de telas (Fase 1)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tela</th>
+<th>Função</th>
+<th>Telas seguintes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>T1</strong></td>
+<td>Login / Certificado</td>
+<td>Sobe o certificado A1 (.pfx) + senha e autentica no PJe/TRF1</td>
+<td>T2</td>
+</tr>
+<tr>
+<td><strong>T2</strong></td>
+<td>Painel / Lista de protocolos</td>
+<td>Fila de protocolos (rascunho / em andamento / concluído / erro); status da sessão PJe</td>
+<td>T3, T4</td>
+</tr>
+<tr>
+<td><strong>T3</strong></td>
+<td>Novo Protocolo (formulário)</td>
+<td>Formulário dinâmico do PJe; começar de um modelo ou em branco; salvar como modelo</td>
+<td>T4, T5</td>
+</tr>
+<tr>
+<td><strong>T4</strong></td>
+<td>Gestão de Modelos</td>
+<td>Criar / editar / duplicar / excluir modelos de auto-preenchimento</td>
+<td>T3</td>
+</tr>
+<tr>
+<td><strong>T5</strong></td>
+<td>Documentos</td>
+<td>Upload da petição + comprobatórios, ordem de anexação, resultado do tratamento de PDF</td>
+<td>T6</td>
+</tr>
+<tr>
+<td><strong>T6</strong></td>
+<td>Revisão / Dry-run</td>
+<td>Resumo do que será enviado; simular ou protocolar de verdade (confirmação por digitação)</td>
+<td>T7</td>
+</tr>
+<tr>
+<td><strong>T7</strong></td>
+<td>Execução / Progresso</td>
+<td>Acompanhamento das etapas do protocolo; retomada em falha</td>
+<td>T8</td>
+</tr>
+<tr>
+<td><strong>T8</strong></td>
+<td>Resultado / Comprovante</td>
+<td>Nº do protocolo, comprovante, resumo pós-protocolo, log</td>
+<td>T2</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-fluxo-principal-feliz">2. Fluxo principal (feliz)</h2>
+<pre><code>T1 Login/Cert ─► T2 Painel ─► [Novo Protocolo] ─► T3 Formulário
+                                   │                   │
+                                   │              (Salvar modelo ⇄ T4)
+                                   ▼                   ▼
+                             T4 Modelos          T5 Documentos ─► T6 Revisão/Dry-run
+                                                                      │
+                                                      ┌───────────────┴───────────────┐
+                                                      ▼ (simular)                       ▼ (protocolar)
+                                                 volta T6 c/ preview              T7 Execução ─► T8 Comprovante ─► T2
+</code></pre>
+<p><strong>Regras de fluxo:</strong>
+- Sessão PJe expirada em qualquer ponto → banner de reautenticação (RF11); retoma de onde parou.
+- Falha no meio do protocolo (T7) → estado salvo; botão <strong>Retomar</strong> reexecuta só o que faltou (RF10, sem duplicar).
+- Envio real (T6) exige <strong>confirmação por digitação</strong> (ação crítica, RF8).</p>
+<hr />
+<h2 id="3-wireframes-ascii">3. Wireframes (ASCII)</h2>
+<h3 id="t1-login-certificado">T1 — Login / Certificado</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  ⬤ EG · Protocolo PJe — TRF1                               │
+├───────────────────────────────────────────────────────────┤
+│                                                            │
+│     Autenticação no PJe (certificado A1)                   │
+│                                                            │
+│     Certificado (.pfx)   [ Selecionar arquivo… ]  cert.pfx │
+│     Senha do certificado [ •••••••••••• ]                  │
+│                                                            │
+│     [ Autenticar no PJe/TRF1 ]                             │
+│                                                            │
+│     Status: ○ não conectado                                │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t2-painel-lista-de-protocolos">T2 — Painel / Lista de protocolos</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  ⬤ EG · Protocolo PJe    Sessão PJe: ● conectada   [sair]  │
+├───────────────────────────────────────────────────────────┤
+│  [ + Novo Protocolo ]        [ Modelos ]     buscar 🔍___  │
+│                                                            │
+│  Apelido/Nº     Tipo ação        Autor      Status    Data │
+│  ─────────────────────────────────────────────────────────│
+│  Maria-mat.     Salário-matern.  M. Silva   ● Concl.  02/07│
+│  Joao-apos.     Aposentadoria    J. Souza   ◐ Andam.  02/07│
+│  rasc-003       —                —          ○ Rascu.  02/07│
+│  Ana-mat.       Salário-matern.  A. Lima    ✕ Erro    01/07│
+│                                                            │
+│  (clicar numa linha → abre no ponto onde parou)            │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t3-novo-protocolo-formulario-dinamico">T3 — Novo Protocolo (formulário dinâmico)</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  Novo Protocolo                         passo 1 de 4 ▸ Doc │
+├───────────────────────────────────────────────────────────┤
+│  Iniciar de:  (•) Modelo [ Salário-maternidade ▾ ]         │
+│               ( ) Em branco                                │
+│  ─────────────────────────────────────────────────────────│
+│  Matéria           [ Previdenciário            ▾ ]         │
+│  Jurisdição        [ Seção Judiciária do Amapá ▾ ] ← muda  │
+│  Classe judicial   [ Procedimento Comum Cível  ▾ ] ← muda  │
+│  Assunto           [ Salário-maternidade       ▾ ]         │
+│  ─────────────────────────────────────────────────────────│
+│  Autor (parte)     [ ____________________ ] CPF [ ______ ] │
+│  Valor da causa    [ R$ __________ ]                       │
+│  Tutela de urgência ( ) sim  (•) não                       │
+│  ─────────────────────────────────────────────────────────│
+│  Características:  ☑ pessoa física   ☐ assistência          │
+│                   ☑ justiça gratuita ☐ sigilo  ☐ info públ.│
+│                   (marcar altera campos exigidos)          │
+│  ─────────────────────────────────────────────────────────│
+│  [ 💾 Salvar como modelo ]              [ Avançar ▸ ]       │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t4-gestao-de-modelos">T4 — Gestão de Modelos</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  Modelos de auto-preenchimento              [ + Novo ]     │
+├───────────────────────────────────────────────────────────┤
+│  Nome                 Matéria/Assunto        Campos  Ações │
+│  ─────────────────────────────────────────────────────────│
+│  Salário-maternidade  Prev. / Sal.-matern.    8     ✎ ⧉ 🗑 │
+│  Aposentadoria idade  Prev. / Aposentadoria   9     ✎ ⧉ 🗑 │
+│  BPC/LOAS             Prev. / Assist. social  7     ✎ ⧉ 🗑 │
+│                                                            │
+│  Modelo = fotografia dos campos comuns. No protocolo,      │
+│  muda só autor, valor da causa e documentos.               │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t5-documentos">T5 — Documentos</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  Novo Protocolo · Documentos            passo 2 de 4 ▸ Rev │
+├───────────────────────────────────────────────────────────┤
+│  [ ⬆ Enviar arquivos ]   (arraste PDFs aqui)               │
+│  ─────────────────────────────────────────────────────────│
+│  Ordem  Arquivo               Tam.    Tratamento           │
+│  ─────────────────────────────────────────────────────────│
+│  ⠿ 1    peticao-inicial.pdf   3,2 MB  ● OK                 │
+│  ⠿ 2    procuracao.pdf        0,8 MB  ● OK                 │
+│  ⠿ 3    provas.pdf           14,1 MB  ◐ dividido em 2 (&lt;10)│
+│  ⠿ 4    laudo.pdf             —        ✕ corrompido (barra)│
+│         (arraste ⠿ para reordenar a anexação)              │
+│  ─────────────────────────────────────────────────────────│
+│  ⚠ 1 arquivo barrado. Resolva ou remova antes de avançar.  │
+│                                       [ Avançar ▸ ]        │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t6-revisao-dry-run">T6 — Revisão / Dry-run</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  Novo Protocolo · Revisão               passo 3 de 4 ▸ Env │
+├───────────────────────────────────────────────────────────┤
+│  Vai ser enviado ao PJe/TRF1:                              │
+│   • Classe: Proc. Comum Cível · Assunto: Sal.-maternidade  │
+│   • Autor: Maria Silva · Valor: R$ 8.400,00 · gratuita     │
+│   • Documentos (ordem): 1 petição, 2 procuração, 3-4 provas│
+│  ─────────────────────────────────────────────────────────│
+│  Modo:  (•) Simulação (dry-run) — NÃO envia                │
+│         ( ) Protocolar de verdade                          │
+│                                                            │
+│  Para protocolar de verdade, digite  PROTOCOLAR :          │
+│  [ _______________ ]                                       │
+│                                                            │
+│  [ ◂ Voltar ]                       [ Simular / Protocolar]│
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t7-execucao-progresso">T7 — Execução / Progresso</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  Protocolando…                                             │
+├───────────────────────────────────────────────────────────┤
+│  ✔ Login/sessão PJe                                        │
+│  ✔ Preenchimento do formulário                            │
+│  ◐ Assinatura (certificado A1)          ▓▓▓▓▓▓░░░░  60%    │
+│  ○ Anexação dos documentos                                │
+│  ○ Envio / geração do comprovante                         │
+│  ─────────────────────────────────────────────────────────│
+│  log: assinando documento 2 de 4…                          │
+│                                                            │
+│  (em caso de falha aqui → [ Retomar ] continua do ponto)   │
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="t8-resultado-comprovante">T8 — Resultado / Comprovante</h3>
+<pre><code>┌───────────────────────────────────────────────────────────┐
+│  ✔ Protocolo concluído                                     │
+├───────────────────────────────────────────────────────────┤
+│  Nº do processo:  1002xxx-xx.2026.4.01.3100                │
+│  Comprovante:     [ ⬇ baixar PDF ]  [ 👁 visualizar ]      │
+│  ─────────────────────────────────────────────────────────│
+│  Resumo:                                                   │
+│   • 4 documentos anexados (3 originais, 1 dividido)         │
+│   • Tempo de operação ativa: 2 min 40 s                    │
+│   • Assinado com certificado A1 do escritório              │
+│                                                            │
+│  [ log completo ]                    [ ◂ voltar ao painel ]│
+└───────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="4-detalhe-do-formulario-dinamico-t3">4. Detalhe do formulário dinâmico (T3)</h2>
+<p><strong>Cascata (a escolha de cima muda as opções de baixo — RF3):</strong>
+1. <strong>Matéria</strong> → filtra <strong>Jurisdição</strong> disponível.
+2. <strong>Jurisdição</strong> → filtra <strong>Classe judicial</strong>.
+3. <strong>Classe judicial</strong> → filtra <strong>Assunto</strong>.</p>
+<p><strong>Campos fixos por protocolo:</strong> autor (nome + CPF), valor da causa, tutela (sim/não).</p>
+<p><strong>Campos condicionais (marcar altera o que é exigido):</strong>
+- <strong>Pessoa física / jurídica</strong> → muda os campos de identificação da parte.
+- <strong>Assistência / assistente</strong> → habilita dados do assistente.
+- <strong>Justiça gratuita</strong> → marca o pedido de gratuidade.
+- <strong>Sigilo</strong> → marca o processo como sigiloso.
+- <strong>Informação pública</strong> → ajusta a visibilidade.</p>
+<p><strong>O que o modelo guarda:</strong> matéria, jurisdição, classe, assunto e as características marcadas (os campos que se repetem). <strong>O que nunca vem do modelo:</strong> autor, valor da causa, documentos (mudam a cada processo).</p>
+<hr />
+<h2 id="5-fora-desta-fase-telas-que-nao-entram-agora">5. Fora desta Fase (telas que NÃO entram agora)</h2>
+<ul>
+<li>Consulta de processos / baixar autos / manifestações.</li>
+<li>Perfis e permissões (advogado × estagiário).</li>
+<li>Painéis de outros tribunais.</li>
+<li>Configuração multiusuário.</li>
+</ul>
+<blockquote>
+<p>Estas telas estão mapeadas como Fase 2 apenas para orientar a arquitetura modular — não são construídas na Fase 1.</p>
+</blockquote></div>
+
+<div class="pagebreak"></div>
+<div class="sechead">Wireframes visuais (baixa fidelidade)</div>
+<div class="wrap">
+  <p class="legend">8 telas · fluxo: T1 Login → T2 Painel → T3 Formulário → (T4 Modelos) → T5 Documentos → T6 Revisão/Dry-run → T7 Execução → T8 Comprovante</p>
+  <div class="grid">
+
+    <!-- T1 -->
+    <div class="screen"><div class="bar"><span>Login / Certificado</span><span class="tag">T1</span></div>
+      <div class="body">
+        <div class="lbl">Certificado A1 (.pfx)</div>
+        <div class="fld">Selecionar arquivo…&nbsp; <span class="mut">cert.pfx</span></div>
+        <div class="lbl">Senha do certificado</div>
+        <div class="fld">••••••••••••</div>
+        <div style="height:14px"></div>
+        <div class="btn block">Autenticar no PJe/TRF1</div>
+        <div class="note">Sessão: ○ não conectado · A1 sobe no servidor; A3 (token) fica p/ Fase 2.</div>
+      </div>
+    </div>
+
+    <!-- T2 -->
+    <div class="screen"><div class="bar"><span>Painel / Lista de protocolos</span><span class="tag">T2</span></div>
+      <div class="body">
+        <div class="row" style="margin-bottom:8px">
+          <div class="btn">+ Novo Protocolo</div><div class="btn ghost">Modelos</div>
+          <div class="fld sel" style="flex:1.2">buscar</div>
+        </div>
+        <div class="list">
+          <div class="r"><span>Apelido</span><span>Tipo de ação</span><span>Autor</span><span>Status</span></div>
+          <div class="r"><span>Maria-mat.</span><span>Sal.-maternidade</span><span>M. Silva</span><span class="st ok">● Concl.</span></div>
+          <div class="r"><span>Joao-apos.</span><span>Aposentadoria</span><span>J. Souza</span><span class="st go">◐ Andam.</span></div>
+          <div class="r"><span>rasc-003</span><span class="mut">—</span><span class="mut">—</span><span class="st mut">○ Rascu.</span></div>
+          <div class="r"><span>Ana-mat.</span><span>Sal.-maternidade</span><span>A. Lima</span><span class="st er">✕ Erro</span></div>
+        </div>
+        <div class="note">Sessão PJe: ● conectada · clicar numa linha reabre no ponto onde parou (retomada).</div>
+      </div>
+    </div>
+
+    <!-- T3 -->
+    <div class="screen"><div class="bar"><span>Novo Protocolo — formulário dinâmico</span><span class="tag">T3</span></div>
+      <div class="body">
+        <div class="steps"><b>1 Formulário</b> › 2 Documentos › 3 Revisão › 4 Envio</div>
+        <div class="lbl">Iniciar de</div>
+        <div class="row"><div class="fld sel">Modelo: Salário-maternidade</div><div class="fld">○ em branco</div></div>
+        <div class="lbl">Matéria → Jurisdição → Classe → Assunto (encadeados)</div>
+        <div class="fld sel">Previdenciário</div>
+        <div class="row" style="margin-top:6px"><div class="fld sel">Seção Judiciária — Amapá</div><div class="fld sel">Proc. Comum Cível</div></div>
+        <div class="fld sel" style="margin-top:6px">Assunto: Salário-maternidade</div>
+        <div class="row" style="margin-top:8px"><div class="fld">Autor + CPF</div><div class="fld">R$ valor da causa</div></div>
+        <div style="margin-top:8px">
+          <span class="chip">☑ pessoa física</span><span class="chip">☑ justiça gratuita</span>
+          <span class="chip">☐ assistência</span><span class="chip">☐ sigilo</span>
+        </div>
+        <div class="row" style="margin-top:12px"><div class="btn ghost">💾 Salvar como modelo</div><div class="btn">Avançar ▸</div></div>
+      </div>
+    </div>
+
+    <!-- T4 -->
+    <div class="screen"><div class="bar"><span>Gestão de Modelos</span><span class="tag">T4</span></div>
+      <div class="body">
+        <div class="row" style="justify-content:flex-end;margin-bottom:6px"><div class="btn" style="flex:0 0 auto">+ Novo modelo</div></div>
+        <div class="list">
+          <div class="r"><span>Nome</span><span>Matéria / Assunto</span><span>Ações</span></div>
+          <div class="r"><span>Salário-maternidade</span><span>Prev. / Sal.-matern.</span><span class="mut">✎ ⧉ 🗑</span></div>
+          <div class="r"><span>Aposentadoria idade</span><span>Prev. / Aposentadoria</span><span class="mut">✎ ⧉ 🗑</span></div>
+          <div class="r"><span>BPC / LOAS</span><span>Prev. / Assist. social</span><span class="mut">✎ ⧉ 🗑</span></div>
+        </div>
+        <div class="note">Modelo = fotografia dos campos comuns. No protocolo muda só autor, valor da causa e documentos. Criado/editado pela interface — sem código.</div>
+      </div>
+    </div>
+
+    <!-- T5 -->
+    <div class="screen"><div class="bar"><span>Documentos</span><span class="tag">T5</span></div>
+      <div class="body">
+        <div class="steps">1 Formulário › <b>2 Documentos</b> › 3 Revisão › 4 Envio</div>
+        <div class="drop">⬆ Enviar arquivos · arraste PDFs aqui</div>
+        <div class="list">
+          <div class="r"><span>#</span><span>Arquivo</span><span>Tam.</span><span>Tratamento</span></div>
+          <div class="r"><span>⠿ 1</span><span>peticao-inicial.pdf</span><span>3,2 MB</span><span class="st ok">● OK</span></div>
+          <div class="r"><span>⠿ 2</span><span>procuracao.pdf</span><span>0,8 MB</span><span class="st ok">● OK</span></div>
+          <div class="r"><span>⠿ 3</span><span>provas.pdf</span><span>14,1 MB</span><span class="st go">◐ dividido</span></div>
+          <div class="r"><span>⠿ 4</span><span>laudo.pdf</span><span class="mut">—</span><span class="st er">✕ corrompido</span></div>
+        </div>
+        <div class="note">Arraste ⠿ p/ reordenar a anexação. PDF &gt;10 MB é dividido/comprimido automático; corrompido é barrado antes do envio (RF6).</div>
+        <div class="row" style="justify-content:flex-end;margin-top:8px"><div class="btn" style="flex:0 0 auto">Avançar ▸</div></div>
+      </div>
+    </div>
+
+    <!-- T6 -->
+    <div class="screen"><div class="bar"><span>Revisão / Dry-run</span><span class="tag">T6</span></div>
+      <div class="body">
+        <div class="steps">1 › 2 › <b>3 Revisão</b> › 4 Envio</div>
+        <div class="lbl">Vai ser enviado ao PJe/TRF1</div>
+        <div class="stack">
+          <div class="l">Classe: Proc. Comum Cível · Assunto: Sal.-maternidade</div>
+          <div class="l">Autor: Maria Silva · R$ 8.400,00 · justiça gratuita</div>
+          <div class="l">Docs (ordem): 1 petição · 2 procuração · 3-4 provas</div>
+        </div>
+        <div class="lbl">Modo</div>
+        <div class="row"><div class="fld">● Simulação (dry-run) — não envia</div><div class="fld">○ Protocolar de verdade</div></div>
+        <div class="lbl">Confirme digitando PROTOCOLAR</div>
+        <div class="fld"></div>
+        <div class="row" style="margin-top:10px"><div class="btn ghost">◂ Voltar</div><div class="btn">Simular / Protocolar</div></div>
+      </div>
+    </div>
+
+    <!-- T7 -->
+    <div class="screen"><div class="bar"><span>Execução / Progresso</span><span class="tag">T7</span></div>
+      <div class="body">
+        <div class="stack">
+          <div class="l"><span class="ok">✔</span> Login / sessão PJe</div>
+          <div class="l"><span class="ok">✔</span> Preenchimento do formulário</div>
+          <div class="l"><span class="go">◐</span> Assinatura (certificado A1)</div>
+        </div>
+        <div class="prog"><i></i></div>
+        <div class="stack">
+          <div class="l"><span class="mut">○</span> Anexação dos documentos</div>
+          <div class="l"><span class="mut">○</span> Envio / geração do comprovante</div>
+        </div>
+        <div class="note">log: assinando documento 2 de 4… · em caso de falha aqui → botão <b>Retomar</b> continua do ponto (RF10, sem duplicar).</div>
+      </div>
+    </div>
+
+    <!-- T8 -->
+    <div class="screen"><div class="bar"><span>Resultado / Comprovante</span><span class="tag">T8</span></div>
+      <div class="body">
+        <div class="big">✔ Protocolo concluído</div>
+        <div class="lbl">Nº do processo</div>
+        <div class="fld">1002xxx-xx.2026.4.01.3100</div>
+        <div class="row" style="margin-top:10px"><div class="btn ghost">⬇ baixar comprovante</div><div class="btn ghost">👁 visualizar</div></div>
+        <div class="lbl" style="margin-top:12px">Resumo</div>
+        <div class="stack">
+          <div class="l">4 documentos anexados (1 dividido automaticamente)</div>
+          <div class="l">Tempo de operação ativa: 2 min 40 s</div>
+          <div class="l">Assinado com o certificado A1 do escritório</div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <div class="btn ghost" style="flex:0 0 auto">log completo</div>
+          <div class="btn" style="flex:0 0 auto">◂ voltar ao painel</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="foot">EverGreen · wireframe de validação — Fase 1 (TRF1). Não representa identidade visual final.</div>
+</div>
+
+</body></html>

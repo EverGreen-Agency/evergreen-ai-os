@@ -1,0 +1,19 @@
+{
+  "squad": "eg_engenharia",
+  "status": "completed",
+  "step": { "current": 3, "total": 3, "label": "entregue (spec + ADRs + telas + protótipo)" },
+  "agents": [
+    { "id": "especificador", "name": "Especificador", "icon": "📋", "status": "done", "desk": { "col": 1, "row": 1 } },
+    { "id": "arquiteto_decisor", "name": "Arquiteto", "icon": "🏛️", "status": "done", "desk": { "col": 2, "row": 1 } },
+    { "id": "scaffolder", "name": "Scaffolder", "icon": "🏗️", "status": "done", "desk": { "col": 3, "row": 1 } }
+  ],
+  "handoff": {
+    "from": "especificador",
+    "to": "especificador",
+    "message": "Pacote Fase 1 entregue: documento de contrato, spec, 5 ADRs, telas/fluxos, wireframes, PDF e protótipo navegável.",
+    "completedAt": "2026-07-02T16:05:00-03:00"
+  },
+  "startedAt": "2026-07-02T11:29:29-03:00",
+  "updatedAt": "2026-07-02T16:05:00-03:00",
+  "completedAt": "2026-07-02T16:05:00-03:00"
+}
