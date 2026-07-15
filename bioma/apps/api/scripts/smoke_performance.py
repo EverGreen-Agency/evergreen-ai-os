@@ -34,7 +34,9 @@ def main() -> None:
 
     clients = admin.get("/clients")
     assert_status(clients, 200, "listar clientes")
-    hm_client_id = clients.json()[0]["id"]
+    hm_client_id = next(
+        row["id"] for row in clients.json() if row["organization_slug"] == "hm-conexoes"
+    )
 
     period = {"date_from": "2026-07-01", "date_to": "2026-07-31"}
     overview = admin.get(f"/clients/{hm_client_id}/performance", params=period)
@@ -44,8 +46,25 @@ def main() -> None:
     assert overview_body["daily"]
     assert overview_body["freshness"]
 
+    # Feature-gating (decisão 2026-07-14): analytics vem desabilitado por
+    # default para client_user; o EG admin habilita por cliente.
+    gated_overview = client_user.get(f"/clients/{hm_client_id}/performance", params=period)
+    assert_status(gated_overview, 403, "overview cliente bloqueado por default")
+
+    enable_analytics = admin.patch(
+        f"/clients/{hm_client_id}",
+        json={"enabled_modules": ["hub", "content", "files", "analytics"]},
+    )
+    assert_status(enable_analytics, 200, "habilitar módulo analytics")
+
     client_overview = client_user.get(f"/clients/{hm_client_id}/performance", params=period)
-    assert_status(client_overview, 200, "overview cliente")
+    assert_status(client_overview, 200, "overview cliente com módulo habilitado")
+
+    revert_modules = admin.patch(
+        f"/clients/{hm_client_id}",
+        json={"enabled_modules": ["hub", "content", "files"]},
+    )
+    assert_status(revert_modules, 200, "reverter módulos ao default")
 
     endpoints = (
         ("google-ads/campaigns", "campanhas", period),

@@ -1,12 +1,12 @@
-import { FormEvent } from "react";
-import { Building2, Plus, Save, FileText, CalendarCheck } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, UserPlus } from "lucide-react";
 import { DockTitle } from "./shared";
-import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
+import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCreateClient, useUpdateClient, useCreateArtifact, useCreateDeliverable } from "../hooks/useBiomaApi";
-import type { ClientStatus, DeliverableStatus, ArtifactPayload } from "../lib/api";
+import { useCreateClient, useUpdateClient, useCreateArtifact, useCreateDeliverable, useCreateInvite } from "../hooks/useBiomaApi";
+import type { ClientModule, ClientStatus, ClientSummary, DeliverableStatus, ArtifactPayload } from "../lib/api";
 
-export function AdminDock({ selectedClient }: { selectedClient: any }) {
+export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | null }) {
   const {
     selectedClientId,
     actionBusy,
@@ -24,10 +24,61 @@ export function AdminDock({ selectedClient }: { selectedClient: any }) {
   const updateClient = useUpdateClient();
   const createArtifact = useCreateArtifact();
   const createDeliverable = useCreateDeliverable();
+  const createInvite = useCreateInvite();
+
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviteCopied, setInviteCopied] = useState(false);
+
+  // Pré-preenche o formulário de edição com o cliente selecionado.
+  useEffect(() => {
+    setInviteLink("");
+    setInviteCopied(false);
+    if (!selectedClient) return;
+    setClientDraft({
+      name: selectedClient.name,
+      organization_name: selectedClient.organization_name,
+      status: selectedClient.status,
+      responsible_name: selectedClient.responsible_name ?? "",
+      clickup_folder_id: selectedClient.clickup_folder_id ?? "",
+      enabled_modules: selectedClient.enabled_modules,
+    });
+  }, [selectedClient, setClientDraft]);
 
   const handleCreateClient = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     createClient.mutate(newClientDraft);
+  };
+
+  const handleCreateInvite = () => {
+    if (!selectedClientId) return;
+    createInvite.mutate(
+      { clientId: selectedClientId, email: inviteEmail.trim() || null },
+      {
+        onSuccess: (invite) => {
+          setInviteLink(`${window.location.origin}${invite.path}`);
+          setInviteCopied(false);
+          setInviteEmail("");
+        },
+      },
+    );
+  };
+
+  const handleCopyInvite = async () => {
+    if (!inviteLink) return;
+    await navigator.clipboard.writeText(inviteLink);
+    setInviteCopied(true);
+  };
+
+  const toggleModule = (module: ClientModule) => {
+    const current = new Set(clientDraft.enabled_modules ?? selectedClient?.enabled_modules ?? []);
+    if (current.has(module)) {
+      current.delete(module);
+    } else {
+      current.add(module);
+    }
+    current.add("hub");
+    setClientDraft({ ...clientDraft, enabled_modules: Array.from(current) });
   };
 
   const handleUpdateClient = (event: FormEvent<HTMLFormElement>) => {
@@ -126,11 +177,56 @@ export function AdminDock({ selectedClient }: { selectedClient: any }) {
               />
             </label>
           </div>
+          <fieldset className="module-fieldset">
+            <legend>Módulos habilitados para o cliente</legend>
+            <div className="module-grid">
+              {toggleableModules.map((module) => {
+                const active = (clientDraft.enabled_modules ?? selectedClient.enabled_modules ?? []).includes(module);
+                return (
+                  <label className="module-toggle" key={module}>
+                    <input type="checkbox" checked={active} onChange={() => toggleModule(module)} />
+                    {moduleLabels[module]}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
           <button className="secondary-button" type="submit" disabled={isBusy}>
             <Save size={16} />
             Salvar cliente
           </button>
         </form>
+      )}
+
+      {selectedClient && selectedClientId && (
+        <div className="dock-panel">
+          <DockTitle icon={UserPlus} title="Convidar usuário do cliente" />
+          <p className="panel-footnote" style={{ margin: 0 }}>
+            Gera um link de uso único (expira em 7 dias). Envie por WhatsApp; a pessoa define a própria senha.
+          </p>
+          <label className="form-grid">
+            E-mail (opcional, restringe o convite)
+            <input
+              value={inviteEmail}
+              onChange={(event) => setInviteEmail(event.target.value)}
+              type="email"
+              placeholder="pessoa@cliente.com.br"
+            />
+          </label>
+          <button className="primary-button" type="button" onClick={handleCreateInvite} disabled={createInvite.isPending}>
+            <UserPlus size={16} />
+            {createInvite.isPending ? "Gerando..." : "Gerar link de convite"}
+          </button>
+          {inviteLink && (
+            <div className="invite-link-row">
+              <input readOnly value={inviteLink} onFocus={(event) => event.target.select()} aria-label="Link de convite" />
+              <button className="ghost-button dark" type="button" onClick={handleCopyInvite}>
+                {inviteCopied ? <Check size={15} /> : <Copy size={15} />}
+                {inviteCopied ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {selectedClientId && (

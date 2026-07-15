@@ -3,6 +3,8 @@ export type ApiHealth = {
   checked_at: string;
 };
 
+export type ClientModule = "hub" | "content" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
+
 export type CurrentUser = {
   id: string;
   email: string;
@@ -12,6 +14,7 @@ export type CurrentUser = {
     name: string;
     slug: string;
     role: "eg_admin" | "client_user";
+    enabled_modules: ClientModule[];
   }>;
 };
 
@@ -26,6 +29,7 @@ export type ClientSummary = {
   status: ClientStatus;
   responsible_name: string | null;
   clickup_folder_id: string | null;
+  enabled_modules: ClientModule[];
   deliverables_total: number;
   approvals_pending: number;
   artifacts_client: number;
@@ -287,6 +291,36 @@ export type ClientPayload = {
   status?: ClientStatus;
   responsible_name?: string | null;
   clickup_folder_id?: string | null;
+  enabled_modules?: ClientModule[];
+};
+
+export type InviteCreated = {
+  id: string;
+  token: string;
+  path: string;
+  email: string | null;
+  expires_at: string;
+};
+
+export type InviteSummary = {
+  id: string;
+  email: string | null;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+};
+
+export type InvitePublicInfo = {
+  client_name: string;
+  organization_name: string;
+  email: string | null;
+  expires_at: string;
+};
+
+export type InviteAcceptPayload = {
+  display_name: string;
+  email: string;
+  password: string;
 };
 
 export type ArtifactPayload = {
@@ -434,6 +468,20 @@ export const api = {
     request<GscQuerySummary[]>(`/clients/${clientId}/performance/search-console/queries`),
   gtmSnapshots: (clientId: string) =>
     request<GtmSnapshotSummary[]>(`/clients/${clientId}/performance/gtm/snapshots`),
+  createInvite: (clientId: string, email?: string | null) =>
+    request<InviteCreated>(`/clients/${clientId}/invites`, {
+      method: "POST",
+      body: JSON.stringify({ email: email || null }),
+    }),
+  listInvites: (clientId: string) => request<InviteSummary[]>(`/clients/${clientId}/invites`),
+  revokeInvite: (clientId: string, inviteId: string) =>
+    request<InviteSummary[]>(`/clients/${clientId}/invites/${inviteId}`, { method: "DELETE" }),
+  inviteInfo: (token: string) => request<InvitePublicInfo>(`/auth/invites/${token}`),
+  acceptInvite: (token: string, payload: InviteAcceptPayload) =>
+    request<{ user: CurrentUser; expires_at: string }>(`/auth/invites/${token}/accept`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
   uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {
     const formData = new FormData();

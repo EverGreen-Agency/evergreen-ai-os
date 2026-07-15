@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from bioma_api.domain.models import Role
 
@@ -16,6 +16,7 @@ class OrganizationSummary(BaseModel):
     name: str
     slug: str
     role: Role
+    enabled_modules: list[str] = Field(default_factory=list)
 
 
 class CurrentUserResponse(BaseModel):

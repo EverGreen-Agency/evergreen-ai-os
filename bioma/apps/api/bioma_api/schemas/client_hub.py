@@ -23,6 +23,7 @@ class ClientSummary(BaseModel):
     status: ClientStatus
     responsible_name: str | None = None
     clickup_folder_id: str | None = None
+    enabled_modules: list[str] = []
     deliverables_total: int
     approvals_pending: int
     artifacts_client: int
@@ -98,6 +99,7 @@ class ClientUpdateRequest(BaseModel):
     status: ClientStatus | None = None
     responsible_name: str | None = None
     clickup_folder_id: str | None = None
+    enabled_modules: list[str] | None = None
 
 
 class ArtifactCreateRequest(BaseModel):

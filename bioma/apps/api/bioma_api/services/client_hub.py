@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
+from bioma_api.access import CLIENT_MODULES, require_client_module
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.integrations.clickup import sync_clickup_folder
@@ -99,6 +100,17 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
         client_hub_repo.update_client(conn, client_id, client_updates)
         if "organization_name" in updates:
             client_hub_repo.update_organization_name(conn, client["organization_id"], updates["organization_name"])
+        if updates.get("enabled_modules") is not None:
+            requested = set(updates["enabled_modules"])
+            invalid = requested - set(CLIENT_MODULES)
+            if invalid:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Módulos desconhecidos: {', '.join(sorted(invalid))}.",
+                )
+            # Hub é o núcleo do portal do cliente; não pode ser desabilitado.
+            modules = [module for module in CLIENT_MODULES if module in requested | {"hub"}]
+            client_hub_repo.update_organization_modules(conn, client["organization_id"], modules)
         client_hub_repo.write_audit(
             conn,
             user.id,
@@ -344,7 +356,7 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
 
 def list_leads(client_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         rows = client_hub_repo.list_leads(conn, client["organization_id"])
     return [LeadSummary(**row) for row in rows]
 
@@ -353,7 +365,7 @@ def create_lead(client_id: UUID, payload: LeadCreateRequest, user: CurrentUserRe
     lead_data = payload.model_dump()
     _require_non_empty(lead_data.get("name"), "Nome do lead é obrigatório.")
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         lead_id = client_hub_repo.create_lead(conn, client["organization_id"], lead_data)
         client_hub_repo.write_audit(
             conn,
@@ -373,7 +385,7 @@ def update_lead(
 ) -> list[LeadSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         if not client_hub_repo.update_lead(conn, client["organization_id"], lead_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
         client_hub_repo.write_audit(
@@ -388,7 +400,7 @@ def update_lead(
 
 def delete_lead(client_id: UUID, lead_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         if not client_hub_repo.delete_lead(conn, client["organization_id"], lead_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
         client_hub_repo.write_audit(
@@ -403,7 +415,7 @@ def delete_lead(client_id: UUID, lead_id: UUID, user: CurrentUserResponse) -> li
 
 def list_financial_records(client_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         rows = client_hub_repo.list_financial_records(conn, client["organization_id"])
     return [FinancialRecordSummary(**row) for row in rows]
 
@@ -416,7 +428,7 @@ def create_financial_record(
     record_data = payload.model_dump()
     _require_non_empty(record_data.get("title"), "Título financeiro é obrigatório.")
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         record_id = client_hub_repo.create_financial_record(conn, client["organization_id"], record_data)
         client_hub_repo.write_audit(
             conn,
@@ -436,7 +448,7 @@ def update_financial_record(
 ) -> list[FinancialRecordSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         if not client_hub_repo.update_financial_record(conn, client["organization_id"], record_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
         client_hub_repo.write_audit(
@@ -451,7 +463,7 @@ def update_financial_record(
 
 def delete_financial_record(client_id: UUID, record_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "commercial")
         if not client_hub_repo.delete_financial_record(conn, client["organization_id"], record_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
         client_hub_repo.write_audit(
@@ -466,7 +478,7 @@ def delete_financial_record(client_id: UUID, record_id: UUID, user: CurrentUserR
 
 def list_performance_metrics(client_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "analytics")
         rows = client_hub_repo.list_performance_metrics(conn, client["organization_id"])
     return [PerformanceMetricSummary(**row) for row in rows]
 
@@ -478,7 +490,7 @@ def create_performance_metric(
 ) -> list[PerformanceMetricSummary]:
     metric_data = payload.model_dump()
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "analytics")
         metric_id = client_hub_repo.create_performance_metric(conn, client["organization_id"], metric_data)
         client_hub_repo.write_audit(
             conn,
@@ -498,7 +510,7 @@ def update_performance_metric(
 ) -> list[PerformanceMetricSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "analytics")
         if not client_hub_repo.update_performance_metric(conn, client["organization_id"], metric_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
         client_hub_repo.write_audit(
@@ -513,7 +525,7 @@ def update_performance_metric(
 
 def delete_performance_metric(client_id: UUID, metric_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "analytics")
         if not client_hub_repo.delete_performance_metric(conn, client["organization_id"], metric_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
         client_hub_repo.write_audit(
@@ -583,9 +595,11 @@ def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
     return "planned"
 
 
-def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, module: str | None = None):
     is_admin = _is_platform_admin(user)
     client = client_hub_repo.find_accessible_client(conn, client_id, is_admin, user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+    if module:
+        require_client_module(client, user, module)
     return client

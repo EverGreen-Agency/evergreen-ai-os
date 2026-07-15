@@ -1,9 +1,10 @@
-import { FormEvent, Suspense, lazy, useEffect, useState } from "react";
+import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { LogOut, Search } from "lucide-react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { navItems } from "./lib/app-config";
+import { enabledModulesFor, navItems, viewModule } from "./lib/app-config";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
+import { InviteView } from "./views/InviteView";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { APP_VERSION } from "./lib/version";
 import { useUiStore } from "./store/uiStore";
@@ -55,7 +56,7 @@ export function App() {
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
 
   useEffect(() => {
-    if (!user && location.pathname !== "/") {
+    if (!user && location.pathname !== "/" && !location.pathname.startsWith("/convite/")) {
       routerNavigate("/");
     }
   }, [user, location.pathname, routerNavigate]);
@@ -122,17 +123,32 @@ export function App() {
     });
   }
 
+  const enabledModules = enabledModulesFor(user, isEgAdmin);
+  const visibleNavItems = navItems.filter((item) => enabledModules.has(viewModule[item.id]));
+
+  function guard(view: (typeof navItems)[number]["id"], element: ReactNode) {
+    return enabledModules.has(viewModule[view]) ? element : <Navigate to="/" replace />;
+  }
+
   if (!user) {
     return (
-      <LoginView
-        email={email}
-        password={password}
-        loginError={loginError}
-        apiOnline={apiOnline}
-        onEmailChange={setEmail}
-        onPasswordChange={setPassword}
-        onSubmit={handleLogin}
-      />
+      <Routes>
+        <Route path="/convite/:token" element={<InviteView />} />
+        <Route
+          path="*"
+          element={
+            <LoginView
+              email={email}
+              password={password}
+              loginError={loginError}
+              apiOnline={apiOnline}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSubmit={handleLogin}
+            />
+          }
+        />
+      </Routes>
     );
   }
 
@@ -150,7 +166,7 @@ export function App() {
         </div>
 
         <nav className="nav-list">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const path = item.id === "cockpit" ? "/" : `/${item.id}`;
             const isActive = location.pathname === path || (item.id !== "cockpit" && location.pathname.startsWith(path));
@@ -187,42 +203,43 @@ export function App() {
         <Routes>
           <Route path="/" element={<CockpitView />} />
 
-          <Route path="/clientes" element={
+          <Route path="/clientes" element={guard("clientes",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ClientsView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
-          <Route path="/conteudo" element={
+          <Route path="/conteudo" element={guard("conteudo",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ContentView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
-          <Route path="/comercial" element={
+          <Route path="/comercial" element={guard("comercial",
             <Suspense fallback={<ViewLoadingFallback />}>
               <OperationsView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
-          <Route path="/integracoes" element={
+          <Route path="/integracoes" element={guard("integracoes",
             <Suspense fallback={<ViewLoadingFallback />}>
               <IntegrationsView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
-          <Route path="/engenharia" element={
+          <Route path="/engenharia" element={guard("engenharia",
             <Suspense fallback={<ViewLoadingFallback />}>
               <EngineeringView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
-          <Route path="/analytics" element={
+          <Route path="/analytics" element={guard("analytics",
             <Suspense fallback={<ViewLoadingFallback />}>
               <AnalyticsView />
-            </Suspense>
-          } />
+            </Suspense>,
+          )} />
 
+          <Route path="/convite/:token" element={<InviteView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>

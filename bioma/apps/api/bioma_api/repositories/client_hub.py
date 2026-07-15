@@ -51,8 +51,9 @@ def get_client_summary(conn, client_id: UUID, is_admin: bool, user_id: UUID):
 def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
-        select c.id, c.organization_id, c.clickup_folder_id
+        select c.id, c.organization_id, c.clickup_folder_id, o.enabled_modules
         from clients c
+        join organizations o on o.id = c.organization_id
         where c.id = %s
         """ + _client_access_filter(),
         (client_id, is_admin, user_id),
@@ -174,6 +175,13 @@ def update_organization_name(conn, organization_id: UUID, name: str) -> None:
     conn.execute(
         "update organizations set name = %s, updated_at = now() where id = %s",
         (name, organization_id),
+    )
+
+
+def update_organization_modules(conn, organization_id: UUID, modules: list[str]) -> None:
+    conn.execute(
+        "update organizations set enabled_modules = %s, updated_at = now() where id = %s",
+        (Jsonb(modules), organization_id),
     )
 
 
@@ -608,6 +616,7 @@ def _client_summary_sql(extra_where: str = "") -> str:
           c.status,
           c.responsible_name,
           c.clickup_folder_id,
+          o.enabled_modules,
           count(distinct d.id)::int as deliverables_total,
           count(distinct a.id) filter (where a.status = 'pending')::int as approvals_pending,
           count(distinct ar.id) filter (where ar.visibility = 'client')::int as artifacts_client

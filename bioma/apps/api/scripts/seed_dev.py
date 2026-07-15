@@ -308,6 +308,17 @@ def main() -> None:
         eg_id = upsert_org(conn, "EverGreen", "eg", "eg")
         hm_id = upsert_org(conn, "HM Conexões Poderosas", "hm-conexoes", "client")
 
+        # A org EG opera a plataforma: todos os módulos habilitados
+        # (clientes ficam no default hub/content/files da migration 0005).
+        conn.execute(
+            """
+            update organizations
+            set enabled_modules = '["hub", "content", "files", "commercial", "analytics", "integrations", "engineering"]'::jsonb
+            where id = %s
+            """,
+            (eg_id,),
+        )
+
         admin_id = upsert_user(conn, "eduardo@evergreengrowth.com.br", "Eduardo EG")
         client_id = upsert_user(conn, "henrique@hmconexoes.com.br", "Henrique Miranda")
 

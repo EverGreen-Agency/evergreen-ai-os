@@ -1,6 +1,6 @@
 import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, WalletCards, type LucideIcon } from "lucide-react";
 
-import type { ArtifactPayload, ClientPayload, ClientStatus, DeliverablePayload, DeliverableStatus } from "./api";
+import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
 export type ViewId = "cockpit" | "clientes" | "comercial" | "conteudo" | "integracoes" | "engenharia" | "analytics";
 
@@ -13,6 +13,46 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "integracoes", label: "Integrações", icon: GitBranch },
   { id: "engenharia", label: "Engenharia", icon: FileText },
 ];
+
+// Feature-gating por organização (decisão 2026-07-14): cada view exige um
+// módulo habilitado; EG admin enxerga tudo, client_user só o que a org tem.
+export const viewModule: Record<ViewId, ClientModule> = {
+  cockpit: "hub",
+  clientes: "hub",
+  comercial: "commercial",
+  conteudo: "content",
+  analytics: "analytics",
+  integracoes: "integrations",
+  engenharia: "engineering",
+};
+
+export const moduleLabels: Record<ClientModule, string> = {
+  hub: "Hub do cliente",
+  content: "Conteúdo",
+  files: "Arquivos",
+  commercial: "Comercial",
+  analytics: "Analytics",
+  integrations: "Integrações",
+  engineering: "Engenharia",
+};
+
+// Módulos que o EG admin pode ligar/desligar por cliente ("hub" é o núcleo,
+// sempre ativo — o backend força isso também).
+export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "analytics", "integrations", "engineering"];
+
+export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
+  if (isEgAdmin) {
+    return new Set<ClientModule>(["hub", "content", "files", "commercial", "analytics", "integrations", "engineering"]);
+  }
+  const modules = new Set<ClientModule>();
+  for (const organization of user?.organizations ?? []) {
+    for (const module of organization.enabled_modules ?? []) {
+      modules.add(module);
+    }
+  }
+  modules.add("hub");
+  return modules;
+}
 
 export const statusLabel: Record<ClientStatus, string> = {
   onboarding: "Onboarding",

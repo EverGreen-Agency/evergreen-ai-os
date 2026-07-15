@@ -34,7 +34,7 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
 
         memberships = conn.execute(
             """
-            select o.id, o.name, o.slug, m.role
+            select o.id, o.name, o.slug, m.role, o.enabled_modules
             from memberships m
             join organizations o on o.id = m.organization_id
             where m.user_id = %s

@@ -178,6 +178,14 @@ export function useLogout() {
   });
 }
 
+// --- INVITES ---
+
+export function useCreateInvite() {
+  return useMutation({
+    mutationFn: ({ clientId, email }: { clientId: string; email?: string | null }) => api.createInvite(clientId, email),
+  });
+}
+
 // --- LEADS ---
 
 export function useLeads(clientId: string | null) {

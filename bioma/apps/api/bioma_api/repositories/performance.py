@@ -8,8 +8,9 @@ from psycopg.types.json import Jsonb
 def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
-        select c.id, c.organization_id
+        select c.id, c.organization_id, o.enabled_modules
         from clients c
+        join organizations o on o.id = c.organization_id
         where c.id = %s
           and (%s or c.organization_id in (
             select organization_id from memberships where user_id = %s
