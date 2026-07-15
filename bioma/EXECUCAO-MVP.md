@@ -49,7 +49,8 @@ Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
 | WEB-FIN-001 | DONE | Frontend | Tela financeira consumindo contratos/faturas existentes | CORE-002 | build + CRUD financeiro |
 | WEB-PERF-001 | DONE | Frontend | Analytics consumir overview real de Performance | CORE-001 | build + dados seed marcados demo |
 | WEB-PERF-002 | DONE | Frontend | Páginas Ads, GA4, GSC e GTM | WEB-PERF-001 | build + estados vazio/erro/freshness |
-| AUTH-001 | TODO | Full-stack | EG admin cria/convida usuário cliente | DPL-004 | smoke de convite + isolamento |
+| AUTH-001 | DONE | Full-stack | EG admin cria/convida usuário cliente (link copiável) | DPL-004 | smoke de convite + isolamento |
+| GATE-001 | DONE | Full-stack | Feature-gating de módulos por organização + preparo white-label (`parent_organization_id`) | AUTH-001 | smoke de gating (403/200 por módulo) |
 | AUTH-002 | TODO | Full-stack | Fluxo seguro de recuperação/rotação de senha | AUTH-001 | token expirável + teste |
 | FILE-001 | DONE | Full-stack | Upload/storage de documentos com visibilidade por cliente | AUTH-001 | upload, leitura autorizada e exclusão |
 | WEB-BUNDLE-001 | DONE | Frontend | Dividir bundle principal e lazy-load de views | WEB-PERF-002 | build sem chunk principal > 500 kB |
@@ -84,7 +85,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | DB-001 | TODO | Backend/Operação | Medir conexões e decidir pool Postgres | SEC-004 | relatório de carga e limite |
 | OPS-001 | BLOCKED | Operação | Backup diário + teste de restore | DPL-005 | restore drill documentado |
 | QA-001 | BLOCKED | Humano/QA | Assinar desktop, DevTools e mobile | DPL-006 | checklist no roadmap |
-| LGPD-001 | TODO | Jurídico/Produto | Mapa de dados, DPA, retenção e subprocessadores | DPL-005 | checklist aprovado |
+| LGPD-001 | DOING | Jurídico/Produto | Mapa de dados, DPA, retenção e subprocessadores (rascunho em `bioma/LGPD-001.md`; gate do piloto) | nenhuma | checklist aprovado e assinado |
 
 ### Onda 4 — Produção
 
