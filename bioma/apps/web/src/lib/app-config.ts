@@ -7,7 +7,6 @@ export type ViewId =
   | "clientes"
   | "comercial"
   | "conteudo"
-  | "integracoes"
   | "engenharia"
   | "analytics"
   | "eg-office"
@@ -23,7 +22,6 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "comercial", label: "Comercial", icon: WalletCards },
   { id: "conteudo", label: "Conteúdo", icon: BookOpen },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "integracoes", label: "Integrações", icon: GitBranch },
   { id: "engenharia", label: "Engenharia", icon: FileText },
   
   // Rotas Internas EG (Administrativas)
@@ -41,7 +39,6 @@ export const viewModule: Record<ViewId, ClientModule> = {
   comercial: "commercial",
   conteudo: "content",
   analytics: "analytics",
-  integracoes: "integrations",
   engenharia: "engineering",
   // Rotas internas não devem depender de módulos de cliente,
   // mas para obedecer à tipagem sem erro, colocamos hub.

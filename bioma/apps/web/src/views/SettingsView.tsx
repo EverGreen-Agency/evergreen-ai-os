@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
-import { KeyRound, ShieldCheck, User, Building2 } from "lucide-react";
+import { KeyRound, ShieldCheck, User, Building2, GitBranch } from "lucide-react";
+import { IntegrationsTab } from "../components/IntegrationsTab";
 import { api } from "../lib/api";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { SectionHeader } from "../components/shared";
@@ -7,7 +8,7 @@ import { SectionHeader } from "../components/shared";
 export function SettingsView() {
   const { data: user } = useCurrentUser();
   
-  const [activeTab, setActiveTab] = useState<"user" | "company">("user");
+  const [activeTab, setActiveTab] = useState<"user" | "company" | "integrations">("user");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -67,9 +68,18 @@ export function SettingsView() {
           <button 
             className={`tab-item ${activeTab === "company" ? "active" : ""}`}
             onClick={() => setActiveTab("company")}
-            style={{ padding: "8px 16px", background: activeTab === "company" ? "var(--brand-accent)" : "transparent", color: activeTab === "company" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+            style={{ padding: "8px 16px", background: activeTab === "company" ? "var(--brand-accent)" : "transparent", color: activeTab === "company" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600, marginRight: "8px" }}
           >
             Perfil da Empresa
+          </button>
+        )}
+        {isEgAdmin && (
+          <button 
+            className={`tab-item ${activeTab === "integrations" ? "active" : ""}`}
+            onClick={() => setActiveTab("integrations")}
+            style={{ padding: "8px 16px", background: activeTab === "integrations" ? "var(--brand-accent)" : "transparent", color: activeTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+          >
+            Integrações
           </button>
         )}
       </div>
@@ -162,6 +172,12 @@ export function SettingsView() {
               </div>
             </div>
           </article>
+        </div>
+      )}
+
+      {activeTab === "integrations" && isEgAdmin && (
+        <div className="profile-content">
+          <IntegrationsTab />
         </div>
       )}
     </section>

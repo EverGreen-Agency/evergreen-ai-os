@@ -22,7 +22,6 @@ import { emptyArtifactDraft } from "./lib/app-config";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
 const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
-const IntegrationsView = lazy(() => import("./views/IntegrationsView").then((module) => ({ default: module.IntegrationsView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
@@ -204,12 +203,6 @@ export function App() {
           <Route path="/comercial" element={guard("comercial",
             <Suspense fallback={<ViewLoadingFallback />}>
               <OperationsView />
-            </Suspense>,
-          )} />
-
-          <Route path="/integracoes" element={guard("integracoes",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <IntegrationsView />
             </Suspense>,
           )} />
 
