@@ -8,7 +8,8 @@ import { SectionHeader } from "../components/shared";
 export function SettingsView() {
   const { data: user } = useCurrentUser();
   
-  const [activeTab, setActiveTab] = useState<"user" | "company" | "integrations">("user");
+  const [activeTab, setActiveTab] = useState<"user" | "company">("user");
+  const [activeSubTab, setActiveSubTab] = useState<"general" | "integrations">("general");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -71,15 +72,6 @@ export function SettingsView() {
             style={{ padding: "8px 16px", background: activeTab === "company" ? "var(--brand-accent)" : "transparent", color: activeTab === "company" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600, marginRight: "8px" }}
           >
             Perfil da Empresa
-          </button>
-        )}
-        {isEgAdmin && (
-          <button 
-            className={`tab-item ${activeTab === "integrations" ? "active" : ""}`}
-            onClick={() => setActiveTab("integrations")}
-            style={{ padding: "8px 16px", background: activeTab === "integrations" ? "var(--brand-accent)" : "transparent", color: activeTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
-          >
-            Integrações
           </button>
         )}
       </div>
@@ -147,7 +139,23 @@ export function SettingsView() {
 
       {activeTab === "company" && isEgAdmin && (
         <div className="profile-content">
-          <article className="surface profile-section" style={{ gridColumn: "1 / -1" }}>
+          <div style={{ display: "flex", gap: "16px", marginBottom: "24px", borderBottom: "1px solid var(--border-light)", paddingBottom: "16px" }}>
+            <button
+              onClick={() => setActiveSubTab("general")}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "general" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "general" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "general" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
+            >
+              Geral
+            </button>
+            <button
+              onClick={() => setActiveSubTab("integrations")}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "integrations" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "integrations" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
+            >
+              Integrações MCP
+            </button>
+          </div>
+
+          {activeSubTab === "general" && (
+            <article className="surface profile-section" style={{ gridColumn: "1 / -1" }}>
             <div className="surface-header">
               <Building2 size={18} />
               <h3>EverGreen</h3>
@@ -172,12 +180,11 @@ export function SettingsView() {
               </div>
             </div>
           </article>
-        </div>
-      )}
+          )}
 
-      {activeTab === "integrations" && isEgAdmin && (
-        <div className="profile-content">
-          <IntegrationsTab />
+          {activeSubTab === "integrations" && (
+            <IntegrationsTab />
+          )}
         </div>
       )}
     </section>
