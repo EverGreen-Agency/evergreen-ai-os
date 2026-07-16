@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from bioma_api.config import get_settings
-from bioma_api.routers import auth, client_hub, files, health, invites, passwords, performance
+from bioma_api.routers import auth, client_hub, files, health, invites, passwords, performance, admin_legacy
 
 
 settings = get_settings()
@@ -33,6 +33,7 @@ app.include_router(invites.admin_router)
 app.include_router(performance.router)
 app.include_router(files.router)
 app.include_router(health.router)
+app.include_router(admin_legacy.router)
 
 
 @app.get("/")
