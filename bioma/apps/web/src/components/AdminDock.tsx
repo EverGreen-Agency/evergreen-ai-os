@@ -1,9 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, UserPlus } from "lucide-react";
+import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus } from "lucide-react";
 import { DockTitle } from "./shared";
 import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
 import { useCreateClient, useUpdateClient, useCreateArtifact, useCreateDeliverable, useCreateInvite } from "../hooks/useBiomaApi";
+import { api } from "../lib/api";
 import type { ClientModule, ClientStatus, ClientSummary, DeliverableStatus, ArtifactPayload } from "../lib/api";
 
 export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | null }) {
@@ -29,6 +30,12 @@ export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [inviteCopied, setInviteCopied] = useState(false);
+
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLink, setResetLink] = useState("");
+  const [resetCopied, setResetCopied] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
 
   // Pré-preenche o formulário de edição com o cliente selecionado.
   useEffect(() => {
@@ -68,6 +75,28 @@ export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | 
     if (!inviteLink) return;
     await navigator.clipboard.writeText(inviteLink);
     setInviteCopied(true);
+  };
+
+  const handleCreateReset = async () => {
+    if (!resetEmail.trim()) return;
+    setResetError("");
+    setResetBusy(true);
+    try {
+      const reset = await api.createPasswordReset(resetEmail.trim());
+      setResetLink(`${window.location.origin}${reset.path}`);
+      setResetCopied(false);
+      setResetEmail("");
+    } catch (err) {
+      setResetError(err instanceof Error ? err.message : "Não foi possível gerar o link.");
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
+  const handleCopyReset = async () => {
+    if (!resetLink) return;
+    await navigator.clipboard.writeText(resetLink);
+    setResetCopied(true);
   };
 
   const toggleModule = (module: ClientModule) => {
@@ -228,6 +257,36 @@ export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | 
           )}
         </div>
       )}
+
+      <div className="dock-panel">
+        <DockTitle icon={KeyRound} title="Redefinir senha de usuário" />
+        <p className="panel-footnote" style={{ margin: 0 }}>
+          Gera um link de uso único (expira em 2 horas) que encerra as sessões antigas do usuário. Envie por WhatsApp.
+        </p>
+        <label className="form-grid">
+          E-mail do usuário
+          <input
+            value={resetEmail}
+            onChange={(event) => setResetEmail(event.target.value)}
+            type="email"
+            placeholder="pessoa@cliente.com.br"
+          />
+        </label>
+        {resetError && <span className="form-error">{resetError}</span>}
+        <button className="primary-button" type="button" onClick={handleCreateReset} disabled={resetBusy || !resetEmail.trim()}>
+          <KeyRound size={16} />
+          {resetBusy ? "Gerando..." : "Gerar link de redefinição"}
+        </button>
+        {resetLink && (
+          <div className="invite-link-row">
+            <input readOnly value={resetLink} onFocus={(event) => event.target.select()} aria-label="Link de redefinição" />
+            <button className="ghost-button dark" type="button" onClick={handleCopyReset}>
+              {resetCopied ? <Check size={15} /> : <Copy size={15} />}
+              {resetCopied ? "Copiado" : "Copiar"}
+            </button>
+          </div>
+        )}
+      </div>
 
       {selectedClientId && (
         <>

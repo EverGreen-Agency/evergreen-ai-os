@@ -323,6 +323,20 @@ export type InviteAcceptPayload = {
   password: string;
 };
 
+export type PasswordResetCreated = {
+  id: string;
+  token: string;
+  path: string;
+  email: string;
+  expires_at: string;
+};
+
+export type PasswordResetInfo = {
+  email_hint: string;
+  display_name: string;
+  expires_at: string;
+};
+
 export type ArtifactPayload = {
   title: string;
   kind: string;
@@ -481,6 +495,22 @@ export const api = {
     request<{ user: CurrentUser; expires_at: string }>(`/auth/invites/${token}/accept`, {
       method: "POST",
       body: JSON.stringify(payload),
+    }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ status: string; revoked_sessions: number }>("/auth/password", {
+      method: "POST",
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    }),
+  createPasswordReset: (email: string) =>
+    request<PasswordResetCreated>("/auth/password-resets", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  passwordResetInfo: (token: string) => request<PasswordResetInfo>(`/auth/password-resets/${token}`),
+  confirmPasswordReset: (token: string, password: string) =>
+    request<{ user: CurrentUser; expires_at: string }>(`/auth/password-resets/${token}/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ password }),
     }),
   listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
   uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {

@@ -465,6 +465,12 @@ h3 {
   font-weight: 700;
 }
 
+.form-success {
+  color: var(--mint-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .login-card .form-error {
   color: #9f3328;
 }

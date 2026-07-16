@@ -1,11 +1,13 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
-import { LogOut, Search } from "lucide-react";
+import { KeyRound, LogOut, Search } from "lucide-react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { enabledModulesFor, navItems, viewModule } from "./lib/app-config";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
 import { InviteView } from "./views/InviteView";
+import { ResetPasswordView } from "./views/ResetPasswordView";
 import { ArtifactModal } from "./components/ArtifactModal";
+import { PasswordModal } from "./components/PasswordModal";
 import { APP_VERSION } from "./lib/version";
 import { useUiStore } from "./store/uiStore";
 import { useApiHealth, useCurrentUser, useClients, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
@@ -30,6 +32,7 @@ export function App() {
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const { data: healthData } = useApiHealth();
   const { data: user } = useCurrentUser();
@@ -56,7 +59,12 @@ export function App() {
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
 
   useEffect(() => {
-    if (!user && location.pathname !== "/" && !location.pathname.startsWith("/convite/")) {
+    if (
+      !user &&
+      location.pathname !== "/" &&
+      !location.pathname.startsWith("/convite/") &&
+      !location.pathname.startsWith("/redefinir/")
+    ) {
       routerNavigate("/");
     }
   }, [user, location.pathname, routerNavigate]);
@@ -134,6 +142,7 @@ export function App() {
     return (
       <Routes>
         <Route path="/convite/:token" element={<InviteView />} />
+        <Route path="/redefinir/:token" element={<ResetPasswordView />} />
         <Route
           path="*"
           element={
@@ -191,6 +200,15 @@ export function App() {
               <Search size={18} />
               <span>Clientes, entregas, artefatos e integrações</span>
             </div>
+            <button
+              className="ghost-button dark"
+              type="button"
+              onClick={() => setShowPasswordModal(true)}
+              aria-label="Alterar senha"
+              title="Alterar senha"
+            >
+              <KeyRound size={16} />
+            </button>
             <button className="ghost-button dark" type="button" onClick={handleLogout} disabled={logout.isPending}>
               <LogOut size={16} />
               Sair
@@ -240,9 +258,12 @@ export function App() {
           )} />
 
           <Route path="/convite/:token" element={<InviteView />} />
+          <Route path="/redefinir/:token" element={<ResetPasswordView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>
+
+      {showPasswordModal && <PasswordModal onClose={() => setShowPasswordModal(false)} />}
 
       {selectedArtifact && (
         <ArtifactModal

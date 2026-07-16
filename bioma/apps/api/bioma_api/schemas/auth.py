@@ -29,3 +29,30 @@ class CurrentUserResponse(BaseModel):
 class LoginResponse(BaseModel):
     user: CurrentUserResponse
     expires_at: datetime
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class PasswordResetCreateRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetCreatedResponse(BaseModel):
+    id: UUID
+    token: str
+    path: str
+    email: EmailStr
+    expires_at: datetime
+
+
+class PasswordResetPublicResponse(BaseModel):
+    email_hint: str
+    display_name: str
+    expires_at: datetime
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    password: str = Field(min_length=8, max_length=128)
