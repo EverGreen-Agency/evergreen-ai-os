@@ -9,7 +9,8 @@ router = APIRouter(prefix="/api", tags=["Admin Legacy"])
 
 PROJECT_ROOT = Path(os.getcwd())
 STACK_FILE = PROJECT_ROOT / "_opensquad" / "_memory" / "banco_stack" / "stack.json"
-IDEAS_FILE = PROJECT_ROOT / "_opensquad" / "_memory" / "banco_ideias" / "ideias.json"
+IDEAS_FILE = PROJECT_ROOT / "_opensquad" / "_memory" / "banco_ideias" / "ideas.json"
+IDEAS_DOC_DIR = PROJECT_ROOT / "_opensquad" / "_memory" / "banco_ideias" / "docs"
 
 class StackData(BaseModel):
     techs: List[dict]
@@ -52,5 +53,17 @@ def save_ideas(data: IdeasData):
         IDEAS_FILE.parent.mkdir(parents=True, exist_ok=True)
         IDEAS_FILE.write_text(data.model_dump_json(indent=2), encoding="utf-8")
         return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from fastapi.responses import PlainTextResponse
+
+@router.get("/ideas/doc")
+def get_idea_doc(id: str):
+    doc_path = IDEAS_DOC_DIR / f"{id}.md"
+    if not doc_path.exists():
+        raise HTTPException(status_code=404, detail="Doc not found")
+    try:
+        return PlainTextResponse(doc_path.read_text(encoding="utf-8"))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
