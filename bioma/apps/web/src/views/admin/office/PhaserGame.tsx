@@ -67,6 +67,18 @@ export function PhaserGame() {
     });
   }, []);
 
+  // Fetch squads on mount to populate store
+  useEffect(() => {
+    fetch("/api/squads", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.squads) {
+          useSquadStore.getState().setSnapshot(data.squads, data.activeStates || {});
+        }
+      })
+      .catch((err) => console.error("Failed to fetch squads:", err));
+  }, []);
+
   return (
     <div
       ref={containerRef}
