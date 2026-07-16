@@ -151,16 +151,31 @@ export function OperationsView() {
     <section className="operations-layout">
       {error && <div className="notice error">{error}</div>}
 
-      <div className="metrics">
-        <article className="metric-card green">
-          <span>Pipeline ativo</span>
-          <strong>{leads.filter((lead) => !["won", "lost"].includes(lead.stage)).length}</strong>
-          <small>{formatMoney(forecast)} em previsão não perdida</small>
+      <div className="bento-grid">
+        <article className="bento-card col-span-2">
+          <div className="bento-header">
+            <h3>Pipeline de Leads Ativo</h3>
+            <Building2 size={16} />
+          </div>
+          <div className="bento-value">
+            {leads.filter((lead) => !["won", "lost"].includes(lead.stage)).length}
+          </div>
+          <div className="bento-footer">
+            {formatMoney(forecast)} em oportunidades ativas no funil
+          </div>
         </article>
-        <article className="metric-card amber">
-          <span>Financeiro aberto</span>
-          <strong>{formatMoney(openAmount)}</strong>
-          <small>{finance.filter((record) => record.status !== "paid").length} registros não pagos</small>
+
+        <article className="bento-card col-span-2">
+          <div className="bento-header">
+            <h3>Financeiro em Aberto</h3>
+            <CircleDollarSign size={16} color="var(--brand-accent)" />
+          </div>
+          <div className="bento-value" style={{ color: "var(--brand-accent)" }}>
+            {formatMoney(openAmount)}
+          </div>
+          <div className="bento-footer">
+            {finance.filter((record) => record.status !== "paid").length} faturas aguardando pagamento
+          </div>
         </article>
       </div>
 

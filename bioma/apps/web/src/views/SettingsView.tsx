@@ -1,0 +1,169 @@
+import { FormEvent, useState } from "react";
+import { KeyRound, ShieldCheck, User, Building2 } from "lucide-react";
+import { api } from "../lib/api";
+import { useCurrentUser } from "../hooks/useBiomaApi";
+import { SectionHeader } from "../components/shared";
+
+export function SettingsView() {
+  const { data: user } = useCurrentUser();
+  
+  const [activeTab, setActiveTab] = useState<"user" | "company">("user");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!user) return null;
+
+  const initials = user.display_name.substring(0, 2).toUpperCase();
+  const isEgAdmin = user.organizations.some(org => org.role === "eg_admin");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    if (newPassword.length < 8) {
+      setError("A nova senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (newPassword !== confirm) {
+      setError("As senhas não conferem.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const result = await api.changePassword(currentPassword, newPassword);
+      setSuccess(
+        result.revoked_sessions > 0
+          ? `Senha alterada. ${result.revoked_sessions} outra(s) sessão(ões) foram encerradas.`
+          : "Senha alterada com sucesso."
+      );
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirm("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível alterar a senha.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="profile-grid">
+      <SectionHeader eyebrow="Ajustes" title="Configurações" icon={User} />
+
+      <div className="tabs-container">
+        <button 
+          className={`tab-item ${activeTab === "user" ? "active" : ""}`}
+          onClick={() => setActiveTab("user")}
+          style={{ padding: "8px 16px", background: activeTab === "user" ? "var(--brand-accent)" : "transparent", color: activeTab === "user" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600, marginRight: "8px" }}
+        >
+          Usuário
+        </button>
+        {isEgAdmin && (
+          <button 
+            className={`tab-item ${activeTab === "company" ? "active" : ""}`}
+            onClick={() => setActiveTab("company")}
+            style={{ padding: "8px 16px", background: activeTab === "company" ? "var(--brand-accent)" : "transparent", color: activeTab === "company" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+          >
+            Perfil da Empresa
+          </button>
+        )}
+      </div>
+
+      <div className="profile-header surface">
+        <div className="profile-avatar-large">{initials}</div>
+        <div className="profile-title">
+          <h2>{user.display_name}</h2>
+          <span>{user.email}</span>
+        </div>
+      </div>
+
+      {activeTab === "user" && (
+        <div className="profile-content">
+          <article className="surface profile-section">
+            <div className="surface-header">
+              <KeyRound size={18} />
+              <h3>Segurança</h3>
+            </div>
+            <form className="form-grid" onSubmit={handleSubmit}>
+              <label>
+                Senha atual
+                <input
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                />
+              </label>
+              <label>
+                Nova senha
+                <input
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  placeholder="Mínimo 8 caracteres"
+                />
+              </label>
+              <label>
+                Confirmar nova senha
+                <input
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+              </label>
+              {error && <span className="form-error">{error}</span>}
+              {success && <span className="form-success">{success}</span>}
+              <div className="modal-actions" style={{ marginTop: "16px" }}>
+                <button className="primary-button" type="submit" disabled={submitting}>
+                  Atualizar Senha
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
+      )}
+
+      {activeTab === "company" && isEgAdmin && (
+        <div className="profile-content">
+          <article className="surface profile-section" style={{ gridColumn: "1 / -1" }}>
+            <div className="surface-header">
+              <Building2 size={18} />
+              <h3>EverGreen</h3>
+            </div>
+            <div style={{ padding: "16px 0" }}>
+              <p style={{ color: "var(--text-muted)", marginBottom: "16px" }}>
+                Configurações da agência. Gerencie usuários internos e preferências globais.
+              </p>
+              
+              <div className="timeline-list">
+                <div className="timeline-row">
+                  <span>Equipe</span>
+                  <strong>{user.display_name}</strong>
+                  <small>{user.email}</small>
+                </div>
+                {/* Aqui poderemos listar todos os usuários da EG buscando do backend */}
+                <div className="timeline-row" style={{ opacity: 0.5 }}>
+                  <span>+ Convidar</span>
+                  <strong>Adicionar membro</strong>
+                  <small>Funcionalidade em breve</small>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      )}
+    </section>
+  );
+}

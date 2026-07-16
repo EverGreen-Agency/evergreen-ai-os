@@ -1,14 +1,20 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
-import { KeyRound, LogOut, Search } from "lucide-react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { enabledModulesFor, navItems, viewModule } from "./lib/app-config";
+import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
+
+// Admin Views (Legacy Dashboard)
+import { PhaserGame as OfficeView } from "./views/admin/office/PhaserGame";
+import { IdeaBank as IdeaBankView } from "./views/admin/idea-bank/IdeaBank";
+import { TechRadar as TechRadarView } from "./views/admin/tech-radar/TechRadar";
+import { ArchitectureView } from "./views/admin/architecture/ArchitectureView";
 import { LoginView } from "./views/LoginView";
 import { InviteView } from "./views/InviteView";
 import { ResetPasswordView } from "./views/ResetPasswordView";
 import { ArtifactModal } from "./components/ArtifactModal";
-import { PasswordModal } from "./components/PasswordModal";
-import { APP_VERSION } from "./lib/version";
+import { Sidebar } from "./components/Sidebar";
+import { Topbar } from "./components/Topbar";
 import { useUiStore } from "./store/uiStore";
 import { useApiHealth, useCurrentUser, useClients, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
 import { normalizeArtifactPayload } from "./lib/format";
@@ -32,8 +38,7 @@ export function App() {
   const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-
+  
   const { data: healthData } = useApiHealth();
   const { data: user } = useCurrentUser();
   const login = useLogin();
@@ -138,6 +143,11 @@ export function App() {
     return enabledModules.has(viewModule[view]) ? element : <Navigate to="/" replace />;
   }
 
+  function guardAdmin(element: ReactNode) {
+    const isEgAdmin = user?.organizations?.some(org => org.role === "eg_admin") ?? false;
+    return isEgAdmin ? element : <Navigate to="/" replace />;
+  }
+
   if (!user) {
     return (
       <Routes>
@@ -163,63 +173,21 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <aside className="sidebar" aria-label="Navegação principal">
-        <div className="brand">
-          <div className="brand-mark">
-            <img src="/assets/brand/eg-symbol.png" alt="Símbolo EverGreen" width={52} height={52} />
-          </div>
-          <div>
-            <strong>Bioma</strong>
-            <span>v{APP_VERSION}</span>
-          </div>
-        </div>
-
-        <nav className="nav-list">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            const path = item.id === "cockpit" ? "/" : `/${item.id}`;
-            const isActive = location.pathname === path || (item.id !== "cockpit" && location.pathname.startsWith(path));
-            return (
-              <button className={isActive ? "active" : ""} key={item.id} type="button" onClick={() => routerNavigate(path)}>
-                <Icon size={18} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
+      <Sidebar
+        visibleNavItems={visibleNavItems}
+        user={user}
+        onLogout={handleLogout}
+        isLoggingOut={logout.isPending}
+      />
 
       <section className="workspace">
-        <header className="topbar">
-          <div className="topbar-title">
-            <p className="eyebrow">Cockpit operacional</p>
-            <h1>Bioma EG</h1>
-          </div>
-          <div className="topbar-actions">
-            <div className="search-shell">
-              <Search size={18} />
-              <span>Clientes, entregas, artefatos e integrações</span>
-            </div>
-            <button
-              className="ghost-button dark"
-              type="button"
-              onClick={() => setShowPasswordModal(true)}
-              aria-label="Alterar senha"
-              title="Alterar senha"
-            >
-              <KeyRound size={16} />
-            </button>
-            <button className="ghost-button dark" type="button" onClick={handleLogout} disabled={logout.isPending}>
-              <LogOut size={16} />
-              Sair
-            </button>
-          </div>
-        </header>
+        <Topbar />
 
         {dataError && <div className="notice error">{dataError}</div>}
 
         <Routes>
           <Route path="/" element={<CockpitView />} />
+          <Route path="/configuracoes" element={<SettingsView />} />
 
           <Route path="/clientes" element={guard("clientes",
             <Suspense fallback={<ViewLoadingFallback />}>
@@ -257,13 +225,33 @@ export function App() {
             </Suspense>,
           )} />
 
+          {/* Rotas Administrativas EG */}
+          <Route path="/eg-office" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <OfficeView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-ideas" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <IdeaBankView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-tech" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <TechRadarView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-architecture" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ArchitectureView />
+            </Suspense>,
+          )} />
+
           <Route path="/convite/:token" element={<InviteView />} />
           <Route path="/redefinir/:token" element={<ResetPasswordView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>
-
-      {showPasswordModal && <PasswordModal onClose={() => setShowPasswordModal(false)} />}
 
       {selectedArtifact && (
         <ArtifactModal

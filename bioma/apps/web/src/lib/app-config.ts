@@ -2,9 +2,22 @@ import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, Walle
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
-export type ViewId = "cockpit" | "clientes" | "comercial" | "conteudo" | "integracoes" | "engenharia" | "analytics";
+export type ViewId =
+  | "cockpit"
+  | "clientes"
+  | "comercial"
+  | "conteudo"
+  | "integracoes"
+  | "engenharia"
+  | "analytics"
+  | "eg-office"
+  | "eg-ideas"
+  | "eg-tech"
+  | "eg-tech"
+  | "eg-architecture";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
+  // Rotas normais (Módulos de Cliente/Operação)
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
   { id: "clientes", label: "Clientes", icon: Users },
   { id: "comercial", label: "Comercial", icon: WalletCards },
@@ -12,6 +25,12 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "integracoes", label: "Integrações", icon: GitBranch },
   { id: "engenharia", label: "Engenharia", icon: FileText },
+  
+  // Rotas Internas EG (Administrativas)
+  { id: "eg-office", label: "Escritório", icon: LayoutDashboard }, // O ícone pode ser ajustado depois
+  { id: "eg-ideas", label: "Banco de Ideias", icon: BookOpen },
+  { id: "eg-tech", label: "Banco de Stack", icon: GitBranch },
+  { id: "eg-architecture", label: "Arquitetura", icon: FileText },
 ];
 
 // Feature-gating por organização (decisão 2026-07-14): cada view exige um
@@ -24,6 +43,13 @@ export const viewModule: Record<ViewId, ClientModule> = {
   analytics: "analytics",
   integracoes: "integrations",
   engenharia: "engineering",
+  // Rotas internas não devem depender de módulos de cliente,
+  // mas para obedecer à tipagem sem erro, colocamos hub.
+  // A proteção real se dará no App.tsx com isEgAdmin.
+  "eg-office": "hub",
+  "eg-ideas": "hub",
+  "eg-tech": "hub",
+  "eg-architecture": "hub",
 };
 
 export const moduleLabels: Record<ClientModule, string> = {
