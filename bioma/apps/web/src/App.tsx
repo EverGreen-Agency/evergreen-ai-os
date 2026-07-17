@@ -16,6 +16,7 @@ import { normalizeArtifactPayload } from "./lib/format";
 import { emptyArtifactDraft } from "./lib/app-config";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
+const ClientHubView = lazy(() => import("./views/ClientHubView").then((module) => ({ default: module.ClientHubView })));
 const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
@@ -90,11 +91,6 @@ export function App() {
     }
   }, [location.search, location.pathname, user]);
 
-  useEffect(() => {
-    if (clients.length > 0 && !selectedClientId) {
-      setSelectedClientId(clients[0].id);
-    }
-  }, [clients, selectedClientId, setSelectedClientId]);
 
   useEffect(() => {
     if (!selectedArtifact) {
@@ -209,6 +205,12 @@ export function App() {
           <Route path="/clientes" element={guard("clientes",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ClientsView />
+            </Suspense>,
+          )} />
+          
+          <Route path="/clientes/:id" element={guard("clientes",
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ClientHubView />
             </Suspense>,
           )} />
 
