@@ -1,162 +1,388 @@
-import { useState } from "react";
-import { GitBranch, Link, Activity, ShieldCheck, RefreshCw, LogIn, CheckCircle2, XCircle, Settings2, Code, Database, CreditCard, Megaphone, Server } from "lucide-react";
+import { FormEvent, useState } from "react";
+import {
+  Activity,
+  BarChart3,
+  Cloud,
+  GitBranch,
+  KeyRound,
+  Link,
+  PenLine,
+  Plus,
+  RefreshCw,
+  Search,
+  Server,
+  Tags,
+  TrendingUp,
+} from "lucide-react";
 import { useUiStore } from "../store/uiStore";
-import { useClientPortal, useSyncClickUp } from "../hooks/useBiomaApi";
+import {
+  useClients,
+  useClientPortal,
+  useCreatePerformanceConnection,
+  useIntegrationsStatus,
+  usePerformanceConnections,
+  useRequestPerformanceSync,
+  useSyncClickUp,
+  useUpdatePerformanceConnection,
+} from "../hooks/useBiomaApi";
+import { formatDateTime } from "../lib/format";
+import type { PerformanceConnection, PerformanceProvider } from "../lib/api";
 
-type IntegrationStatus = "connected" | "disconnected" | "error" | "auth_required";
+// Tudo aqui é estado real: flags de ambiente vêm de /integrations/status,
+// conexões de /clients/{id}/performance/connections e o ClickUp do portal.
+// Meta/LinkedIn entram como novos providers no worker (roadmap), não como card fake.
 
-interface IntegrationItem {
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  status: IntegrationStatus;
-  type: "internal" | "client";
-  lastSync?: string;
-  health?: string;
+const PROVIDER_META: Record<PerformanceProvider, {
+  label: string;
+  icon: typeof BarChart3;
+  accountLabel: string;
+  accountPlaceholder: string;
+  parentLabel?: string;
+  parentPlaceholder?: string;
+}> = {
+  google_ads: {
+    label: "Google Ads",
+    icon: BarChart3,
+    accountLabel: "Customer ID",
+    accountPlaceholder: "123-456-7890",
+    parentLabel: "MCC (login customer id) — opcional",
+    parentPlaceholder: "111-222-3333",
+  },
+  ga4: {
+    label: "Google Analytics 4",
+    icon: TrendingUp,
+    accountLabel: "Property ID",
+    accountPlaceholder: "123456789",
+  },
+  search_console: {
+    label: "Search Console",
+    icon: Search,
+    accountLabel: "Propriedade",
+    accountPlaceholder: "sc-domain:evergreenmkt.com.br",
+  },
+  gtm: {
+    label: "Google Tag Manager",
+    icon: Tags,
+    accountLabel: "Container ID",
+    accountPlaceholder: "GTM-XXXXXXX",
+    parentLabel: "Account ID",
+    parentPlaceholder: "6000000000",
+  },
+};
+
+const PROVIDERS = Object.keys(PROVIDER_META) as PerformanceProvider[];
+
+function EnvStatusPill({ configured }: { configured: boolean }) {
+  return configured
+    ? <span className="status-pill open">Configurado</span>
+    : <span className="status-pill draft">Não configurado</span>;
 }
 
-const mockIntegrations: IntegrationItem[] = [
-  { id: "clickup", name: "ClickUp", description: "Gestão de tarefas e sprints", icon: Link, status: "connected", type: "internal", lastSync: "2 min atrás", health: "100% Uptime" },
-  { id: "github", name: "GitHub", description: "Repositórios e automação MCP", icon: Code, status: "auth_required", type: "internal" },
-  { id: "google_drive", name: "Google Drive", description: "Armazenamento de assets", icon: Database, status: "disconnected", type: "internal" },
-  { id: "aws", name: "AWS", description: "Infraestrutura em nuvem", icon: Server, status: "connected", type: "internal", lastSync: "10 min atrás", health: "Operacional" },
-  { id: "stripe", name: "Stripe", description: "Gestão financeira e pagamentos", icon: CreditCard, status: "connected", type: "client", lastSync: "1 hora atrás" },
-  { id: "meta_ads", name: "Meta Ads", description: "Anúncios e leads", icon: Megaphone, status: "disconnected", type: "client" },
-  { id: "rd_station", name: "RD Station", description: "Automação de marketing", icon: Activity, status: "error", type: "client", lastSync: "Falhou há 2 dias", health: "Token Expirado" },
-];
+function ConnectionStatusPill({ connection }: { connection: PerformanceConnection | null }) {
+  if (!connection) return <span className="status-pill draft">Sem conexão</span>;
+  if (connection.status === "error") return <span className="status-pill cancelled">Erro</span>;
+  if (connection.status === "inactive") return <span className="status-pill paused">Inativa</span>;
+  return <span className="status-pill open">Ativa</span>;
+}
 
 export function IntegrationsTab() {
-  const { selectedClientId } = useUiStore();
-  const { data: portalData } = useClientPortal(selectedClientId);
+  const { selectedClientId, setSelectedClientId } = useUiStore();
+  const { data: clients = [] } = useClients();
+  const { data: portal } = useClientPortal(selectedClientId);
+  const { data: envStatus } = useIntegrationsStatus();
+  const { data: connections = [], isLoading: loadingConnections } = usePerformanceConnections(selectedClientId);
+
   const syncClickUp = useSyncClickUp();
+  const createConnection = useCreatePerformanceConnection();
+  const updateConnection = useUpdatePerformanceConnection();
+  const requestSync = useRequestPerformanceSync();
 
-  const [loadingApp, setLoadingApp] = useState<string | null>(null);
+  const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
+  const [accountId, setAccountId] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [syncFeedback, setSyncFeedback] = useState<string>("");
 
-  const internalIntegrations = mockIntegrations.filter(i => i.type === "internal");
-  const clientIntegrations = mockIntegrations.filter(i => i.type === "client");
+  const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null;
+  const clickupRun = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
+  const connectionFor = (provider: PerformanceProvider) =>
+    connections.find((connection) => connection.provider === provider) ?? null;
 
-  const portal = portalData ?? null;
-  const clickupSync = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
-
-  function handleConnect(id: string) {
-    setLoadingApp(id);
-    setTimeout(() => {
-      setLoadingApp(null);
-      alert("Integração mockada: Redirecionaria para o fluxo OAuth ou Modal de API Key.");
-    }, 1000);
+  function startEdit(provider: PerformanceProvider) {
+    const existing = connectionFor(provider);
+    setEditingProvider(provider);
+    setAccountId(existing?.external_account_id ?? "");
+    setParentId(existing?.external_parent_id ?? "");
+    setDisplayName(existing?.display_name ?? "");
   }
 
-  function renderStatus(status: IntegrationStatus) {
-    switch (status) {
-      case "connected":
-        return <span className="status-pill open" style={{ display: "flex", alignItems: "center", gap: "4px" }}><CheckCircle2 size={12} /> Conectado</span>;
-      case "error":
-        return <span className="status-pill cancelled" style={{ display: "flex", alignItems: "center", gap: "4px" }}><XCircle size={12} /> Erro</span>;
-      case "auth_required":
-        return <span className="status-pill overdue" style={{ display: "flex", alignItems: "center", gap: "4px" }}><ShieldCheck size={12} /> Auth Necessária</span>;
-      default:
-        return <span className="status-pill draft" style={{ display: "flex", alignItems: "center", gap: "4px" }}><Link size={12} /> Desconectado</span>;
+  function cancelEdit() {
+    setEditingProvider(null);
+    setAccountId("");
+    setParentId("");
+    setDisplayName("");
+  }
+
+  function handleSaveConnection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedClientId || !editingProvider || !accountId.trim()) return;
+    const existing = connectionFor(editingProvider);
+    const payload = {
+      provider: editingProvider,
+      external_account_id: accountId.trim(),
+      external_parent_id: parentId.trim() || null,
+      display_name: displayName.trim() || null,
+    };
+    const onSuccess = () => cancelEdit();
+    if (existing) {
+      updateConnection.mutate(
+        { clientId: selectedClientId, connectionId: existing.id, payload },
+        { onSuccess },
+      );
+    } else {
+      createConnection.mutate({ clientId: selectedClientId, payload }, { onSuccess });
     }
   }
 
-  function renderCard(item: IntegrationItem) {
-    const Icon = item.icon;
-    const isConnecting = loadingApp === item.id;
-    return (
-      <article key={item.id} className="surface" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px", border: item.status === "connected" ? "1px solid var(--brand-accent)" : "1px solid var(--border-light)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <div style={{ padding: "10px", background: "var(--bg-inset)", borderRadius: "8px" }}>
-              <Icon size={24} color={item.status === "connected" ? "var(--brand-accent)" : "var(--text-muted)"} />
-            </div>
-            <div>
-              <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{item.name}</h4>
-              <p style={{ margin: 0, fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>{item.description}</p>
-            </div>
-          </div>
-          {renderStatus(item.status)}
-        </div>
+  function handleToggleStatus(connection: PerformanceConnection) {
+    if (!selectedClientId) return;
+    updateConnection.mutate({
+      clientId: selectedClientId,
+      connectionId: connection.id,
+      payload: { status: connection.status === "active" ? "inactive" : "active" },
+    });
+  }
 
-        {(item.lastSync || item.health || (item.id === "clickup" && clickupSync)) && (
-          <div style={{ padding: "12px", background: "var(--bg-body)", borderRadius: "6px", fontSize: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            {item.lastSync && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--text-muted)" }}>Último Sync:</span>
-                <strong style={{ color: item.status === "error" ? "var(--danger-main)" : "var(--text-main)" }}>{item.lastSync}</strong>
-              </div>
-            )}
-            {item.health && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--text-muted)" }}>Health:</span>
-                <strong>{item.health}</strong>
-              </div>
-            )}
-            {item.id === "clickup" && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--text-muted)" }}>Logs de Tarefas:</span>
-                <strong style={{ color: clickupSync?.status === "error" ? "var(--danger-main)" : "var(--brand-accent)" }}>{clickupSync?.status ?? "Aguardando"}</strong>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={{ marginTop: "auto", paddingTop: "8px", display: "flex", gap: "8px" }}>
-          {item.status === "connected" ? (
-            <>
-              <button className="secondary-button" style={{ flex: 1, padding: "8px", fontSize: "13px" }} onClick={() => handleConnect(item.id)}>
-                <Settings2 size={14} /> Configurar
-              </button>
-              {item.id === "clickup" && (
-                <button 
-                  className="primary-button" 
-                  style={{ flex: 1, padding: "8px", fontSize: "13px" }} 
-                  onClick={() => selectedClientId && syncClickUp.mutate(selectedClientId)}
-                  disabled={syncClickUp.isPending || !selectedClientId}
-                >
-                  <RefreshCw size={14} /> Ping
-                </button>
-              )}
-            </>
-          ) : (
-            <button className="primary-button" style={{ width: "100%", padding: "8px", fontSize: "13px" }} onClick={() => handleConnect(item.id)} disabled={isConnecting}>
-              {isConnecting ? <RefreshCw size={14} className="spin" /> : <LogIn size={14} />} 
-              {item.status === "auth_required" ? "Autenticar Novamente" : "Conectar"}
-            </button>
-          )}
-        </div>
-      </article>
+  function handleProviderSync(provider: PerformanceProvider) {
+    if (!selectedClientId) return;
+    setSyncFeedback("");
+    requestSync.mutate(
+      { clientId: selectedClientId, provider },
+      {
+        onSuccess: (run) => setSyncFeedback(
+          `Sync de ${PROVIDER_META[provider].label} enfileirado (${run.status}). O worker processa fora da requisição.`,
+        ),
+      },
     );
   }
 
+  const savingConnection = createConnection.isPending || updateConnection.isPending;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "32px", gridColumn: "1 / -1" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32, gridColumn: "1 / -1" }}>
+      {/* Ambiente (flags reais, somente leitura) */}
       <section>
-        <div style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
-            <Server size={18} /> Conexões Internas (EverGreen)
+        <div style={{ marginBottom: 16 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+            <Server size={18} /> Ambiente EverGreen
           </h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: "4px 0 0 0" }}>
-            Ferramentas base da operação da agência. Configurações globais e status de sistema.
+          <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "4px 0 0 0" }}>
+            Estado real das credenciais deste ambiente ({envStatus?.app_env ?? "..."}). Configuração é feita por
+            variáveis de ambiente no deploy, nunca pela interface.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
-          {internalIntegrations.map(renderCard)}
+        <div className="health-list">
+          <div className="health-row">
+            <GitBranch size={18} />
+            <span>ClickUp API <small style={{ color: "var(--text-faint)" }}>· CLICKUP_API_TOKEN</small></span>
+            {envStatus ? <EnvStatusPill configured={envStatus.clickup_token_configured} /> : <span className="status-pill draft">...</span>}
+          </div>
+          <div className="health-row">
+            <Cloud size={18} />
+            <span>Storage de arquivos (S3) <small style={{ color: "var(--text-faint)" }}>· STORAGE_S3_*</small></span>
+            {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <span className="status-pill draft">...</span>}
+          </div>
+          <div className="health-row">
+            <KeyRound size={18} />
+            <span>Login com Google (OAuth) <small style={{ color: "var(--text-faint)" }}>· GOOGLE_OAUTH_*</small></span>
+            {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <span className="status-pill draft">...</span>}
+          </div>
         </div>
       </section>
 
+      {/* Conexões por cliente */}
       <section>
-        <div style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
-            <Activity size={18} /> Integrações de Clientes
-          </h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: "4px 0 0 0" }}>
-            Ferramentas disponíveis para clientes conectarem e expandirem o Bioma.
-          </p>
+        <div style={{ marginBottom: 16, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+              <Activity size={18} /> Conexões do cliente
+            </h3>
+            <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "4px 0 0 0" }}>
+              Fontes de dados mapeadas por cliente. Meta Ads e LinkedIn entram como novos provedores após o Google.
+            </p>
+          </div>
+          <label className="form-grid" style={{ minWidth: 220 }}>
+            Cliente
+            <select
+              className="status-select"
+              style={{ maxWidth: "none" }}
+              value={selectedClientId ?? ""}
+              onChange={(event) => setSelectedClientId(event.target.value || null)}
+            >
+              <option value="">— selecione —</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>{client.name}</option>
+              ))}
+            </select>
+          </label>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
-          {clientIntegrations.map(renderCard)}
-        </div>
+
+        {!selectedClient && <div className="empty-state compact">Selecione um cliente para gerenciar conexões.</div>}
+
+        {selectedClient && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+            {/* ClickUp por cliente */}
+            <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <Link size={20} color="var(--accent)" />
+                  <h4 style={{ margin: 0, fontSize: 15 }}>ClickUp</h4>
+                </div>
+                {selectedClient.clickup_folder_id
+                  ? <span className="status-pill open">Mapeado</span>
+                  : <span className="status-pill draft">Sem pasta</span>}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
+                <div>Pasta: <strong>{selectedClient.clickup_folder_id ?? "não mapeada (edite o cliente)"}</strong></div>
+                <div>
+                  Último sync:{" "}
+                  <strong>
+                    {clickupRun ? `${clickupRun.status} · ${formatDateTime(clickupRun.started_at)}` : "nunca executado"}
+                  </strong>
+                </div>
+                {envStatus && !envStatus.clickup_token_configured && (
+                  <div style={{ color: "var(--amber-soft)" }}>Sem CLICKUP_API_TOKEN: o sync roda em modo dry-run.</div>
+                )}
+              </div>
+              <button
+                className="primary-button"
+                style={{ padding: 8, fontSize: 13 }}
+                type="button"
+                onClick={() => syncClickUp.mutate(selectedClientId!)}
+                disabled={syncClickUp.isPending}
+              >
+                <RefreshCw size={14} />
+                {syncClickUp.isPending ? "Sincronizando..." : "Sincronizar agora"}
+              </button>
+            </article>
+
+            {/* Google providers (performance_connections reais) */}
+            {PROVIDERS.map((provider) => {
+              const meta = PROVIDER_META[provider];
+              const Icon = meta.icon;
+              const connection = connectionFor(provider);
+              const isEditing = editingProvider === provider;
+              return (
+                <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      <Icon size={20} color={connection?.status === "active" ? "var(--accent)" : "var(--text-dim)"} />
+                      <h4 style={{ margin: 0, fontSize: 15 }}>{meta.label}</h4>
+                    </div>
+                    <ConnectionStatusPill connection={connection} />
+                  </div>
+
+                  {loadingConnections && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
+
+                  {!isEditing && connection && (
+                    <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
+                      <div>{meta.accountLabel}: <strong>{connection.external_account_id}</strong></div>
+                      {connection.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{connection.external_parent_id}</strong></div>}
+                      {connection.display_name && <div>Nome: <strong>{connection.display_name}</strong></div>}
+                      <div>
+                        Último sync:{" "}
+                        <strong>{connection.last_synced_at ? formatDateTime(connection.last_synced_at) : "nunca"}</strong>
+                      </div>
+                      {connection.last_error_message && (
+                        <div style={{ color: "var(--danger-soft)" }}>Erro: {connection.last_error_message}</div>
+                      )}
+                      {!connection.credentials_configured && (
+                        <div style={{ color: "var(--amber-soft)" }}>
+                          Credencial Google (service account) ainda não configurada no worker.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!isEditing && !connection && (
+                    <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                      Nenhuma conta {meta.label} mapeada para {selectedClient.name}.
+                    </div>
+                  )}
+
+                  {isEditing && (
+                    <form className="form-grid" onSubmit={handleSaveConnection}>
+                      <label>
+                        {meta.accountLabel}
+                        <input
+                          value={accountId}
+                          onChange={(event) => setAccountId(event.target.value)}
+                          placeholder={meta.accountPlaceholder}
+                          required
+                        />
+                      </label>
+                      {meta.parentLabel && (
+                        <label>
+                          {meta.parentLabel}
+                          <input
+                            value={parentId}
+                            onChange={(event) => setParentId(event.target.value)}
+                            placeholder={meta.parentPlaceholder}
+                          />
+                        </label>
+                      )}
+                      <label>
+                        Nome de exibição (opcional)
+                        <input
+                          value={displayName}
+                          onChange={(event) => setDisplayName(event.target.value)}
+                          placeholder={`${meta.label} — ${selectedClient.name}`}
+                        />
+                      </label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button className="primary-button" type="submit" disabled={savingConnection} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                          {savingConnection ? "Salvando..." : "Salvar conexão"}
+                        </button>
+                        <button className="ghost-button" type="button" onClick={cancelEdit} style={{ padding: 8, fontSize: 13 }}>
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {!isEditing && (
+                    <div style={{ marginTop: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
+                        {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                        {connection ? "Editar" : "Conectar"}
+                      </button>
+                      {connection && (
+                        <>
+                          <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
+                            {connection.status === "active" ? "Desativar" : "Reativar"}
+                          </button>
+                          {connection.status === "active" && (
+                            <button
+                              className="mini-button approve"
+                              type="button"
+                              onClick={() => handleProviderSync(provider)}
+                              disabled={requestSync.isPending}
+                            >
+                              <RefreshCw size={13} />
+                              Sincronizar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {syncFeedback && <div className="form-success" style={{ marginTop: 12 }}>{syncFeedback}</div>}
       </section>
     </div>
   );

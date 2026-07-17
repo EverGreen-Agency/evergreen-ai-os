@@ -195,6 +195,67 @@ export function useCreateInvite() {
   });
 }
 
+// --- INTEGRAÇÕES (status real de ambiente + conexões de Performance) ---
+
+export function useIntegrationsStatus() {
+  return useQuery({
+    queryKey: ["integrations", "status"],
+    queryFn: api.integrationsStatus,
+  });
+}
+
+export function usePerformanceConnections(clientId: string | null) {
+  return useQuery({
+    queryKey: ["performance-connections", clientId],
+    queryFn: () => {
+      if (!clientId) throw new Error("No client ID provided");
+      return api.performanceConnections(clientId);
+    },
+    enabled: Boolean(clientId),
+  });
+}
+
+export function useCreatePerformanceConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, payload }: { clientId: string; payload: Parameters<typeof api.createPerformanceConnection>[1] }) =>
+      api.createPerformanceConnection(clientId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["performance-connections", variables.clientId], data);
+    },
+  });
+}
+
+export function useUpdatePerformanceConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      connectionId,
+      payload,
+    }: {
+      clientId: string;
+      connectionId: string;
+      payload: Parameters<typeof api.updatePerformanceConnection>[2];
+    }) => api.updatePerformanceConnection(clientId, connectionId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["performance-connections", variables.clientId], data);
+    },
+  });
+}
+
+export function useRequestPerformanceSync() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, provider }: { clientId: string; provider?: Parameters<typeof api.requestPerformanceSync>[1] }) =>
+      api.requestPerformanceSync(clientId, provider),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["portal", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["performance-connections", variables.clientId] });
+    },
+  });
+}
+
 // --- BACKOFFICE EG (banco de ideias / tech radar) ---
 // Escrita com atualização otimista: o board responde na hora (drag & drop) e,
 // se o POST falhar, o cache volta ao snapshot e o erro aparece no aviso global.

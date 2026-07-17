@@ -349,6 +349,53 @@ export type IdentitySummary = {
   created_at: string;
 };
 
+export type PerformanceConnectionStatus = "active" | "inactive" | "error";
+
+export type PerformanceConnection = {
+  id: string;
+  client_id: string;
+  provider: PerformanceProvider;
+  external_account_id: string;
+  external_parent_id: string | null;
+  display_name: string | null;
+  status: PerformanceConnectionStatus;
+  credentials_configured: boolean;
+  last_synced_at: string | null;
+  last_error_at: string | null;
+  last_error_message: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PerformanceConnectionPayload = {
+  provider: PerformanceProvider;
+  external_account_id: string;
+  external_parent_id?: string | null;
+  display_name?: string | null;
+  status?: PerformanceConnectionStatus;
+};
+
+export type PerformanceSyncRun = {
+  id: string;
+  source: string;
+  provider: string | null;
+  status: "queued" | "running" | "ok" | "error" | "partial";
+  summary: Record<string, unknown>;
+  date_from: string | null;
+  date_to: string | null;
+  records_processed: number;
+  started_at: string;
+  finished_at: string | null;
+};
+
+export type IntegrationsStatus = {
+  clickup_token_configured: boolean;
+  storage_configured: boolean;
+  google_oauth_configured: boolean;
+  app_env: string;
+};
+
 export type ArtifactPayload = {
   title: string;
   kind: string;
@@ -548,6 +595,24 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ password }),
     }),
+  performanceConnections: (clientId: string) =>
+    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections`),
+  createPerformanceConnection: (clientId: string, payload: PerformanceConnectionPayload) =>
+    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updatePerformanceConnection: (clientId: string, connectionId: string, payload: Partial<PerformanceConnectionPayload>) =>
+    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections/${connectionId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  requestPerformanceSync: (clientId: string, provider: PerformanceProvider | "all" = "all") =>
+    request<PerformanceSyncRun>(`/clients/${clientId}/performance/sync`, {
+      method: "POST",
+      body: JSON.stringify({ provider }),
+    }),
+  integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
   // Backoffice EG (dados internos servidos pelo admin_legacy; EG admin only)
   adminIdeas: () => request<Partial<{ ideas: Idea[] }> & { ideas?: Idea[] }>("/api/ideas"),
   saveAdminIdeas: (ideas: Idea[]) =>

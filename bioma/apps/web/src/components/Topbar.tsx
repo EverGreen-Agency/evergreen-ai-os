@@ -1,5 +1,3 @@
-import { Search } from "lucide-react";
-
 export function Topbar() {
   return (
     <header className="topbar">
