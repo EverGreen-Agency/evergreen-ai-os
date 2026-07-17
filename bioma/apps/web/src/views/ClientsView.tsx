@@ -25,7 +25,6 @@ export function ClientsView() {
           {clients.map((client) => (
             <button
               className="client-card"
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}
               key={client.id}
               type="button"
               onClick={() => navigate(`/clientes/${client.id}`)}

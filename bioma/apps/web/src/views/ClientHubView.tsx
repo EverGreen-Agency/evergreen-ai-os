@@ -59,8 +59,7 @@ export function ClientHubView() {
           onClick={() => {
             setSelectedClientId(null);
             navigate("/clientes");
-          }} 
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}
+          }}
         >
           <ArrowLeft size={18} />
         </button>
@@ -103,7 +102,7 @@ export function ClientHubView() {
 
           {activeTab === 'resumo' && (
             <div className="bento-grid">
-              <article className="bento-card col-span-1" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
+              <article className="bento-card col-span-1">
                 <div className="bento-header">
                   <h3>{selectedClient.organization_name}</h3>
                   <span className={`status-pill ${selectedClient.status}`}>{statusLabel[selectedClient.status]}</span>
@@ -122,7 +121,7 @@ export function ClientHubView() {
                 </div>
               </article>
               
-              <article className="bento-card col-span-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
+              <article className="bento-card col-span-2">
                 <div className="bento-header">
                   <h3>Aprovações Pendentes</h3>
                   <CheckCircle2 size={16} color="var(--brand-accent)" />
@@ -151,7 +150,7 @@ export function ClientHubView() {
 
           {activeTab === 'entregas' && (
             <div className="bento-grid">
-              <article className="bento-card col-span-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
+              <article className="bento-card col-span-3">
                 <div className="bento-header">
                   <h3>Todas as Entregas</h3>
                   <CalendarCheck size={16} color="var(--brand-accent)" />
@@ -204,7 +203,7 @@ export function ClientHubView() {
 
           {activeTab === 'artefatos' && (
             <div className="bento-grid">
-              <article className="bento-card col-span-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
+              <article className="bento-card col-span-3">
                 <div className="bento-header">
                   <h3>Todos os Artefatos</h3>
                   <FileText size={16} color="var(--brand-accent)" />
@@ -225,7 +224,7 @@ export function ClientHubView() {
 
           {(activeTab === 'projetos' || activeTab === 'score') && (
             <div className="bento-grid">
-              <article className="bento-card col-span-3" style={{ background: 'var(--bg-elevated)', border: '1px dashed var(--border-soft)', textAlign: 'center', padding: '40px' }}>
+              <article className="bento-card col-span-3" style={{ borderStyle: 'dashed', textAlign: 'center', padding: '40px' }}>
                 <h3>Módulo em Desenvolvimento</h3>
                 <p style={{ color: 'var(--text-muted)' }}>Esta funcionalidade ficará disponível em breve. Aqui você poderá consultar {activeTab === 'projetos' ? 'os projetos contratados e assinaturas' : 'o score do seu projeto'}.</p>
               </article>
