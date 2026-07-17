@@ -80,13 +80,18 @@ export function PhaserGame() {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        flex: 1,
-        overflow: 'hidden',
-        imageRendering: 'auto',
-      }}
-    />
+    <div style={{ height: 'calc(100vh - 120px)', position: 'relative', overflow: 'hidden' }}>
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          imageRendering: 'auto',
+        }}
+      />
+    </div>
   );
 }

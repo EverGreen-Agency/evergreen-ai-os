@@ -469,7 +469,7 @@ function IdeaCard({ idea, ideas, stage, expanded, dragging, onToggle, onMove, on
               📄 Ler Detalhes
             </button>
             <button
-              onClick={() => onArchive(idea)}
+              onClick={(e) => { e.stopPropagation(); onArchive(idea); }}
               title={idea.archived
                 ? "Restaurar: traz a ideia de volta pro board ativo."
                 : "Arquivar: cemitério de ideias rejeitadas/superadas conscientemente (com o motivo) — some do board mas fica consultável. Pra lixo real (duplicata/teste), exclua em vez de arquivar."}
@@ -619,6 +619,7 @@ const styles: Record<string, CSSProperties> = {
     fontFamily: "inherit",
     cursor: "pointer",
     border: "1px solid",
+    background: "transparent",
     transition: "all 0.12s",
   },
   board: {

@@ -180,3 +180,116 @@ def get_squads(_user: CurrentUserResponse = Depends(_require_eg_admin)):
     if not paths:
         return {"squads": [], "activeStates": {}}
     return {"squads": _load_squads(paths["squads"]), "activeStates": {}}
+
+ENG_DIR = PROJECT_ROOT / "_opensquad" / "_memory" / "engenharia"
+
+def parse_spec_metadata(content: str):
+    import re
+    title = None
+    status = None
+    date = None
+    
+    title_match = re.search(r'^# Spec:\s*(.+)$', content, re.MULTILINE)
+    if title_match:
+        title = title_match.group(1).strip()
+    
+    status_match = re.search(r'-\s*\*\*Status:\*\*\s*(.+)$', content, re.MULTILINE)
+    if status_match:
+        status = status_match.group(1).strip()
+        
+    date_match = re.search(r'-\s*\*\*Data:\*\*\s*(.+)$', content, re.MULTILINE)
+    if date_match:
+        date = date_match.group(1).strip()
+        
+    return {"title": title, "status": status, "date": date}
+
+@router.get("/engineering")
+def get_engineering_modules():
+    if not ENG_DIR.exists():
+        return {"modules": [], "matrix": {}}
+        
+    modules = []
+    for entry in ENG_DIR.iterdir():
+        if entry.is_dir() and entry.name != "mega-plataforma":
+            mod_id = entry.name
+            spec_path = entry / "spec.md"
+            tasks_path = entry / "tasks.md"
+            adr_dir = entry / "adr"
+            
+            has_spec = spec_path.exists()
+            spec_title, spec_status, spec_date = None, None, None
+            if has_spec:
+                content = spec_path.read_text(encoding='utf-8')
+                meta = parse_spec_metadata(content)
+                spec_title = meta.get("title")
+                spec_status = meta.get("status")
+                spec_date = meta.get("date")
+                
+            has_tasks = tasks_path.exists()
+            adr_count = 0
+            if adr_dir.exists():
+                adr_count = len([f for f in adr_dir.iterdir() if f.is_file() and f.name.endswith(".md")])
+                
+            modules.append({
+                "id": mod_id,
+                "hasSpec": has_spec,
+                "specTitle": spec_title,
+                "specStatus": spec_status,
+                "specDate": spec_date,
+                "adrCount": adr_count,
+                "hasTasks": has_tasks
+            })
+            
+    matrix = {}
+    matrix_path = ENG_DIR / "mega-plataforma" / "matriz-maturidade-modulos.md"
+    if matrix_path.exists():
+        content = matrix_path.read_text(encoding='utf-8')
+        import re
+        for match in re.finditer(r'^\|\s*([\w-]+)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|', content, re.MULTILINE):
+            mod_id = match.group(1).strip()
+            matrix[mod_id] = {
+                "id": mod_id,
+                "phase": match.group(2).strip(),
+                "maturity": match.group(3).strip(),
+                "nextGate": match.group(4).strip()
+            }
+            
+    modules.sort(key=lambda x: x["id"])
+    return {"modules": modules, "matrix": matrix}
+
+@router.get("/engineering/{mod_id}")
+def get_engineering_detail(mod_id: str):
+    import re
+    if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
+        raise HTTPException(status_code=400, detail="Invalid mod_id")
+        
+    mod_dir = ENG_DIR / mod_id
+    if not mod_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Module not found")
+        
+    spec_path = mod_dir / "spec.md"
+    tasks_path = mod_dir / "tasks.md"
+    
+    spec_content = spec_path.read_text(encoding='utf-8') if spec_path.exists() else None
+    tasks_content = tasks_path.read_text(encoding='utf-8') if tasks_path.exists() else None
+    
+    adrs = []
+    adr_dir = mod_dir / "adr"
+    if adr_dir.exists():
+        for f in sorted(adr_dir.iterdir()):
+            if f.is_file() and f.name.endswith(".md"):
+                content = f.read_text(encoding='utf-8')
+                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                title = title_match.group(1).strip() if title_match else f.name
+                adrs.append({
+                    "file": f.name,
+                    "title": title,
+                    "content": content
+                })
+                
+    return {
+        "id": mod_id,
+        "specContent": spec_content,
+        "tasksContent": tasks_content,
+        "adrs": adrs
+    }
