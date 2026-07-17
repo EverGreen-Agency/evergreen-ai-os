@@ -33,6 +33,13 @@
   --chart-1: #27a861;
   --chart-2: #b8893a;
 
+  /* Aliases usados pelas views novas (Settings/Cockpit/Operations/Integrations):
+     eram referenciados sem definição — os estilos silenciosamente não aplicavam. */
+  --brand-accent: var(--accent);
+  --text-main: var(--text);
+  --text-muted: var(--text-dim);
+  --border-light: var(--border);
+
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -2581,6 +2588,7 @@ h3 {
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   background: rgba(6, 26, 19, 0.72);
+  -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
 }
 

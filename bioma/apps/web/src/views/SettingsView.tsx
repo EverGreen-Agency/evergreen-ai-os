@@ -1,13 +1,17 @@
 import { FormEvent, useState } from "react";
-import { KeyRound, ShieldCheck, User, Building2, GitBranch } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { KeyRound, Link2, ShieldCheck, User, Building2, GitBranch, Unlink } from "lucide-react";
 import { IntegrationsTab } from "../components/IntegrationsTab";
-import { api } from "../lib/api";
+import { api, apiUrl } from "../lib/api";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { SectionHeader } from "../components/shared";
 
 export function SettingsView() {
   const { data: user } = useCurrentUser();
-  
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
   const [activeSubTab, setActiveSubTab] = useState<"general" | "integrations">("general");
 
@@ -17,6 +21,30 @@ export function SettingsView() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const { data: identities } = useQuery({ queryKey: ["identities"], queryFn: api.identities });
+  const googleIdentity = identities?.find((identity) => identity.provider === "google") ?? null;
+  const [identityError, setIdentityError] = useState("");
+  const [unlinking, setUnlinking] = useState(false);
+
+  // Resultado do fluxo OAuth chega por redirect (?linked=google | ?oauth_error=...)
+  const searchParams = new URLSearchParams(location.search);
+  const linkedNow = searchParams.get("linked") === "google";
+  const oauthError = searchParams.get("oauth_error");
+
+  async function handleUnlink() {
+    if (!googleIdentity) return;
+    setIdentityError("");
+    setUnlinking(true);
+    try {
+      await api.unlinkIdentity(googleIdentity.id);
+      await queryClient.invalidateQueries({ queryKey: ["identities"] });
+    } catch (err) {
+      setIdentityError(err instanceof Error ? err.message : "Não foi possível desvincular.");
+    } finally {
+      setUnlinking(false);
+    }
+  }
 
   if (!user) return null;
 
@@ -86,6 +114,52 @@ export function SettingsView() {
 
       {activeTab === "user" && (
         <div className="profile-content">
+          <article className="surface profile-section">
+            <div className="surface-header">
+              <Link2 size={18} />
+              <h3>Contas conectadas</h3>
+            </div>
+            <p className="panel-footnote" style={{ marginTop: 0 }}>
+              Vincule sua conta Google para entrar no Bioma com um clique. Sua conta continua sendo a do convite EG —
+              o vínculo pode ser desfeito a qualquer momento, e a senha continua valendo.
+            </p>
+            {linkedNow && <span className="form-success">Conta Google vinculada com sucesso.</span>}
+            {oauthError && <span className="form-error">{oauthError}</span>}
+            {identityError && <span className="form-error">{identityError}</span>}
+            <div className="timeline-list" style={{ marginTop: 12 }}>
+              {googleIdentity ? (
+                <div className="timeline-row">
+                  <span>Google</span>
+                  <strong>{googleIdentity.email ?? "conta vinculada"}</strong>
+                  <button
+                    className="mini-button"
+                    type="button"
+                    onClick={handleUnlink}
+                    disabled={unlinking}
+                  >
+                    <Unlink size={13} />
+                    {unlinking ? "Desvinculando..." : "Desvincular"}
+                  </button>
+                </div>
+              ) : (
+                <div className="timeline-row">
+                  <span>Google</span>
+                  <strong>Nenhuma conta vinculada</strong>
+                  <button
+                    className="mini-button approve"
+                    type="button"
+                    onClick={() => {
+                      window.location.href = apiUrl("/auth/oauth/google/start?mode=link");
+                    }}
+                  >
+                    <Link2 size={13} />
+                    Conectar Google
+                  </button>
+                </div>
+              )}
+            </div>
+          </article>
+
           <article className="surface profile-section">
             <div className="surface-header">
               <KeyRound size={18} />

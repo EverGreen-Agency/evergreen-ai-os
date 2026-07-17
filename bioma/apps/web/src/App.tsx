@@ -78,6 +78,17 @@ export function App() {
     }
   }, [user, location.pathname, routerNavigate]);
 
+  // Erros do fluxo OAuth chegam por redirect (?oauth_error=...) porque o
+  // callback é navegação de página, não fetch.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthError = params.get("oauth_error");
+    if (oauthError && !user) {
+      setLoginError(oauthError);
+      window.history.replaceState(null, "", location.pathname);
+    }
+  }, [location.search, location.pathname, user]);
+
   useEffect(() => {
     if (clients.length > 0 && !selectedClientId) {
       setSelectedClientId(clients[0].id);

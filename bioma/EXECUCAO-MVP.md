@@ -52,6 +52,7 @@ Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
 | AUTH-001 | DONE | Full-stack | EG admin cria/convida usuário cliente (link copiável) | DPL-004 | smoke de convite + isolamento |
 | GATE-001 | DONE | Full-stack | Feature-gating de módulos por organização + preparo white-label (`parent_organization_id`) | AUTH-001 | smoke de gating (403/200 por módulo) |
 | AUTH-002 | DONE | Full-stack | Fluxo seguro de recuperação/rotação de senha (link 2h + troca logado) | AUTH-001 | token expirável + teste (`smoke_password.py`) |
+| AUTH-003 | DONE | Full-stack | Google como vínculo deslinkável (login social invite-only, nunca cria conta) | AUTH-001 | `smoke_oauth.py` + credenciais reais no ambiente |
 | FILE-001 | DONE | Full-stack | Upload/storage de documentos com visibilidade por cliente | AUTH-001 | upload, leitura autorizada e exclusão |
 | WEB-BUNDLE-001 | DONE | Frontend | Dividir bundle principal e lazy-load de views | WEB-PERF-002 | build sem chunk principal > 500 kB |
 

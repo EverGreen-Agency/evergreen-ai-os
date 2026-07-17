@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     storage_s3_secret_access_key: str | None = None
     storage_s3_force_path_style: bool = True
     storage_max_upload_mb: int = 20
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    # Base pública da própria API (redirect_uri do OAuth) e do app web
+    # (destino final dos redirects) — distintas porque web e API vivem em
+    # subdomínios diferentes.
+    api_public_url: str = "http://127.0.0.1:8000"
+    web_app_url: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -39,6 +46,10 @@ class Settings(BaseSettings):
         return bool(
             self.storage_s3_bucket and self.storage_s3_access_key_id and self.storage_s3_secret_access_key
         )
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        return bool(self.google_oauth_client_id and self.google_oauth_client_secret)
 
     @property
     def cookie_secure(self) -> bool:

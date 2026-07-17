@@ -337,6 +337,13 @@ export type PasswordResetInfo = {
   expires_at: string;
 };
 
+export type IdentitySummary = {
+  id: string;
+  provider: "google";
+  email: string | null;
+  created_at: string;
+};
+
 export type ArtifactPayload = {
   title: string;
   kind: string;
@@ -353,6 +360,12 @@ export type DeliverablePayload = {
 };
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+
+/** URL absoluta de um endpoint da API — para navegação de página inteira
+ *  (fluxo OAuth), onde não dá para usar fetch. */
+export function apiUrl(path: string): string {
+  return `${apiBaseUrl}${path}`;
+}
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -496,6 +509,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  identities: () => request<IdentitySummary[]>("/auth/identities"),
+  unlinkIdentity: (identityId: string) =>
+    request<IdentitySummary[]>(`/auth/identities/${identityId}`, { method: "DELETE" }),
   changePassword: (currentPassword: string, newPassword: string) =>
     request<{ status: string; revoked_sessions: number }>("/auth/password", {
       method: "POST",
