@@ -37,7 +37,7 @@ export function ClientHubView() {
   };
 
   const { data: user, isLoading: loadingUser } = useCurrentUser();
-  const isEgAdmin = !loadingUser && (user?.email?.endsWith("@evergreenmkt.com.br") ?? false);
+  const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
 
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];

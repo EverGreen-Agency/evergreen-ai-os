@@ -165,9 +165,14 @@ export function SettingsView() {
           {cargo && <span className="profile-hero-role">{cargo}</span>}
         </div>
         <div className="profile-hero-badges">
-          {user.organizations.map(org => (
+          {isEgAdmin && (
+            <span className="level-badge" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              EG Admin
+            </span>
+          )}
+          {!isEgAdmin && user.organizations.map(org => (
             <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
-              {org.role === 'eg_admin' ? '⚡ EG Admin' : org.role}
+              {org.role}
             </span>
           ))}
         </div>
