@@ -135,6 +135,10 @@ export function InviteView() {
               <UserPlus size={18} />
               {submitting ? "Criando acesso..." : "Criar acesso"}
             </button>
+            <p className="privacy-notice">
+              Ao criar o acesso, você concorda com o tratamento dos seus dados conforme o{" "}
+              <a href="/privacidade">Aviso de Privacidade</a>.
+            </p>
           </form>
         )}
       </section>

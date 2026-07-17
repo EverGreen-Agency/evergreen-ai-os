@@ -12,7 +12,6 @@ export type ViewId =
   | "eg-office"
   | "eg-ideas"
   | "eg-tech"
-  | "eg-tech"
   | "eg-architecture";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [

@@ -3,15 +3,10 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-
 import { enabledModulesFor, navItems, viewModule } from "./lib/app-config";
 import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
-
-// Admin Views (Legacy Dashboard)
-import { PhaserGame as OfficeView } from "./views/admin/office/PhaserGame";
-import { IdeaBank as IdeaBankView } from "./views/admin/idea-bank/IdeaBank";
-import { TechRadar as TechRadarView } from "./views/admin/tech-radar/TechRadar";
-import { ArchitectureView } from "./views/admin/architecture/ArchitectureView";
 import { LoginView } from "./views/LoginView";
 import { InviteView } from "./views/InviteView";
 import { ResetPasswordView } from "./views/ResetPasswordView";
+import { PrivacyView } from "./views/PrivacyView";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -25,6 +20,15 @@ const ContentView = lazy(() => import("./views/ContentView").then((module) => ({
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
+
+// Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
+// (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
+const OfficeView = lazy(() => import("./views/admin/office/PhaserGame").then((module) => ({ default: module.PhaserGame })));
+const IdeaBankView = lazy(() => import("./views/admin/idea-bank/IdeaBank").then((module) => ({ default: module.IdeaBank })));
+const TechRadarView = lazy(() => import("./views/admin/tech-radar/TechRadar").then((module) => ({ default: module.TechRadar })));
+const ArchitectureView = lazy(() =>
+  import("./views/admin/architecture/ArchitectureView").then((module) => ({ default: module.ArchitectureView })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -66,6 +70,7 @@ export function App() {
     if (
       !user &&
       location.pathname !== "/" &&
+      location.pathname !== "/privacidade" &&
       !location.pathname.startsWith("/convite/") &&
       !location.pathname.startsWith("/redefinir/")
     ) {
@@ -152,6 +157,7 @@ export function App() {
       <Routes>
         <Route path="/convite/:token" element={<InviteView />} />
         <Route path="/redefinir/:token" element={<ResetPasswordView />} />
+        <Route path="/privacidade" element={<PrivacyView />} />
         <Route
           path="*"
           element={
@@ -242,6 +248,7 @@ export function App() {
 
           <Route path="/convite/:token" element={<InviteView />} />
           <Route path="/redefinir/:token" element={<ResetPasswordView />} />
+          <Route path="/privacidade" element={<PrivacyView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>

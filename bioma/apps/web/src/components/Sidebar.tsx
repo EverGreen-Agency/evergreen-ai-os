@@ -31,8 +31,8 @@ export function Sidebar({
 
   const groupPrincipal = ["cockpit", "clientes", "comercial", "conteudo"];
   const groupDados = ["analytics"];
-  const groupConfig = ["integracoes", "engenharia"];
-  const groupAdmin = ["eg-office", "eg-ideas", "eg-tech", "eg-architecture", "eg-clients"];
+  const groupConfig = ["engenharia"];
+  const groupAdmin = ["eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
 
   function renderGroup(groupItems: string[], label: string) {
     const items = visibleNavItems.filter((item) => groupItems.includes(item.id));

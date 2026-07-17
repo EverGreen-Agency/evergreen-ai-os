@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { LogIn, BarChart2, Workflow, ShieldCheck, ArrowRight } from "lucide-react";
 
 /** SVG inline do logo Google */
@@ -39,10 +39,12 @@ export function LoginView({
   onPasswordChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
-  const [rememberMe, setRememberMe] = useState(false);
-
   const whatsappUrl =
     "https://wa.me/5511989966989?text=Vim%20pelo%20Bioma%20e%20gostaria%20de%20saber%20mais%20sobre%20a%20EverGreen.";
+  // Reset de senha é gerado pelo EG admin (AUTH-002); o caminho do usuário é
+  // pedir o link pelo canal de atendimento.
+  const forgotPasswordUrl =
+    "https://wa.me/5511989966989?text=Preciso%20redefinir%20minha%20senha%20do%20Bioma.";
 
   return (
     <main className="login-shell">
@@ -93,14 +95,16 @@ export function LoginView({
           </div>
         </div>
 
+        {/* Sem promessas absolutas ("100% seguro") — risco jurídico e não é verdade
+            para sistema nenhum. O selo aponta para o aviso de privacidade real. */}
         <div className="login-security-bar">
           <ShieldCheck size={16} className="security-icon" />
           <div className="security-text">
             <strong>Segurança e privacidade em primeiro lugar</strong>
-            <span>Dados protegidos e em conformidade com a LGPD.</span>
+            <span>Dados protegidos e tratados conforme a LGPD.</span>
           </div>
           <div className="security-badge">
-            <span>100% Seguro</span>
+            <span>LGPD</span>
           </div>
         </div>
       </section>
@@ -111,25 +115,30 @@ export function LoginView({
           <h2 className="login-card-title">Bem-vindo de volta</h2>
           <p className="login-card-subtitle">Entre para acessar sua conta</p>
 
-          {/* Botões de login social */}
+          {/* Login social: UI pronta, backend OIDC ainda não implementado —
+              desabilitado para não ser um botão que não faz nada. */}
           <div className="login-social">
             <button
               type="button"
               className="login-social-btn"
-              title="Entrar com Google (em breve)"
-              aria-label="Entrar com Google"
+              disabled
+              title="Entrar com Google — em breve"
+              aria-label="Entrar com Google (em breve)"
             >
               <GoogleIcon />
               <span>Entrar com Google</span>
+              <em className="soon-badge">em breve</em>
             </button>
             <button
               type="button"
               className="login-social-btn"
-              title="Entrar com Apple (em breve)"
-              aria-label="Entrar com Apple"
+              disabled
+              title="Entrar com Apple — em breve"
+              aria-label="Entrar com Apple (em breve)"
             >
               <AppleIcon />
               <span>Entrar com Apple</span>
+              <em className="soon-badge">em breve</em>
             </button>
           </div>
 
@@ -162,16 +171,15 @@ export function LoginView({
             {loginError && <span className="form-error">{loginError}</span>}
 
             <div className="login-actions-row">
-              <label className="custom-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span className="custom-checkbox-box" aria-hidden="true" />
-                <span className="custom-checkbox-text">Lembrar de mim</span>
-              </label>
-              <a href="#" className="forgot-password">Esqueci minha senha</a>
+              <span />
+              <a
+                href={forgotPasswordUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="forgot-password"
+              >
+                Esqueci minha senha
+              </a>
             </div>
 
             <button type="submit" className="primary-button wide login-submit-btn">
@@ -189,6 +197,11 @@ export function LoginView({
               >
                 Fale com a gente <ArrowRight size={12} />
               </a>
+            </p>
+
+            <p className="privacy-notice">
+              Ao entrar, você concorda com o tratamento dos seus dados conforme o{" "}
+              <a href="/privacidade">Aviso de Privacidade</a>.
             </p>
           </form>
         </div>

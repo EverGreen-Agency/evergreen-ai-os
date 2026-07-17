@@ -125,6 +125,9 @@ export function ResetPasswordView() {
               <KeyRound size={18} />
               {submitting ? "Salvando..." : "Definir nova senha"}
             </button>
+            <p className="privacy-notice">
+              Seus dados são tratados conforme o <a href="/privacidade">Aviso de Privacidade</a>.
+            </p>
           </form>
         )}
       </section>
