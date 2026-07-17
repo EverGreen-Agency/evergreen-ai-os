@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft } from "lucide-react";
+import { ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft, BarChart3, Leaf, TreePine, Trees } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, artifactKindLabel } from "../lib/format";
@@ -15,6 +15,26 @@ export function ClientHubView() {
   const [activeTab, setActiveTab] = useState("resumo");
   
   const { setSelectedArtifact, setSelectedClientId } = useUiStore();
+
+  // Score / Raio-X — armazenado localmente por cliente até o backend suportar
+  const scoreKey = `raio_x_${id}`;
+  const [scoreData, setScoreData] = useState<{
+    oferta: number | null;
+    demanda: number | null;
+    conversao: number | null;
+    updatedAt?: string;
+  }>(() => {
+    try {
+      const stored = localStorage.getItem(scoreKey);
+      return stored ? JSON.parse(stored) : { oferta: null, demanda: null, conversao: null };
+    } catch { return { oferta: null, demanda: null, conversao: null }; }
+  });
+
+  const saveScore = (updated: typeof scoreData) => {
+    const withDate = { ...updated, updatedAt: new Date().toISOString() };
+    setScoreData(withDate);
+    localStorage.setItem(scoreKey, JSON.stringify(withDate));
+  };
 
   const { data: user } = useCurrentUser();
   const isEgAdmin = user?.email?.endsWith("@evergreenmkt.com.br") ?? false;
@@ -51,8 +71,8 @@ export function ClientHubView() {
   }
 
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px 24px 0 24px' }}>
+    <section style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px 32px 0 32px' }}>
         <button 
           type="button"
           className="icon-button" 
@@ -68,8 +88,8 @@ export function ClientHubView() {
 
       {loadingPortal && <EmptyState text="Carregando hub..." />}
       {!loadingPortal && portal && (
-        <div style={{ padding: '24px' }}>
-          <div className="tabs" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0', marginBottom: '24px' }}>
+        <div style={{ padding: '24px 32px', flex: 1 }}>
+          <div className="tabs" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0', marginBottom: '28px', overflowX: 'auto' }}>
             {[
               { id: 'resumo', label: 'Resumo' },
               { id: 'entregas', label: 'Entregas' },
@@ -222,18 +242,197 @@ export function ClientHubView() {
             </div>
           )}
 
-          {(activeTab === 'projetos' || activeTab === 'score') && (
+          {activeTab === 'projetos' && (
             <div className="bento-grid">
-              <article className="bento-card col-span-3" style={{ borderStyle: 'dashed', textAlign: 'center', padding: '40px' }}>
-                <h3>Módulo em Desenvolvimento</h3>
-                <p style={{ color: 'var(--text-muted)' }}>Esta funcionalidade ficará disponível em breve. Aqui você poderá consultar {activeTab === 'projetos' ? 'os projetos contratados e assinaturas' : 'o score do seu projeto'}.</p>
+              <article className="bento-card" style={{ borderStyle: 'dashed', textAlign: 'center', padding: '40px', gridColumn: '1 / -1' }}>
+                <h3>Projetos e Contratos</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Esta funcionalidade ficará disponível em breve. Aqui você poderá consultar os projetos contratados e assinaturas.</p>
               </article>
             </div>
+          )}
+
+          {activeTab === 'score' && (
+            <ScoreTab
+              scoreData={scoreData}
+              onSave={saveScore}
+              isAdmin={isEgAdmin}
+            />
           )}
         </div>
       )}
 
       {isEgAdmin && <AdminDock selectedClient={selectedClient} />}
     </section>
+  );
+}
+
+// ─── Score Tab Component (Raio-X Comercial EG) ───────────────────────────────
+
+type ScoreData = { oferta: number | null; demanda: number | null; conversao: number | null; updatedAt?: string; };
+
+function pillarClass(note: number | null): string {
+  if (note === null) return '';
+  if (note <= 3) return 'critico';
+  if (note <= 6) return 'fragil';
+  if (note <= 8) return 'saudavel';
+  return 'maduro';
+}
+function pillarLabel(note: number | null): string {
+  if (note === null) return '—';
+  if (note <= 3) return '🔴 Crítico';
+  if (note <= 6) return '🟡 Frágil';
+  if (note <= 8) return '🟢 Saudável';
+  return '⭐ Maduro';
+}
+function generalLevel(avg: number | null): { label: string; icon: React.ReactNode } {
+  if (avg === null) return { label: 'Semente', icon: <Leaf size={14} /> };
+  if (avg < 3.5) return { label: 'Semente', icon: <Leaf size={14} /> };
+  if (avg < 6) return { label: 'Muda', icon: <TreePine size={14} /> };
+  if (avg < 8.5) return { label: 'Árvore', icon: <TreePine size={14} /> };
+  return { label: 'Floresta', icon: <Trees size={14} /> };
+}
+
+function PillarBar({ label, note, isBottleneck, isAdmin, onChange }: {
+  label: string; note: number | null; isBottleneck: boolean;
+  isAdmin: boolean; onChange: (v: number) => void;
+}) {
+  const cls = pillarClass(note);
+  const pct = note !== null ? (note / 10) * 100 : 0;
+  return (
+    <article className="bento-card pillar-card">
+      <div className="pillar-title">
+        <h4>{label}</h4>
+        {isBottleneck && note !== null && <span className="gargalo-badge">Gargalo</span>}
+      </div>
+      <div className="pillar-note">{note !== null ? note.toFixed(1) : '—'}<span style={{ fontSize: '0.9rem', fontWeight: 400, color: 'var(--text-dim)' }}>/10</span></div>
+      <div className="pillar-bar-track">
+        <div className={`pillar-bar-fill ${cls}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={`pillar-reading ${cls}`}>{pillarLabel(note)}</span>
+      {isAdmin && (
+        <div style={{ marginTop: '4px' }}>
+          <label style={{ fontSize: '0.72rem', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>
+            Nota (1–5 por pergunta → 0–10):
+          </label>
+          <input
+            type="number" min={0} max={10} step={0.1}
+            value={note ?? ''}
+            onChange={e => onChange(Math.min(10, Math.max(0, parseFloat(e.target.value) || 0)))}
+            style={{
+              width: '80px', padding: '4px 8px', borderRadius: '8px',
+              background: 'var(--bg-deep)', border: '1px solid var(--glass-border)',
+              color: 'var(--text)', fontSize: '0.85rem'
+            }}
+          />
+        </div>
+      )}
+    </article>
+  );
+}
+
+function ScoreTab({ scoreData, onSave, isAdmin }: {
+  scoreData: ScoreData; onSave: (d: ScoreData) => void; isAdmin: boolean;
+}) {
+  const [draft, setDraft] = useState(scoreData);
+  useEffect(() => { setDraft(scoreData); }, [scoreData]);
+
+  const hasData = draft.oferta !== null || draft.demanda !== null || draft.conversao !== null;
+  const notes = [draft.oferta, draft.demanda, draft.conversao].filter((n): n is number => n !== null);
+  const avg = notes.length > 0 ? notes.reduce((a, b) => a + b, 0) / notes.length : null;
+  const minNote = Math.min(...(notes.length > 0 ? notes : [Infinity]));
+  const level = generalLevel(avg);
+
+  const handleSave = () => onSave(draft);
+
+  if (!hasData && !isAdmin) {
+    return (
+      <div className="bento-grid">
+        <div className="score-rescore-cta">
+          <BarChart3 size={32} style={{ opacity: 0.4 }} />
+          <h4>Score ainda não preenchido</h4>
+          <p>O Raio-X Comercial EG mede 3 pilares — Oferta, Demanda e Conversão — em uma escala de 0 a 10.<br />Aguarde o seu responsável de conta preencher o diagnóstico.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bento-grid">
+      {/* Hero */}
+      <div className="score-hero">
+        <span className="score-hero-label">Raio-X Comercial EG</span>
+        <span className="score-hero-number">{avg !== null ? avg.toFixed(1) : '—'}</span>
+        <span className={`pillar-reading ${pillarClass(avg)}`}>{pillarLabel(avg)}</span>
+        <span className="level-badge" style={{ marginTop: '8px' }}>{level.icon} {level.label}</span>
+        {scoreData.updatedAt && (
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+            Último re-score: {new Date(scoreData.updatedAt).toLocaleDateString('pt-BR')}
+          </span>
+        )}
+      </div>
+
+      {/* Pilares */}
+      <PillarBar
+        label="Oferta" note={draft.oferta}
+        isBottleneck={draft.oferta !== null && draft.oferta === minNote && notes.length === 3}
+        isAdmin={isAdmin}
+        onChange={v => setDraft(d => ({ ...d, oferta: v }))}
+      />
+      <PillarBar
+        label="Demanda" note={draft.demanda}
+        isBottleneck={draft.demanda !== null && draft.demanda === minNote && notes.length === 3}
+        isAdmin={isAdmin}
+        onChange={v => setDraft(d => ({ ...d, demanda: v }))}
+      />
+      <PillarBar
+        label="Conversão" note={draft.conversao}
+        isBottleneck={draft.conversao !== null && draft.conversao === minNote && notes.length === 3}
+        isAdmin={isAdmin}
+        onChange={v => setDraft(d => ({ ...d, conversao: v }))}
+      />
+
+      {/* Admin CTA */}
+      {isAdmin && (
+        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '12px', alignItems: 'center' }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', margin: 0 }}>
+            Dados salvos localmente por enquanto · integração com backend em breve
+          </p>
+          <button
+            type="button"
+            className="sync-button"
+            onClick={handleSave}
+            style={{ padding: '8px 20px' }}
+          >
+            Salvar Score
+          </button>
+        </div>
+      )}
+
+      {/* Legenda metodológica */}
+      <article className="bento-card" style={{ gridColumn: '1 / -1', background: 'rgba(9,35,27,0.6)' }}>
+        <div className="bento-header">
+          <h3>Como interpretar</h3>
+          <BarChart3 size={16} color="var(--brand-accent)" />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+          {[
+            { range: '0–3', label: 'Crítico', desc: 'Sem estrutura. Prioridade máxima.', cls: 'critico' },
+            { range: '4–6', label: 'Frágil', desc: 'Existe, mas inconsistente. Ganhos rápidos possíveis.', cls: 'fragil' },
+            { range: '7–8', label: 'Saudável', desc: 'Funciona. Otimização fina.', cls: 'saudavel' },
+            { range: '9–10', label: 'Maduro', desc: 'Referência. Manter e proteger.', cls: 'maduro' },
+          ].map(item => (
+            <div key={item.cls} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)' }}>{item.range}</span>
+              <span className={`pillar-reading ${item.cls}`} style={{ fontWeight: 700 }}>{item.label}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', lineHeight: 1.4 }}>{item.desc}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.6, borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
+          O gargalo prioritário é o pilar de <strong>menor nota</strong> — é por ele que o plano de 90 dias começa.
+          O Raio-X é revisado trimestralmente (3 pilares) com pulso mensal no pilar-gargalo.
+        </p>
+      </article>
+    </div>
   );
 }

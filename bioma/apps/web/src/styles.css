@@ -2458,9 +2458,10 @@ h3 {
 /* Bento Grid Cockpit */
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   margin-bottom: 32px;
+  width: 100%;
 }
 .bento-card {
   background: var(--surface);
@@ -2472,10 +2473,135 @@ h3 {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   border: 1px solid var(--glass-border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
 }
 .bento-card:hover {
   box-shadow: 0 8px 24px rgba(0,0,0,0.25);
 }
+
+/* Score / Raio-X EG */
+.score-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.08) 100%);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  text-align: center;
+  grid-column: 1 / -1;
+}
+.score-hero-number {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, var(--mint) 0%, var(--mint-soft) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.score-hero-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+}
+.score-hero-reading {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.pillar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pillar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pillar-title h4 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.pillar-note {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.pillar-bar-track {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pillar-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pillar-reading {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pillar-reading.critico { color: var(--danger-soft); }
+.pillar-reading.fragil  { color: var(--amber-soft); }
+.pillar-reading.saudavel { color: var(--mint-soft); }
+.pillar-reading.maduro  { color: var(--mint); }
+.pillar-bar-fill.critico  { background: var(--danger); }
+.pillar-bar-fill.fragil   { background: var(--amber); }
+.pillar-bar-fill.saudavel { background: var(--mint); }
+.pillar-bar-fill.maduro   { background: var(--mint); box-shadow: 0 0 8px rgba(58,201,123,0.6); }
+.gargalo-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: rgba(184,69,47,0.25);
+  color: var(--danger-soft);
+  border: 1px solid rgba(184,69,47,0.4);
+}
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(58, 201, 123, 0.1);
+  color: var(--mint-soft);
+}
+.score-rescore-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  border: 1.5px dashed var(--glass-border);
+  border-radius: 16px;
+  text-align: center;
+  color: var(--text-dim);
+  grid-column: 1 / -1;
+}
+.score-rescore-cta h4 { margin: 0; color: var(--text-muted); }
+.score-rescore-cta p  { margin: 0; font-size: 0.85rem; line-height: 1.6; }
 .bento-card.col-span-2 {
   grid-column: span 2;
 }

@@ -15,13 +15,13 @@ export function ClientsView() {
   const clients = clientsData ?? [];
 
   return (
-    <section style={{ padding: '24px' }}>
-        <div style={{ marginBottom: '24px' }}>
+    <section style={{ padding: '32px', width: '100%' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SectionHeader eyebrow="Client Hub" title="Carteira" icon={Users} />
         </div>
         {loadingClients && <EmptyState text="Carregando clientes..." />}
         {!loadingClients && clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
-        <div className="bento-grid">
+        <div className="bento-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
           {clients.map((client) => (
             <button
               className="client-card"
@@ -30,7 +30,7 @@ export function ClientsView() {
               onClick={() => navigate(`/clientes/${client.id}`)}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: '8px' }}>
-                <strong style={{ fontSize: '1.1rem' }}>{client.name}</strong>
+                <strong style={{ fontSize: '1.05rem', lineHeight: 1.3 }}>{client.name}</strong>
                 <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
               </div>
               <small style={{ display: 'block', textAlign: 'left', marginBottom: '16px', color: 'var(--text-muted)' }}>
