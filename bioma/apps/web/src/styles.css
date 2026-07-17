@@ -2790,3 +2790,124 @@ h3 {
   font-weight: 700;
   text-transform: uppercase;
 }
+
+/* Novo Profile & Settings CSS */
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 12px;
+}
+.settings-tab-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.settings-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+.settings-tab-btn.active {
+  background: var(--brand-accent);
+  color: var(--moss-900);
+}
+
+.profile-hero {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.08) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  margin-bottom: 12px;
+}
+.profile-avatar-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+.profile-avatar-wrap .profile-avatar-large {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid var(--glass-border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.avatar-upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  color: var(--moss-900);
+  border: 2px solid var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.avatar-upload-btn:hover {
+  transform: scale(1.1);
+  background: var(--accent-deep);
+}
+
+.profile-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.profile-hero-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.profile-hero-email {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+.profile-hero-role {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 4px;
+}
+.profile-hero-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .profile-hero {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    padding: 24px;
+    gap: 16px;
+  }
+  .profile-hero-badges {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .profile-content {
+    grid-template-columns: 1fr !important;
+  }
+}

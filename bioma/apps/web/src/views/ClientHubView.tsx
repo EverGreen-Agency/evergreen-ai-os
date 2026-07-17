@@ -36,8 +36,8 @@ export function ClientHubView() {
     localStorage.setItem(scoreKey, JSON.stringify(withDate));
   };
 
-  const { data: user } = useCurrentUser();
-  const isEgAdmin = user?.email?.endsWith("@evergreenmkt.com.br") ?? false;
+  const { data: user, isLoading: loadingUser } = useCurrentUser();
+  const isEgAdmin = !loadingUser && (user?.email?.endsWith("@evergreenmkt.com.br") ?? false);
 
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];
@@ -89,7 +89,7 @@ export function ClientHubView() {
       {loadingPortal && <EmptyState text="Carregando hub..." />}
       {!loadingPortal && portal && (
         <div style={{ padding: '24px 32px', flex: 1 }}>
-          <div className="tabs" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0', marginBottom: '28px', overflowX: 'auto' }}>
+          <div className="tabs" style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0', marginBottom: '28px', flexWrap: 'wrap' }}>
             {[
               { id: 'resumo', label: 'Resumo' },
               { id: 'entregas', label: 'Entregas' },
@@ -344,6 +344,7 @@ function ScoreTab({ scoreData, onSave, isAdmin }: {
 
   const handleSave = () => onSave(draft);
 
+  // Apenas clientes não-admins veem o estado vazio — admin sempre pode preencher
   if (!hasData && !isAdmin) {
     return (
       <div className="bento-grid">
@@ -356,20 +357,32 @@ function ScoreTab({ scoreData, onSave, isAdmin }: {
     );
   }
 
+  // Admin sem dados: mostra banner de início + pilares para preencher
+  const showEmptyBanner = isAdmin && !hasData;
+
   return (
     <div className="bento-grid">
-      {/* Hero */}
-      <div className="score-hero">
-        <span className="score-hero-label">Raio-X Comercial EG</span>
-        <span className="score-hero-number">{avg !== null ? avg.toFixed(1) : '—'}</span>
-        <span className={`pillar-reading ${pillarClass(avg)}`}>{pillarLabel(avg)}</span>
-        <span className="level-badge" style={{ marginTop: '8px' }}>{level.icon} {level.label}</span>
-        {scoreData.updatedAt && (
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-            Último re-score: {new Date(scoreData.updatedAt).toLocaleDateString('pt-BR')}
-          </span>
-        )}
-      </div>
+      {/* Hero / Onboarding banner */}
+      {showEmptyBanner ? (
+        <div className="score-rescore-cta" style={{ border: '1.5px solid rgba(58,201,123,0.25)', background: 'rgba(58,201,123,0.04)' }}>
+          <BarChart3 size={28} color="var(--mint)" style={{ opacity: 0.7 }} />
+          <h4 style={{ color: 'var(--mint-soft)' }}>Primeiro Raio-X</h4>
+          <p>Preencha as notas dos 3 pilares abaixo para registrar o diagnóstico inicial deste cliente.<br />
+          <strong>Fórmula:</strong> some as notas de 5 perguntas (1–5 cada) → divide por 5 → multiplica por 2 → resultado 0–10.</p>
+        </div>
+      ) : (
+        <div className="score-hero">
+          <span className="score-hero-label">Raio-X Comercial EG</span>
+          <span className="score-hero-number">{avg !== null ? avg.toFixed(1) : '—'}</span>
+          <span className={`pillar-reading ${pillarClass(avg)}`}>{pillarLabel(avg)}</span>
+          <span className="level-badge" style={{ marginTop: '8px' }}>{level.icon} {level.label}</span>
+          {scoreData.updatedAt && (
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+              Último re-score: {new Date(scoreData.updatedAt).toLocaleDateString('pt-BR')}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Pilares */}
       <PillarBar

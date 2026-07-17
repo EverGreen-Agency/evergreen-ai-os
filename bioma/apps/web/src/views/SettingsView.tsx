@@ -1,7 +1,7 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Link2, ShieldCheck, User, Building2, GitBranch, Unlink } from "lucide-react";
+import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail } from "lucide-react";
 import { IntegrationsTab } from "../components/IntegrationsTab";
 import { api, apiUrl } from "../lib/api";
 import { useCurrentUser } from "../hooks/useBiomaApi";
@@ -11,9 +11,27 @@ export function SettingsView() {
   const { data: user } = useCurrentUser();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
   const [activeSubTab, setActiveSubTab] = useState<"general" | "integrations">("general");
+
+  // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
+  const avatarKey = user ? `bioma_avatar_${user.id}` : null;
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(() => {
+    if (!avatarKey) return null;
+    try { return localStorage.getItem(avatarKey); } catch { return null; }
+  });
+
+  // Campos de perfil local
+  const profileKey = user ? `bioma_profile_${user.id}` : null;
+  const loadProfile = () => {
+    if (!profileKey) return { cargo: '', telefone: '' };
+    try { return JSON.parse(localStorage.getItem(profileKey) ?? '{}'); } catch { return {}; }
+  };
+  const [cargo, setCargo] = useState<string>(() => loadProfile().cargo ?? '');
+  const [telefone, setTelefone] = useState<string>(() => loadProfile().telefone ?? '');
+  const [profileSaved, setProfileSaved] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -27,10 +45,28 @@ export function SettingsView() {
   const [identityError, setIdentityError] = useState("");
   const [unlinking, setUnlinking] = useState(false);
 
-  // Resultado do fluxo OAuth chega por redirect (?linked=google | ?oauth_error=...)
   const searchParams = new URLSearchParams(location.search);
   const linkedNow = searchParams.get("linked") === "google";
   const oauthError = searchParams.get("oauth_error");
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !avatarKey) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const src = ev.target?.result as string;
+      setAvatarSrc(src);
+      localStorage.setItem(avatarKey, src);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleSaveProfile() {
+    if (!profileKey) return;
+    localStorage.setItem(profileKey, JSON.stringify({ cargo, telefone }));
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 2500);
+  }
 
   async function handleUnlink() {
     if (!googleIdentity) return;
@@ -85,35 +121,107 @@ export function SettingsView() {
     <section className="profile-grid">
       <SectionHeader eyebrow="Ajustes" title="Configurações" icon={User} />
 
-      <div className="tabs-container">
-        <button 
-          className={`tab-item ${activeTab === "user" ? "active" : ""}`}
-          onClick={() => setActiveTab("user")}
-          style={{ padding: "8px 16px", background: activeTab === "user" ? "var(--brand-accent)" : "transparent", color: activeTab === "user" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600, marginRight: "8px" }}
-        >
-          Usuário
-        </button>
-        {isEgAdmin && (
-          <button 
-            className={`tab-item ${activeTab === "company" ? "active" : ""}`}
-            onClick={() => setActiveTab("company")}
-            style={{ padding: "8px 16px", background: activeTab === "company" ? "var(--brand-accent)" : "transparent", color: activeTab === "company" ? "var(--text-main)" : "var(--text-muted)", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600, marginRight: "8px" }}
-          >
-            Perfil da Empresa
-          </button>
-        )}
+      {/* Tabs principais */}
+      <div className="settings-tabs">
+        {(["user", "company"] as const)
+          .filter(t => t === "user" || isEgAdmin)
+          .map(t => (
+            <button
+              key={t}
+              type="button"
+              className={`settings-tab-btn ${activeTab === t ? "active" : ""}`}
+              onClick={() => setActiveTab(t)}
+            >
+              {t === "user" ? "Meu Perfil" : "Empresa"}
+            </button>
+          ))}
       </div>
 
-      <div className="profile-header surface">
-        <div className="profile-avatar-large">{initials}</div>
-        <div className="profile-title">
-          <h2>{user.display_name}</h2>
-          <span>{user.email}</span>
+      {/* Hero do perfil */}
+      <div className="profile-hero">
+        <div className="profile-avatar-wrap">
+          <div className="profile-avatar-large" style={{ backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', color: avatarSrc ? 'transparent' : undefined }}>
+            {!avatarSrc && initials}
+          </div>
+          <button
+            type="button"
+            className="avatar-upload-btn"
+            title="Trocar foto"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Camera size={14} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleAvatarChange}
+          />
+        </div>
+        <div className="profile-hero-info">
+          <h2 className="profile-hero-name">{user.display_name}</h2>
+          <span className="profile-hero-email">{user.email}</span>
+          {cargo && <span className="profile-hero-role">{cargo}</span>}
+        </div>
+        <div className="profile-hero-badges">
+          {user.organizations.map(org => (
+            <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
+              {org.role === 'eg_admin' ? '⚡ EG Admin' : org.role}
+            </span>
+          ))}
         </div>
       </div>
 
       {activeTab === "user" && (
         <div className="profile-content">
+
+          {/* Informações pessoais */}
+          <article className="surface profile-section" style={{ gridColumn: '1 / -1' }}>
+            <div className="surface-header">
+              <User size={18} />
+              <h3>Informações pessoais</h3>
+            </div>
+            <p className="panel-footnote" style={{ marginTop: 0 }}>
+              Dados locais por enquanto — em breve sincronizados com o backend.
+            </p>
+            <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+              <label>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  <Mail size={13} /> E-mail
+                </span>
+                <input value={user.email} disabled style={{ opacity: 0.6 }} />
+              </label>
+              <label>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  <Briefcase size={13} /> Cargo / Função
+                </span>
+                <input
+                  value={cargo}
+                  onChange={e => setCargo(e.target.value)}
+                  placeholder="Ex: Growth Lead, Designer..."
+                />
+              </label>
+              <label>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  <Phone size={13} /> Telefone / WhatsApp
+                </span>
+                <input
+                  value={telefone}
+                  onChange={e => setTelefone(e.target.value)}
+                  placeholder="+55 (11) 99999-9999"
+                  type="tel"
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button type="button" className="primary-button" onClick={handleSaveProfile}>
+                Salvar informações
+              </button>
+              {profileSaved && <span className="form-success">Salvo ✓</span>}
+            </div>
+          </article>
+
           <article className="surface profile-section">
             <div className="surface-header">
               <Link2 size={18} />
@@ -236,7 +344,7 @@ export function SettingsView() {
               onClick={() => setActiveSubTab("integrations")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "integrations" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "integrations" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
-              Integrações MCP
+              Integrações
             </button>
           </div>
 
