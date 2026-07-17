@@ -182,8 +182,6 @@ def get_squads(_user: CurrentUserResponse = Depends(_require_eg_admin)):
         return {"squads": [], "activeStates": {}}
     return {"squads": _load_squads(paths["squads"]), "activeStates": {}}
 
-ENG_DIR = PROJECT_ROOT / "_opensquad" / "_memory" / "engenharia"
-
 def parse_spec_metadata(content: str):
     import re
     title = None
@@ -206,11 +204,15 @@ def parse_spec_metadata(content: str):
 
 @router.get("/engineering")
 def get_engineering_modules():
-    if not ENG_DIR.exists():
+    paths = _paths()
+    if not paths or "engineering" not in paths:
+        return {"modules": [], "matrix": {}}
+    eng_dir = paths["engineering"]
+    if not eng_dir.exists():
         return {"modules": [], "matrix": {}}
         
     modules = []
-    for entry in ENG_DIR.iterdir():
+    for entry in eng_dir.iterdir():
         if entry.is_dir() and entry.name != "mega-plataforma":
             mod_id = entry.name
             spec_path = entry / "spec.md"

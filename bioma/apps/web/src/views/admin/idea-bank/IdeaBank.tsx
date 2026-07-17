@@ -73,6 +73,7 @@ const HORIZON_META: Record<string, { label: string; color: string }> = {
 async function writeIdeas(ideas: Idea[]) {
   await fetch("/api/ideas", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ideas }),
   });
@@ -96,7 +97,7 @@ export function IdeaBank() {
   // Initial load
   useEffect(() => {
     if (ideas.length > 0) { setLoading(false); return; }
-    fetch("/api/ideas", { cache: "no-store" })
+    fetch("/api/ideas", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((data) => { if (data?.ideas) setIdeas(data.ideas); })
       .catch(() => {})

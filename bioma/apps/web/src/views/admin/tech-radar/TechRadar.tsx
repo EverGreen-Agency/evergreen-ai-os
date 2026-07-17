@@ -27,6 +27,7 @@ const QUADRANTS: Quadrant[] = ["languages", "frameworks", "tools", "platforms-in
 async function writeStack(techs: Tech[]) {
   await fetch("/api/stack", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ techs }),
   });
@@ -52,7 +53,7 @@ export function TechRadar() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    fetch("/api/stack", { cache: "no-store" })
+    fetch("/api/stack", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((data: StackRadar) => { setRadar(data); setTechs(data.techs ?? []); })
       .catch(() => {})

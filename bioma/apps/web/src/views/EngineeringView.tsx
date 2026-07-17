@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ï»¿import { useEffect, useState } from "react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { FileText, ArrowRight, Activity, Calendar } from "lucide-react";
 
@@ -28,7 +28,7 @@ interface EngineeringData {
 const PHASE_ORDER = ["P0", "P0.5", "P1", "P2", "P3", "P4"];
 
 function normalizePhase(phase: string | undefined): string {
-  if (!phase) return "—";
+  if (!phase) return "â€”";
   const match = phase.match(/P\d(?:\.\d)?/);
   return match ? match[0] : phase;
 }
@@ -50,7 +50,7 @@ export function EngineeringView() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/engineering")
+    fetch("/api/engineering", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch engineering data");
         return res.json();
@@ -60,9 +60,9 @@ export function EngineeringView() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="loading-state">Carregando módulos...</div>;
+  if (loading) return <div className="loading-state">Carregando mÃ³dulos...</div>;
   if (error) return <div className="error-state">Erro: {error}</div>;
-  if (!data || data.modules.length === 0) return <EmptyState text="Nenhum módulo de engenharia encontrado." />;
+  if (!data || data.modules.length === 0) return <EmptyState text="Nenhum mÃ³dulo de engenharia encontrado." />;
 
   const groups = new Map<string, Array<{ mod: EngineeringModule; mat?: ModuleMaturity }>>();
   for (const mod of data.modules) {
@@ -80,7 +80,7 @@ export function EngineeringView() {
   return (
     <section className="content-grid">
       <article className="surface large">
-        <SectionHeader eyebrow="Engenharia" title="Módulos de Engenharia" icon={FileText} />
+        <SectionHeader eyebrow="Engenharia" title="MÃ³dulos de Engenharia" icon={FileText} />
         
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginTop: "1rem" }}>
           {orderedPhases.map((phase) => {
@@ -89,7 +89,7 @@ export function EngineeringView() {
             return (
               <section key={phase}>
                 <h2 style={{ color, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.5rem" }}>
-                  {phase === "—" ? "Sem Fase Definida" : phase}{" "}
+                  {phase === "â€”" ? "Sem Fase Definida" : phase}{" "}
                   <span style={{ color: "#6b7280", fontFamily: "monospace" }}>({items.length})</span>
                 </h2>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
