@@ -23,6 +23,9 @@ class CurrentUserResponse(BaseModel):
     id: UUID
     email: EmailStr
     display_name: str
+    # Sem senha própria (conta só-social futura), o front bloqueia o
+    # desvincular do Google com aviso em vez de erro do servidor.
+    has_password: bool = True
     organizations: list[OrganizationSummary]
 
 

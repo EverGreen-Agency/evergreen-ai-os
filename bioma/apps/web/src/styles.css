@@ -33,12 +33,22 @@
   --chart-1: #27a861;
   --chart-2: #b8893a;
 
-  /* Aliases usados pelas views novas (Settings/Cockpit/Operations/Integrations):
-     eram referenciados sem definição — os estilos silenciosamente não aplicavam. */
+  /* Aliases usados pelas views novas (Settings/Cockpit/Operations/admin):
+     eram referenciados sem definição — os estilos silenciosamente não aplicavam.
+     Todos apontam para os tokens EG canônicos acima. */
   --brand-accent: var(--accent);
   --text-main: var(--text);
   --text-muted: var(--text-dim);
   --border-light: var(--border);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-dim);
+  --accent-cyan: var(--mint);
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-sidebar: var(--bg-deep);
+  --bg-inset: var(--surface-soft);
+  --bg-body: var(--bg);
+  --danger-main: var(--danger);
 
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
   color: var(--text);

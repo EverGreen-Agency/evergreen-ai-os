@@ -18,7 +18,8 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
     with connect() as conn:
         session = conn.execute(
             """
-            select s.user_id, s.expires_at, u.email, u.display_name
+            select s.user_id, s.expires_at, u.email, u.display_name,
+                   u.password_hash is not null as has_password
             from sessions s
             join users u on u.id = s.user_id
             where s.token_hash = %s
@@ -47,6 +48,7 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
         id=session["user_id"],
         email=session["email"],
         display_name=session["display_name"],
+        has_password=session["has_password"],
         organizations=[OrganizationSummary(**row) for row in memberships],
     )
 

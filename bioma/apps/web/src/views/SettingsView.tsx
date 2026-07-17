@@ -131,15 +131,27 @@ export function SettingsView() {
                 <div className="timeline-row">
                   <span>Google</span>
                   <strong>{googleIdentity.email ?? "conta vinculada"}</strong>
-                  <button
-                    className="mini-button"
-                    type="button"
-                    onClick={handleUnlink}
-                    disabled={unlinking}
-                  >
-                    <Unlink size={13} />
-                    {unlinking ? "Desvinculando..." : "Desvincular"}
-                  </button>
+                  {user.has_password ? (
+                    <button
+                      className="mini-button"
+                      type="button"
+                      onClick={handleUnlink}
+                      disabled={unlinking}
+                    >
+                      <Unlink size={13} />
+                      {unlinking ? "Desvinculando..." : "Desvincular"}
+                    </button>
+                  ) : (
+                    <button
+                      className="mini-button"
+                      type="button"
+                      disabled
+                      title="O Google é seu único método de login. Defina uma senha na seção Segurança abaixo para poder desvincular."
+                    >
+                      <Unlink size={13} />
+                      Defina uma senha antes
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="timeline-row">

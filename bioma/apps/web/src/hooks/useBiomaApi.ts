@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload } from "../lib/api";
+import type { Idea } from "../types/idea";
+import type { Tech } from "../types/stack";
 
 export function useApiHealth() {
   return useQuery({
@@ -183,6 +185,68 @@ export function useLogout() {
 export function useCreateInvite() {
   return useMutation({
     mutationFn: ({ clientId, email }: { clientId: string; email?: string | null }) => api.createInvite(clientId, email),
+  });
+}
+
+// --- BACKOFFICE EG (banco de ideias / tech radar) ---
+// Escrita com atualização otimista: o board responde na hora (drag & drop) e,
+// se o POST falhar, o cache volta ao snapshot e o erro aparece no aviso global.
+
+export function useAdminIdeas() {
+  return useQuery({
+    queryKey: ["admin", "ideas"],
+    queryFn: api.adminIdeas,
+    select: (data) => data.ideas ?? [],
+  });
+}
+
+export function useSaveAdminIdeas() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ideas: Idea[]) => api.saveAdminIdeas(ideas),
+    onMutate: async (ideas) => {
+      await queryClient.cancelQueries({ queryKey: ["admin", "ideas"] });
+      const previous = queryClient.getQueryData<{ ideas?: Idea[] }>(["admin", "ideas"]);
+      queryClient.setQueryData(["admin", "ideas"], { ...(previous ?? {}), ideas });
+      return { previous };
+    },
+    onError: (_error, _ideas, context) => {
+      if (context?.previous) queryClient.setQueryData(["admin", "ideas"], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "ideas"] }),
+  });
+}
+
+export function useAdminIdeaDoc(id: string | null) {
+  return useQuery({
+    queryKey: ["admin", "idea-doc", id],
+    queryFn: () => api.adminIdeaDoc(id ?? ""),
+    enabled: Boolean(id),
+    retry: false,
+  });
+}
+
+export function useAdminStack() {
+  return useQuery({
+    queryKey: ["admin", "stack"],
+    queryFn: api.adminStack,
+  });
+}
+
+export function useSaveAdminStack() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (techs: Tech[]) => api.saveAdminStack(techs),
+    onMutate: async (techs) => {
+      await queryClient.cancelQueries({ queryKey: ["admin", "stack"] });
+      const previous = queryClient.getQueryData<{ techs?: Tech[] }>(["admin", "stack"]);
+      queryClient.setQueryData(["admin", "stack"], { ...(previous ?? {}), techs });
+      return { previous };
+    },
+    onError: (_error, _techs, context) => {
+      if (context?.previous) queryClient.setQueryData(["admin", "stack"], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "stack"] }),
   });
 }
 

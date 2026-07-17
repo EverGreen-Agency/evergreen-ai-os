@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { CSSProperties } from "react";
-import type { Ring, Quadrant, Tech, StackRadar } from "../../../types/stack";
+import type { Ring, Quadrant, Tech } from "../../../types/stack";
+import { useAdminStack, useSaveAdminStack } from "../../../hooks/useBiomaApi";
 
 // ── config ──────────────────────────────────────────────────────────────────
 
@@ -24,15 +25,6 @@ const QUADRANTS: Quadrant[] = ["languages", "frameworks", "tools", "platforms-in
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-async function writeStack(techs: Tech[]) {
-  await fetch("/api/stack", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ techs }),
-  });
-}
-
 function newId(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
@@ -46,48 +38,37 @@ const EMPTY_TECH: Omit<Tech, "id"> = {
 // ── component ─────────────────────────────────────────────────────────────────
 
 export function TechRadar() {
-  const [radar, setRadar] = useState<StackRadar | null>(null);
-  const [techs, setTechs] = useState<Tech[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: radar, isLoading } = useAdminStack();
+  const saveStack = useSaveAdminStack();
   const [quadFilter, setQuadFilter] = useState<Quadrant | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/stack", { cache: "no-store", credentials: "include" })
-      .then((r) => r.json())
-      .then((data: StackRadar) => { setRadar(data); setTechs(data.techs ?? []); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const techs = radar?.techs ?? [];
+  const save = useCallback((next: Tech[]) => saveStack.mutate(next), [saveStack]);
 
-  const save = useCallback(async (next: Tech[]) => {
-    setTechs(next);
-    await writeStack(next);
-  }, []);
-
-  const moveRing = useCallback(async (tech: Tech, dir: 1 | -1) => {
+  const moveRing = useCallback((tech: Tech, dir: 1 | -1) => {
     const idx = RINGS.indexOf(tech.ring);
     const next = RINGS[idx + dir];
     if (!next) return;
-    await save(techs.map((t) => t.id === tech.id ? { ...t, ring: next } : t));
+    save(techs.map((t) => t.id === tech.id ? { ...t, ring: next } : t));
   }, [techs, save]);
 
-  const deleteTech = useCallback(async (id: string) => {
-    await save(techs.filter((t) => t.id !== id));
+  const deleteTech = useCallback((id: string) => {
+    save(techs.filter((t) => t.id !== id));
   }, [techs, save]);
 
-  const addTech = useCallback(async (draft: Omit<Tech, "id">) => {
+  const addTech = useCallback((draft: Omit<Tech, "id">) => {
     const id = newId(draft.name) || `tech-${Date.now()}`;
-    await save([...techs, { ...draft, id }]);
+    save([...techs, { ...draft, id }]);
     setShowAddForm(false);
   }, [techs, save]);
 
-  const updateTech = useCallback(async (updated: Tech) => {
-    await save(techs.map((t) => t.id === updated.id ? updated : t));
+  const updateTech = useCallback((updated: Tech) => {
+    save(techs.map((t) => t.id === updated.id ? updated : t));
   }, [techs, save]);
 
-  if (loading) return <Centered>Carregando Tech Radar...</Centered>;
-  if (!radar) return <Centered>stack.json não encontrado.</Centered>;
+  if (isLoading) return <Centered>Carregando Tech Radar...</Centered>;
+  if (!radar?.schema_version && techs.length === 0) return <Centered>stack.json não encontrado.</Centered>;
 
   const visible = quadFilter ? techs.filter((t) => t.quadrant === quadFilter) : techs;
   const byRing = (ring: Ring) => visible.filter((t) => t.ring === ring);

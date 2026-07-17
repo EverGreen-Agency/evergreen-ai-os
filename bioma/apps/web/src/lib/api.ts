@@ -1,3 +1,6 @@
+import type { Idea } from "../types/idea";
+import type { StackRadar, Tech } from "../types/stack";
+
 export type ApiHealth = {
   status: string;
   checked_at: string;
@@ -9,6 +12,7 @@ export type CurrentUser = {
   id: string;
   email: string;
   display_name: string;
+  has_password: boolean;
   organizations: Array<{
     id: string;
     name: string;
@@ -393,6 +397,20 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function requestText(path: string): Promise<string> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { credentials: "include" });
+  if (!response.ok) {
+    let message = "Falha de comunicação com a API.";
+    try {
+      message = (await response.json()).detail ?? message;
+    } catch {
+      // Sem corpo JSON: mantém a mensagem genérica.
+    }
+    throw new Error(message);
+  }
+  return response.text();
+}
+
 export const api = {
   health: () => request<ApiHealth>("/health"),
   me: () => request<CurrentUser>("/auth/me"),
@@ -528,6 +546,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ password }),
     }),
+  // Backoffice EG (dados internos servidos pelo admin_legacy; EG admin only)
+  adminIdeas: () => request<Partial<{ ideas: Idea[] }> & { ideas?: Idea[] }>("/api/ideas"),
+  saveAdminIdeas: (ideas: Idea[]) =>
+    request<{ status: string }>("/api/ideas", { method: "POST", body: JSON.stringify({ ideas }) }),
+  adminIdeaDoc: (id: string) => requestText(`/api/ideas/doc?id=${encodeURIComponent(id)}`),
+  adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/api/stack"),
+  saveAdminStack: (techs: Tech[]) =>
+    request<{ status: string }>("/api/stack", { method: "POST", body: JSON.stringify({ techs }) }),
   listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
   uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {
     const formData = new FormData();
