@@ -45,7 +45,13 @@ class DeliverableSummary(BaseModel):
     status: DeliverableStatus
     due_at: datetime | None = None
     clickup_task_id: str | None = None
+    assignee_emails: list[str] = []
     updated_at: datetime
+
+
+class GlobalDeliverableSummary(DeliverableSummary):
+    client_id: UUID
+    client_name: str
 
 
 class ApprovalSummary(BaseModel):

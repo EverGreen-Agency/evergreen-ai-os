@@ -77,7 +77,7 @@ def list_artifacts(conn, organization_id: UUID, is_admin: bool):
 def list_deliverables(conn, organization_id: UUID):
     return conn.execute(
         """
-        select id, title, status, due_at, clickup_task_id, updated_at
+        select id, title, status, due_at, clickup_task_id, assignee_emails, updated_at
         from deliverables
         where organization_id = %s
         order by
@@ -251,7 +251,11 @@ def upsert_clickup_deliverable(
     title: str,
     status: str,
     due_at: str | None,
+    assignee_emails: list[str],
 ) -> str:
+    import json
+    assignee_json = json.dumps(assignee_emails)
+
     existing = conn.execute(
         """
         select id
@@ -264,20 +268,21 @@ def upsert_clickup_deliverable(
         conn.execute(
             """
             update deliverables
-            set title = %s, status = %s, due_at = %s, updated_at = now()
+            set title = %s, status = %s, due_at = %s, assignee_emails = %s, updated_at = now()
             where id = %s
             """,
-            (title, status, due_at, existing["id"]),
+            (title, status, due_at, assignee_json, existing["id"]),
         )
         return "updated"
 
     conn.execute(
         """
-        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
-        values (%s, %s, %s, %s, %s)
+        insert into deliverables (organization_id, title, status, due_at, clickup_task_id, assignee_emails)
+        values (%s, %s, %s, %s, %s, %s)
         """,
-        (organization_id, title, status, due_at, clickup_task_id),
+        (organization_id, title, status, due_at, clickup_task_id, assignee_json),
     )
+
     return "created"
 
 
@@ -630,3 +635,24 @@ def _client_summary_sql(extra_where: str = "") -> str:
         group by c.id, o.id
         order by c.created_at desc
     """
+
+def list_my_deliverables(conn, user_email: str):
+    import json
+    # Use JSONB containment to match email string inside the array
+    # Since assignee_emails is a JSONB array of strings, we check if it contains the email as an element.
+    # We must cast the user_email to a jsonb string properly formatted: '"email"'
+    # Or simpler: use jsonb ? operator which checks if string exists as top level key/array element
+    return conn.execute(
+        """
+        select 
+            d.id, d.title, d.status, d.due_at, d.clickup_task_id, d.assignee_emails, d.updated_at, 
+            c.id as client_id, c.name as client_name
+        from deliverables d
+        join organizations o on o.id = d.organization_id
+        join clients c on c.organization_id = o.id
+        where d.assignee_emails ? %s
+        order by d.due_at nulls last, d.updated_at desc
+        limit 50
+        """,
+        (user_email,),
+    ).fetchall()

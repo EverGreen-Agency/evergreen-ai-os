@@ -571,6 +571,7 @@ def _upsert_clickup_tasks(conn, organization_id: UUID, tasks: list[dict]) -> dic
             title,
             _clickup_status_to_deliverable_status(task.get("status")),
             task.get("due_at"),
+            task.get("assignee_emails", []),
         )
         if result == "created":
             created += 1
@@ -603,3 +604,8 @@ def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, module:
     if module:
         require_client_module(client, user, module)
     return client
+
+
+def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:
+    with connect() as conn:
+        return client_hub_repo.list_my_deliverables(conn, f'"{user.email}"')

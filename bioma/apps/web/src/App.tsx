@@ -19,7 +19,8 @@ const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({
 const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
-const OperationsView = lazy(() => import("./views/OperationsView").then((module) => ({ default: module.OperationsView })));
+const CrmView = lazy(() => import("./views/CrmView").then((module) => ({ default: module.CrmView })));
+const FinanceView = lazy(() => import("./views/FinanceView").then((module) => ({ default: module.FinanceView })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -217,9 +218,15 @@ export function App() {
             </Suspense>,
           )} />
 
-          <Route path="/comercial" element={guard("comercial",
+          <Route path="/crm" element={guard("crm",
             <Suspense fallback={<ViewLoadingFallback />}>
-              <OperationsView />
+              <CrmView />
+            </Suspense>,
+          )} />
+
+          <Route path="/finance" element={guard("finance",
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <FinanceView />
             </Suspense>,
           )} />
 

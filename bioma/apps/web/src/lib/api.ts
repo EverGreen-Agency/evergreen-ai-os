@@ -57,6 +57,7 @@ export type DeliverableSummary = {
   status: DeliverableStatus;
   due_at: string | null;
   clickup_task_id: string | null;
+  assignee_emails: string[];
   updated_at: string;
 };
 
@@ -421,6 +422,7 @@ export const api = {
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
   clients: () => request<ClientSummary[]>("/clients"),
+  getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>
     request<ClientPortal>("/clients", {
       method: "POST",

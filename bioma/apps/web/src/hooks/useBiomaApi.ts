@@ -27,6 +27,13 @@ export function useClients() {
   });
 }
 
+export function useMyDeliverables() {
+  return useQuery({
+    queryKey: ["deliverables", "me"],
+    queryFn: api.getMyDeliverables,
+  });
+}
+
 export function useClientPortal(clientId: string | null) {
   return useQuery({
     queryKey: ["portal", clientId],

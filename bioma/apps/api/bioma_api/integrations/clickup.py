@@ -108,6 +108,9 @@ def _fetch_tasks(
 
 
 def _normalize_task(task: dict[str, Any], list_item: dict[str, Any]) -> dict[str, Any]:
+    assignees = task.get("assignees", [])
+    assignee_emails = [a.get("email") for a in assignees if a.get("email")]
+
     return {
         "id": task.get("id"),
         "name": task.get("name"),
@@ -116,6 +119,7 @@ def _normalize_task(task: dict[str, Any], list_item: dict[str, Any]) -> dict[str
         "due_at": _clickup_ms_to_iso(task.get("due_date")),
         "list_id": list_item.get("id"),
         "list_name": list_item.get("name"),
+        "assignee_emails": assignee_emails,
     }
 
 

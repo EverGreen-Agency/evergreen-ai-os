@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCurrentUser, useClients, useClientPortal } from "../hooks/useBiomaApi";
+import { useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
 
 export function CockpitView() {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ export function CockpitView() {
   const { data: user } = useCurrentUser();
   const { data: clientsData } = useClients();
   const { data: portalData } = useClientPortal(selectedClientId);
+  const { data: myDeliverablesData } = useMyDeliverables();
 
   const isEgAdmin = user?.organizations.some(org => org.role === "eg_admin");
 
@@ -32,6 +33,7 @@ export function CockpitView() {
 
   const pendingApprovals = portal?.approvals.filter((approval) => approval.status === "pending") ?? [];
   const activeDeliverables = portal?.deliverables.filter((deliverable) => deliverable.status !== "done" && deliverable.status !== "blocked") ?? [];
+  const myDeliverables = myDeliverablesData ?? [];
 
   if (!user) return null;
 
@@ -108,6 +110,29 @@ export function CockpitView() {
               <button className="bento-action" onClick={() => navigate("/eg-ideas")} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
                 Banco de Ideias
               </button>
+            </div>
+          </article>
+
+          <article className="surface large">
+            <div className="surface-header">
+              <CalendarCheck size={18} />
+              <h3>Minhas Tarefas (ClickUp)</h3>
+            </div>
+            <div className="timeline-list">
+              {myDeliverables.length === 0 ? (
+                <div className="timeline-row">
+                  <span style={{ background: "transparent", color: "var(--text-muted)" }}>Tudo em dia</span>
+                  <strong>Nenhuma tarefa atribuída a você no momento.</strong>
+                </div>
+              ) : (
+                myDeliverables.map((task: any) => (
+                  <div className="timeline-row" key={task.id}>
+                    <span>{task.client_name ?? "Agência"}</span>
+                    <strong>{task.title}</strong>
+                    <small>Status: {task.status} | Prazo: {task.due_at ? new Date(task.due_at).toLocaleDateString() : "Sem prazo"}</small>
+                  </div>
+                ))
+              )}
             </div>
           </article>
         </section>

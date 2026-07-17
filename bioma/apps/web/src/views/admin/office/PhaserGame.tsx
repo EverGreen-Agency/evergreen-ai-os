@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { OfficeScene } from './OfficeScene';
 import { useSquadStore } from '../../../store/useSquadStore';
+import { SquadSelector } from './components/SquadSelector';
 
 export function PhaserGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,18 +81,21 @@ export function PhaserGame() {
   }, []);
 
   return (
-    <div style={{ height: 'calc(100vh - 120px)', position: 'relative', overflow: 'hidden' }}>
-      <div
-        ref={containerRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          imageRendering: 'auto',
-        }}
-      />
+    <div style={{ display: 'flex', height: 'calc(100vh - 72px)', width: '100%' }}>
+      <SquadSelector />
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div
+          ref={containerRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            imageRendering: 'auto',
+          }}
+        />
+      </div>
     </div>
   );
 }

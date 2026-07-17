@@ -18,6 +18,7 @@ from bioma_api.schemas.client_hub import (
     FinancialRecordCreateRequest,
     FinancialRecordSummary,
     FinancialRecordUpdateRequest,
+    GlobalDeliverableSummary,
     LeadCreateRequest,
     LeadSummary,
     LeadUpdateRequest,
@@ -29,6 +30,11 @@ from bioma_api.services import client_hub as client_hub_service
 
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
+
+
+@router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
+def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return client_hub_service.list_my_deliverables(user)
 
 
 @router.get("", response_model=list[ClientSummary])

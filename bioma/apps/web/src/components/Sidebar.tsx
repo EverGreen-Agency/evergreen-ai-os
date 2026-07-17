@@ -29,7 +29,7 @@ export function Sidebar({
     setIsOpen(false);
   }, [location.pathname]);
 
-  const groupPrincipal = ["cockpit", "clientes", "comercial", "conteudo"];
+  const groupPrincipal = ["cockpit", "clientes", "crm", "finance", "conteudo"];
   const groupDados = ["analytics"];
   const groupConfig = ["engenharia"];
   const groupAdmin = ["eg-office", "eg-ideas", "eg-tech", "eg-architecture"];

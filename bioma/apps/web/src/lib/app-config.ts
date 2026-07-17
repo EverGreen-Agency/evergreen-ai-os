@@ -5,7 +5,8 @@ import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, Curren
 export type ViewId =
   | "cockpit"
   | "clientes"
-  | "comercial"
+  | "crm"
+  | "finance"
   | "conteudo"
   | "engenharia"
   | "analytics"
@@ -18,7 +19,8 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   // Rotas normais (Módulos de Cliente/Operação)
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
   { id: "clientes", label: "Clientes", icon: Users },
-  { id: "comercial", label: "Comercial", icon: WalletCards },
+  { id: "crm", label: "CRM / Leads", icon: Users },
+  { id: "finance", label: "Financeiro", icon: WalletCards },
   { id: "conteudo", label: "Conteúdo", icon: BookOpen },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "engenharia", label: "Engenharia", icon: FileText },
@@ -35,7 +37,8 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
 export const viewModule: Record<ViewId, ClientModule> = {
   cockpit: "hub",
   clientes: "hub",
-  comercial: "commercial",
+  crm: "commercial",
+  finance: "commercial",
   conteudo: "content",
   analytics: "analytics",
   engenharia: "engineering",
