@@ -704,7 +704,7 @@ function DocModal({ id, title, onClose }: { id: string; title: string; onClose: 
   const [doc, setDoc] = useState<string>("Carregando documento...");
 
   useEffect(() => {
-    fetch(`/api/ideas/doc?id=${id}`)
+    fetch(`/api/ideas/doc?id=${id}`, { credentials: "include" })
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.text();

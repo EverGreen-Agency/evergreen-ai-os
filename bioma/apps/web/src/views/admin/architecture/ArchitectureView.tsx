@@ -182,7 +182,7 @@ export function ArchitectureView() {
   const [view, setView] = useState<"doc" | "map">("doc");
 
   useEffect(() => {
-    fetch("/api/architecture", { cache: "no-store" })
+    fetch("/api/architecture", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((d) => setData(d as ArchData))
       .catch(() => {})

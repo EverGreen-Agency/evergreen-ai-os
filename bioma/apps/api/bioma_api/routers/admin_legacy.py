@@ -53,6 +53,7 @@ def _paths() -> dict[str, Path] | None:
         "ideas": memory / "banco_ideias" / "ideas.json",
         "ideas_docs": memory / "banco_ideias" / "docs",
         "architecture": memory / "banco_arquitetura" / "arquitetura.md",
+        "engineering": memory / "engenharia",
         "squads": root / "squads",
     }
 
