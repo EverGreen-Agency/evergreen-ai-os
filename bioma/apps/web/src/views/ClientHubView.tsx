@@ -23,7 +23,7 @@ export function ClientHubView() {
   const clients = clientsData ?? [];
   const selectedClient = clients.find((c) => c.id === id) ?? null;
 
-  const { data: portalData, isLoading: loadingPortal } = useClientPortal(id);
+  const { data: portalData, isLoading: loadingPortal } = useClientPortal(id ?? null);
   const portal = portalData ?? null;
   const latestSync = portal?.sync_runs.find((run) => run.source === "clickup")?.status;
 
