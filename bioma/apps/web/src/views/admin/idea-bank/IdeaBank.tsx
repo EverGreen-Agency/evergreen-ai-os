@@ -137,15 +137,15 @@ export function IdeaBank() {
               id: "temp-id",
               title: "",
               desc: "",
-              category: "outro",
-              stage: "capture",
-              origin: "internal",
-              horizon: "H1",
-              part_of: null,
+              category: "outro" as any,
+              stage: "capture" as any,
+              origin: "internal" as any,
+              horizon: "H1" as any,
+              part_of: undefined,
               depends_on: [],
               enables: [],
               archived: false
-            }}
+            } as unknown as Idea}
             onSave={handleAddIdea}
             onCancel={() => setShowAddForm(false)}
           />

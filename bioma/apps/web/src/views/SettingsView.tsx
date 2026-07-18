@@ -210,15 +210,27 @@ export function SettingsView() {
 
       {/* Cropper Modal */}
       {cropImageSrc && (
-        <div className="modal-overlay" style={{ zIndex: 9999 }}>
-          <div className="modal-content" style={{ width: '400px', maxWidth: '90vw', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className="modal-header">
-              <h3>Ajustar Foto</h3>
+        <div className="modal-overlay" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+          <div className="modal-content" style={{ 
+            width: '440px', 
+            maxWidth: '90vw', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '24px',
+            padding: '24px',
+            borderRadius: '16px',
+            background: 'var(--bg-surface)',
+            boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+            border: '1px solid var(--border-light)'
+          }}>
+            <div className="modal-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Ajustar foto de perfil</h3>
               <button type="button" className="icon-button" onClick={handleCancelCrop} aria-label="Fechar">
                 <X size={18} />
               </button>
             </div>
-            <div style={{ position: 'relative', width: '100%', height: '300px', background: '#333' }}>
+            
+            <div style={{ position: 'relative', width: '100%', height: '320px', borderRadius: '12px', overflow: 'hidden', background: '#111' }}>
               {/* @ts-expect-error type incompatibility with react-easy-crop in strict mode */}
               <Cropper
                 image={cropImageSrc}
@@ -226,12 +238,32 @@ export function SettingsView() {
                 zoom={zoom}
                 aspect={1}
                 cropShape="round"
+                showGrid={false}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
             </div>
-            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '0 8px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Zoom</span>
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-label="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                style={{
+                  flex: 1,
+                  accentColor: 'var(--brand-accent)',
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
               <button type="button" className="ghost-button" onClick={handleCancelCrop}>
                 Cancelar
               </button>
