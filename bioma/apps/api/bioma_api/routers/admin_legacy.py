@@ -244,7 +244,7 @@ def get_engineering_modules():
             })
             
     matrix = {}
-    matrix_path = ENG_DIR / "mega-plataforma" / "matriz-maturidade-modulos.md"
+    matrix_path = eng_dir / "mega-plataforma" / "matriz-maturidade-modulos.md"
     if matrix_path.exists():
         content = matrix_path.read_text(encoding='utf-8')
         import re
@@ -266,7 +266,11 @@ def get_engineering_detail(mod_id: str):
     if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
         raise HTTPException(status_code=400, detail="Invalid mod_id")
         
-    mod_dir = ENG_DIR / mod_id
+    paths = _paths()
+    if not paths or "engineering" not in paths:
+        raise HTTPException(status_code=404, detail="Engineering directory not found")
+    eng_dir = paths["engineering"]
+    mod_dir = eng_dir / mod_id
     if not mod_dir.is_dir():
         raise HTTPException(status_code=404, detail="Module not found")
         
