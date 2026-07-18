@@ -30,6 +30,7 @@ from bioma_api.services import client_hub as client_hub_service
 
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
+workspace_router = APIRouter(prefix="/workspaces", tags=["workspace-client-hub"])
 
 
 @router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
@@ -51,6 +52,7 @@ def create_client(
 
 
 @router.get("/{client_id}", response_model=ClientPortalResponse)
+@workspace_router.get("/{client_id}", response_model=ClientPortalResponse)
 def get_client_portal(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -59,6 +61,7 @@ def get_client_portal(
 
 
 @router.patch("/{client_id}", response_model=ClientPortalResponse)
+@workspace_router.patch("/{client_id}", response_model=ClientPortalResponse)
 def update_client(
     client_id: UUID,
     payload: ClientUpdateRequest,
@@ -68,6 +71,7 @@ def update_client(
 
 
 @router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
 def create_artifact(
     client_id: UUID,
     payload: ArtifactCreateRequest,
@@ -77,6 +81,7 @@ def create_artifact(
 
 
 @router.patch("/{client_id}/artifacts/{artifact_id}", response_model=ClientPortalResponse)
+@workspace_router.patch("/{client_id}/artifacts/{artifact_id}", response_model=ClientPortalResponse)
 def update_artifact(
     client_id: UUID,
     artifact_id: UUID,
@@ -87,6 +92,7 @@ def update_artifact(
 
 
 @router.delete("/{client_id}/artifacts/{artifact_id}", response_model=ClientPortalResponse)
+@workspace_router.delete("/{client_id}/artifacts/{artifact_id}", response_model=ClientPortalResponse)
 def delete_artifact(
     client_id: UUID,
     artifact_id: UUID,
@@ -96,6 +102,7 @@ def delete_artifact(
 
 
 @router.post("/{client_id}/deliverables", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/deliverables", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
 def create_deliverable(
     client_id: UUID,
     payload: DeliverableCreateRequest,
@@ -105,6 +112,7 @@ def create_deliverable(
 
 
 @router.patch("/{client_id}/deliverables/{deliverable_id}", response_model=ClientPortalResponse)
+@workspace_router.patch("/{client_id}/deliverables/{deliverable_id}", response_model=ClientPortalResponse)
 def update_deliverable(
     client_id: UUID,
     deliverable_id: UUID,
@@ -115,6 +123,7 @@ def update_deliverable(
 
 
 @router.delete("/{client_id}/deliverables/{deliverable_id}", response_model=ClientPortalResponse)
+@workspace_router.delete("/{client_id}/deliverables/{deliverable_id}", response_model=ClientPortalResponse)
 def delete_deliverable(
     client_id: UUID,
     deliverable_id: UUID,
@@ -124,6 +133,7 @@ def delete_deliverable(
 
 
 @router.post("/{client_id}/approvals", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/approvals", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
 def create_approval(
     client_id: UUID,
     payload: ApprovalCreateRequest,
@@ -133,6 +143,7 @@ def create_approval(
 
 
 @router.patch("/{client_id}/approvals/{approval_id}", response_model=ClientPortalResponse)
+@workspace_router.patch("/{client_id}/approvals/{approval_id}", response_model=ClientPortalResponse)
 def decide_approval(
     client_id: UUID,
     approval_id: UUID,
@@ -143,6 +154,7 @@ def decide_approval(
 
 
 @router.post("/{client_id}/sync/clickup", response_model=ClientPortalResponse)
+@workspace_router.post("/{client_id}/sync/clickup", response_model=ClientPortalResponse)
 def sync_clickup(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -151,6 +163,7 @@ def sync_clickup(
 
 
 @router.get("/{client_id}/leads", response_model=list[LeadSummary])
+@workspace_router.get("/{client_id}/leads", response_model=list[LeadSummary])
 def list_leads(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -159,6 +172,7 @@ def list_leads(
 
 
 @router.post("/{client_id}/leads", response_model=list[LeadSummary], status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/leads", response_model=list[LeadSummary], status_code=status.HTTP_201_CREATED)
 def create_lead(
     client_id: UUID,
     payload: LeadCreateRequest,
@@ -168,6 +182,7 @@ def create_lead(
 
 
 @router.patch("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
+@workspace_router.patch("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
 def update_lead(
     client_id: UUID,
     lead_id: UUID,
@@ -178,6 +193,7 @@ def update_lead(
 
 
 @router.delete("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
+@workspace_router.delete("/{client_id}/leads/{lead_id}", response_model=list[LeadSummary])
 def delete_lead(
     client_id: UUID,
     lead_id: UUID,
@@ -187,6 +203,7 @@ def delete_lead(
 
 
 @router.get("/{client_id}/finance", response_model=list[FinancialRecordSummary])
+@workspace_router.get("/{client_id}/finance", response_model=list[FinancialRecordSummary])
 def list_financial_records(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -195,6 +212,7 @@ def list_financial_records(
 
 
 @router.post("/{client_id}/finance", response_model=list[FinancialRecordSummary], status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/finance", response_model=list[FinancialRecordSummary], status_code=status.HTTP_201_CREATED)
 def create_financial_record(
     client_id: UUID,
     payload: FinancialRecordCreateRequest,
@@ -204,6 +222,7 @@ def create_financial_record(
 
 
 @router.patch("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
+@workspace_router.patch("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
 def update_financial_record(
     client_id: UUID,
     record_id: UUID,
@@ -214,6 +233,7 @@ def update_financial_record(
 
 
 @router.delete("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
+@workspace_router.delete("/{client_id}/finance/{record_id}", response_model=list[FinancialRecordSummary])
 def delete_financial_record(
     client_id: UUID,
     record_id: UUID,
@@ -223,6 +243,7 @@ def delete_financial_record(
 
 
 @router.get("/{client_id}/metrics", response_model=list[PerformanceMetricSummary])
+@workspace_router.get("/{client_id}/metrics", response_model=list[PerformanceMetricSummary])
 def list_performance_metrics(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -231,6 +252,7 @@ def list_performance_metrics(
 
 
 @router.post("/{client_id}/metrics", response_model=list[PerformanceMetricSummary], status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/{client_id}/metrics", response_model=list[PerformanceMetricSummary], status_code=status.HTTP_201_CREATED)
 def create_performance_metric(
     client_id: UUID,
     payload: PerformanceMetricCreateRequest,
@@ -240,6 +262,7 @@ def create_performance_metric(
 
 
 @router.patch("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
+@workspace_router.patch("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
 def update_performance_metric(
     client_id: UUID,
     metric_id: UUID,
@@ -250,6 +273,7 @@ def update_performance_metric(
 
 
 @router.delete("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
+@workspace_router.delete("/{client_id}/metrics/{metric_id}", response_model=list[PerformanceMetricSummary])
 def delete_performance_metric(
     client_id: UUID,
     metric_id: UUID,

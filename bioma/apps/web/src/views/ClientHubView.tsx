@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft, BarChart3, Leaf, TreePine, Trees, Settings, Plus, X } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
@@ -9,9 +9,12 @@ import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
 import { useUiStore } from "../store/uiStore";
 import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateArtifact, useCreateDeliverable } from "../hooks/useBiomaApi";
+import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
   const { id } = useParams<{ id: string }>();
+  const { workspace } = useOutletContext<ClientWorkspaceOutletContext>();
+  const contextId = workspace.workspaceId;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("resumo");
   
@@ -46,7 +49,7 @@ export function ClientHubView() {
   const clients = externalClients(clientsData ?? []);
   const selectedClient = clients.find((c) => c.id === id) ?? null;
 
-  const { data: portalData, isLoading: loadingPortal } = useClientPortal(id ?? null);
+  const { data: portalData, isLoading: loadingPortal } = useClientPortal(contextId);
   const portal = portalData ?? null;
   const latestSync = portal?.sync_runs.find((run) => run.source === "clickup")?.status;
 
@@ -64,16 +67,14 @@ export function ClientHubView() {
 
   const handleCreateArtifact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
-    createArtifact.mutate({ clientId: id, payload: artifactDraft }, {
+    createArtifact.mutate({ clientId: contextId, payload: artifactDraft }, {
       onSuccess: () => setShowArtifactModal(false)
     });
   };
 
   const handleCreateDeliverable = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
-    createDeliverable.mutate({ clientId: id, payload: deliverableDraft }, {
+    createDeliverable.mutate({ clientId: contextId, payload: deliverableDraft }, {
       onSuccess: () => setShowDeliverableModal(false)
     });
   };
@@ -167,7 +168,7 @@ export function ClientHubView() {
                   <GitBranch size={16} />
                   <span style={{ fontSize: '13px' }}>{clickUpSummary(selectedClient.clickup_folder_id, latestSync)}</span>
                   {isEgAdmin && (
-                    <button className="sync-button" type="button" onClick={() => syncClickUp.mutate(selectedClient.id)} disabled={isBusy} style={{ marginLeft: 'auto' }}>
+                    <button className="sync-button" type="button" onClick={() => syncClickUp.mutate(contextId)} disabled={isBusy} style={{ marginLeft: 'auto' }}>
                       <RefreshCw size={14} /> Sincronizar
                     </button>
                   )}
@@ -188,10 +189,10 @@ export function ClientHubView() {
                       <small>{approval.comment ?? "Sem comentário"}</small>
                     </div>
                     <div className="row-actions">
-                      <button className="mini-button approve" type="button" onClick={() => decideApproval.mutate({ clientId: selectedClient.id, approvalId: approval.id, status: "approved" })} disabled={isBusy}>
+                      <button className="mini-button approve" type="button" onClick={() => decideApproval.mutate({ clientId: contextId, approvalId: approval.id, status: "approved" })} disabled={isBusy}>
                         Aprovar
                       </button>
-                      <button className="mini-button reject" type="button" onClick={() => decideApproval.mutate({ clientId: selectedClient.id, approvalId: approval.id, status: "rejected" })} disabled={isBusy}>
+                      <button className="mini-button reject" type="button" onClick={() => decideApproval.mutate({ clientId: contextId, approvalId: approval.id, status: "rejected" })} disabled={isBusy}>
                         Reprovar
                       </button>
                     </div>
@@ -233,7 +234,7 @@ export function ClientHubView() {
                         <select
                           className="status-select"
                           value={deliverable.status}
-                          onChange={(event) => updateDeliverable.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id, payload: { status: event.target.value as DeliverableStatus } })}
+                          onChange={(event) => updateDeliverable.mutate({ clientId: contextId, deliverableId: deliverable.id, payload: { status: event.target.value as DeliverableStatus } })}
                           disabled={isBusy}
                           aria-label={`Status de ${deliverable.title}`}
                         >
@@ -245,12 +246,12 @@ export function ClientHubView() {
                         <span className={`status-pill ${deliverable.status}`}>{deliverableStatusLabel[deliverable.status]}</span>
                       )}
                       {isEgAdmin && deliverable.status !== "done" && !portal.approvals.some((approval) => approval.deliverable_id === deliverable.id && approval.status === "pending") && (
-                        <button className="mini-button approve" type="button" onClick={() => createApproval.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id })} disabled={isBusy}>
+                        <button className="mini-button approve" type="button" onClick={() => createApproval.mutate({ clientId: contextId, deliverableId: deliverable.id })} disabled={isBusy}>
                           Pedir aprovação
                         </button>
                       )}
                       {isEgAdmin && (
-                        <button className="icon-button danger" type="button" onClick={() => deleteDeliverable.mutate({ clientId: selectedClient.id, deliverableId: deliverable.id })} aria-label={`Excluir ${deliverable.title}`} disabled={isBusy}>
+                        <button className="icon-button danger" type="button" onClick={() => deleteDeliverable.mutate({ clientId: contextId, deliverableId: deliverable.id })} aria-label={`Excluir ${deliverable.title}`} disabled={isBusy}>
                           <Trash2 size={15} />
                         </button>
                       )}

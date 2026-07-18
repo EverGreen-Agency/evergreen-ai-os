@@ -21,9 +21,11 @@ from bioma_api.services import performance as performance_service
 
 
 router = APIRouter(prefix="/clients/{client_id}/performance", tags=["performance"])
+workspace_router = APIRouter(prefix="/workspaces/{client_id}/performance", tags=["workspace-performance"])
 
 
 @router.get("", response_model=PerformanceOverviewResponse)
+@workspace_router.get("", response_model=PerformanceOverviewResponse)
 def get_overview(
     client_id: UUID,
     date_from: date | None = None,
@@ -34,6 +36,7 @@ def get_overview(
 
 
 @router.get("/connections", response_model=list[PerformanceConnectionSummary])
+@workspace_router.get("/connections", response_model=list[PerformanceConnectionSummary])
 def list_connections(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -42,6 +45,7 @@ def list_connections(
 
 
 @router.post("/connections", response_model=list[PerformanceConnectionSummary], status_code=status.HTTP_201_CREATED)
+@workspace_router.post("/connections", response_model=list[PerformanceConnectionSummary], status_code=status.HTTP_201_CREATED)
 def create_connection(
     client_id: UUID,
     payload: PerformanceConnectionCreateRequest,
@@ -51,6 +55,7 @@ def create_connection(
 
 
 @router.patch("/connections/{connection_id}", response_model=list[PerformanceConnectionSummary])
+@workspace_router.patch("/connections/{connection_id}", response_model=list[PerformanceConnectionSummary])
 def update_connection(
     client_id: UUID,
     connection_id: UUID,
@@ -61,6 +66,7 @@ def update_connection(
 
 
 @router.get("/google-ads/campaigns", response_model=list[AdsCampaignSummary])
+@workspace_router.get("/google-ads/campaigns", response_model=list[AdsCampaignSummary])
 def list_ads_campaigns(
     client_id: UUID,
     date_from: date | None = None,
@@ -72,6 +78,7 @@ def list_ads_campaigns(
 
 
 @router.get("/ga4/acquisition", response_model=list[Ga4AcquisitionSummary])
+@workspace_router.get("/ga4/acquisition", response_model=list[Ga4AcquisitionSummary])
 def list_ga4_acquisition(
     client_id: UUID,
     date_from: date | None = None,
@@ -83,6 +90,7 @@ def list_ga4_acquisition(
 
 
 @router.get("/search-console/queries", response_model=list[GscQuerySummary])
+@workspace_router.get("/search-console/queries", response_model=list[GscQuerySummary])
 def list_gsc_queries(
     client_id: UUID,
     date_from: date | None = None,
@@ -94,6 +102,7 @@ def list_gsc_queries(
 
 
 @router.get("/gtm/snapshots", response_model=list[GtmSnapshotSummary])
+@workspace_router.get("/gtm/snapshots", response_model=list[GtmSnapshotSummary])
 def list_gtm_snapshots(
     client_id: UUID,
     limit: int = Query(default=10, ge=1, le=50),
@@ -103,6 +112,7 @@ def list_gtm_snapshots(
 
 
 @router.post("/sync", response_model=PerformanceSyncRunSummary, status_code=status.HTTP_202_ACCEPTED)
+@workspace_router.post("/sync", response_model=PerformanceSyncRunSummary, status_code=status.HTTP_202_ACCEPTED)
 def request_sync(
     client_id: UUID,
     payload: PerformanceSyncRequest,

@@ -128,19 +128,19 @@ export function AgencyOverviewRoute() {
 
 export function AgencyCrmRoute() {
   const { workspace } = useAgencyWorkspace();
-  return <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.legacyClientId} /></Suspense>;
+  return <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.workspaceId} /></Suspense>;
 }
 
 export function AgencyFinanceRoute() {
   const { workspace } = useAgencyWorkspace();
-  return <Suspense fallback={<ModuleLoading />}><FinanceView clientId={workspace.legacyClientId} /></Suspense>;
+  return <Suspense fallback={<ModuleLoading />}><FinanceView clientId={workspace.workspaceId} /></Suspense>;
 }
 
 export function AgencyAnalyticsRoute() {
   const { workspace } = useAgencyWorkspace();
   return (
     <Suspense fallback={<ModuleLoading />}>
-      <AnalyticsView clientId={workspace.legacyClientId} workspaceName={workspace.name} />
+      <AnalyticsView clientId={workspace.workspaceId} workspaceName={workspace.name} />
     </Suspense>
   );
 }

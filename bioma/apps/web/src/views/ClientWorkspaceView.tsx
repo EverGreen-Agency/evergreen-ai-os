@@ -8,7 +8,7 @@ import { clientHubNavItems } from "../lib/app-config";
 import type { ClientModule, ClientSummary } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
 import { clientWorkspaceContext, type ClientWorkspaceContext } from "../lib/workspace-context";
-import { useClients, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
 import { useUiStore } from "../store/uiStore";
 
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
@@ -17,7 +17,7 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const FilesPanel = lazy(() => import("../components/FilesPanel").then((module) => ({ default: module.FilesPanel })));
 const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
 
-type ClientWorkspaceOutletContext = {
+export type ClientWorkspaceOutletContext = {
   client: ClientSummary;
   workspace: ClientWorkspaceContext;
   isEgAdmin: boolean;
@@ -30,12 +30,16 @@ function ModuleLoading() {
 export function ClientWorkspaceView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: clientsData, isLoading } = useClients();
+  const { data: clientsData, isLoading: loadingClients } = useClients();
+  const { data: workspacesData, isLoading: loadingWorkspaces } = useWorkspaces();
   const { data: user } = useCurrentUser();
   const setSelectedClientId = useUiStore((state) => state.setSelectedClientId);
 
   const clients = externalClients(clientsData ?? []);
   const client = clients.find((candidate) => candidate.id === id) ?? null;
+  const persistedWorkspace = (workspacesData ?? []).find(
+    (workspace) => workspace.kind === "client" && workspace.client_id === client?.id,
+  ) ?? null;
   const isEgAdmin = user?.organizations.some(
     (organization) => organization.slug === "eg" && organization.role === "eg_admin",
   ) ?? false;
@@ -50,14 +54,14 @@ export function ClientWorkspaceView() {
     };
   }, [client, setSelectedClientId]);
 
-  if (isLoading) {
+  if (loadingClients || loadingWorkspaces) {
     return <EmptyState text="Carregando Hub do Cliente..." />;
   }
 
-  if (!client) {
+  if (!client || !persistedWorkspace) {
     return (
       <section className="workspace-empty">
-        <EmptyState text="Cliente não encontrado ou indisponível para esta sessão." />
+        <EmptyState text="Cliente ou workspace não encontrado para esta sessão." />
         <button className="primary-button" type="button" onClick={() => navigate("/clientes")}>
           Voltar para a Carteira
         </button>
@@ -70,7 +74,7 @@ export function ClientWorkspaceView() {
   const visibleItems = clientHubNavItems.filter(
     (item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin),
   );
-  const workspace = clientWorkspaceContext(client);
+  const workspace = clientWorkspaceContext(client, persistedWorkspace);
   const items = visibleItems.map((item) => ({
     id: item.id,
     label: item.label,
@@ -108,38 +112,38 @@ function ClientModuleBoundary({ module, children }: { module: ClientModule; chil
 }
 
 export function ClientCrmRoute() {
-  const { client } = useClientWorkspace();
+  const { workspace } = useClientWorkspace();
   return (
     <ClientModuleBoundary module="commercial">
-      <Suspense fallback={<ModuleLoading />}><CrmView clientId={client.id} /></Suspense>
+      <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.workspaceId} /></Suspense>
     </ClientModuleBoundary>
   );
 }
 
 export function ClientFinanceRoute() {
-  const { client } = useClientWorkspace();
+  const { workspace } = useClientWorkspace();
   return (
     <ClientModuleBoundary module="commercial">
-      <Suspense fallback={<ModuleLoading />}><FinanceView clientId={client.id} /></Suspense>
+      <Suspense fallback={<ModuleLoading />}><FinanceView clientId={workspace.workspaceId} /></Suspense>
     </ClientModuleBoundary>
   );
 }
 
 export function ClientAnalyticsRoute() {
-  const { client } = useClientWorkspace();
+  const { workspace } = useClientWorkspace();
   return (
     <ClientModuleBoundary module="analytics">
-      <Suspense fallback={<ModuleLoading />}><AnalyticsView clientId={client.id} /></Suspense>
+      <Suspense fallback={<ModuleLoading />}><AnalyticsView clientId={workspace.workspaceId} /></Suspense>
     </ClientModuleBoundary>
   );
 }
 
 export function ClientFilesRoute() {
-  const { client, isEgAdmin } = useClientWorkspace();
+  const { workspace, isEgAdmin } = useClientWorkspace();
   return (
     <ClientModuleBoundary module="files">
       <div className="workspace-module-panel">
-        <Suspense fallback={<ModuleLoading />}><FilesPanel clientId={client.id} isEgAdmin={isEgAdmin} /></Suspense>
+        <Suspense fallback={<ModuleLoading />}><FilesPanel clientId={workspace.workspaceId} isEgAdmin={isEgAdmin} /></Suspense>
       </div>
     </ClientModuleBoundary>
   );

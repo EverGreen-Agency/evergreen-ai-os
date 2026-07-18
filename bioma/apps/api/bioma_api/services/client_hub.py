@@ -89,7 +89,9 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
 def get_client_portal(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     is_admin = _is_platform_admin(user)
     with connect() as conn:
-        client = client_hub_repo.get_client_summary(conn, client_id, is_admin, user.id)
+        context = _accessible_client(conn, client_id, user)
+        resolved_client_id = context["id"]
+        client = client_hub_repo.get_client_summary(conn, resolved_client_id, is_admin, user.id)
         if not client:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
 
@@ -115,8 +117,9 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
+        resolved_client_id = client["id"]
         client_updates = {key: updates[key] for key in ("name", "status", "responsible_name", "clickup_folder_id") if key in updates}
-        client_hub_repo.update_client(conn, client_id, client_updates)
+        client_hub_repo.update_client(conn, resolved_client_id, client_updates)
         if "name" in client_updates:
             workspaces_repo.update_client_workspace_name(
                 conn,

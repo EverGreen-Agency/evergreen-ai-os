@@ -1,7 +1,7 @@
 from uuid import UUID
 
 
-def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
+def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID):
     """Resolve o adapter de cliente somente dentro de um workspace ativo.
 
     Platform admin pode operar tanto o workspace interno quanto workspaces
@@ -12,8 +12,10 @@ def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID)
         """
         select
           c.id,
+          c.name,
           c.organization_id,
           c.clickup_folder_id,
+          o.name as organization_name,
           o.enabled_modules,
           w.id as workspace_id,
           w.kind as workspace_kind
@@ -25,13 +27,15 @@ def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID)
         left join memberships membership
           on membership.organization_id = c.organization_id
          and membership.user_id = %s
-        where c.id = %s
+        where (w.id = %s or c.id = %s)
           and (
             %s
             or (w.kind = 'client' and membership.role = 'client_user')
           )
+        order by case when w.id = %s then 0 else 1 end
+        limit 1
         """,
-        (user_id, client_id, is_admin),
+        (user_id, context_id, context_id, is_admin, context_id),
     ).fetchone()
 
 

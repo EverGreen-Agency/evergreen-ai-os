@@ -128,6 +128,9 @@ def main() -> None:
     )
     assert_status(admin.get(f"/clients/{internal_bridge_client_id}/files"), 200, "admin opera files interno")
     assert_status(admin.get(f"/clients/{internal_bridge_client_id}/performance"), 200, "admin opera performance interno")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/leads"), 200, "admin opera CRM interno canônico")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/finance"), 200, "admin opera financeiro interno canônico")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/performance"), 200, "admin opera Performance interno canônico")
     assert_status(
         admin.get(f"/integrations/{internal_workspace['organization_id']}/kommo"),
         200,
@@ -136,6 +139,16 @@ def main() -> None:
     hm_workspace = next(row for row in admin_workspaces if row["organization_slug"] == "hm-conexoes")
     assert hm_workspace["kind"] == "client"
     assert hm_workspace["client_id"] == hm_client_id
+    legacy_portal = admin.get(f"/clients/{hm_client_id}")
+    canonical_portal = admin.get(f"/workspaces/{hm_workspace['id']}")
+    adapter_portal = admin.get(f"/workspaces/{hm_client_id}")
+    assert_status(legacy_portal, 200, "legacy client route remains compatible")
+    assert_status(canonical_portal, 200, "canonical workspace portal")
+    assert_status(adapter_portal, 200, "workspace route accepts legacy client adapter")
+    assert canonical_portal.json()["client"]["id"] == legacy_portal.json()["client"]["id"]
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/files"), 200, "canonical workspace files")
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/performance"), 200, "canonical workspace performance")
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/invites"), 200, "canonical workspace invites")
     stable_workspace = next(
         row for row in admin.get("/workspaces").json() if row["organization_slug"] == "hm-conexoes"
     )
@@ -150,6 +163,11 @@ def main() -> None:
     assert len(client_workspaces) == 1, "cliente deve enxergar somente o próprio workspace"
     assert client_workspaces[0]["organization_slug"] == "hm-conexoes"
     assert all(row["kind"] != "agency_internal" for row in client_workspaces)
+    assert_status(
+        client_user.get(f"/workspaces/{hm_workspace['id']}"),
+        200,
+        "client accesses canonical own workspace",
+    )
 
     # Mesmo uma membership legada indevida na organização EG não pode
     # transformar a operação interna em workspace/cliente acessível.
@@ -175,6 +193,11 @@ def main() -> None:
             client_user.get(f"/clients/{internal_bridge_client_id}"),
             404,
             "membership interna não vaza adapter cliente",
+        )
+        assert_status(
+            client_user.get(f"/workspaces/{internal_workspace['id']}"),
+            404,
+            "membership interna não vaza rota canônica",
         )
         assert_status(
             client_user.get(f"/clients/{internal_bridge_client_id}/files"),
@@ -264,6 +287,11 @@ def main() -> None:
 
     hidden = client_user.get(f"/clients/{created_client_id}")
     assert_status(hidden, 404, "client cannot read another client")
+    assert_status(
+        client_user.get(f"/workspaces/{created_workspace['id']}"),
+        404,
+        "client cannot read another canonical workspace",
+    )
 
     with connect() as conn:
         own_assigned_id = conn.execute(

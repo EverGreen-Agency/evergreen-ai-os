@@ -12,6 +12,7 @@ export type AgencyWorkspaceContext = {
 
 export type ClientWorkspaceContext = {
   kind: "client";
+  workspaceId: string;
   organizationId: string;
   organizationName: string;
   clientId: string;
@@ -27,9 +28,10 @@ export type AgencyWorkspaceResolution =
   | { status: "missing_bridge"; organizationName: string }
   | { status: "ambiguous_bridge"; organizationName: string };
 
-export function clientWorkspaceContext(client: ClientSummary): ClientWorkspaceContext {
+export function clientWorkspaceContext(client: ClientSummary, workspace: WorkspaceSummary): ClientWorkspaceContext {
   return {
     kind: "client",
+    workspaceId: workspace.id,
     organizationId: client.organization_id,
     organizationName: client.organization_name,
     clientId: client.id,
@@ -82,5 +84,5 @@ export function resolveAgencyWorkspace(
 }
 
 export function operationalClientId(workspace: WorkspaceContext): string {
-  return workspace.kind === "agency_internal" ? workspace.legacyClientId : workspace.clientId;
+  return workspace.workspaceId;
 }

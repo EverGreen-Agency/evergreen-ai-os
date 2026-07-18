@@ -572,100 +572,100 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   updateClient: (clientId: string, payload: Partial<ClientPayload>) =>
-    request<ClientPortal>(`/clients/${clientId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
-  clientPortal: (clientId: string) => request<ClientPortal>(`/clients/${clientId}`),
+  clientPortal: (clientId: string) => request<ClientPortal>(`/workspaces/${clientId}`),
   createArtifact: (clientId: string, payload: ArtifactPayload) =>
-    request<ClientPortal>(`/clients/${clientId}/artifacts`, {
+    request<ClientPortal>(`/workspaces/${clientId}/artifacts`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   updateArtifact: (clientId: string, artifactId: string, payload: Partial<ArtifactPayload>) =>
-    request<ClientPortal>(`/clients/${clientId}/artifacts/${artifactId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}/artifacts/${artifactId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   deleteArtifact: (clientId: string, artifactId: string) =>
-    request<ClientPortal>(`/clients/${clientId}/artifacts/${artifactId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}/artifacts/${artifactId}`, {
       method: "DELETE",
     }),
   createDeliverable: (clientId: string, payload: DeliverablePayload) =>
-    request<ClientPortal>(`/clients/${clientId}/deliverables`, {
+    request<ClientPortal>(`/workspaces/${clientId}/deliverables`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   updateDeliverable: (clientId: string, deliverableId: string, payload: Partial<DeliverablePayload>) =>
-    request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}/deliverables/${deliverableId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   deleteDeliverable: (clientId: string, deliverableId: string) =>
-    request<ClientPortal>(`/clients/${clientId}/deliverables/${deliverableId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}/deliverables/${deliverableId}`, {
       method: "DELETE",
     }),
   createApproval: (clientId: string, deliverableId: string, comment?: string) =>
-    request<ClientPortal>(`/clients/${clientId}/approvals`, {
+    request<ClientPortal>(`/workspaces/${clientId}/approvals`, {
       method: "POST",
       body: JSON.stringify({ deliverable_id: deliverableId, comment }),
     }),
   decideApproval: (clientId: string, approvalId: string, status: Exclude<ApprovalStatus, "pending">) =>
-    request<ClientPortal>(`/clients/${clientId}/approvals/${approvalId}`, {
+    request<ClientPortal>(`/workspaces/${clientId}/approvals/${approvalId}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
   syncClickUp: (clientId: string) =>
-    request<ClientPortal>(`/clients/${clientId}/sync/clickup`, {
+    request<ClientPortal>(`/workspaces/${clientId}/sync/clickup`, {
       method: "POST",
     }),
-  leads: (clientId: string) => request<LeadSummary[]>(`/clients/${clientId}/leads`),
+  leads: (clientId: string) => request<LeadSummary[]>(`/workspaces/${clientId}/leads`),
   createLead: (clientId: string, payload: LeadPayload) =>
-    request<LeadSummary[]>(`/clients/${clientId}/leads`, {
+    request<LeadSummary[]>(`/workspaces/${clientId}/leads`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   updateLead: (clientId: string, leadId: string, payload: Partial<LeadPayload>) =>
-    request<LeadSummary[]>(`/clients/${clientId}/leads/${leadId}`, {
+    request<LeadSummary[]>(`/workspaces/${clientId}/leads/${leadId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   deleteLead: (clientId: string, leadId: string) =>
-    request<LeadSummary[]>(`/clients/${clientId}/leads/${leadId}`, {
+    request<LeadSummary[]>(`/workspaces/${clientId}/leads/${leadId}`, {
       method: "DELETE",
     }),
-  finance: (clientId: string) => request<FinancialRecordSummary[]>(`/clients/${clientId}/finance`),
+  finance: (clientId: string) => request<FinancialRecordSummary[]>(`/workspaces/${clientId}/finance`),
   createFinancialRecord: (clientId: string, payload: FinancialRecordPayload) =>
-    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance`, {
+    request<FinancialRecordSummary[]>(`/workspaces/${clientId}/finance`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   updateFinancialRecord: (clientId: string, recordId: string, payload: Partial<FinancialRecordPayload>) =>
-    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance/${recordId}`, {
+    request<FinancialRecordSummary[]>(`/workspaces/${clientId}/finance/${recordId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   deleteFinancialRecord: (clientId: string, recordId: string) =>
-    request<FinancialRecordSummary[]>(`/clients/${clientId}/finance/${recordId}`, {
+    request<FinancialRecordSummary[]>(`/workspaces/${clientId}/finance/${recordId}`, {
       method: "DELETE",
     }),
-  performanceOverview: (clientId: string) => request<PerformanceOverview>(`/clients/${clientId}/performance`),
+  performanceOverview: (clientId: string) => request<PerformanceOverview>(`/workspaces/${clientId}/performance`),
   adsCampaigns: (clientId: string) =>
-    request<AdsCampaignSummary[]>(`/clients/${clientId}/performance/google-ads/campaigns`),
+    request<AdsCampaignSummary[]>(`/workspaces/${clientId}/performance/google-ads/campaigns`),
   ga4Acquisition: (clientId: string) =>
-    request<Ga4AcquisitionSummary[]>(`/clients/${clientId}/performance/ga4/acquisition`),
+    request<Ga4AcquisitionSummary[]>(`/workspaces/${clientId}/performance/ga4/acquisition`),
   gscQueries: (clientId: string) =>
-    request<GscQuerySummary[]>(`/clients/${clientId}/performance/search-console/queries`),
+    request<GscQuerySummary[]>(`/workspaces/${clientId}/performance/search-console/queries`),
   gtmSnapshots: (clientId: string) =>
-    request<GtmSnapshotSummary[]>(`/clients/${clientId}/performance/gtm/snapshots`),
+    request<GtmSnapshotSummary[]>(`/workspaces/${clientId}/performance/gtm/snapshots`),
   createInvite: (clientId: string, email?: string | null) =>
-    request<InviteCreated>(`/clients/${clientId}/invites`, {
+    request<InviteCreated>(`/workspaces/${clientId}/invites`, {
       method: "POST",
       body: JSON.stringify({ email: email || null }),
     }),
-  listInvites: (clientId: string) => request<InviteSummary[]>(`/clients/${clientId}/invites`),
+  listInvites: (clientId: string) => request<InviteSummary[]>(`/workspaces/${clientId}/invites`),
   revokeInvite: (clientId: string, inviteId: string) =>
-    request<InviteSummary[]>(`/clients/${clientId}/invites/${inviteId}`, { method: "DELETE" }),
+    request<InviteSummary[]>(`/workspaces/${clientId}/invites/${inviteId}`, { method: "DELETE" }),
   inviteInfo: (token: string) => request<InvitePublicInfo>(`/auth/invites/${token}`),
   acceptInvite: (token: string, payload: InviteAcceptPayload) =>
     request<{ user: CurrentUser; expires_at: string }>(`/auth/invites/${token}/accept`, {
@@ -692,19 +692,19 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
   performanceConnections: (clientId: string) =>
-    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections`),
+    request<PerformanceConnection[]>(`/workspaces/${clientId}/performance/connections`),
   createPerformanceConnection: (clientId: string, payload: PerformanceConnectionPayload) =>
-    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections`, {
+    request<PerformanceConnection[]>(`/workspaces/${clientId}/performance/connections`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   updatePerformanceConnection: (clientId: string, connectionId: string, payload: Partial<PerformanceConnectionPayload>) =>
-    request<PerformanceConnection[]>(`/clients/${clientId}/performance/connections/${connectionId}`, {
+    request<PerformanceConnection[]>(`/workspaces/${clientId}/performance/connections/${connectionId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
   requestPerformanceSync: (clientId: string, provider: PerformanceProvider | "all" = "all") =>
-    request<PerformanceSyncRun>(`/clients/${clientId}/performance/sync`, {
+    request<PerformanceSyncRun>(`/workspaces/${clientId}/performance/sync`, {
       method: "POST",
       body: JSON.stringify({ provider }),
     }),
@@ -737,15 +737,15 @@ export const api = {
   adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/backoffice/stack"),
   saveAdminStack: (techs: Tech[]) =>
     request<{ status: string }>("/backoffice/stack", { method: "POST", body: JSON.stringify({ techs }) }),
-  listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
+  listFiles: (clientId: string) => request<ClientFileSummary[]>(`/workspaces/${clientId}/files`),
   uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("visibility", visibility);
-    return request<ClientFileSummary[]>(`/clients/${clientId}/files`, { method: "POST", body: formData });
+    return request<ClientFileSummary[]>(`/workspaces/${clientId}/files`, { method: "POST", body: formData });
   },
   fileDownloadUrl: (clientId: string, fileId: string) =>
-    request<ClientFileDownload>(`/clients/${clientId}/files/${fileId}/download`),
+    request<ClientFileDownload>(`/workspaces/${clientId}/files/${fileId}/download`),
   deleteFile: (clientId: string, fileId: string) =>
-    request<ClientFileSummary[]>(`/clients/${clientId}/files/${fileId}`, { method: "DELETE" }),
+    request<ClientFileSummary[]>(`/workspaces/${clientId}/files/${fileId}`, { method: "DELETE" }),
 };

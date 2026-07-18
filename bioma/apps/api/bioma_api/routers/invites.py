@@ -17,10 +17,12 @@ from bioma_api.services import invites as invites_service
 
 
 admin_router = APIRouter(prefix="/clients/{client_id}/invites", tags=["invites"])
+workspace_admin_router = APIRouter(prefix="/workspaces/{client_id}/invites", tags=["workspace-invites"])
 public_router = APIRouter(prefix="/auth/invites", tags=["invites"])
 
 
 @admin_router.post("", response_model=InviteCreatedResponse, status_code=status.HTTP_201_CREATED)
+@workspace_admin_router.post("", response_model=InviteCreatedResponse, status_code=status.HTTP_201_CREATED)
 def create_invite(
     client_id: UUID,
     payload: InviteCreateRequest,
@@ -30,6 +32,7 @@ def create_invite(
 
 
 @admin_router.get("", response_model=list[InviteSummary])
+@workspace_admin_router.get("", response_model=list[InviteSummary])
 def list_invites(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -38,6 +41,7 @@ def list_invites(
 
 
 @admin_router.delete("/{invite_id}", response_model=list[InviteSummary])
+@workspace_admin_router.delete("/{invite_id}", response_model=list[InviteSummary])
 def revoke_invite(
     client_id: UUID,
     invite_id: UUID,
