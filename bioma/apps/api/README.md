@@ -6,6 +6,7 @@ Responsabilidades iniciais:
 
 - auth e sessão;
 - escopo por cliente;
+- descoberta persistente de workspaces por tenant;
 - CRM/funil de leads;
 - financeiro mínimo;
 - métricas manuais/analytics honesto;
@@ -23,6 +24,7 @@ Com o Docker do Bioma rodando:
 ```bash
 python scripts/migrate.py
 python scripts/seed_dev.py
+python scripts/create_eg_client.py
 ```
 
 Usuários de desenvolvimento:
@@ -47,6 +49,8 @@ python scripts/smoke_clickup.py
 ```
 
 O smoke test valida health, CORS local, login, listagem, bloqueio de sync para cliente, BOLA/IDOR básico, criação/edição de cliente, artefato, entrega, lead, financeiro, métrica manual e sync ClickUp dry-run.
+
+Também valida `GET /workspaces`: o EG admin recebe o workspace interno e os clientes; `client_user` recebe somente seu próprio contexto. O smoke cobre ainda membership legada indevida na organização EG, bloqueio de convite ao workspace interno e revogação de Client Hub, Files, Performance e Kommo quando um workspace cliente é arquivado. `create_eg_client.py` mantém temporariamente o adapter exigido pelos módulos da Operação EG, mas esse registro não aparece como workspace cliente.
 
 `smoke_clickup.py` valida o cliente ClickUp com `httpx.MockTransport`, sem chamar a API real.
 

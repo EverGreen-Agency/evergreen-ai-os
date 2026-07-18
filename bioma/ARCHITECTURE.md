@@ -14,7 +14,7 @@ services/<dominio>.py      # regra de negócio, permissões, auditoria
 repositories/<dominio>.py  # SQL puro, sempre parametrizado
 ```
 
-Domínios: `auth`, `oauth`, `passwords`, `invites`, `client_hub`, `performance`,
+Domínios: `auth`, `oauth`, `passwords`, `invites`, `workspaces`, `client_hub`, `performance`,
 `files`, `kommo` (routers `integrations`/`analytics`), `admin` (= backoffice EG,
 prefixo `/backoffice`). Transversais: `access.py` (papéis, membership,
 feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
@@ -38,7 +38,9 @@ Glossário:
 - **ClientAccount:** vínculo comercial que aparece na carteira; nunca representa a operação interna da agência.
 - **Team / Membership / WorkspaceAssignment:** modelo futuro de pessoas, times e carteiras atribuídas.
 
-Estado transitório: `organizations` já é o contêiner da maior parte dos dados operacionais; `clients` é uma extensão comercial 1:1 e fornece o `client_id` exigido pelas rotas atuais. `EverGreen Internal` é somente uma ponte para chegar à organização EG. Não removê-lo antes de migrar Performance e endpoints para `workspace_id`. `parent_organization_id` existe, mas ainda não implementa a hierarquia white-label nem autorização por tenant.
+Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
+
+Estado transitório: `workspaces` já fornece a identidade persistente de contexto e `GET /workspaces` faz a descoberta autorizada. `subject_organization_id` aponta para `organizations`, que ainda é o contêiner físico da maior parte dos dados; `clients` permanece como extensão comercial 1:1 e adapter das rotas atuais. `EverGreen Internal` fornece somente o `legacy_client_id` da Operação EG. Não removê-lo antes de migrar Performance/endpoints e suas FKs. `parent_organization_id` e `tenant_organization_id` descrevem pertencimento, mas não concedem autorização hierárquica.
 
 Regras invioláveis:
 

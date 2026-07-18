@@ -64,10 +64,11 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 |---|---|---|---|---|---|
 | WEB-CTX-001 | DONE | Frontend | Restaurar CRM, financeiro e métricas EG preservando os Hubs de Cliente | WEB-CRM-001..PERF-001 | tsc + build + isolamento por rota |
 | WEB-NAV-001 | DONE | Frontend | Navegador pesquisável de workspaces com recentes; sem dropdown longo na Sidebar | WEB-CTX-001 | tsc + build + QA teclado/mobile |
-| ARCH-CTX-001 | TODO | Arquitetura | ADR `Platform → Tenant/Agência → Workspaces`, limites white-label e billing | WEB-CTX-001 | ADR aprovado |
+| ARCH-CTX-001 | DONE | Arquitetura | ADR `Platform → Tenant/Agência → Workspaces`, limites white-label e billing | WEB-CTX-001 | `docs/adr/0001-tenant-workspace-hierarchy.md` |
 | TEAM-001 | TODO | Full-stack | Times, memberships e atribuições para carteira por gestor/time | ARCH-CTX-001 | smokes de atribuição e isolamento |
-| DATA-WS-001 | TODO | Backend | Migrar APIs/Performance de `client_id` para `workspace_id` com adapters | ARCH-CTX-001 | paridade + smokes + backfill |
-| AUTHZ-WS-001 | TODO | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001 | matriz automatizada de autorização |
+| DATA-WS-001A | DONE | Full-stack | Persistir identidade de workspace, backfill, provisionamento e descoberta no navegador | ARCH-CTX-001 | compile + smoke API + tsc/build |
+| DATA-WS-001B | TODO | Backend | Migrar APIs/Performance de `client_id` para `workspace_id` com adapters e dual-read/write | DATA-WS-001A | paridade + smokes + backfill |
+| AUTHZ-WS-001 | TODO | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001B | matriz automatizada de autorização |
 | WEB-NAV-002 | TODO | Frontend | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | build + QA desktop/mobile |
 
 ### Onda 2 — Integrações reais

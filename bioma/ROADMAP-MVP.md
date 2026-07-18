@@ -62,6 +62,7 @@ Funcional hoje:
 - Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
 - Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`, reutilizando os mesmos módulos dos hubs sem misturar dados.
 - Navegador de workspaces pesquisável no Topbar, com recentes e atalho `Ctrl/⌘ K`; a carteira completa permanece em página própria.
+- Identidade de workspace persistente em `workspaces`, com backfill/provisionamento transacional e descoberta autenticada por `GET /workspaces`; módulos ainda usam adapters `client_id` onde necessário.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 - Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
 
@@ -269,7 +270,8 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Separar a Operação EG da Carteira sem remover seus módulos: `/operacao` e cada Hub reutilizam CRM, financeiro e métricas com contexto explícito.
 - [x] Criar navegador de workspaces pesquisável com recentes e atalho global, sem dropdown longo na Sidebar.
 - [x] Aplicar feature gate das rotas filhas ao cliente atual, em vez de unir módulos de todas as organizações do usuário.
-- [ ] Especificar em ADR a hierarquia `Platform → Tenant/Agência → Workspaces`, inclusive limites de white-label e billing.
+- [x] Especificar em ADR a hierarquia `Platform → Tenant/Agência → Workspaces`, inclusive limites de white-label e billing.
+- [x] Persistir a identidade de workspace, provisionar junto com novos clientes e alimentar o navegador por endpoint autenticado.
 - [ ] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
 - [ ] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
 - [ ] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
@@ -411,3 +413,4 @@ Formato:
 - 2026-07-18 - Codex - ver git log - Concluída a migração das telas Engenharia, Arquitetura e Escritório de `/api` para o cliente central `/backoffice`, eliminando respostas HTML interpretadas como JSON e adicionando contratos tipados/erro visível - `npx.cmd tsc -b`, `npm.cmd run build` - pendente QA visual humano e decisão de produto sobre separar a operação interna EG da carteira de clientes externos.
 - 2026-07-18 - Codex - ver git log - Separada a Operação EG da Carteira no frontend; CRM, financeiro, métricas, documentos e integrações agora operam somente sob `/clientes/:clientId/...`, com rotas globais fechadas e `EverGreen Internal` oculto do Hub - `npx.cmd tsc -b`, `npm.cmd run build` - pendente migração backend do registro técnico legado e QA visual humano.
 - 2026-07-18 - Codex - ver git log - Corrigida a separação anterior: restaurada a Operação EG como workspace próprio em paralelo aos hubs, criado navegador pesquisável com recentes e documentado o modelo `Platform → Tenant/Agência → Workspaces` - `npx.cmd tsc -b`, `npm.cmd run build` - pendentes migração `client_id`→`workspace_id`, times/atribuições, favoritos e QA visual humano.
+- 2026-07-18 - Codex - ver git log - Entregue a primeira etapa persistente de workspaces: ADR aceito, migration/backfill e provisionamento transacional, `GET /workspaces`, navegador alimentado pelo contexto autorizado, invariantes de tenant/slug e resolvedor ativo compartilhado por Client Hub, Files, Performance e Kommo - migration/seed, `compileall`, smoke API (membership, convite e archive), smoke Performance, smoke da fila, `npx.cmd tsc -b` e `npm.cmd run build` passaram - pendentes adapters dos demais domínios, migração canônica de Performance, RBAC/times e QA visual humano.

@@ -31,6 +31,8 @@ A Operação EG vive sob `/operacao/...`; cada cliente vive sob `/clientes/:clie
 
 O Topbar exibe somente o contexto atual. `Ctrl/⌘ K` abre um navegador largo e pesquisável, com workspaces recentes e busca por cliente, organização ou responsável. A lista completa continua em uma página própria; ela não é despejada em um dropdown da Sidebar. Times, “Minha carteira”, favoritos e visões salvas dependem de modelo/atribuições no backend e ainda não devem ser simulados no frontend.
 
+A fonte da navegação agora é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes novos usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs e os módulos continuam usando `client_id` como adapter nesta etapa.
+
 O registro técnico `EverGreen Internal` é uma ponte temporária para endpoints ainda baseados em `client_id`. Ele fica oculto da Carteira e só pode ser resolvido por correspondência exata com a organização administrativa da sessão. Ausência ou ambiguidade bloqueiam `/operacao`; não existe fallback para nome, primeiro cliente ou seleção anterior.
 
 No ambiente local, a ponte é provisionada pelo script idempotente já existente:

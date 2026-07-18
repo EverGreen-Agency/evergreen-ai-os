@@ -13,7 +13,7 @@ Bioma Platform (control plane da dona do produto)
     └── Workspaces de clientes
 ```
 
-O MVP atual ainda usa `organizations` como contêiner operacional e `clients` como fachada comercial/ponte de rotas. A interface já diferencia o workspace interno da EG dos hubs de clientes, mas tenants, equipes, atribuições e papéis white-label completos ainda não estão implementados. `bioma-legacy/` não é fonte da arquitetura ativa.
+O MVP já possui identidade persistente em `workspaces` e descoberta autenticada por `GET /workspaces`. `organizations` continua como contêiner físico dos dados e `clients` como fachada comercial/ponte das rotas ainda baseadas em `client_id`. A interface diferencia o workspace interno da EG dos hubs, mas equipes, atribuições e papéis white-label completos ainda não estão implementados. `bioma-legacy/` não é fonte da arquitetura ativa.
 
 ## Estrutura
 
