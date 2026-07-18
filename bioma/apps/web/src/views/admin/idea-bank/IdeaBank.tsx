@@ -19,6 +19,7 @@ export function IdeaBank() {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<Stage | null>(null);
   const [readingDocId, setReadingDocId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const persist = useCallback((next: Idea[]) => saveIdeas.mutate(next), [saveIdeas]);
 
@@ -41,6 +42,12 @@ export function IdeaBank() {
   const saveEdit = useCallback((updated: Idea) => {
     persist(ideas.map((i) => i.id === updated.id ? updated : i));
     setEditingId(null);
+  }, [ideas, persist]);
+
+  const handleAddIdea = useCallback((draft: Idea) => {
+    const newId = `ideia-${Date.now().toString(36)}`;
+    persist([...ideas, { ...draft, id: newId }]);
+    setShowAddForm(false);
   }, [ideas, persist]);
 
   const q = search.toLowerCase();
@@ -69,12 +76,14 @@ export function IdeaBank() {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* Toolbar */}
       <div style={styles.toolbar}>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar ideia..."
-          style={styles.searchInput}
-        />
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar ideia..."
+            style={styles.searchInput}
+          />
+        </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {CATEGORIES.map((cat) => {
             const active = selectedCat === cat;
@@ -104,11 +113,44 @@ export function IdeaBank() {
           >
             {showArchived ? "Ocultar arquivadas" : "Ver arquivadas"}
           </button>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={{
+              ...styles.filterBtn,
+              borderColor: showAddForm ? "var(--accent-color, #0070f3)" : "var(--border)",
+              background: showAddForm ? "rgba(0,112,243,0.13)" : "transparent",
+              color: showAddForm ? "var(--accent-color, #0070f3)" : "var(--text-secondary)",
+            }}
+          >
+            {showAddForm ? "✕ Cancelar" : "+ Nova Ideia"}
+          </button>
           <span style={{ fontSize: 11, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
             {activeCount} ativas
           </span>
         </div>
       </div>
+
+      {showAddForm && (
+        <div style={{ padding: "12px 16px", background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+          <IdeaEditForm
+            idea={{
+              id: "temp-id",
+              title: "",
+              desc: "",
+              category: "outro",
+              stage: "capture",
+              origin: "internal",
+              horizon: "H1",
+              part_of: null,
+              depends_on: [],
+              enables: [],
+              archived: false
+            }}
+            onSave={handleAddIdea}
+            onCancel={() => setShowAddForm(false)}
+          />
+        </div>
+      )}
 
       {/* Kanban */}
       <div style={styles.board}>
