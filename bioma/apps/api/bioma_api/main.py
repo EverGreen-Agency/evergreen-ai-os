@@ -6,6 +6,7 @@ from bioma_api.routers import (
     admin,
     analytics,
     auth,
+    benchmark,
     client_hub,
     files,
     health,
@@ -42,6 +43,7 @@ app.include_router(auth.router)
 app.include_router(oauth.router)
 app.include_router(passwords.router)
 app.include_router(invites.public_router)
+app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
 app.include_router(workspaces.router)
 app.include_router(invites.admin_router)
@@ -49,6 +51,7 @@ app.include_router(performance.router)
 app.include_router(analytics.router)
 app.include_router(files.router)
 app.include_router(integrations.router)
+app.include_router(benchmark.admin_router)
 app.include_router(health.router)
 app.include_router(admin.router)
 
