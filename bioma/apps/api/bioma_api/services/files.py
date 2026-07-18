@@ -9,6 +9,7 @@ from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import files as files_repo
+from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.files import ClientFileDownloadResponse, ClientFileSummary, ClientFileVisibility
 from bioma_api.services import storage
@@ -142,7 +143,7 @@ def _require_platform_admin(user: CurrentUserResponse) -> None:
 
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
-    client = files_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
+    client = workspaces_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     # Todo o módulo de arquivos fica atrás do gate "files" para client_user.

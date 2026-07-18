@@ -12,7 +12,7 @@ import { ArtifactModal } from "./components/ArtifactModal";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { useUiStore } from "./store/uiStore";
-import { useApiHealth, useCurrentUser, useClients, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
+import { useApiHealth, useCurrentUser, useClients, useWorkspaces, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
 import { normalizeArtifactPayload } from "./lib/format";
 import { emptyArtifactDraft } from "./lib/app-config";
 import {
@@ -70,8 +70,22 @@ export function App() {
     dataError,
   } = useUiStore();
 
-  const { data: clientsData, isLoading: loadingClients } = useClients();
+  const {
+    data: clientsData,
+    isLoading: loadingClients,
+    isError: clientsFailed,
+    error: clientsError,
+    refetch: refetchClients,
+  } = useClients();
+  const {
+    data: workspacesData,
+    isLoading: loadingWorkspaces,
+    isError: workspacesFailed,
+    error: workspacesError,
+    refetch: refetchWorkspaces,
+  } = useWorkspaces(Boolean(user));
   const allClients = clientsData ?? [];
+  const workspaces = workspacesData ?? [];
   const clients = externalClients(allClients);
 
   const updateArtifact = useUpdateArtifact();
@@ -210,7 +224,19 @@ export function App() {
       />
 
       <section className="workspace">
-        <Topbar user={user} clients={allClients} isLoadingClients={loadingClients} />
+        <Topbar
+          user={user}
+          clients={allClients}
+          workspaces={workspaces}
+          isLoading={loadingClients || loadingWorkspaces}
+          errorMessage={clientsFailed || workspacesFailed
+            ? (workspacesError ?? clientsError)?.message ?? "Não foi possível carregar os workspaces."
+            : null}
+          onRetry={() => {
+            void refetchClients();
+            void refetchWorkspaces();
+          }}
+        />
 
         {dataError && <div className="notice error">{dataError}</div>}
 

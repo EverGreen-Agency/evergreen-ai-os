@@ -71,6 +71,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
 
 export const moduleLabels: Record<ClientModule, string> = {
   hub: "Hub do cliente",
+  content: "Conteúdo",
   files: "Arquivos",
   commercial: "Comercial",
   analytics: "Analytics",
@@ -84,7 +85,7 @@ export const toggleableModules: ClientModule[] = ["files", "commercial", "analyt
 
 export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
   if (isEgAdmin) {
-    return new Set<ClientModule>(["hub", "files", "commercial", "analytics", "integrations", "engineering"]);
+    return new Set<ClientModule>(["hub", "content", "files", "commercial", "analytics", "integrations", "engineering"]);
   }
   const modules = new Set<ClientModule>();
   for (const organization of user?.organizations ?? []) {

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from bioma_api.db import connect  # noqa: E402
+from bioma_api.repositories import workspaces as workspaces_repo  # noqa: E402
 
 
 def main() -> None:
@@ -23,18 +24,20 @@ def main() -> None:
             (org["id"],),
         ).fetchone()
         if existing:
-            print(f"Cliente EG já existe: {existing['id']}")
-            return
+            client_id = existing["id"]
+            print(f"Cliente EG já existe: {client_id}")
+        else:
+            client_id = conn.execute(
+                """
+                insert into clients (organization_id, name, status, responsible_name)
+                values (%s, 'EverGreen Internal', 'active', 'Eduardo EG')
+                returning id
+                """,
+                (org["id"],),
+            ).fetchone()["id"]
+            print(f"Cliente EG criado: {client_id}")
 
-        client_id = conn.execute(
-            """
-            insert into clients (organization_id, name, status, responsible_name)
-            values (%s, 'EverGreen Internal', 'active', 'Eduardo EG')
-            returning id
-            """,
-            (org["id"],),
-        ).fetchone()["id"]
-        print(f"Cliente EG criado: {client_id}")
+        workspaces_repo.provision_agency_workspace(conn, org["id"], "Operação EG")
 
 
 if __name__ == "__main__":

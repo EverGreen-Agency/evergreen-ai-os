@@ -13,13 +13,18 @@ from bioma_worker.orchestrator import run_next_sync
 def main() -> None:
     suffix = uuid4().hex[:8]
     with connect() as conn:
+        tenant = conn.execute(
+            "select id from organizations where type = 'eg' order by created_at asc limit 1"
+        ).fetchone()
+        if not tenant:
+            raise AssertionError("seed precisa criar a organização EG antes do smoke do worker")
         organization_id = conn.execute(
             """
-            insert into organizations (name, slug, type)
-            values (%s, %s, 'client')
+            insert into organizations (name, slug, type, parent_organization_id)
+            values (%s, %s, 'client', %s)
             returning id
             """,
-            (f"Worker Smoke {suffix}", f"worker-smoke-{suffix}"),
+            (f"Worker Smoke {suffix}", f"worker-smoke-{suffix}", tenant["id"]),
         ).fetchone()["id"]
         client_id = conn.execute(
             """
@@ -29,6 +34,19 @@ def main() -> None:
             """,
             (organization_id, f"Worker Smoke {suffix}"),
         ).fetchone()["id"]
+        conn.execute(
+            """
+            insert into workspaces (
+              tenant_organization_id,
+              subject_organization_id,
+              kind,
+              name,
+              slug
+            )
+            values (%s, %s, 'client', %s, %s)
+            """,
+            (tenant["id"], organization_id, f"Worker Smoke {suffix}", f"worker-smoke-{suffix}"),
+        )
         conn.execute(
             """
             insert into performance_connections (

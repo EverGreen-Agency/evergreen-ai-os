@@ -1,21 +1,6 @@
 from uuid import UUID
 
 
-def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
-    return conn.execute(
-        """
-        select c.id, c.organization_id, o.enabled_modules
-        from clients c
-        join organizations o on o.id = c.organization_id
-        where c.id = %s
-          and (%s or c.organization_id in (
-            select organization_id from memberships where user_id = %s
-          ))
-        """,
-        (client_id, is_admin, user_id),
-    ).fetchone()
-
-
 def list_files(conn, organization_id: UUID, is_admin: bool):
     return conn.execute(
         """

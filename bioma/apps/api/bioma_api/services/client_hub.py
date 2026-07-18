@@ -7,6 +7,7 @@ from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.integrations.clickup import sync_clickup_folder
 from bioma_api.repositories import client_hub as client_hub_repo
+from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.client_hub import (
     ApprovalCreateRequest,
@@ -45,9 +46,20 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Nome do cliente é obrigatório.")
 
     with connect() as conn:
+        tenant_organization_id = workspaces_repo.find_platform_tenant_id(conn, user.id)
+        if not tenant_organization_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Tenant administrativo não encontrado para criar o cliente.",
+            )
         organization_name = (payload.organization_name or client_name).strip()
         organization_slug = client_hub_repo.unique_org_slug(conn, payload.organization_slug or organization_name)
-        organization_id = client_hub_repo.create_organization(conn, organization_name, organization_slug)
+        organization_id = client_hub_repo.create_organization(
+            conn,
+            organization_name,
+            organization_slug,
+            tenant_organization_id,
+        )
         client_id = client_hub_repo.create_client(
             conn,
             organization_id,
@@ -55,6 +67,13 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
             payload.status,
             payload.responsible_name,
             payload.clickup_folder_id,
+        )
+        workspaces_repo.provision_client_workspace(
+            conn,
+            tenant_organization_id,
+            organization_id,
+            client_name,
+            organization_slug,
         )
         client_hub_repo.write_audit(
             conn,
@@ -98,6 +117,12 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
         client = _accessible_client(conn, client_id, user)
         client_updates = {key: updates[key] for key in ("name", "status", "responsible_name", "clickup_folder_id") if key in updates}
         client_hub_repo.update_client(conn, client_id, client_updates)
+        if "name" in client_updates:
+            workspaces_repo.update_client_workspace_name(
+                conn,
+                client["organization_id"],
+                client_updates["name"],
+            )
         if "organization_name" in updates:
             client_hub_repo.update_organization_name(conn, client["organization_id"], updates["organization_name"])
         if updates.get("enabled_modules") is not None:
@@ -598,7 +623,7 @@ def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, module: str | None = None):
     is_admin = _is_platform_admin(user)
-    client = client_hub_repo.find_accessible_client(conn, client_id, is_admin, user.id)
+    client = workspaces_repo.find_accessible_client(conn, client_id, is_admin, user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     if module:
@@ -608,4 +633,9 @@ def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, module:
 
 def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:
     with connect() as conn:
-        return client_hub_repo.list_my_deliverables(conn, f'"{user.email}"')
+        return client_hub_repo.list_my_deliverables(
+            conn,
+            user.email,
+            _is_platform_admin(user),
+            user.id,
+        )

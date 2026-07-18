@@ -12,14 +12,14 @@ def list_clients(conn, is_admin: bool, user_id: UUID):
     ).fetchall()
 
 
-def create_organization(conn, name: str, slug: str) -> UUID:
+def create_organization(conn, name: str, slug: str, tenant_organization_id: UUID) -> UUID:
     return conn.execute(
         """
-        insert into organizations (name, slug, type)
-        values (%s, %s, 'client')
+        insert into organizations (name, slug, type, parent_organization_id)
+        values (%s, %s, 'client', %s)
         returning id
         """,
-        (name, slug),
+        (name, slug, tenant_organization_id),
     ).fetchone()["id"]
 
 
@@ -44,18 +44,6 @@ def create_client(
 def get_client_summary(conn, client_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         _client_summary_sql(f"and c.id = %s {_client_access_filter()}"),
-        (client_id, is_admin, user_id),
-    ).fetchone()
-
-
-def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
-    return conn.execute(
-        """
-        select c.id, c.organization_id, c.clickup_folder_id, o.enabled_modules
-        from clients c
-        join organizations o on o.id = c.organization_id
-        where c.id = %s
-        """ + _client_access_filter(),
         (client_id, is_admin, user_id),
     ).fetchone()
 
@@ -604,9 +592,25 @@ def _slugify(value: str) -> str:
 
 def _client_access_filter() -> str:
     return """
-      and (%s or c.organization_id in (
-        select organization_id from memberships where user_id = %s
-      ))
+      and (
+        %s
+        or (
+          exists (
+            select 1
+            from workspaces w
+            where w.subject_organization_id = c.organization_id
+              and w.kind = 'client'
+              and w.status = 'active'
+          )
+          and exists (
+            select 1
+            from memberships m
+            where m.organization_id = c.organization_id
+              and m.user_id = %s
+              and m.role = 'client_user'
+          )
+        )
+      )
     """
 
 
@@ -636,12 +640,7 @@ def _client_summary_sql(extra_where: str = "") -> str:
         order by c.created_at desc
     """
 
-def list_my_deliverables(conn, user_email: str):
-    import json
-    # Use JSONB containment to match email string inside the array
-    # Since assignee_emails is a JSONB array of strings, we check if it contains the email as an element.
-    # We must cast the user_email to a jsonb string properly formatted: '"email"'
-    # Or simpler: use jsonb ? operator which checks if string exists as top level key/array element
+def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
         select 
@@ -651,8 +650,27 @@ def list_my_deliverables(conn, user_email: str):
         join organizations o on o.id = d.organization_id
         join clients c on c.organization_id = o.id
         where d.assignee_emails ? %s
+          and (
+            %s
+            or (
+              exists (
+                select 1
+                from workspaces w
+                where w.subject_organization_id = d.organization_id
+                  and w.kind = 'client'
+                  and w.status = 'active'
+              )
+              and exists (
+                select 1
+                from memberships m
+                where m.organization_id = d.organization_id
+                  and m.user_id = %s
+                  and m.role = 'client_user'
+              )
+            )
+          )
         order by d.due_at nulls last, d.updated_at desc
         limit 50
         """,
-        (user_email,),
+        (user_email, is_admin, user_id),
     ).fetchall()

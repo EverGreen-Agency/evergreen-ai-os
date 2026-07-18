@@ -12,28 +12,35 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import type { ClientSummary, CurrentUser } from "../lib/api";
+import type { ClientSummary, CurrentUser, WorkspaceSummary } from "../lib/api";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { resolveAgencyWorkspace } from "../lib/workspace-context";
 
-type RecentWorkspace =
+type StoredRecentWorkspace =
+  | { workspaceId: string }
   | { kind: "agency" }
   | { kind: "client"; clientId: string };
 
-type RecentWorkspaceEntry =
-  | { key: "agency"; kind: "agency" }
-  | { key: string; kind: "client"; client: ClientSummary };
+type ClientWorkspaceEntry = {
+  workspace: WorkspaceSummary;
+  client: ClientSummary;
+};
 
-function loadRecentWorkspaces(storageKey: string): RecentWorkspace[] {
+type RecentWorkspaceEntry =
+  | { kind: "agency"; workspace: WorkspaceSummary }
+  | ({ kind: "client" } & ClientWorkspaceEntry);
+
+function loadRecentWorkspaces(storageKey: string): StoredRecentWorkspace[] {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is RecentWorkspace => Boolean(
+    return parsed.filter((item): item is StoredRecentWorkspace => Boolean(
       item
       && typeof item === "object"
       && (
-        ("kind" in item && item.kind === "agency")
+        ("workspaceId" in item && typeof item.workspaceId === "string")
+        || ("kind" in item && item.kind === "agency")
         || ("kind" in item && item.kind === "client" && "clientId" in item && typeof item.clientId === "string")
       )
     ));
@@ -80,11 +87,17 @@ function agencyDestination(pathname: string): string {
 export function WorkspaceNavigator({
   user,
   clients,
+  workspaces,
   isLoading,
+  errorMessage,
+  onRetry,
 }: {
   user: CurrentUser;
   clients: ClientSummary[];
+  workspaces: WorkspaceSummary[];
   isLoading: boolean;
+  errorMessage: string | null;
+  onRetry: () => void;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -92,25 +105,39 @@ export function WorkspaceNavigator({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const storageKey = `bioma_recent_workspaces_${user.id}`;
-  const [recent, setRecent] = useState<RecentWorkspace[]>(() => loadRecentWorkspaces(storageKey));
+  const [recent, setRecent] = useState<StoredRecentWorkspace[]>(() => loadRecentWorkspaces(storageKey));
 
   useEffect(() => {
     setRecent(loadRecentWorkspaces(storageKey));
   }, [storageKey]);
 
   const accessibleClients = useMemo(() => externalClients(clients), [clients]);
-  const agencyResolution = useMemo(() => resolveAgencyWorkspace(clients, user), [clients, user]);
+  const agencyResolution = useMemo(() => resolveAgencyWorkspace(workspaces, user), [workspaces, user]);
+  const agencyWorkspace = agencyResolution.status === "ready" ? agencyResolution.workspace : null;
+  const persistedAgencyWorkspace = agencyWorkspace
+    ? workspaces.find((workspace) => workspace.id === agencyWorkspace.workspaceId) ?? null
+    : null;
   const isEgAdmin = user.organizations.some(
     (organization) => organization.slug === "eg" && organization.role === "eg_admin",
   );
+  const clientEntries = useMemo<ClientWorkspaceEntry[]>(() => workspaces
+    .filter((workspace) => workspace.kind === "client" && Boolean(workspace.client_id))
+    .flatMap((workspace) => {
+      const client = accessibleClients.find((candidate) => candidate.id === workspace.client_id);
+      return client ? [{ workspace, client }] : [];
+    }), [accessibleClients, workspaces]);
+
   const currentClientId = clientIdFromPath(location.pathname);
-  const currentClient = accessibleClients.find((client) => client.id === currentClientId) ?? null;
+  const currentClientEntry = clientEntries.find((entry) => entry.client.id === currentClientId) ?? null;
+  const fallbackCurrentClient = accessibleClients.find((client) => client.id === currentClientId) ?? null;
   const inAgencyWorkspace = location.pathname.startsWith("/operacao");
 
-  const currentContext = currentClient
-    ? { eyebrow: "Hub do cliente", label: currentClient.name, icon: Building2 }
+  const currentContext = currentClientEntry
+    ? { eyebrow: "Hub do cliente", label: currentClientEntry.workspace.name, icon: Building2 }
+    : fallbackCurrentClient
+      ? { eyebrow: "Hub do cliente", label: fallbackCurrentClient.name, icon: Building2 }
     : inAgencyWorkspace
-      ? { eyebrow: "Workspace da agência", label: "Operação EG", icon: BriefcaseBusiness }
+      ? { eyebrow: "Workspace da agência", label: persistedAgencyWorkspace?.name ?? "Operação EG", icon: BriefcaseBusiness }
       : location.pathname.startsWith("/clientes")
         ? { eyebrow: "Central da agência", label: "Carteira de clientes", icon: Building2 }
         : { eyebrow: "Control plane", label: "Bioma Cockpit", icon: LayoutDashboard };
@@ -143,12 +170,16 @@ export function WorkspaceNavigator({
     setIsOpen(false);
   }, [location.pathname]);
 
-  function rememberWorkspace(workspace: RecentWorkspace) {
-    const next = [
-      workspace,
-      ...recent.filter((item) => item.kind !== workspace.kind || (
-        item.kind === "client" && workspace.kind === "client" && item.clientId !== workspace.clientId
-      )),
+  function resolveStoredWorkspaceId(item: StoredRecentWorkspace): string | null {
+    if ("workspaceId" in item) return item.workspaceId;
+    if (item.kind === "agency") return persistedAgencyWorkspace?.id ?? null;
+    return clientEntries.find((entry) => entry.client.id === item.clientId)?.workspace.id ?? null;
+  }
+
+  function rememberWorkspace(workspaceId: string) {
+    const next: StoredRecentWorkspace[] = [
+      { workspaceId },
+      ...recent.filter((item) => resolveStoredWorkspaceId(item) !== workspaceId),
     ].slice(0, 5);
     setRecent(next);
     try {
@@ -159,35 +190,42 @@ export function WorkspaceNavigator({
   }
 
   function openAgencyWorkspace() {
-    rememberWorkspace({ kind: "agency" });
+    if (!persistedAgencyWorkspace) return;
+    rememberWorkspace(persistedAgencyWorkspace.id);
     navigate(agencyDestination(location.pathname));
   }
 
-  function openClientWorkspace(client: ClientSummary) {
-    rememberWorkspace({ kind: "client", clientId: client.id });
-    navigate(clientDestination(client.id, location.pathname));
+  function openClientWorkspace(entry: ClientWorkspaceEntry) {
+    if (!entry.workspace.client_id) return;
+    rememberWorkspace(entry.workspace.id);
+    navigate(clientDestination(entry.workspace.client_id, location.pathname));
   }
 
   const normalizedQuery = normalizeSearch(query);
-  const matchingClients = accessibleClients.filter((client) => normalizeSearch([
-    client.name,
-    client.organization_name,
-    client.responsible_name ?? "",
+  const matchingClients = clientEntries.filter(({ workspace, client }) => normalizeSearch([
+    workspace.name,
+    workspace.organization_name,
+    workspace.tenant_name,
+    workspace.responsible_name ?? client.responsible_name ?? "",
   ].join(" ")).includes(normalizedQuery));
-  const agencyMatches = isEgAdmin && normalizeSearch("Operação EG EverGreen agência interno").includes(normalizedQuery);
+  const agencyMatches = isEgAdmin && normalizeSearch([
+    persistedAgencyWorkspace?.name ?? "Operação EG",
+    persistedAgencyWorkspace?.tenant_name ?? "EverGreen",
+    "agência interno",
+  ].join(" ")).includes(normalizedQuery);
 
   const recentEntries = recent.reduce<RecentWorkspaceEntry[]>((entries, item) => {
-    if (item.kind === "agency") {
-      if (isEgAdmin && agencyResolution.status === "ready") {
-        entries.push({ key: "agency", kind: "agency" });
-      }
+    const workspaceId = resolveStoredWorkspaceId(item);
+    if (!workspaceId || entries.some((entry) => entry.workspace.id === workspaceId)) return entries;
+    if (persistedAgencyWorkspace?.id === workspaceId) {
+      entries.push({ kind: "agency", workspace: persistedAgencyWorkspace });
       return entries;
     }
-    const client = accessibleClients.find((candidate) => candidate.id === item.clientId);
-    if (client) entries.push({ key: client.id, kind: "client", client });
+    const clientEntry = clientEntries.find((entry) => entry.workspace.id === workspaceId);
+    if (clientEntry) entries.push({ kind: "client", ...clientEntry });
     return entries;
   }, []);
-  const recentKeys = new Set(recentEntries.map((entry) => entry.key));
+  const recentKeys = new Set(recentEntries.map((entry) => entry.workspace.id));
 
   const dialog = isOpen ? createPortal(
     <div
@@ -220,60 +258,67 @@ export function WorkspaceNavigator({
         </label>
 
         <div className="workspace-navigator-results">
-          {!normalizedQuery && recentEntries.length > 0 && (
+          {!isLoading && !errorMessage && !normalizedQuery && recentEntries.length > 0 && (
             <div className="workspace-result-section">
               <div className="workspace-result-label"><Clock3 size={13} /> Recentes</div>
               {recentEntries.map((entry) => entry.kind === "agency" ? (
-                <button className="workspace-result" type="button" key={entry.key} onClick={openAgencyWorkspace}>
+                <button className="workspace-result" type="button" key={entry.workspace.id} onClick={openAgencyWorkspace}>
                   <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                  <span><strong>Operação EG</strong><small>Workspace interno · EverGreen</small></span>
+                  <span><strong>{entry.workspace.name}</strong><small>Workspace interno · {entry.workspace.tenant_name}</small></span>
                   <ArrowRight size={16} />
                 </button>
               ) : (
-                <WorkspaceClientResult client={entry.client} onSelect={() => openClientWorkspace(entry.client)} />
+                <WorkspaceClientResult entry={entry} onSelect={() => openClientWorkspace(entry)} key={entry.workspace.id} />
               ))}
             </div>
           )}
 
-          {isEgAdmin && agencyMatches && (normalizedQuery || !recentKeys.has("agency")) && (
+          {!isLoading && !errorMessage && isEgAdmin && agencyMatches && (normalizedQuery || !persistedAgencyWorkspace || !recentKeys.has(persistedAgencyWorkspace.id)) && (
             <div className="workspace-result-section">
               <div className="workspace-result-label">Agência</div>
-              {agencyResolution.status === "ready" ? (
+              {persistedAgencyWorkspace && agencyResolution.status === "ready" ? (
                 <button className={`workspace-result ${inAgencyWorkspace ? "active" : ""}`} type="button" onClick={openAgencyWorkspace}>
                   <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                  <span><strong>Operação EG</strong><small>CRM, financeiro e métricas da própria agência</small></span>
+                  <span><strong>{persistedAgencyWorkspace.name}</strong><small>CRM, financeiro e métricas da própria agência</small></span>
                   <span className="workspace-kind-pill">Interno</span>
                 </button>
               ) : (
                 <div className="workspace-result disabled">
                   <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                  <span><strong>Operação EG</strong><small>Workspace ainda não provisionado</small></span>
+                  <span><strong>Operação EG</strong><small>Workspace ou ponte operacional ainda pendente</small></span>
                   <span className="workspace-kind-pill warning">Pendente</span>
                 </div>
               )}
             </div>
           )}
 
-          {matchingClients.some((client) => normalizedQuery || !recentKeys.has(client.id)) && (
+          {!isLoading && !errorMessage && matchingClients.some((entry) => normalizedQuery || !recentKeys.has(entry.workspace.id)) && (
             <div className="workspace-result-section">
               <div className="workspace-result-label">Clientes disponíveis · {matchingClients.length}</div>
               {matchingClients
-                .filter((client) => normalizedQuery || !recentKeys.has(client.id))
-                .map((client) => (
+                .filter((entry) => normalizedQuery || !recentKeys.has(entry.workspace.id))
+                .map((entry) => (
                   <WorkspaceClientResult
-                    client={client}
-                    active={currentClient?.id === client.id}
-                    onSelect={() => openClientWorkspace(client)}
-                    key={client.id}
+                    entry={entry}
+                    active={currentClientEntry?.workspace.id === entry.workspace.id}
+                    onSelect={() => openClientWorkspace(entry)}
+                    key={entry.workspace.id}
                   />
                 ))}
             </div>
           )}
 
-          {!isLoading && !agencyMatches && matchingClients.length === 0 && (
+          {!isLoading && !errorMessage && !agencyMatches && matchingClients.length === 0 && (
             <div className="workspace-navigator-empty">Nenhum workspace corresponde à busca.</div>
           )}
           {isLoading && <div className="workspace-navigator-empty">Carregando workspaces...</div>}
+          {!isLoading && errorMessage && (
+            <div className="workspace-navigator-empty workspace-navigator-error" role="alert">
+              <strong>Não foi possível carregar os workspaces.</strong>
+              <small>{errorMessage}</small>
+              <button type="button" onClick={onRetry}>Tentar novamente</button>
+            </div>
+          )}
         </div>
 
         <footer className="workspace-navigator-footer">
@@ -311,20 +356,21 @@ export function WorkspaceNavigator({
 }
 
 function WorkspaceClientResult({
-  client,
+  entry,
   active = false,
   onSelect,
 }: {
-  client: ClientSummary;
+  entry: ClientWorkspaceEntry;
   active?: boolean;
   onSelect: () => void;
 }) {
+  const { client, workspace } = entry;
   return (
     <button className={`workspace-result ${active ? "active" : ""}`} type="button" onClick={onSelect}>
       <span className="workspace-result-icon"><Building2 size={17} /></span>
       <span>
-        <strong>{client.name}</strong>
-        <small>{client.responsible_name ? `Responsável: ${client.responsible_name}` : client.organization_name}</small>
+        <strong>{workspace.name}</strong>
+        <small>{workspace.responsible_name ? `Responsável: ${workspace.responsible_name}` : workspace.organization_name}</small>
       </span>
       <span className="workspace-kind-pill">{statusLabel[client.status]}</span>
     </button>

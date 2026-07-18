@@ -8,6 +8,10 @@ def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID)
         select c.id, c.organization_id, c.name, o.name as organization_name, o.enabled_modules
         from clients c
         join organizations o on o.id = c.organization_id
+        join workspaces w
+          on w.subject_organization_id = c.organization_id
+         and w.kind = 'client'
+         and w.status = 'active'
         where c.id = %s
           and (%s or c.organization_id in (
             select organization_id from memberships where user_id = %s
@@ -68,7 +72,11 @@ def find_valid_invite(conn, token_hash: str):
           c.name as client_name
         from invites i
         join organizations o on o.id = i.organization_id
-        left join clients c on c.organization_id = i.organization_id
+        join clients c on c.organization_id = i.organization_id
+        join workspaces w
+          on w.subject_organization_id = i.organization_id
+         and w.kind = 'client'
+         and w.status = 'active'
         where i.token_hash = %s
           and i.used_at is null
           and i.expires_at > now()

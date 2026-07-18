@@ -8,6 +8,7 @@ from bioma_api.access import require_client_module
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.repositories import performance as performance_repo
+from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.performance import (
     AdsAccountSummary,
@@ -262,7 +263,7 @@ def _require_platform_admin(user: CurrentUserResponse) -> None:
 
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
-    client = performance_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
+    client = workspaces_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     # Todo o módulo de Performance fica atrás do gate "analytics" para client_user.

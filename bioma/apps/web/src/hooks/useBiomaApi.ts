@@ -27,6 +27,14 @@ export function useClients() {
   });
 }
 
+export function useWorkspaces(enabled = true) {
+  return useQuery({
+    queryKey: ["workspaces"],
+    queryFn: api.workspaces,
+    enabled,
+  });
+}
+
 export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
@@ -51,6 +59,7 @@ export function useCreateClient() {
     mutationFn: (payload: ClientPayload) => api.createClient(payload),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       queryClient.setQueryData(["portal", data.client.id], data);
     },
   });
@@ -62,6 +71,7 @@ export function useUpdateClient() {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ClientPayload> }) => api.updateClient(id, payload),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       queryClient.setQueryData(["portal", data.client.id], data);
     },
   });

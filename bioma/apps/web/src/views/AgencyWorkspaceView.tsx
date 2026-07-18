@@ -4,7 +4,7 @@ import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
 import { WorkspaceShell } from "../components/WorkspaceShell";
-import { useClients, useCurrentUser } from "../hooks/useBiomaApi";
+import { useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
 import { agencyWorkspaceNavItems } from "../lib/app-config";
 import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
 
@@ -21,19 +21,23 @@ function ModuleLoading() {
 }
 
 export function AgencyWorkspaceView() {
-  const { data: clientsData, isLoading } = useClients();
+  const { data: workspacesData, isLoading, isError } = useWorkspaces();
   const { data: user } = useCurrentUser();
-  const resolution = resolveAgencyWorkspace(clientsData ?? [], user);
+  const resolution = resolveAgencyWorkspace(workspacesData ?? [], user);
 
   if (isLoading) {
     return <EmptyState text="Carregando Operação EG..." />;
   }
 
   if (resolution.status !== "ready") {
-    const description = resolution.status === "ambiguous_bridge"
+    const description = isError
+      ? "Não foi possível consultar o contexto persistente deste workspace. Verifique a API e a migration 0010."
+      : resolution.status === "ambiguous_bridge"
       ? "Há mais de um registro operacional ligado à organização EG. A correção precisa ser feita no backend antes de abrir este workspace."
       : resolution.status === "missing_bridge"
         ? "O workspace interno ainda não foi provisionado para esta organização. Execute o provisionamento administrativo antes de usar os módulos operacionais."
+        : resolution.status === "missing_workspace"
+          ? "A organização EG existe, mas ainda não possui um workspace interno persistente. Rode as migrations e o bootstrap administrativo."
         : "Sua sessão não possui uma organização administrativa válida para a Operação EG.";
 
     return (

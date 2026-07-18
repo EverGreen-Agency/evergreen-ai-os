@@ -1,13 +1,6 @@
 from uuid import UUID
 
 
-def get_org_modules(conn, organization_id: UUID):
-    return conn.execute(
-        "select id, enabled_modules from organizations where id = %s",
-        (organization_id,),
-    ).fetchone()
-
-
 def get_config_public(conn, organization_id: UUID):
     return conn.execute(
         "select subdomain, updated_at from kommo_integrations where organization_id = %s",

@@ -7,7 +7,7 @@ export type ApiHealth = {
   checked_at: string;
 };
 
-export type ClientModule = "hub" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
+export type ClientModule = "hub" | "content" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
 
 export type CurrentUser = {
   id: string;
@@ -38,6 +38,27 @@ export type ClientSummary = {
   deliverables_total: number;
   approvals_pending: number;
   artifacts_client: number;
+};
+
+export type WorkspaceSummary = {
+  id: string;
+  tenant_organization_id: string;
+  tenant_name: string;
+  tenant_slug: string;
+  organization_id: string;
+  organization_name: string;
+  organization_slug: string;
+  kind: "agency_internal" | "client";
+  name: string;
+  slug: string;
+  status: "active" | "archived";
+  client_id: string | null;
+  legacy_client_id: string | null;
+  operational_client_id: string | null;
+  client_status: ClientStatus | null;
+  responsible_name: string | null;
+  enabled_modules: ClientModule[];
+  access_role: "platform_admin" | "eg_admin" | "client_user";
 };
 
 export type ArtifactSummary = {
@@ -542,6 +563,7 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+  workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>

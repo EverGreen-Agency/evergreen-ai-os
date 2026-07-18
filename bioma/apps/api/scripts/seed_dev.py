@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT))
 from bioma_api.db import connect
 from bioma_api.config import get_settings
 from bioma_api.security import hash_password
+from bioma_api.repositories import workspaces as workspaces_repo
 from performance_seed import seed_performance
 
 
@@ -308,6 +309,12 @@ def main() -> None:
         eg_id = upsert_org(conn, "EverGreen", "eg", "eg")
         hm_id = upsert_org(conn, "HM Conexões Poderosas", "hm-conexoes", "client")
 
+        conn.execute(
+            "update organizations set parent_organization_id = %s, updated_at = now() where id = %s",
+            (eg_id, hm_id),
+        )
+        workspaces_repo.provision_agency_workspace(conn, eg_id, "Operação EG")
+
         # A org EG opera a plataforma: todos os módulos habilitados
         # (clientes ficam no default hub/content/files da migration 0005).
         conn.execute(
@@ -343,6 +350,13 @@ def main() -> None:
             "select id from clients where organization_id = %s",
             (hm_id,),
         ).fetchone()["id"]
+        workspaces_repo.provision_client_workspace(
+            conn,
+            eg_id,
+            hm_id,
+            "HM Conexões Poderosas",
+            "hm-conexoes",
+        )
 
         upsert_artifact(
             conn,
