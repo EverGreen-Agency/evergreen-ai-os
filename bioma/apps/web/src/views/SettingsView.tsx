@@ -1,11 +1,13 @@
 import { FormEvent, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail } from "lucide-react";
+import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X } from "lucide-react";
 import { IntegrationsTab } from "../components/IntegrationsTab";
 import { api, apiUrl } from "../lib/api";
 import { useCurrentUser } from "../hooks/useBiomaApi";
-import { SectionHeader } from "../components/shared";
+import { SectionHeader, GoogleIcon } from "../components/shared";
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../lib/cropImage';
 
 export function SettingsView() {
   const { data: user } = useCurrentUser();
@@ -22,6 +24,11 @@ export function SettingsView() {
     if (!avatarKey) return null;
     try { return localStorage.getItem(avatarKey); } catch { return null; }
   });
+
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   // Campos de perfil local
   const profileKey = user ? `bioma_profile_${user.id}` : null;
@@ -55,11 +62,32 @@ export function SettingsView() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const src = ev.target?.result as string;
-      setAvatarSrc(src);
-      localStorage.setItem(avatarKey, src);
+      setCropImageSrc(src);
     };
     reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
+
+  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleSaveCrop = async () => {
+    if (!cropImageSrc || !croppedAreaPixels || !avatarKey) return;
+    try {
+      const croppedImage = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      setAvatarSrc(croppedImage);
+      localStorage.setItem(avatarKey, croppedImage);
+      window.dispatchEvent(new Event('avatarUpdated'));
+      setCropImageSrc(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setCropImageSrc(null);
+  };
 
   function handleSaveProfile() {
     if (!profileKey) return;
@@ -164,19 +192,56 @@ export function SettingsView() {
           <span className="profile-hero-email">{user.email}</span>
           {cargo && <span className="profile-hero-role">{cargo}</span>}
         </div>
-        <div className="profile-hero-badges">
-          {isEgAdmin && (
-            <span className="level-badge" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-              EG Admin
-            </span>
-          )}
-          {!isEgAdmin && user.organizations.map(org => (
-            <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
-              {org.role}
-            </span>
-          ))}
-        </div>
+        {activeTab === "user" && (
+          <div className="profile-hero-badges">
+            {isEgAdmin && (
+              <span className="level-badge" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                EG Admin
+              </span>
+            )}
+            {!isEgAdmin && user.organizations.map(org => (
+              <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
+                {org.role}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Cropper Modal */}
+      {cropImageSrc && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal-content" style={{ width: '400px', maxWidth: '90vw', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="modal-header">
+              <h3>Ajustar Foto</h3>
+              <button type="button" className="icon-button" onClick={handleCancelCrop} aria-label="Fechar">
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ position: 'relative', width: '100%', height: '300px', background: '#333' }}>
+              {/* @ts-expect-error type incompatibility with react-easy-crop in strict mode */}
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button type="button" className="ghost-button" onClick={handleCancelCrop}>
+                Cancelar
+              </button>
+              <button type="button" className="primary-button" onClick={handleSaveCrop}>
+                Salvar Foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === "user" && (
         <div className="profile-content">
@@ -271,14 +336,15 @@ export function SettingsView() {
                   <span>Google</span>
                   <strong>Nenhuma conta vinculada</strong>
                   <button
-                    className="mini-button approve"
+                    className="login-social-btn"
                     type="button"
+                    style={{ margin: 0, width: '100%', justifyContent: 'center' }}
                     onClick={() => {
                       window.location.href = apiUrl("/auth/oauth/google/start?mode=link");
                     }}
                   >
-                    <Link2 size={13} />
-                    Conectar Google
+                    <GoogleIcon />
+                    <span>Conectar Google</span>
                   </button>
                 </div>
               )}

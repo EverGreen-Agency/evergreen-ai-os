@@ -63,6 +63,21 @@ export function Sidebar({
     );
   }
 
+  const avatarKey = user ? `bioma_avatar_${user.id}` : null;
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(() => {
+    if (!avatarKey) return null;
+    try { return localStorage.getItem(avatarKey); } catch { return null; }
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      if (!avatarKey) return;
+      try { setAvatarSrc(localStorage.getItem(avatarKey)); } catch {}
+    };
+    window.addEventListener('avatarUpdated', handler);
+    return () => window.removeEventListener('avatarUpdated', handler);
+  }, [avatarKey]);
+
   // Obter as iniciais para o avatar
   const initials = user.display_name
     .split(" ")
@@ -112,7 +127,9 @@ export function Sidebar({
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             title={isCollapsed ? user.display_name : undefined}
           >
-            <div className="avatar">{initials}</div>
+            <div className="avatar" style={avatarSrc ? { backgroundImage: `url(${avatarSrc})`, backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' } : undefined}>
+              {!avatarSrc && initials}
+            </div>
             {!isCollapsed && (
               <div className="user-info">
                 <strong>{user.display_name}</strong>
