@@ -67,10 +67,15 @@ export function EngineeringView() {
   const [activeTab, setActiveTab] = useState<"spec" | "adrs" | "tasks">("spec");
   const [search, setSearch] = useState("");
 
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (!selectedModule) {
       setDetailData(null);
       setActiveTab("spec");
+      setIsEditing(null);
       return;
     }
     setDetailLoading(true);
@@ -80,6 +85,51 @@ export function EngineeringView() {
       .catch(console.error)
       .finally(() => setDetailLoading(false));
   }, [selectedModule]);
+
+  const handleSaveDoc = async (type: string, content: string, filename?: string) => {
+    if (!selectedModule) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/engineering/${selectedModule}/doc`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ doc_type: type, content, filename }),
+      });
+      if (!res.ok) throw new Error("Erro ao salvar");
+      
+      setDetailData((prev: any) => {
+        const next = { ...prev };
+        if (type === 'spec') next.specContent = content;
+        if (type === 'tasks') next.tasksContent = content;
+        if (type === 'adr' && filename) {
+          next.adrs = next.adrs.map((a: any) => a.file === filename ? { ...a, content } : a);
+        }
+        return next;
+      });
+      
+      fetch("/api/engineering", { credentials: "include" })
+        .then(res => res.json())
+        .then(setData);
+
+      setIsEditing(null);
+    } catch (err) {
+      alert(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangeStatus = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    if (!detailData?.specContent) return;
+    let content = detailData.specContent;
+    if (/^-\s*\*\*Status:\*\*\s*(.+)$/m.test(content)) {
+      content = content.replace(/^-\s*\*\*Status:\*\*\s*(.+)$/m, `- **Status:** ${newStatus}`);
+    } else {
+      content = `# Spec\n- **Status:** ${newStatus}\n\n${content}`;
+    }
+    handleSaveDoc('spec', content);
+  };
 
   if (loading) return <div className="loading-state">Carregando módulos...</div>;
   if (error) return <div className="error-state">Erro: {error}</div>;
@@ -190,7 +240,23 @@ export function EngineeringView() {
                 </div>
                 <div>
                   <h2 style={{ fontSize: '1.2rem', fontFamily: 'monospace', color: '#e5e7eb', margin: 0 }}>{selectedModule}</h2>
-                  <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Detalhes do Módulo de Engenharia</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Detalhes do Módulo de Engenharia</span>
+                    {activeTab === 'spec' && detailData?.specContent && (
+                      <select 
+                        value={detailData.specContent.match(/^-\s*\*\*Status:\*\*\s*(.+)$/m)?.[1] || "Rascunho"}
+                        onChange={handleChangeStatus}
+                        style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '0.75rem', padding: '2px 6px', outline: 'none' }}
+                      >
+                        <option value="Rascunho">Rascunho</option>
+                        <option value="Em Desenvolvimento">Em Desenvolvimento</option>
+                        <option value="Em Revisão">Em Revisão</option>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Pausado">Pausado</option>
+                        <option value="Descontinuado">Descontinuado</option>
+                      </select>
+                    )}
+                  </div>
                 </div>
               </div>
               <button 
@@ -268,9 +334,23 @@ export function EngineeringView() {
                   {activeTab === 'spec' && (
                     detailData.specContent ? (
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {detailData.specContent}
-                        </ReactMarkdown>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                          {isEditing !== 'spec' ? (
+                            <button onClick={() => { setEditContent(detailData.specContent); setIsEditing('spec'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Spec</button>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
+                              <button onClick={() => handleSaveDoc('spec', editContent)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                            </div>
+                          )}
+                        </div>
+                        {isEditing === 'spec' ? (
+                          <textarea value={editContent} onChange={e => setEditContent(e.target.value)} style={{ width: "100%", height: "400px", minHeight: "300px", padding: "12px", background: "var(--bg-secondary)", color: "var(--text-primary)", border: "1px solid var(--border)", borderRadius: "4px", fontFamily: "monospace", fontSize: "13px", resize: "vertical" }} />
+                        ) : (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {detailData.specContent}
+                          </ReactMarkdown>
+                        )}
                       </div>
                     ) : (
                       <EmptyState text="Nenhuma especificação (spec.md) definida para este módulo." />
@@ -286,9 +366,23 @@ export function EngineeringView() {
                               {adr.file}: {adr.title}
                             </summary>
                             <div className="prose-content" style={{ borderTop: '1px solid var(--border)', padding: '1.5rem', background: 'transparent', color: '#d1d5db', lineHeight: 1.6 }}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {adr.content}
-                              </ReactMarkdown>
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                                {isEditing !== `adr:${adr.file}` ? (
+                                  <button onClick={() => { setEditContent(adr.content); setIsEditing(`adr:${adr.file}`); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar ADR</button>
+                                ) : (
+                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
+                                    <button onClick={() => handleSaveDoc('adr', editContent, adr.file)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                                  </div>
+                                )}
+                              </div>
+                              {isEditing === `adr:${adr.file}` ? (
+                                <textarea value={editContent} onChange={e => setEditContent(e.target.value)} style={{ width: "100%", height: "400px", minHeight: "300px", padding: "12px", background: "var(--bg-secondary)", color: "var(--text-primary)", border: "1px solid var(--border)", borderRadius: "4px", fontFamily: "monospace", fontSize: "13px", resize: "vertical" }} />
+                              ) : (
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {adr.content}
+                                </ReactMarkdown>
+                              )}
                             </div>
                           </details>
                         ))}
@@ -301,9 +395,23 @@ export function EngineeringView() {
                   {activeTab === 'tasks' && (
                     detailData.tasksContent ? (
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {detailData.tasksContent}
-                        </ReactMarkdown>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                          {isEditing !== 'tasks' ? (
+                            <button onClick={() => { setEditContent(detailData.tasksContent); setIsEditing('tasks'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Tarefas</button>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
+                              <button onClick={() => handleSaveDoc('tasks', editContent)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                            </div>
+                          )}
+                        </div>
+                        {isEditing === 'tasks' ? (
+                          <textarea value={editContent} onChange={e => setEditContent(e.target.value)} style={{ width: "100%", height: "400px", minHeight: "300px", padding: "12px", background: "var(--bg-secondary)", color: "var(--text-primary)", border: "1px solid var(--border)", borderRadius: "4px", fontFamily: "monospace", fontSize: "13px", resize: "vertical" }} />
+                        ) : (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {detailData.tasksContent}
+                          </ReactMarkdown>
+                        )}
                       </div>
                     ) : (
                       <EmptyState text="Nenhum plano de tarefas (tasks.md) definido para este módulo." />
