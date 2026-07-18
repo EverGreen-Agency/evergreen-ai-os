@@ -5,6 +5,7 @@ import { SectionHeader, EmptyState, HubBlock } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel } from "../lib/format";
 import type { ArtifactSummary, DeliverableStatus } from "../lib/api";
+import { externalClients } from "../lib/client-scope";
 import { useUiStore } from "../store/uiStore";
 import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient } from "../hooks/useBiomaApi";
 
@@ -29,7 +30,7 @@ export function ClientsView() {
   };
 
   const { data: clientsData, isLoading: loadingClients } = useClients();
-  const clients = clientsData ?? [];
+  const clients = externalClients(clientsData ?? []);
 
   return (
     <section style={{ padding: '32px', width: '100%' }}>

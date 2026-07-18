@@ -15,6 +15,7 @@ import {
 
 import { useUiStore } from "../store/uiStore";
 import { useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
+import { externalClients } from "../lib/client-scope";
 
 export function CockpitView() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export function CockpitView() {
   const isEgAdmin = user?.organizations.some(org => org.role === "eg_admin");
 
   // Client data
-  const clients = clientsData ?? [];
+  const clients = externalClients(clientsData ?? []);
   const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
   const portal = portalData ?? null;
 

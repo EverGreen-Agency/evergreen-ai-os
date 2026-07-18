@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, FileText, GitBranch, LayoutDashboard, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, FileText, FolderOpen, GitBranch, LayoutDashboard, Link2, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -16,20 +16,31 @@ export type ViewId =
   | "eg-architecture";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
-  // Rotas normais (Módulos de Cliente/Operação)
-  { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
-  { id: "clientes", label: "Clientes", icon: Users },
-  { id: "crm", label: "CRM / Leads", icon: Users },
-  { id: "finance", label: "Financeiro", icon: WalletCards },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "engenharia", label: "Engenharia", icon: FileText },
+  { id: "cockpit", label: "Operação EG", icon: LayoutDashboard },
+  { id: "clientes", label: "Carteira de Clientes", icon: Users },
   
-  // Rotas Internas EG (Administrativas)
+  // Rotas internas EG. Módulos de cliente vivem na navegação do próprio Hub.
+  { id: "engenharia", label: "Engenharia", icon: FileText },
   { id: "eg-wiki", label: "Wiki EG", icon: BookOpen },
   { id: "eg-office", label: "Escritório", icon: LayoutDashboard }, // O ícone pode ser ajustado depois
   { id: "eg-ideas", label: "Banco de Ideias", icon: BookOpen },
   { id: "eg-tech", label: "Banco de Stack", icon: GitBranch },
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
+];
+
+export const clientHubNavItems: Array<{
+  id: "hub" | "crm" | "finance" | "analytics" | "files" | "integrations";
+  label: string;
+  path: string;
+  module: ClientModule;
+  icon: LucideIcon;
+}> = [
+  { id: "hub", label: "Visão geral", path: "", module: "hub", icon: LayoutDashboard },
+  { id: "crm", label: "CRM", path: "crm", module: "commercial", icon: Users },
+  { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
+  { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
+  { id: "files", label: "Documentos", path: "documentos", module: "files", icon: FolderOpen },
+  { id: "integrations", label: "Integrações", path: "integracoes", module: "integrations", icon: Link2 },
 ];
 
 // Feature-gating por organização (decisão 2026-07-14): cada view exige um

@@ -1,6 +1,8 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { enabledModulesFor, navItems, viewModule } from "./lib/app-config";
+import { enabledModulesFor, navItems, viewModule, type ViewId } from "./lib/app-config";
+import type { ClientModule } from "./lib/api";
+import { externalClients } from "./lib/client-scope";
 import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
 import { LoginView } from "./views/LoginView";
@@ -14,14 +16,19 @@ import { useUiStore } from "./store/uiStore";
 import { useApiHealth, useCurrentUser, useClients, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
 import { normalizeArtifactPayload } from "./lib/format";
 import { emptyArtifactDraft } from "./lib/app-config";
+import {
+  ClientAnalyticsRoute,
+  ClientCrmRoute,
+  ClientFilesRoute,
+  ClientFinanceRoute,
+  ClientIntegrationsRoute,
+  ClientWorkspaceView,
+} from "./views/ClientWorkspaceView";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
 const ClientHubView = lazy(() => import("./views/ClientHubView").then((module) => ({ default: module.ClientHubView })));
 const WikiEgView = lazy(() => import("./views/admin/WikiEgView").then((module) => ({ default: module.WikiEgView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
-const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
-const CrmView = lazy(() => import("./views/CrmView").then((module) => ({ default: module.CrmView })));
-const FinanceView = lazy(() => import("./views/FinanceView").then((module) => ({ default: module.FinanceView })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -59,8 +66,8 @@ export function App() {
     dataError,
   } = useUiStore();
 
-  const { data: clientsData } = useClients();
-  const clients = clientsData ?? [];
+  const { data: clientsData, isLoading: loadingClients } = useClients();
+  const clients = externalClients(clientsData ?? []);
 
   const updateArtifact = useUpdateArtifact();
   const deleteArtifact = useDeleteArtifact();
@@ -149,10 +156,18 @@ export function App() {
   }
 
   const enabledModules = enabledModulesFor(user, isEgAdmin);
-  const visibleNavItems = navItems.filter((item) => enabledModules.has(viewModule[item.id]));
+  const visibleNavItems = navItems
+    .filter((item) => enabledModules.has(viewModule[item.id]))
+    .filter((item) => isEgAdmin || item.id === "clientes")
+    .map((item) => !isEgAdmin && item.id === "clientes" ? { ...item, label: "Meu Hub" } : item);
+  const clientHomePath = !isEgAdmin && clients.length === 1 ? `/clientes/${clients[0].id}` : "/clientes";
 
-  function guard(view: (typeof navItems)[number]["id"], element: ReactNode) {
+  function guard(view: ViewId, element: ReactNode) {
     return enabledModules.has(viewModule[view]) ? element : <Navigate to="/" replace />;
+  }
+
+  function guardModule(module: ClientModule, element: ReactNode) {
+    return enabledModules.has(module) ? element : <Navigate to="/clientes" replace />;
   }
 
   function guardAdmin(element: ReactNode) {
@@ -191,6 +206,7 @@ export function App() {
         user={user}
         onLogout={handleLogout}
         isLoggingOut={logout.isPending}
+        clientHomePath={clientHomePath}
       />
 
       <section className="workspace">
@@ -199,7 +215,16 @@ export function App() {
         {dataError && <div className="notice error">{dataError}</div>}
 
         <Routes>
-          <Route path="/" element={<CockpitView />} />
+          <Route
+            path="/"
+            element={
+              isEgAdmin
+                ? <CockpitView />
+                : loadingClients
+                  ? <ViewLoadingFallback />
+                  : <Navigate to={clientHomePath} replace />
+            }
+          />
           <Route path="/configuracoes" element={<SettingsView />} />
 
           <Route path="/clientes" element={guard("clientes",
@@ -208,33 +233,27 @@ export function App() {
             </Suspense>,
           )} />
           
-          <Route path="/clientes/:id" element={guard("clientes",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <ClientHubView />
-            </Suspense>,
-          )} />
+          <Route path="/clientes/:id" element={guard("clientes", <ClientWorkspaceView />)}>
+            <Route index element={
+              <Suspense fallback={<ViewLoadingFallback />}>
+                <ClientHubView />
+              </Suspense>
+            } />
+            <Route path="crm" element={guard("crm", <ClientCrmRoute />)} />
+            <Route path="financeiro" element={guard("finance", <ClientFinanceRoute />)} />
+            <Route path="analytics" element={guard("analytics", <ClientAnalyticsRoute />)} />
+            <Route path="documentos" element={guardModule("files", <ClientFilesRoute />)} />
+            <Route path="integracoes" element={guardAdmin(<ClientIntegrationsRoute />)} />
+          </Route>
 
-          <Route path="/crm" element={guard("crm",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <CrmView />
-            </Suspense>,
-          )} />
+          {/* Compatibilidade: módulos de cliente nunca operam fora do Hub. */}
+          <Route path="/crm" element={<Navigate to="/clientes" replace />} />
+          <Route path="/finance" element={<Navigate to="/clientes" replace />} />
+          <Route path="/analytics" element={<Navigate to="/clientes" replace />} />
 
-          <Route path="/finance" element={guard("finance",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <FinanceView />
-            </Suspense>,
-          )} />
-
-          <Route path="/engenharia" element={guard("engenharia",
+          <Route path="/engenharia" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <EngineeringView />
-            </Suspense>,
-          )} />
-
-          <Route path="/analytics" element={guard("analytics",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <AnalyticsView />
             </Suspense>,
           )} />
 

@@ -5,6 +5,7 @@ import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, artifactKindLabel } from "../lib/format";
 import type { DeliverableStatus } from "../lib/api";
+import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
 import { useUiStore } from "../store/uiStore";
 import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateArtifact, useCreateDeliverable } from "../hooks/useBiomaApi";
@@ -42,7 +43,7 @@ export function ClientHubView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: clientsData } = useClients();
-  const clients = clientsData ?? [];
+  const clients = externalClients(clientsData ?? []);
   const selectedClient = clients.find((c) => c.id === id) ?? null;
 
   const { data: portalData, isLoading: loadingPortal } = useClientPortal(id ?? null);
@@ -79,11 +80,11 @@ export function ClientHubView() {
 
   const isBusy = syncClickUp.isPending || updateDeliverable.isPending || deleteDeliverable.isPending || createApproval.isPending || decideApproval.isPending || createArtifact.isPending || createDeliverable.isPending;
 
-  // Atualiza o estado global se o admin dock for usado (já que ele usa o selectedClient do UiStore)
-  // Mas para não causar bugs de render loop, apenas se não bater.
-  if (id && useUiStore.getState().selectedClientId !== id) {
-    setSelectedClientId(id);
-  }
+  useEffect(() => {
+    if (id && useUiStore.getState().selectedClientId !== id) {
+      setSelectedClientId(id);
+    }
+  }, [id, setSelectedClientId]);
 
   if (!selectedClient) {
     return (

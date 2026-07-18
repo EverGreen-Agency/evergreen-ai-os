@@ -251,6 +251,8 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
 - [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
 - [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
+- [x] Separar a navegação da Operação EG da Carteira e tornar o Hub do Cliente a fronteira obrigatória para CRM, financeiro, métricas, documentos e integrações.
+- [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` do backend após eliminar dependências de seed e compatibilidade.
 
 ### P4 - Staging
 
@@ -385,3 +387,4 @@ Formato:
 - 2026-07-16 - Antigravity - (local) - Refinamento da UI/UX: Sidebar e Topbar extraídos do App.tsx, estética premium glassmorphic aplicada via styles.css (inspirado na HM, mas preservando tokens EG), responsividade mobile da sidebar ajustada (slide-in menu) e LoginView alinhado estruturalmente com as referências visuais - pendente QA visual (manual) assinado e staging.
 - 2026-07-17 - Antigravity - (local) - Ajustes visuais em configuracoes: ocultacao de badge em abas irrelevantes, implementacao de crop em foto de perfil com react-easy-crop, integracao do avatar na sidebar esquerda e refinamento do botao Google connect nas configuracoes - build web validado - pendente staging.
 - 2026-07-18 - Codex - ver git log - Concluída a migração das telas Engenharia, Arquitetura e Escritório de `/api` para o cliente central `/backoffice`, eliminando respostas HTML interpretadas como JSON e adicionando contratos tipados/erro visível - `npx.cmd tsc -b`, `npm.cmd run build` - pendente QA visual humano e decisão de produto sobre separar a operação interna EG da carteira de clientes externos.
+- 2026-07-18 - Codex - ver git log - Separada a Operação EG da Carteira no frontend; CRM, financeiro, métricas, documentos e integrações agora operam somente sob `/clientes/:clientId/...`, com rotas globais fechadas e `EverGreen Internal` oculto do Hub - `npx.cmd tsc -b`, `npm.cmd run build` - pendente migração backend do registro técnico legado e QA visual humano.

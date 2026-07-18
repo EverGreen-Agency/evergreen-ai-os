@@ -10,6 +10,7 @@ interface SidebarProps {
   user: CurrentUser;
   onLogout: () => void;
   isLoggingOut: boolean;
+  clientHomePath: string;
 }
 
 export function Sidebar({
@@ -17,6 +18,7 @@ export function Sidebar({
   user,
   onLogout,
   isLoggingOut,
+  clientHomePath,
 }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,10 +31,8 @@ export function Sidebar({
     setIsOpen(false);
   }, [location.pathname]);
 
-  const groupPrincipal = ["cockpit", "clientes", "crm", "finance"];
-  const groupDados = ["analytics"];
-  const groupConfig = ["engenharia"];
-  const groupAdmin = ["eg-wiki", "eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
+  const groupPrincipal = ["cockpit", "clientes"];
+  const groupAdmin = ["engenharia", "eg-wiki", "eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
 
   function renderGroup(groupItems: string[], label: string) {
     const items = visibleNavItems.filter((item) => groupItems.includes(item.id));
@@ -43,7 +43,7 @@ export function Sidebar({
         {!isCollapsed && <div className="nav-group-label">{label}</div>}
         {items.map((item) => {
           const Icon = item.icon;
-          const path = item.id === "cockpit" ? "/" : `/${item.id}`;
+          const path = item.id === "cockpit" ? "/" : item.id === "clientes" ? clientHomePath : `/${item.id}`;
           const isActive =
             location.pathname === path || (item.id !== "cockpit" && location.pathname.startsWith(path));
           return (
@@ -115,9 +115,7 @@ export function Sidebar({
 
         <nav className="nav-list">
           {renderGroup(groupPrincipal, "Principal")}
-          {renderGroup(groupDados, "Dados")}
-          {renderGroup(groupConfig, "Configurações")}
-          {user?.organizations?.some(org => org.role === "eg_admin") && renderGroup(groupAdmin, "Administração EG")}
+          {user?.organizations?.some(org => org.role === "eg_admin") && renderGroup(groupAdmin, "Operação EG")}
         </nav>
 
         {/* Rodapé da Sidebar: Perfil do usuário */}

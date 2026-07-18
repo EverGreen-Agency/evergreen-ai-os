@@ -6,10 +6,8 @@ import {
   type LeadStage,
   type LeadSummary,
 } from "../lib/api";
-import { useUiStore } from "../store/uiStore";
 import {
   useCurrentUser,
-  useClients,
   useLeads,
   useCreateLead,
   useUpdateLead,
@@ -44,16 +42,12 @@ function toNullableNumber(value: string) {
   return normalized ? Number(normalized) : null;
 }
 
-export function CrmView() {
-  const { selectedClientId } = useUiStore();
+export function CrmView({ clientId }: { clientId: string }) {
   const { data: user } = useCurrentUser();
-  const { data: clientsData } = useClients();
 
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
-  const clients = clientsData ?? [];
-  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
 
-  const { data: leadsData, error: leadsError } = useLeads(selectedClientId);
+  const { data: leadsData, error: leadsError } = useLeads(clientId);
 
   const createLead = useCreateLead();
   const updateLead = useUpdateLead();
@@ -72,24 +66,18 @@ export function CrmView() {
 
   function handleCreateLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedClientId || !leadDraft.name.trim()) return;
-    createLead.mutate({ clientId: selectedClientId, payload: leadDraft }, {
+    if (!leadDraft.name.trim()) return;
+    createLead.mutate({ clientId, payload: leadDraft }, {
       onSuccess: () => setLeadDraft(emptyLead)
     });
   }
 
   function handleStageChange(lead: LeadSummary, stage: LeadStage) {
-    if (!selectedClientId) return;
-    updateLead.mutate({ clientId: selectedClientId, leadId: lead.id, payload: { stage } });
+    updateLead.mutate({ clientId, leadId: lead.id, payload: { stage } });
   }
 
   function handleDeleteLead(lead: LeadSummary) {
-    if (!selectedClientId) return;
-    deleteLead.mutate({ clientId: selectedClientId, leadId: lead.id });
-  }
-
-  if (!selectedClient || !selectedClientId) {
-    return <EmptyState text="Selecione um cliente para ver o funil de leads." />;
+    deleteLead.mutate({ clientId, leadId: lead.id });
   }
 
   return (

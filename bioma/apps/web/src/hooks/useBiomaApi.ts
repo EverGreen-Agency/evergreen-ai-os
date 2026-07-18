@@ -256,6 +256,41 @@ export function useRequestPerformanceSync() {
   });
 }
 
+// --- KOMMO INTEGRATION ---
+
+export function useKommoConfig(organizationId: string | null) {
+  return useQuery({
+    queryKey: ["kommo-config", organizationId],
+    queryFn: () => {
+      if (!organizationId) throw new Error("No organization ID provided");
+      return api.getKommoConfig(organizationId);
+    },
+    enabled: Boolean(organizationId),
+  });
+}
+
+export function useSetupKommoConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ organizationId, payload }: { organizationId: string; payload: Parameters<typeof api.setupKommoConfig>[1] }) =>
+      api.setupKommoConfig(organizationId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["kommo-config", variables.organizationId] });
+    },
+  });
+}
+
+export function useKommoAnalytics(organizationId: string | null) {
+  return useQuery({
+    queryKey: ["kommo-analytics", organizationId],
+    queryFn: () => {
+      if (!organizationId) throw new Error("No organization ID provided");
+      return api.getKommoAnalytics(organizationId);
+    },
+    enabled: Boolean(organizationId),
+  });
+}
+
 // --- BACKOFFICE EG (banco de ideias / tech radar) ---
 // Escrita com atualização otimista: o board responde na hora (drag & drop) e,
 // se o POST falhar, o cache volta ao snapshot e o erro aparece no aviso global.

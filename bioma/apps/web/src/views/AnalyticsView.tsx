@@ -348,11 +348,11 @@ function KommoTab({ organizationId }: { organizationId: string }) {
   );
 }
 
-export function AnalyticsView() {
+export function AnalyticsView({ clientId }: { clientId: string }) {
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];
-  const egClient = clients.find((c) => c.organization_slug === "eg");
-  const effectiveClientId = egClient?.id ?? "";
+  const selectedClient = clients.find((client) => client.id === clientId) ?? null;
+  const effectiveClientId = selectedClient?.id ?? "";
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -404,7 +404,7 @@ export function AnalyticsView() {
 
       <div className="analytics-header">
         <div>
-          <h2>Performance de {egClient?.name ?? "EG"}</h2>
+          <h2>Performance de {selectedClient?.name ?? "cliente"}</h2>
           <p>
             {overview
               ? `${overview.period_start} até ${overview.period_end}`
@@ -527,7 +527,7 @@ export function AnalyticsView() {
       {tab === "ga4" && <Ga4Tab clientId={effectiveClientId} freshness={freshnessOf("ga4")} />}
       {tab === "search_console" && <GscTab clientId={effectiveClientId} freshness={freshnessOf("search_console")} />}
       {tab === "gtm" && <GtmTab clientId={effectiveClientId} freshness={freshnessOf("gtm")} />}
-      {tab === "kommo" && egClient?.organization_id && <KommoTab organizationId={egClient.organization_id} />}
+      {tab === "kommo" && selectedClient?.organization_id && <KommoTab organizationId={selectedClient.organization_id} />}
     </section>
   );
 }

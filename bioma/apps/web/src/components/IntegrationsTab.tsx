@@ -24,9 +24,12 @@ import {
   useRequestPerformanceSync,
   useSyncClickUp,
   useUpdatePerformanceConnection,
+  useKommoConfig,
+  useSetupKommoConfig,
 } from "../hooks/useBiomaApi";
 import { formatDateTime } from "../lib/format";
 import type { PerformanceConnection, PerformanceProvider } from "../lib/api";
+import { Briefcase } from "lucide-react";
 
 // Tudo aqui é estado real: flags de ambiente vêm de /integrations/status,
 // conexões de /clients/{id}/performance/connections e o ClickUp do portal.
@@ -85,8 +88,15 @@ function ConnectionStatusPill({ connection }: { connection: PerformanceConnectio
   return <span className="status-pill open">Ativa</span>;
 }
 
-export function IntegrationsTab() {
-  const { selectedClientId, setSelectedClientId } = useUiStore();
+export function IntegrationsTab({
+  clientId = null,
+  scope = "all",
+}: {
+  clientId?: string | null;
+  scope?: "all" | "environment" | "client";
+} = {}) {
+  const { selectedClientId: storedClientId, setSelectedClientId } = useUiStore();
+  const selectedClientId = clientId ?? storedClientId;
   const { data: clients = [] } = useClients();
   const { data: portal } = useClientPortal(selectedClientId);
   const { data: envStatus } = useIntegrationsStatus();
@@ -104,6 +114,16 @@ export function IntegrationsTab() {
   const [syncFeedback, setSyncFeedback] = useState<string>("");
 
   const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null;
+  const organizationId = selectedClient?.organization_id ?? null;
+
+  const { data: kommoConfig, isLoading: loadingKommo } = useKommoConfig(organizationId);
+  const setupKommo = useSetupKommoConfig();
+
+  const [kommoClientId, setKommoClientId] = useState("");
+  const [kommoClientSecret, setKommoClientSecret] = useState("");
+  const [kommoAccessToken, setKommoAccessToken] = useState("");
+  const [kommoSubdomain, setKommoSubdomain] = useState("");
+  const [isEditingKommo, setIsEditingKommo] = useState(false);
   const clickupRun = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
   const connectionFor = (provider: PerformanceProvider) =>
     connections.find((connection) => connection.provider === provider) ?? null;
@@ -121,6 +141,36 @@ export function IntegrationsTab() {
     setAccountId("");
     setParentId("");
     setDisplayName("");
+  }
+
+  function startEditKommo() {
+    setIsEditingKommo(true);
+    setKommoSubdomain(kommoConfig?.subdomain ?? "");
+  }
+
+  function cancelEditKommo() {
+    setIsEditingKommo(false);
+    setKommoClientId("");
+    setKommoClientSecret("");
+    setKommoAccessToken("");
+    setKommoSubdomain("");
+  }
+
+  function handleSaveKommo(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!organizationId) return;
+    setupKommo.mutate(
+      {
+        organizationId,
+        payload: {
+          client_id: kommoClientId.trim(),
+          client_secret: kommoClientSecret.trim(),
+          access_token: kommoAccessToken.trim(),
+          subdomain: kommoSubdomain.trim(),
+        },
+      },
+      { onSuccess: cancelEditKommo }
+    );
   }
 
   function handleSaveConnection(event: FormEvent<HTMLFormElement>) {
@@ -171,7 +221,7 @@ export function IntegrationsTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32, gridColumn: "1 / -1" }}>
       {/* Ambiente (flags reais, somente leitura) */}
-      <section>
+      {scope !== "client" && <section>
         <div style={{ marginBottom: 16 }}>
           <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
             <Server size={18} /> Ambiente EverGreen
@@ -198,10 +248,10 @@ export function IntegrationsTab() {
             {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <span className="status-pill draft">...</span>}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Conexões por cliente */}
-      <section>
+      {scope !== "environment" && <section>
         <div style={{ marginBottom: 16, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 260 }}>
             <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
@@ -211,7 +261,7 @@ export function IntegrationsTab() {
               Fontes de dados mapeadas por cliente. Meta Ads e LinkedIn entram como novos provedores após o Google.
             </p>
           </div>
-          <label className="form-grid" style={{ minWidth: 220 }}>
+          {!clientId && <label className="form-grid" style={{ minWidth: 220 }}>
             Cliente
             <select
               className="status-select"
@@ -224,7 +274,7 @@ export function IntegrationsTab() {
                 <option key={client.id} value={client.id}>{client.name}</option>
               ))}
             </select>
-          </label>
+          </label>}
         </div>
 
         {!selectedClient && <div className="empty-state compact">Selecione um cliente para gerenciar conexões.</div>}
@@ -264,6 +314,93 @@ export function IntegrationsTab() {
                 <RefreshCw size={14} />
                 {syncClickUp.isPending ? "Sincronizando..." : "Sincronizar agora"}
               </button>
+            </article>
+
+            {/* Kommo CRM */}
+            <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <Briefcase size={20} color={kommoConfig?.configured ? "var(--accent)" : "var(--text-dim)"} />
+                  <h4 style={{ margin: 0, fontSize: 15 }}>Kommo CRM</h4>
+                </div>
+                {kommoConfig?.configured
+                  ? <span className="status-pill open">Configurado</span>
+                  : <span className="status-pill draft">Não configurado</span>}
+              </div>
+
+              {loadingKommo && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
+
+              {!isEditingKommo && kommoConfig && (
+                <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
+                  {kommoConfig.configured ? (
+                    <>
+                      <div>Subdomínio: <strong>{kommoConfig.subdomain}</strong></div>
+                      <div style={{ color: "var(--text-muted)", marginTop: 8 }}>
+                        Credenciais salvas e seguras no banco de dados.
+                      </div>
+                    </>
+                  ) : (
+                    <div>O Kommo não está configurado para a organização deste cliente.</div>
+                  )}
+                </div>
+              )}
+
+              {isEditingKommo && (
+                <form className="form-grid" onSubmit={handleSaveKommo}>
+                  <label>
+                    Client ID (Integração)
+                    <input
+                      value={kommoClientId}
+                      onChange={(e) => setKommoClientId(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Client Secret
+                    <input
+                      value={kommoClientSecret}
+                      onChange={(e) => setKommoClientSecret(e.target.value)}
+                      type="password"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Access Token (Longo prazo)
+                    <input
+                      value={kommoAccessToken}
+                      onChange={(e) => setKommoAccessToken(e.target.value)}
+                      type="password"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Subdomínio do Kommo (sem .kommo.com)
+                    <input
+                      value={kommoSubdomain}
+                      onChange={(e) => setKommoSubdomain(e.target.value)}
+                      placeholder="exemplo-empresa"
+                      required
+                    />
+                  </label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="primary-button" type="submit" disabled={setupKommo.isPending} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                      {setupKommo.isPending ? "Salvando..." : "Salvar"}
+                    </button>
+                    <button className="ghost-button" type="button" onClick={cancelEditKommo} style={{ padding: 8, fontSize: 13 }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {!isEditingKommo && !loadingKommo && (
+                <div style={{ marginTop: "auto", display: "flex", gap: 8 }}>
+                  <button className="mini-button" type="button" onClick={startEditKommo}>
+                    {kommoConfig?.configured ? <PenLine size={13} /> : <Plus size={13} />}
+                    {kommoConfig?.configured ? "Editar credenciais" : "Configurar"}
+                  </button>
+                </div>
+              )}
             </article>
 
             {/* Google providers (performance_connections reais) */}
@@ -383,7 +520,7 @@ export function IntegrationsTab() {
         )}
 
         {syncFeedback && <div className="form-success" style={{ marginTop: 12 }}>{syncFeedback}</div>}
-      </section>
+      </section>}
     </div>
   );
 }

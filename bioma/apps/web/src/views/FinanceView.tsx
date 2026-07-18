@@ -7,10 +7,8 @@ import {
   type FinancialRecordStatus,
   type FinancialRecordSummary,
 } from "../lib/api";
-import { useUiStore } from "../store/uiStore";
 import {
   useCurrentUser,
-  useClients,
   useFinance,
   useCreateFinancialRecord,
   useUpdateFinancialRecord,
@@ -45,16 +43,12 @@ function toNullableNumber(value: string) {
   return normalized ? Number(normalized) : null;
 }
 
-export function FinanceView() {
+export function FinanceView({ clientId }: { clientId: string }) {
   const { data: user } = useCurrentUser();
-  const { data: clientsData } = useClients();
 
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
-  const clients = clientsData ?? [];
-  const egClient = clients.find((c) => c.organization_slug === "eg");
-  const effectiveClientId = egClient?.id ?? "";
 
-  const { data: financeData, error: financeError } = useFinance(effectiveClientId);
+  const { data: financeData, error: financeError } = useFinance(clientId);
 
   const createFinance = useCreateFinancialRecord();
   const updateFinance = useUpdateFinancialRecord();
@@ -73,20 +67,18 @@ export function FinanceView() {
 
   function handleCreateFinancial(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!effectiveClientId || !financialDraft.title.trim()) return;
-    createFinance.mutate({ clientId: effectiveClientId, payload: financialDraft }, {
+    if (!financialDraft.title.trim()) return;
+    createFinance.mutate({ clientId, payload: financialDraft }, {
       onSuccess: () => setFinancialDraft(emptyFinancial)
     });
   }
 
   function handleFinancialStatus(record: FinancialRecordSummary, status: FinancialRecordStatus) {
-    if (!effectiveClientId) return;
-    updateFinance.mutate({ clientId: effectiveClientId, recordId: record.id, payload: { status } });
+    updateFinance.mutate({ clientId, recordId: record.id, payload: { status } });
   }
 
   function handleDeleteFinancial(record: FinancialRecordSummary) {
-    if (!effectiveClientId) return;
-    deleteFinance.mutate({ clientId: effectiveClientId, recordId: record.id });
+    deleteFinance.mutate({ clientId, recordId: record.id });
   }
 
   return (

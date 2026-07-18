@@ -1,13 +1,16 @@
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, Suspense, lazy, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X } from "lucide-react";
-import { IntegrationsTab } from "../components/IntegrationsTab";
 import { api, apiUrl } from "../lib/api";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
+
+const IntegrationsTab = lazy(() =>
+  import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })),
+);
 
 export function SettingsView() {
   const { data: user } = useCurrentUser();
@@ -480,7 +483,9 @@ export function SettingsView() {
           )}
 
           {activeSubTab === "integrations" && (
-            <IntegrationsTab />
+            <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
+              <IntegrationsTab scope="environment" />
+            </Suspense>
           )}
         </div>
       )}
