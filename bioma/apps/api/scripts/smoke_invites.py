@@ -39,7 +39,7 @@ def main() -> None:
 
     clients = admin.get("/clients")
     assert_status(clients, 200, "listar clientes")
-    client_id = clients.json()[0]["id"]
+    client_id = next(row["id"] for row in clients.json() if row["organization_slug"] == "hm-conexoes")
 
     # Convite inválido não vaza nada.
     assert_status(anonymous.get("/auth/invites/token-invalido"), 404, "convite inválido")

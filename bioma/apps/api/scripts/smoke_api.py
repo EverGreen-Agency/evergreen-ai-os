@@ -105,7 +105,9 @@ def main() -> None:
     assert_status(clients_response, 200, "admin list clients")
     clients = clients_response.json()
     assert clients, "seed precisa criar ao menos um cliente"
-    hm_client_id = clients[0]["id"]
+    # Seleção por slug: clients[0] varia quando outros clientes existem
+    # (ex.: "EverGreen Internal" criado pelo create_eg_client.py).
+    hm_client_id = next(row["id"] for row in clients if row["organization_slug"] == "hm-conexoes")
 
     client_clients = client_user.get("/clients")
     assert_status(client_clients, 200, "client list clients")

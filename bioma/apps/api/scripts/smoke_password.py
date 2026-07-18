@@ -37,7 +37,7 @@ def main() -> None:
     # Usuário alvo: convidado novo, para não mexer na senha do seed.
     clients = admin.get("/clients")
     assert_status(clients, 200, "listar clientes")
-    client_id = clients.json()[0]["id"]
+    client_id = next(row["id"] for row in clients.json() if row["organization_slug"] == "hm-conexoes")
 
     invite = admin.post(f"/clients/{client_id}/invites", json={})
     assert_status(invite, 201, "criar convite")
