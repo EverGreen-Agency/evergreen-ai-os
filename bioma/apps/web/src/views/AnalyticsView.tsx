@@ -9,6 +9,8 @@ import {
   Tags,
   Target,
   TrendingUp,
+  Briefcase,
+  Users,
 } from "lucide-react";
 import { EmptyState, SectionHeader } from "../components/shared";
 import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
@@ -23,7 +25,7 @@ import {
   type PerformanceProvider,
 } from "../lib/api";
 import { useUiStore } from "../store/uiStore";
-import { useClients } from "../hooks/useBiomaApi";
+import { useClients, useKommoAnalytics } from "../hooks/useBiomaApi";
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(Math.round(value));
@@ -43,13 +45,15 @@ function providerLabel(provider: string) {
     ga4: "GA4",
     search_console: "Search Console",
     gtm: "GTM",
+    kommo: "Kommo CRM",
   }[provider] ?? provider;
 }
 
-type PerformanceTab = "overview" | "google_ads" | "ga4" | "search_console" | "gtm";
+type PerformanceTab = "overview" | "google_ads" | "ga4" | "search_console" | "gtm" | "kommo";
 
 const performanceTabs: Array<{ id: PerformanceTab; label: string; icon: typeof BarChart3 }> = [
   { id: "overview", label: "Visão geral", icon: LineChart },
+  { id: "kommo", label: "Kommo CRM", icon: Briefcase },
   { id: "google_ads", label: "Google Ads", icon: BarChart3 },
   { id: "ga4", label: "GA4", icon: TrendingUp },
   { id: "search_console", label: "Search Console", icon: Search },
@@ -268,11 +272,87 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   );
 }
 
+function KommoTab({ organizationId }: { organizationId: string }) {
+  const { data: analytics, isLoading, error } = useKommoAnalytics(organizationId);
+
+  return (
+    <div className="performance-tab-panel">
+      {error && <div className="notice error">{error.message || "Não foi possível carregar os dados do Kommo."}</div>}
+      
+      <article className="surface">
+        <SectionHeader eyebrow="Kommo CRM" title="Métricas de Pipeline" icon={Briefcase} />
+        
+        {isLoading ? (
+          <EmptyState compact text="Carregando dados do Kommo..." />
+        ) : !analytics || analytics.pipelines.length === 0 ? (
+          <EmptyState compact text="Nenhum dado do Kommo sincronizado para esta organização. Verifique se as credenciais estão configuradas na aba de Integrações e aguarde o sync diário." />
+        ) : (
+          <div className="analytics-grid" style={{ marginTop: 24, gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+            {analytics.pipelines.map((pipeline) => (
+              <article key={pipeline.pipeline_id} className="surface" style={{ padding: '20px', background: 'var(--bg-panel)', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h4 style={{ margin: 0, fontSize: 16 }}>{pipeline.pipeline_name}</h4>
+                  <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+                    Atualizado em {new Date(pipeline.snapshot_date).toLocaleDateString("pt-BR")}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Total de Leads</div>
+                    <div style={{ fontSize: 20, fontWeight: 600 }}>{formatNumber(pipeline.total_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Valor Total</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-main)' }}>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pipeline.total_value)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Ganhos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--brand-accent)' }}>{formatNumber(pipeline.won_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Valor Ganho</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--brand-accent)' }}>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pipeline.won_value)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Perdidos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--danger-soft)' }}>{formatNumber(pipeline.lost_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Ativos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--accent)' }}>{formatNumber(pipeline.active_leads)}</div>
+                  </div>
+                </div>
+                
+                <div style={{ 
+                  height: 6, 
+                  background: 'var(--bg-element)', 
+                  borderRadius: 3, 
+                  display: 'flex', 
+                  overflow: 'hidden' 
+                }}>
+                  {pipeline.total_leads > 0 && (
+                    <>
+                      <div style={{ width: `${(pipeline.won_leads / pipeline.total_leads) * 100}%`, background: 'var(--brand-accent)' }} title="Ganhos" />
+                      <div style={{ width: `${(pipeline.active_leads / pipeline.total_leads) * 100}%`, background: 'var(--accent)' }} title="Ativos" />
+                      <div style={{ width: `${(pipeline.lost_leads / pipeline.total_leads) * 100}%`, background: 'var(--danger-soft)' }} title="Perdidos" />
+                    </>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
 export function AnalyticsView() {
-  const { selectedClientId } = useUiStore();
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];
-  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+  const egClient = clients.find((c) => c.organization_slug === "eg");
+  const effectiveClientId = egClient?.id ?? "";
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -281,10 +361,10 @@ export function AnalyticsView() {
 
   useEffect(() => {
     setTab("overview");
-  }, [selectedClientId]);
+  }, [effectiveClientId]);
 
   useEffect(() => {
-    if (!selectedClientId) {
+    if (!effectiveClientId) {
       setOverview(null);
       setCampaigns([]);
       return;
@@ -292,14 +372,14 @@ export function AnalyticsView() {
 
     setLoading(true);
     setError("");
-    Promise.all([api.performanceOverview(selectedClientId), api.adsCampaigns(selectedClientId)])
+    Promise.all([api.performanceOverview(effectiveClientId), api.adsCampaigns(effectiveClientId)])
       .then(([nextOverview, nextCampaigns]) => {
         setOverview(nextOverview);
         setCampaigns(nextCampaigns);
       })
       .catch((err: Error) => setError(err.message || "Não foi possível carregar Performance."))
       .finally(() => setLoading(false));
-  }, [selectedClientId]);
+  }, [effectiveClientId]);
 
   const trend = useMemo<TrendPoint[]>(
     () => overview?.daily.map((point) => ({ label: point.date.slice(5), value: point.impressions })) ?? [],
@@ -310,10 +390,6 @@ export function AnalyticsView() {
 
   function freshnessOf(provider: PerformanceProvider): FreshnessEntry | null {
     return overview?.freshness.find((source) => source.provider === provider) ?? null;
-  }
-
-  if (!selectedClientId || !selectedClient) {
-    return <EmptyState text="Selecione um cliente para ver Analytics." />;
   }
 
   if (loading) {
@@ -328,7 +404,7 @@ export function AnalyticsView() {
 
       <div className="analytics-header">
         <div>
-          <h2>Performance de {selectedClient.name}</h2>
+          <h2>Performance de {egClient?.name ?? "EG"}</h2>
           <p>
             {overview
               ? `${overview.period_start} até ${overview.period_end}`
@@ -447,10 +523,11 @@ export function AnalyticsView() {
         </>
       )}
 
-      {tab === "google_ads" && <GoogleAdsTab clientId={selectedClientId} freshness={freshnessOf("google_ads")} />}
-      {tab === "ga4" && <Ga4Tab clientId={selectedClientId} freshness={freshnessOf("ga4")} />}
-      {tab === "search_console" && <GscTab clientId={selectedClientId} freshness={freshnessOf("search_console")} />}
-      {tab === "gtm" && <GtmTab clientId={selectedClientId} freshness={freshnessOf("gtm")} />}
+      {tab === "google_ads" && <GoogleAdsTab clientId={effectiveClientId} freshness={freshnessOf("google_ads")} />}
+      {tab === "ga4" && <Ga4Tab clientId={effectiveClientId} freshness={freshnessOf("ga4")} />}
+      {tab === "search_console" && <GscTab clientId={effectiveClientId} freshness={freshnessOf("search_console")} />}
+      {tab === "gtm" && <GtmTab clientId={effectiveClientId} freshness={freshnessOf("gtm")} />}
+      {tab === "kommo" && egClient?.organization_id && <KommoTab organizationId={egClient.organization_id} />}
     </section>
   );
 }

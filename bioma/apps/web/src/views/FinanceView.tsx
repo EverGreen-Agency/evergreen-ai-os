@@ -46,15 +46,15 @@ function toNullableNumber(value: string) {
 }
 
 export function FinanceView() {
-  const { selectedClientId } = useUiStore();
   const { data: user } = useCurrentUser();
   const { data: clientsData } = useClients();
 
   const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
   const clients = clientsData ?? [];
-  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+  const egClient = clients.find((c) => c.organization_slug === "eg");
+  const effectiveClientId = egClient?.id ?? "";
 
-  const { data: financeData, error: financeError } = useFinance(selectedClientId);
+  const { data: financeData, error: financeError } = useFinance(effectiveClientId);
 
   const createFinance = useCreateFinancialRecord();
   const updateFinance = useUpdateFinancialRecord();
@@ -73,28 +73,24 @@ export function FinanceView() {
 
   function handleCreateFinancial(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedClientId || !financialDraft.title.trim()) return;
-    createFinance.mutate({ clientId: selectedClientId, payload: financialDraft }, {
+    if (!effectiveClientId || !financialDraft.title.trim()) return;
+    createFinance.mutate({ clientId: effectiveClientId, payload: financialDraft }, {
       onSuccess: () => setFinancialDraft(emptyFinancial)
     });
   }
 
   function handleFinancialStatus(record: FinancialRecordSummary, status: FinancialRecordStatus) {
-    if (!selectedClientId) return;
-    updateFinance.mutate({ clientId: selectedClientId, recordId: record.id, payload: { status } });
+    if (!effectiveClientId) return;
+    updateFinance.mutate({ clientId: effectiveClientId, recordId: record.id, payload: { status } });
   }
 
   function handleDeleteFinancial(record: FinancialRecordSummary) {
-    if (!selectedClientId) return;
-    deleteFinance.mutate({ clientId: selectedClientId, recordId: record.id });
-  }
-
-  if (!selectedClient || !selectedClientId) {
-    return <EmptyState text="Selecione um cliente para ver o financeiro." />;
+    if (!effectiveClientId) return;
+    deleteFinance.mutate({ clientId: effectiveClientId, recordId: record.id });
   }
 
   return (
-    <section className="operations-layout">
+    <div className="finance-view fade-in">
       {error && <div className="notice error">{error}</div>}
 
       <div className="bento-grid">
@@ -207,6 +203,6 @@ export function FinanceView() {
           </form>
         </section>
       )}
-    </section>
+    </div>
   );
 }

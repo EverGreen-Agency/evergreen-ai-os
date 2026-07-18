@@ -117,9 +117,9 @@ export function IdeaBank() {
             onClick={() => setShowAddForm(!showAddForm)}
             style={{
               ...styles.filterBtn,
-              borderColor: showAddForm ? "var(--accent-color, #0070f3)" : "var(--border)",
-              background: showAddForm ? "rgba(0,112,243,0.13)" : "transparent",
-              color: showAddForm ? "var(--accent-color, #0070f3)" : "var(--text-secondary)",
+              borderColor: showAddForm ? "var(--accent)" : "var(--border)",
+              background: showAddForm ? "rgba(58,201,123,0.13)" : "transparent",
+              color: showAddForm ? "var(--accent)" : "var(--text-secondary)",
             }}
           >
             {showAddForm ? "✕ Cancelar" : "+ Nova Ideia"}
@@ -137,15 +137,15 @@ export function IdeaBank() {
               id: "temp-id",
               title: "",
               desc: "",
-              category: "outro" as any,
-              stage: "capture" as any,
-              origin: "internal" as any,
-              horizon: "H1" as any,
-              part_of: undefined,
+              category: "Feature",
+              stage: "capture",
+              origin: "internal",
+              horizon: "",
               depends_on: [],
               enables: [],
-              archived: false
-            } as unknown as Idea}
+              source: "",
+              archived: false,
+            }}
             onSave={handleAddIdea}
             onCancel={() => setShowAddForm(false)}
           />
