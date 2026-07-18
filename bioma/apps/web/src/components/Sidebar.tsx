@@ -29,10 +29,10 @@ export function Sidebar({
     setIsOpen(false);
   }, [location.pathname]);
 
-  const groupPrincipal = ["cockpit", "clientes", "crm", "finance", "conteudo"];
+  const groupPrincipal = ["cockpit", "clientes", "crm", "finance"];
   const groupDados = ["analytics"];
   const groupConfig = ["engenharia"];
-  const groupAdmin = ["eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
+  const groupAdmin = ["eg-wiki", "eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
 
   function renderGroup(groupItems: string[], label: string) {
     const items = visibleNavItems.filter((item) => groupItems.includes(item.id));

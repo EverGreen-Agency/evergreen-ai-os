@@ -166,33 +166,33 @@ export function SettingsView() {
       </div>
 
       {/* Hero do perfil */}
-      <div className="profile-hero">
-        <div className="profile-avatar-wrap">
-          <div className="profile-avatar-large" style={{ backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', color: avatarSrc ? 'transparent' : undefined }}>
-            {!avatarSrc && initials}
+      {activeTab === "user" && (
+        <div className="profile-hero">
+          <div className="profile-avatar-wrap">
+            <div className="profile-avatar-large" style={{ backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center', color: avatarSrc ? 'transparent' : undefined }}>
+              {!avatarSrc && initials}
+            </div>
+            <button
+              type="button"
+              className="avatar-upload-btn"
+              title="Trocar foto"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera size={14} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarChange}
+            />
           </div>
-          <button
-            type="button"
-            className="avatar-upload-btn"
-            title="Trocar foto"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Camera size={14} />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleAvatarChange}
-          />
-        </div>
-        <div className="profile-hero-info">
-          <h2 className="profile-hero-name">{user.display_name}</h2>
-          <span className="profile-hero-email">{user.email}</span>
-          {cargo && <span className="profile-hero-role">{cargo}</span>}
-        </div>
-        {activeTab === "user" && (
+          <div className="profile-hero-info">
+            <h2 className="profile-hero-name">{user.display_name}</h2>
+            <span className="profile-hero-email">{user.email}</span>
+            {cargo && <span className="profile-hero-role">{cargo}</span>}
+          </div>
           <div className="profile-hero-badges">
             {isEgAdmin && (
               <span className="level-badge" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
@@ -205,8 +205,8 @@ export function SettingsView() {
               </span>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Cropper Modal */}
       {cropImageSrc && (
