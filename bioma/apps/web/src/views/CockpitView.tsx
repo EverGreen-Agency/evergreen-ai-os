@@ -173,7 +173,7 @@ export function CockpitView() {
           {pendingApprovals.length > 0 && (
             <button 
               style={{ background: '#111', color: '#fff', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, marginTop: 'auto' }}
-              onClick={() => navigate("/conteudo")}
+              onClick={() => navigate(selectedClient ? `/clientes/${selectedClient.id}` : "/clientes")}
             >
               Revisar agora
             </button>

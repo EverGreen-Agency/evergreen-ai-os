@@ -17,7 +17,7 @@ import { emptyArtifactDraft } from "./lib/app-config";
 
 const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({ default: module.ClientsView })));
 const ClientHubView = lazy(() => import("./views/ClientHubView").then((module) => ({ default: module.ClientHubView })));
-const ContentView = lazy(() => import("./views/ContentView").then((module) => ({ default: module.ContentView })));
+const WikiEgView = lazy(() => import("./views/admin/WikiEgView").then((module) => ({ default: module.WikiEgView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
 const AnalyticsView = lazy(() => import("./views/AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const CrmView = lazy(() => import("./views/CrmView").then((module) => ({ default: module.CrmView })));
@@ -214,12 +214,6 @@ export function App() {
             </Suspense>,
           )} />
 
-          <Route path="/conteudo" element={guard("conteudo",
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <ContentView />
-            </Suspense>,
-          )} />
-
           <Route path="/crm" element={guard("crm",
             <Suspense fallback={<ViewLoadingFallback />}>
               <CrmView />
@@ -245,6 +239,11 @@ export function App() {
           )} />
 
           {/* Rotas Administrativas EG */}
+          <Route path="/eg-wiki" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <WikiEgView />
+            </Suspense>,
+          )} />
           <Route path="/eg-office" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <OfficeView />

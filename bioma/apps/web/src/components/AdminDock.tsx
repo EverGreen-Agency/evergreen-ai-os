@@ -184,7 +184,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
             <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
               Gera um link de uso único (expira em 7 dias). Envie por WhatsApp; a pessoa define a própria senha.
             </p>
-            <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
+            <div className="form-grid" style={{ display: "flex", gap: "12px", flexDirection: "column" }}>
               <label>
                 E-mail (opcional, restringe o convite)
                 <input
@@ -199,6 +199,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 type="button"
                 onClick={handleCreateInvite}
                 disabled={isBusy || createInvite.isPending}
+                style={{ alignSelf: 'flex-start' }}
               >
                 <UserPlus size={16} />
                 Gerar link de convite
@@ -221,7 +222,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
             <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
               Gera um link de uso único (expira em 2 horas) que encerra as sessões antigas do usuário. Envie por WhatsApp.
             </p>
-            <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
+            <div className="form-grid" style={{ display: "flex", gap: "12px", flexDirection: "column" }}>
               <label>
                 E-mail do usuário
                 <input
@@ -236,6 +237,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 type="button"
                 onClick={handleCreateReset}
                 disabled={resetBusy || isBusy || !resetEmail.trim()}
+                style={{ alignSelf: 'flex-start' }}
               >
                 <KeyRound size={16} />
                 Gerar link de redefinição

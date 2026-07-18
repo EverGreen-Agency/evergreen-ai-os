@@ -7,9 +7,9 @@ export type ViewId =
   | "clientes"
   | "crm"
   | "finance"
-  | "conteudo"
   | "engenharia"
   | "analytics"
+  | "eg-wiki"
   | "eg-office"
   | "eg-ideas"
   | "eg-tech"
@@ -21,11 +21,11 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "clientes", label: "Clientes", icon: Users },
   { id: "crm", label: "CRM / Leads", icon: Users },
   { id: "finance", label: "Financeiro", icon: WalletCards },
-  { id: "conteudo", label: "Conteúdo", icon: BookOpen },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "engenharia", label: "Engenharia", icon: FileText },
   
   // Rotas Internas EG (Administrativas)
+  { id: "eg-wiki", label: "Wiki EG", icon: BookOpen },
   { id: "eg-office", label: "Escritório", icon: LayoutDashboard }, // O ícone pode ser ajustado depois
   { id: "eg-ideas", label: "Banco de Ideias", icon: BookOpen },
   { id: "eg-tech", label: "Banco de Stack", icon: GitBranch },
@@ -39,12 +39,12 @@ export const viewModule: Record<ViewId, ClientModule> = {
   clientes: "hub",
   crm: "commercial",
   finance: "commercial",
-  conteudo: "content",
   analytics: "analytics",
   engenharia: "engineering",
   // Rotas internas não devem depender de módulos de cliente,
   // mas para obedecer à tipagem sem erro, colocamos hub.
   // A proteção real se dará no App.tsx com isEgAdmin.
+  "eg-wiki": "hub",
   "eg-office": "hub",
   "eg-ideas": "hub",
   "eg-tech": "hub",
@@ -53,7 +53,6 @@ export const viewModule: Record<ViewId, ClientModule> = {
 
 export const moduleLabels: Record<ClientModule, string> = {
   hub: "Hub do cliente",
-  content: "Conteúdo",
   files: "Arquivos",
   commercial: "Comercial",
   analytics: "Analytics",
@@ -63,11 +62,11 @@ export const moduleLabels: Record<ClientModule, string> = {
 
 // Módulos que o EG admin pode ligar/desligar por cliente ("hub" é o núcleo,
 // sempre ativo — o backend força isso também).
-export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "analytics", "integrations", "engineering"];
+export const toggleableModules: ClientModule[] = ["files", "commercial", "analytics", "integrations", "engineering"];
 
 export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
   if (isEgAdmin) {
-    return new Set<ClientModule>(["hub", "content", "files", "commercial", "analytics", "integrations", "engineering"]);
+    return new Set<ClientModule>(["hub", "files", "commercial", "analytics", "integrations", "engineering"]);
   }
   const modules = new Set<ClientModule>();
   for (const organization of user?.organizations ?? []) {
