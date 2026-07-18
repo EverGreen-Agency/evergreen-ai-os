@@ -618,6 +618,10 @@ export const api = {
   saveAdminIdeas: (ideas: Idea[]) =>
     request<{ status: string }>("/api/ideas", { method: "POST", body: JSON.stringify({ ideas }) }),
   adminIdeaDoc: (id: string) => requestText(`/api/ideas/doc?id=${encodeURIComponent(id)}`),
+  saveAdminIdeaDoc: (id: string, content: string) =>
+    request<{ status: string }>(`/api/ideas/doc/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ content }) }),
+  saveEngineeringDoc: (modId: string, docType: string, content: string, filename?: string) =>
+    request<{ status: string }>(`/api/engineering/${encodeURIComponent(modId)}/doc`, { method: "PUT", body: JSON.stringify({ doc_type: docType, content, filename }) }),
   adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/api/stack"),
   saveAdminStack: (techs: Tech[]) =>
     request<{ status: string }>("/api/stack", { method: "POST", body: JSON.stringify({ techs }) }),

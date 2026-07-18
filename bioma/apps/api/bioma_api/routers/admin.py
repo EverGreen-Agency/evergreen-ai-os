@@ -93,6 +93,16 @@ class IdeasData(BaseModel):
     ideas: list[dict]
 
 
+class IdeaDocData(BaseModel):
+    content: str
+
+
+class EngineeringDocData(BaseModel):
+    doc_type: str
+    filename: str | None = None
+    content: str
+
+
 @router.get("/stack")
 def get_stack(_user: CurrentUserResponse = Depends(_require_eg_admin)):
     paths = _paths()
@@ -140,6 +150,21 @@ def get_idea_doc(id: str, _user: CurrentUserResponse = Depends(_require_eg_admin
     if not doc_path.is_relative_to(paths["ideas_docs"].resolve()) or not doc_path.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Doc não encontrado.")
     return PlainTextResponse(doc_path.read_text(encoding="utf-8"))
+
+
+@router.put("/ideas/doc/{id}")
+def save_idea_doc(id: str, data: IdeaDocData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
+    if not _DOC_ID_PATTERN.match(id) or ".." in id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Identificador inválido.")
+    paths = _paths()
+    if not paths:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Indisponível neste ambiente.")
+    doc_path = (paths["ideas_docs"] / f"{id}.md").resolve()
+    if not doc_path.parent.is_relative_to(paths["ideas_docs"].resolve()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Caminho inválido.")
+    doc_path.parent.mkdir(parents=True, exist_ok=True)
+    doc_path.write_text(data.content, encoding="utf-8")
+    return {"status": "ok"}
 
 
 def _load_squads(squads_dir: Path) -> list[dict]:
@@ -300,3 +325,35 @@ def get_engineering_detail(mod_id: str):
         "tasksContent": tasks_content,
         "adrs": adrs
     }
+
+
+@router.put("/engineering/{mod_id}/doc")
+def save_engineering_doc(mod_id: str, data: EngineeringDocData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
+    import re
+    if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
+        raise HTTPException(status_code=400, detail="Invalid mod_id")
+        
+    paths = _paths()
+    if not paths or "engineering" not in paths:
+        raise HTTPException(status_code=404, detail="Engineering directory not found")
+        
+    eng_dir = paths["engineering"]
+    mod_dir = eng_dir / mod_id
+    if not mod_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Module not found")
+        
+    if data.doc_type == "spec":
+        file_path = mod_dir / "spec.md"
+    elif data.doc_type == "tasks":
+        file_path = mod_dir / "tasks.md"
+    elif data.doc_type == "adr":
+        if not data.filename or not data.filename.endswith(".md"):
+            raise HTTPException(status_code=400, detail="Invalid ADR filename")
+        file_path = mod_dir / "adr" / data.filename
+    else:
+        raise HTTPException(status_code=400, detail="Invalid doc_type")
+        
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(data.content, encoding="utf-8")
+    
+    return {"status": "ok"}

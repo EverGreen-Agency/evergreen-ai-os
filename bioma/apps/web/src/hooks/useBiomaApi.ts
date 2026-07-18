@@ -285,12 +285,34 @@ export function useSaveAdminIdeas() {
   });
 }
 
+export function useSaveAdminIdeaDoc() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, content }: { id: string; content: string }) => api.saveAdminIdeaDoc(id, content),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "idea-doc", variables.id] });
+    },
+  });
+}
+
 export function useAdminIdeaDoc(id: string | null) {
   return useQuery({
     queryKey: ["admin", "idea-doc", id],
     queryFn: () => api.adminIdeaDoc(id ?? ""),
     enabled: Boolean(id),
     retry: false,
+  });
+}
+
+export function useSaveEngineeringDoc() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ modId, docType, content, filename }: { modId: string; docType: string; content: string; filename?: string }) => 
+      api.saveEngineeringDoc(modId, docType, content, filename),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "engineering"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "engineering", variables.modId] });
+    },
   });
 }
 
