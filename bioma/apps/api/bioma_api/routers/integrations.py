@@ -4,6 +4,8 @@ Expõe apenas flags booleanas de configuração — nunca os valores das
 credenciais. EG admin only: alimenta a aba Integrações das Configurações.
 """
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -11,6 +13,7 @@ from bioma_api.access import require_platform_admin
 from bioma_api.auth import current_user_from_request
 from bioma_api.config import get_settings
 from bioma_api.schemas.auth import CurrentUserResponse
+from bioma_api.services import kommo as kommo_service
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -32,3 +35,40 @@ def get_status(user: CurrentUserResponse = Depends(current_user_from_request)) -
         google_oauth_configured=settings.google_oauth_configured,
         app_env=settings.app_env,
     )
+
+
+class KommoConfigInput(BaseModel):
+    client_id: str
+    client_secret: str
+    access_token: str
+    subdomain: str
+
+
+class KommoConfigResponse(BaseModel):
+    configured: bool
+    subdomain: str | None
+
+
+@router.get("/{organization_id}/kommo", response_model=KommoConfigResponse)
+def get_kommo_config(
+    organization_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> KommoConfigResponse:
+    return KommoConfigResponse(**kommo_service.get_config(user, organization_id))
+
+
+@router.post("/{organization_id}/kommo")
+def setup_kommo_config(
+    organization_id: UUID,
+    payload: KommoConfigInput,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    kommo_service.save_config(
+        user,
+        organization_id,
+        payload.client_id,
+        payload.client_secret,
+        payload.access_token,
+        payload.subdomain,
+    )
+    return {"status": "ok"}

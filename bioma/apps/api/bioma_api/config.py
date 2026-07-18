@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     storage_max_upload_mb: int = 20
     google_oauth_client_id: str | None = None
     google_oauth_client_secret: str | None = None
+    # Chave Fernet para segredos de integração em repouso (Kommo etc.).
+    secret_encryption_key: str | None = None
     # Base pública da própria API (redirect_uri do OAuth) e do app web
     # (destino final dos redirects) — distintas porque web e API vivem em
     # subdomínios diferentes.
