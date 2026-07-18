@@ -2,6 +2,19 @@
 
 Bioma é a plataforma operacional da EverGreen. Este repositório interno começa pelo MVP mínimo: cockpit interno EG, Client Hub, ClickUp Bridge, auth simples, Postgres e ambientes separados.
 
+## Modelo de produto
+
+O Bioma evolui em três camadas: primeiro organiza a operação interna da EG, depois permite operar e atender clientes diretamente e, por fim, torna a mesma base disponível para outras agências em white-label/SaaS.
+
+```text
+Bioma Platform (control plane da dona do produto)
+└── Tenant / Agência (EG ou futura agência white-label)
+    ├── Workspace interno da agência
+    └── Workspaces de clientes
+```
+
+O MVP atual ainda usa `organizations` como contêiner operacional e `clients` como fachada comercial/ponte de rotas. A interface já diferencia o workspace interno da EG dos hubs de clientes, mas tenants, equipes, atribuições e papéis white-label completos ainda não estão implementados. `bioma-legacy/` não é fonte da arquitetura ativa.
+
 ## Estrutura
 
 ```text
@@ -73,6 +86,7 @@ python -m venv .venv
 pip install -r requirements.txt
 python scripts/migrate.py
 python scripts/seed_dev.py
+python scripts/create_eg_client.py  # ponte temporária da Operação EG
 uvicorn bioma_api.main:app --reload
 ```
 

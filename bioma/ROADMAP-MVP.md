@@ -6,14 +6,15 @@ Este documento é a mesa de controle do MVP do Bioma. Ele existe para coordenar 
 
 A EverGreen/EG é a dona da plataforma Bioma e é quem está construindo, operando e codando este produto.
 
-HM Conexões Poderosas foi um lead/cliente potencial que pediu uma entrega específica descrita na proposta e na reunião. O caso HM é referência de escopo e UX para o primeiro Client Hub, mas a plataforma não pertence à HM e não deve ser pensada como produto nichado para ela.
+HM Conexões Poderosas foi um lead/cliente potencial cuja proposta descreve uma plataforma interna de agência para operar a própria carteira de clientes. O MVP atual ainda representa HM provisoriamente como um cliente externo para validar autenticação, isolamento e módulos do Hub, mas essa simplificação não é a hierarquia final do produto. A plataforma não pertence à HM e não deve ser pensada como produto nichado para ela.
 
 Leitura correta:
 
 - EG: boutique, dona da operação, dona da plataforma e usuária interna principal.
-- Bioma: plataforma operacional da EG para cockpit interno, Client Hub e integrações.
-- HM: lead/caso de uso inicial para validar uma entrega comercial concreta.
-- Clientes futuros: devem entrar no mesmo modelo, com branding e dados próprios.
+- Bioma: plataforma operacional que evolui de uso interno EG para operação de clientes e depois white-label/SaaS.
+- HM: lead/caso de uso inicial de uma agência operando clientes; no MVP técnico ainda é uma organização externa simplificada.
+- Agências futuras: tenants com workspace interno, marca, equipe e clientes próprios.
+- Clientes futuros: workspaces operacionais pertencentes a uma agência, com branding e dados isolados.
 
 ## Fontes obrigatórias
 
@@ -59,6 +60,8 @@ Funcional hoje:
 - Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
 - CRM/funil e financeiro com backend e telas mínimas integradas no frontend.
 - Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
+- Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`, reutilizando os mesmos módulos dos hubs sem misturar dados.
+- Navegador de workspaces pesquisável no Topbar, com recentes e atalho `Ctrl/⌘ K`; a carteira completa permanece em página própria.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 - Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
 
@@ -162,6 +165,18 @@ Decisões do Eduardo (rodada de brainstorm com Claude; contexto: deploy em produ
 - **Storage:** fonte de verdade dos arquivos = bucket S3-compatible (Railway Buckets agora; código FILE-001 já é agnóstico via env `STORAGE_S3_*`). Cloudinary não entra como storage primário; se o módulo de social media precisar de transformação de imagem, entra camada na frente do bucket (imgproxy self-hosted ou Cloudinary fetch mode) — alinhado à visão mega-plataforma de infra própria.
 - **Tailwind:** removido (tinha sido instalado sem ativação). Design system continua nos tokens CSS de `styles.css`; Tailwind só volta como decisão deliberada de redesign.
 
+## Decisões de arquitetura de produto - 2026-07-18
+
+Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e white-label:
+
+- **Hierarquia canônica:** `Bioma Platform → Tenant/Agência → Workspaces`; workspace pode ser `agency_internal` ou `client`.
+- **EG tem dois papéis:** dona/control plane do produto e agência usuária do próprio sistema. A Operação EG não pertence à Carteira de Clientes.
+- **Mesmos motores, escopos distintos:** CRM, financeiro, métricas e demais módulos devem ser reutilizados por contexto explícito, sem duplicar código nem compartilhar dados.
+- **Navegação em escala:** o Topbar mostra somente o contexto atual e abre navegador pesquisável; a Sidebar não contém uma lista longa de clientes. “Minha carteira”, times, favoritos e visões salvas entram quando houver atribuições reais.
+- **Rotas com profundidade fixa:** módulos operacionais vivem no workspace corrente; a URL não deve materializar toda a árvore plataforma/agência/cliente.
+- **Ponte temporária:** `EverGreen Internal` pode fornecer o `client_id` legado para a organização EG, mas nunca aparece na carteira, nunca é fallback e não pode ser removido antes da migração de Performance/endpoints.
+- **White-label:** `parent_organization_id` é apenas preparo inicial, não implementação concluída de tenancy, equipes ou autorização hierárquica.
+
 ## Próximos passos priorizados
 
 ### P0 - Fechar MVP testável
@@ -251,8 +266,15 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
 - [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
 - [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
-- [x] Separar a navegação da Operação EG da Carteira e tornar o Hub do Cliente a fronteira obrigatória para CRM, financeiro, métricas, documentos e integrações.
-- [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` do backend após eliminar dependências de seed e compatibilidade.
+- [x] Separar a Operação EG da Carteira sem remover seus módulos: `/operacao` e cada Hub reutilizam CRM, financeiro e métricas com contexto explícito.
+- [x] Criar navegador de workspaces pesquisável com recentes e atalho global, sem dropdown longo na Sidebar.
+- [x] Aplicar feature gate das rotas filhas ao cliente atual, em vez de unir módulos de todas as organizações do usuário.
+- [ ] Especificar em ADR a hierarquia `Platform → Tenant/Agência → Workspaces`, inclusive limites de white-label e billing.
+- [ ] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
+- [ ] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
+- [ ] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
+- [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` somente após eliminar todas as dependências e FKs em cascata.
+- [ ] Adicionar favoritos e visões salvas ao navegador depois do modelo de times/atribuições.
 
 ### P4 - Staging
 
@@ -388,3 +410,4 @@ Formato:
 - 2026-07-17 - Antigravity - (local) - Ajustes visuais em configuracoes: ocultacao de badge em abas irrelevantes, implementacao de crop em foto de perfil com react-easy-crop, integracao do avatar na sidebar esquerda e refinamento do botao Google connect nas configuracoes - build web validado - pendente staging.
 - 2026-07-18 - Codex - ver git log - Concluída a migração das telas Engenharia, Arquitetura e Escritório de `/api` para o cliente central `/backoffice`, eliminando respostas HTML interpretadas como JSON e adicionando contratos tipados/erro visível - `npx.cmd tsc -b`, `npm.cmd run build` - pendente QA visual humano e decisão de produto sobre separar a operação interna EG da carteira de clientes externos.
 - 2026-07-18 - Codex - ver git log - Separada a Operação EG da Carteira no frontend; CRM, financeiro, métricas, documentos e integrações agora operam somente sob `/clientes/:clientId/...`, com rotas globais fechadas e `EverGreen Internal` oculto do Hub - `npx.cmd tsc -b`, `npm.cmd run build` - pendente migração backend do registro técnico legado e QA visual humano.
+- 2026-07-18 - Codex - ver git log - Corrigida a separação anterior: restaurada a Operação EG como workspace próprio em paralelo aos hubs, criado navegador pesquisável com recentes e documentado o modelo `Platform → Tenant/Agência → Workspaces` - `npx.cmd tsc -b`, `npm.cmd run build` - pendentes migração `client_id`→`workspace_id`, times/atribuições, favoritos e QA visual humano.

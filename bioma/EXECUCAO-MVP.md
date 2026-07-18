@@ -50,13 +50,25 @@ Bloqueio de DPL-005..007: acesso às contas Railway/Vercel, domínio e secrets.
 | WEB-PERF-001 | DONE | Frontend | Analytics consumir overview real de Performance | CORE-001 | build + dados seed marcados demo |
 | WEB-PERF-002 | DONE | Frontend | Páginas Ads, GA4, GSC e GTM | WEB-PERF-001 | build + estados vazio/erro/freshness |
 | AUTH-001 | DONE | Full-stack | EG admin cria/convida usuário cliente (link copiável) | DPL-004 | smoke de convite + isolamento |
-| GATE-001 | DONE | Full-stack | Feature-gating de módulos por organização + preparo white-label (`parent_organization_id`) | AUTH-001 | smoke de gating (403/200 por módulo) |
+| GATE-001 | DONE | Full-stack | Feature-gating de módulos por organização + campo preparatório `parent_organization_id` (não equivale a white-label pronto) | AUTH-001 | smoke de gating (403/200 por módulo) |
 | AUTH-002 | DONE | Full-stack | Fluxo seguro de recuperação/rotação de senha (link 2h + troca logado) | AUTH-001 | token expirável + teste (`smoke_password.py`) |
 | AUTH-003 | DONE | Full-stack | Google como vínculo deslinkável (login social invite-only, nunca cria conta) | AUTH-001 | `smoke_oauth.py` + credenciais reais no ambiente |
 | FILE-001 | DONE | Full-stack | Upload/storage de documentos com visibilidade por cliente | AUTH-001 | upload, leitura autorizada e exclusão |
 | WEB-BUNDLE-001 | DONE | Frontend | Dividir bundle principal e lazy-load de views | WEB-PERF-002 | build sem chunk principal > 500 kB |
 
 Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma IA frontend por vez.
+
+### Onda 1.5 — Contexto operacional e escala
+
+| ID | Estado | Frente | Entrega | Dependência | Validação |
+|---|---|---|---|---|---|
+| WEB-CTX-001 | DONE | Frontend | Restaurar CRM, financeiro e métricas EG preservando os Hubs de Cliente | WEB-CRM-001..PERF-001 | tsc + build + isolamento por rota |
+| WEB-NAV-001 | DONE | Frontend | Navegador pesquisável de workspaces com recentes; sem dropdown longo na Sidebar | WEB-CTX-001 | tsc + build + QA teclado/mobile |
+| ARCH-CTX-001 | TODO | Arquitetura | ADR `Platform → Tenant/Agência → Workspaces`, limites white-label e billing | WEB-CTX-001 | ADR aprovado |
+| TEAM-001 | TODO | Full-stack | Times, memberships e atribuições para carteira por gestor/time | ARCH-CTX-001 | smokes de atribuição e isolamento |
+| DATA-WS-001 | TODO | Backend | Migrar APIs/Performance de `client_id` para `workspace_id` com adapters | ARCH-CTX-001 | paridade + smokes + backfill |
+| AUTHZ-WS-001 | TODO | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001 | matriz automatizada de autorização |
+| WEB-NAV-002 | TODO | Frontend | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | build + QA desktop/mobile |
 
 ### Onda 2 — Integrações reais
 
@@ -76,7 +88,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
 | SEC-001A | DONE | Backend | Testar sessão revogada | DPL-001 | smoke API |
-| SEC-001B | TODO | Backend | Testar sessão expirada | DPL-001 | teste automatizado |
+| SEC-001B | DONE | Backend | Testar sessão expirada | DPL-001 | teste automatizado |
 | SEC-002 | DONE | Backend | Massa mínima de payload inválido | CORE-002 | smoke API |
 | SEC-003 | DONE | Backend | Rate limit de login em processo único | DPL-005 | teste de excesso |
 | SEC-004 | TODO | QA | Carga básica em leitura/login | DPL-006 | relatório p95/erro |
