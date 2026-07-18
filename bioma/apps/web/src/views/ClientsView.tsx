@@ -1,23 +1,45 @@
-import { Users, ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft } from "lucide-react";
+import React, { useState } from "react";
+import { Users, ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SectionHeader, EmptyState, HubBlock } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel } from "../lib/format";
 import type { ArtifactSummary, DeliverableStatus } from "../lib/api";
-import { AdminDock } from "../components/AdminDock";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient } from "../hooks/useBiomaApi";
 
 export function ClientsView() {
   const navigate = useNavigate();
+  const [showNewClientModal, setShowNewClientModal] = useState(false);
+
+  const { data: user, isLoading: loadingUser } = useCurrentUser();
+  const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
+
+  const { newClientDraft, setNewClientDraft } = useUiStore();
+  const createClient = useCreateClient();
+
+  const handleCreateClient = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    createClient.mutate(newClientDraft, {
+      onSuccess: () => {
+        setShowNewClientModal(false);
+        setNewClientDraft({ name: "", organization_name: "", responsible_name: "", clickup_folder_id: "" });
+      }
+    });
+  };
 
   const { data: clientsData, isLoading: loadingClients } = useClients();
   const clients = clientsData ?? [];
 
   return (
     <section style={{ padding: '32px', width: '100%' }}>
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <SectionHeader eyebrow="Client Hub" title="Carteira" icon={Users} />
+          {isEgAdmin && (
+            <button className="primary-button" onClick={() => setShowNewClientModal(true)}>
+              <Plus size={16} /> Novo Cliente
+            </button>
+          )}
         </div>
         {loadingClients && <EmptyState text="Carregando clientes..." />}
         {!loadingClients && clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
@@ -44,6 +66,59 @@ export function ClientsView() {
             </button>
           ))}
         </div>
+
+        {showNewClientModal && (
+          <div className="modal-overlay" onClick={() => setShowNewClientModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Novo Cliente</h3>
+                <button className="icon-btn" onClick={() => setShowNewClientModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleCreateClient} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="form-grid two">
+                    <label>
+                      Cliente
+                      <input
+                        required
+                        value={newClientDraft.name ?? ""}
+                        onChange={(event) => setNewClientDraft({ ...newClientDraft, name: event.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Organização
+                      <input
+                        required
+                        value={newClientDraft.organization_name ?? ""}
+                        onChange={(event) => setNewClientDraft({ ...newClientDraft, organization_name: event.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Responsável EG
+                      <input
+                        value={newClientDraft.responsible_name ?? ""}
+                        onChange={(event) => setNewClientDraft({ ...newClientDraft, responsible_name: event.target.value })}
+                      />
+                    </label>
+                    <label>
+                      ClickUp folder
+                      <input
+                        value={newClientDraft.clickup_folder_id ?? ""}
+                        onChange={(event) => setNewClientDraft({ ...newClientDraft, clickup_folder_id: event.target.value })}
+                      />
+                    </label>
+                  </div>
+                  <button className="primary-button" type="submit" disabled={createClient.isPending} style={{ alignSelf: 'flex-start' }}>
+                    <Plus size={16} />
+                    Criar cliente
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
     </section>
   );
 }

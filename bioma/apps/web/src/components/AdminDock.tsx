@@ -1,30 +1,21 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus } from "lucide-react";
+import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus, X, Settings } from "lucide-react";
 import { DockTitle } from "./shared";
 import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCreateClient, useUpdateClient, useCreateArtifact, useCreateDeliverable, useCreateInvite } from "../hooks/useBiomaApi";
+import { useCreateClient, useUpdateClient, useCreateInvite } from "../hooks/useBiomaApi";
 import { api } from "../lib/api";
-import type { ClientModule, ClientStatus, ClientSummary, DeliverableStatus, ArtifactPayload } from "../lib/api";
+import type { ClientModule, ClientStatus, ClientSummary } from "../lib/api";
 
-export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | null }) {
+export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient: ClientSummary | null, isOpen: boolean, onClose: () => void }) {
   const {
     selectedClientId,
     actionBusy,
-    newClientDraft,
-    setNewClientDraft,
     clientDraft,
     setClientDraft,
-    artifactDraft,
-    setArtifactDraft,
-    deliverableDraft,
-    setDeliverableDraft,
   } = useUiStore();
 
-  const createClient = useCreateClient();
   const updateClient = useUpdateClient();
-  const createArtifact = useCreateArtifact();
-  const createDeliverable = useCreateDeliverable();
   const createInvite = useCreateInvite();
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -50,12 +41,7 @@ export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | 
       clickup_folder_id: selectedClient.clickup_folder_id ?? "",
       enabled_modules: selectedClient.enabled_modules,
     });
-  }, [selectedClient, setClientDraft]);
-
-  const handleCreateClient = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    createClient.mutate(newClientDraft);
-  };
+  }, [selectedClient, setClientDraft, isOpen]);
 
   const handleCreateInvite = () => {
     if (!selectedClientId) return;
@@ -116,262 +102,157 @@ export function AdminDock({ selectedClient }: { selectedClient: ClientSummary | 
     updateClient.mutate({ id: selectedClientId, payload: clientDraft });
   };
 
-  const handleCreateArtifact = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedClientId) return;
-    createArtifact.mutate({ clientId: selectedClientId, payload: artifactDraft });
-  };
+  const isBusy = Boolean(actionBusy) || updateClient.isPending;
 
-  const handleCreateDeliverable = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedClientId) return;
-    createDeliverable.mutate({ clientId: selectedClientId, payload: deliverableDraft });
-  };
-
-  const isBusy = Boolean(actionBusy) || createClient.isPending || updateClient.isPending || createArtifact.isPending || createDeliverable.isPending;
+  if (!isOpen || !selectedClient) return null;
 
   return (
-    <section className="admin-dock" aria-label="Operações EG">
-      <form className="dock-panel" onSubmit={handleCreateClient}>
-        <DockTitle icon={Building2} title="Novo cliente" />
-        <div className="form-grid two">
-          <label>
-            Cliente
-            <input
-              value={newClientDraft.name ?? ""}
-              onChange={(event) => setNewClientDraft({ ...newClientDraft, name: event.target.value })}
-            />
-          </label>
-          <label>
-            Organização
-            <input
-              value={newClientDraft.organization_name ?? ""}
-              onChange={(event) => setNewClientDraft({ ...newClientDraft, organization_name: event.target.value })}
-            />
-          </label>
-          <label>
-            Responsável EG
-            <input
-              value={newClientDraft.responsible_name ?? ""}
-              onChange={(event) => setNewClientDraft({ ...newClientDraft, responsible_name: event.target.value })}
-            />
-          </label>
-          <label>
-            ClickUp folder
-            <input
-              value={newClientDraft.clickup_folder_id ?? ""}
-              onChange={(event) => setNewClientDraft({ ...newClientDraft, clickup_folder_id: event.target.value })}
-            />
-          </label>
-        </div>
-        <button className="primary-button" type="submit" disabled={isBusy}>
-          <Plus size={16} />
-          Criar cliente
-        </button>
-      </form>
-
-      {selectedClient && (
-        <form className="dock-panel" onSubmit={handleUpdateClient}>
-          <DockTitle icon={Save} title="Editar cliente selecionado" />
-          <div className="form-grid two">
-            <label>
-              Nome
-              <input value={clientDraft.name ?? ""} onChange={(event) => setClientDraft({ ...clientDraft, name: event.target.value })} />
-            </label>
-            <label>
-              Status
-              <select
-                value={clientDraft.status ?? "onboarding"}
-                onChange={(event) => setClientDraft({ ...clientDraft, status: event.target.value as ClientStatus })}
-              >
-                {Object.entries(statusLabel).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Responsável
-              <input
-                value={clientDraft.responsible_name ?? ""}
-                onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
-              />
-            </label>
-            <label>
-              ClickUp folder
-              <input
-                value={clientDraft.clickup_folder_id ?? ""}
-                onChange={(event) => setClientDraft({ ...clientDraft, clickup_folder_id: event.target.value })}
-              />
-            </label>
-          </div>
-          <fieldset className="module-fieldset">
-            <legend>Módulos habilitados para o cliente</legend>
-            <div className="module-grid">
-              {toggleableModules.map((module) => {
-                const active = (clientDraft.enabled_modules ?? selectedClient.enabled_modules ?? []).includes(module);
-                return (
-                  <label className="module-toggle" key={module}>
-                    <input type="checkbox" checked={active} onChange={() => toggleModule(module)} />
-                    {moduleLabels[module]}
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-          <button className="secondary-button" type="submit" disabled={isBusy}>
-            <Save size={16} />
-            Salvar cliente
+    <div className="drawer-overlay" onClick={onClose}>
+      <div className="drawer-content" onClick={e => e.stopPropagation()}>
+        <div className="drawer-header">
+          <h2><Settings size={20} color="var(--brand-accent)" /> Gerenciar Cliente</h2>
+          <button className="icon-btn" onClick={onClose} aria-label="Fechar">
+            <X size={20} />
           </button>
-        </form>
-      )}
-
-      {selectedClient && selectedClientId && (
-        <div className="dock-panel">
-          <DockTitle icon={UserPlus} title="Convidar usuário do cliente" />
-          <p className="panel-footnote" style={{ margin: 0 }}>
-            Gera um link de uso único (expira em 7 dias). Envie por WhatsApp; a pessoa define a própria senha.
-          </p>
-          <label className="form-grid">
-            E-mail (opcional, restringe o convite)
-            <input
-              value={inviteEmail}
-              onChange={(event) => setInviteEmail(event.target.value)}
-              type="email"
-              placeholder="pessoa@cliente.com.br"
-            />
-          </label>
-          <button className="primary-button" type="button" onClick={handleCreateInvite} disabled={createInvite.isPending}>
-            <UserPlus size={16} />
-            {createInvite.isPending ? "Gerando..." : "Gerar link de convite"}
-          </button>
-          {inviteLink && (
-            <div className="invite-link-row">
-              <input readOnly value={inviteLink} onFocus={(event) => event.target.select()} aria-label="Link de convite" />
-              <button className="ghost-button dark" type="button" onClick={handleCopyInvite}>
-                {inviteCopied ? <Check size={15} /> : <Copy size={15} />}
-                {inviteCopied ? "Copiado" : "Copiar"}
-              </button>
-            </div>
-          )}
         </div>
-      )}
-
-      <div className="dock-panel">
-        <DockTitle icon={KeyRound} title="Redefinir senha de usuário" />
-        <p className="panel-footnote" style={{ margin: 0 }}>
-          Gera um link de uso único (expira em 2 horas) que encerra as sessões antigas do usuário. Envie por WhatsApp.
-        </p>
-        <label className="form-grid">
-          E-mail do usuário
-          <input
-            value={resetEmail}
-            onChange={(event) => setResetEmail(event.target.value)}
-            type="email"
-            placeholder="pessoa@cliente.com.br"
-          />
-        </label>
-        {resetError && <span className="form-error">{resetError}</span>}
-        <button className="primary-button" type="button" onClick={handleCreateReset} disabled={resetBusy || !resetEmail.trim()}>
-          <KeyRound size={16} />
-          {resetBusy ? "Gerando..." : "Gerar link de redefinição"}
-        </button>
-        {resetLink && (
-          <div className="invite-link-row">
-            <input readOnly value={resetLink} onFocus={(event) => event.target.select()} aria-label="Link de redefinição" />
-            <button className="ghost-button dark" type="button" onClick={handleCopyReset}>
-              {resetCopied ? <Check size={15} /> : <Copy size={15} />}
-              {resetCopied ? "Copiado" : "Copiar"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {selectedClientId && (
-        <>
-          <form className="dock-panel" onSubmit={handleCreateArtifact}>
-            <DockTitle icon={FileText} title="Novo artefato" />
-            <div className="form-grid">
+        
+        <div className="drawer-body">
+          <form onSubmit={handleUpdateClient}>
+            <DockTitle icon={Save} title="Editar cliente selecionado" />
+            <div className="form-grid two">
               <label>
-                Título
-                <input value={artifactDraft.title} onChange={(event) => setArtifactDraft({ ...artifactDraft, title: event.target.value })} />
+                Nome
+                <input value={clientDraft.name ?? ""} onChange={(event) => setClientDraft({ ...clientDraft, name: event.target.value })} />
               </label>
-              <div className="form-grid two">
-                <label>
-                  Tipo
-                  <select value={artifactDraft.kind} onChange={(event) => setArtifactDraft({ ...artifactDraft, kind: event.target.value })}>
-                    <option value="briefing">Briefing</option>
-                    <option value="brand_book">Brand book</option>
-                    <option value="calendar">Calendário</option>
-                    <option value="integration_map">Mapa de integração</option>
-                  </select>
-                </label>
-                <label>
-                  Visibilidade
-                  <select
-                    value={artifactDraft.visibility}
-                    onChange={(event) =>
-                      setArtifactDraft({ ...artifactDraft, visibility: event.target.value as ArtifactPayload["visibility"] })
-                    }
-                  >
-                    <option value="client">Cliente</option>
-                    <option value="internal">Interno EG</option>
-                  </select>
-                </label>
-              </div>
               <label>
-                Conteúdo
-                <textarea value={artifactDraft.content ?? ""} onChange={(event) => setArtifactDraft({ ...artifactDraft, content: event.target.value })} />
+                Status
+                <select
+                  value={clientDraft.status ?? "onboarding"}
+                  onChange={(event) => setClientDraft({ ...clientDraft, status: event.target.value as ClientStatus })}
+                >
+                  {Object.entries(statusLabel).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </label>
-            </div>
-            <button className="primary-button" type="submit" disabled={isBusy}>
-              <Plus size={16} />
-              Publicar artefato
-            </button>
-          </form>
-
-          <form className="dock-panel" onSubmit={handleCreateDeliverable}>
-            <DockTitle icon={CalendarCheck} title="Nova entrega" />
-            <div className="form-grid">
               <label>
-                Título
+                Responsável
                 <input
-                  value={deliverableDraft.title}
-                  onChange={(event) => setDeliverableDraft({ ...deliverableDraft, title: event.target.value })}
+                  value={clientDraft.responsible_name ?? ""}
+                  onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
                 />
               </label>
-              <div className="form-grid two">
-                <label>
-                  Status
-                  <select
-                    value={deliverableDraft.status}
-                    onChange={(event) => setDeliverableDraft({ ...deliverableDraft, status: event.target.value as DeliverableStatus })}
-                  >
-                    {Object.entries(deliverableStatusLabel).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Prazo
-                  <input
-                    value={deliverableDraft.due_at ?? ""}
-                    type="datetime-local"
-                    onChange={(event) => setDeliverableDraft({ ...deliverableDraft, due_at: event.target.value })}
-                  />
-                </label>
-              </div>
+              <label>
+                ClickUp folder
+                <input
+                  value={clientDraft.clickup_folder_id ?? ""}
+                  onChange={(event) => setClientDraft({ ...clientDraft, clickup_folder_id: event.target.value })}
+                />
+              </label>
             </div>
-            <button className="primary-button" type="submit" disabled={isBusy}>
-              <Plus size={16} />
-              Criar entrega
+
+            <fieldset className="module-toggles" style={{ marginTop: '20px', padding: '16px', border: '1px solid var(--border)', borderRadius: '8px' }}>
+              <legend style={{ padding: '0 8px', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                Módulos habilitados para o cliente
+              </legend>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
+                {toggleableModules.map(mod => (
+                  <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={clientDraft.enabled_modules?.includes(mod) ?? selectedClient?.enabled_modules?.includes(mod) ?? false}
+                      onChange={() => toggleModule(mod)}
+                    />
+                    {moduleLabels[mod]}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <button className="primary-button" type="submit" disabled={isBusy} style={{ marginTop: '20px', width: '100%' }}>
+              <Save size={16} />
+              Salvar cliente
             </button>
           </form>
-        </>
-      )}
-    </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '8px 0' }} />
+
+          <div>
+            <DockTitle icon={UserPlus} title="Convidar usuário do cliente" />
+            <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
+              Gera um link de uso único (expira em 7 dias). Envie por WhatsApp; a pessoa define a própria senha.
+            </p>
+            <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
+              <label>
+                E-mail (opcional, restringe o convite)
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="pessoa@cliente.com.br"
+                />
+              </label>
+              <button
+                className="primary-button"
+                type="button"
+                onClick={handleCreateInvite}
+                disabled={isBusy || createInvite.isPending}
+              >
+                <UserPlus size={16} />
+                Gerar link de convite
+              </button>
+            </div>
+            {inviteLink && (
+              <div style={{ marginTop: "12px", background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "12px" }}>
+                <input readOnly value={inviteLink} style={{ flex: 1, padding: "8px", fontSize: "0.85rem", background: "transparent", border: "none", color: "var(--text)" }} />
+                <button type="button" onClick={handleCopyInvite} className="secondary-button" style={{ padding: "8px" }} title="Copiar link">
+                  {inviteCopied ? <Check size={16} color="var(--brand-accent)" /> : <Copy size={16} />}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '8px 0' }} />
+
+          <div>
+            <DockTitle icon={KeyRound} title="Redefinir senha de usuário" />
+            <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
+              Gera um link de uso único (expira em 2 horas) que encerra as sessões antigas do usuário. Envie por WhatsApp.
+            </p>
+            <div style={{ display: "flex", gap: "8px", flexDirection: "column" }}>
+              <label>
+                E-mail do usuário
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="pessoa@cliente.com.br"
+                />
+              </label>
+              <button
+                className="primary-button"
+                type="button"
+                onClick={handleCreateReset}
+                disabled={resetBusy || isBusy || !resetEmail.trim()}
+              >
+                <KeyRound size={16} />
+                Gerar link de redefinição
+              </button>
+              {resetError && <span className="form-error">{resetError}</span>}
+            </div>
+            {resetLink && (
+              <div style={{ marginTop: "12px", background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "12px" }}>
+                <input readOnly value={resetLink} style={{ flex: 1, padding: "8px", fontSize: "0.85rem", background: "transparent", border: "none", color: "var(--text)" }} />
+                <button type="button" onClick={handleCopyReset} className="secondary-button" style={{ padding: "8px" }} title="Copiar link">
+                  {resetCopied ? <Check size={16} color="var(--brand-accent)" /> : <Copy size={16} />}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

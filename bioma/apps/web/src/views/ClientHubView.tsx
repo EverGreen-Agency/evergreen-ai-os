@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft, BarChart3, Leaf, TreePine, Trees } from "lucide-react";
+import { ClipboardCheck, GitBranch, CalendarCheck, CircleDashed, CheckCircle2, AlertCircle, FileText, ArrowRight, Trash2, RefreshCw, ArrowLeft, BarChart3, Leaf, TreePine, Trees, Settings, Plus, X } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel, deliverableStatusLabel } from "../lib/app-config";
 import { clickUpSummary, formatDueDate, artifactKindLabel } from "../lib/format";
 import type { DeliverableStatus } from "../lib/api";
 import { AdminDock } from "../components/AdminDock";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateArtifact, useCreateDeliverable } from "../hooks/useBiomaApi";
 
 export function ClientHubView() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +39,8 @@ export function ClientHubView() {
   const { data: user, isLoading: loadingUser } = useCurrentUser();
   const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];
   const selectedClient = clients.find((c) => c.id === id) ?? null;
@@ -52,8 +54,30 @@ export function ClientHubView() {
   const deleteDeliverable = useDeleteDeliverable();
   const createApproval = useCreateApproval();
   const decideApproval = useDecideApproval();
+  
+  const createArtifact = useCreateArtifact();
+  const createDeliverable = useCreateDeliverable();
+  const { artifactDraft, setArtifactDraft, deliverableDraft, setDeliverableDraft } = useUiStore();
+  const [showArtifactModal, setShowArtifactModal] = useState(false);
+  const [showDeliverableModal, setShowDeliverableModal] = useState(false);
 
-  const isBusy = syncClickUp.isPending || updateDeliverable.isPending || deleteDeliverable.isPending || createApproval.isPending || decideApproval.isPending;
+  const handleCreateArtifact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    createArtifact.mutate({ clientId: id, payload: artifactDraft }, {
+      onSuccess: () => setShowArtifactModal(false)
+    });
+  };
+
+  const handleCreateDeliverable = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    createDeliverable.mutate({ clientId: id, payload: deliverableDraft }, {
+      onSuccess: () => setShowDeliverableModal(false)
+    });
+  };
+
+  const isBusy = syncClickUp.isPending || updateDeliverable.isPending || deleteDeliverable.isPending || createApproval.isPending || decideApproval.isPending || createArtifact.isPending || createDeliverable.isPending;
 
   // Atualiza o estado global se o admin dock for usado (já que ele usa o selectedClient do UiStore)
   // Mas para não causar bugs de render loop, apenas se não bater.
@@ -83,7 +107,15 @@ export function ClientHubView() {
         >
           <ArrowLeft size={18} />
         </button>
-        <SectionHeader eyebrow="Hub do cliente" title={selectedClient.name} icon={ClipboardCheck} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <SectionHeader eyebrow="Hub do cliente" title={selectedClient.name} icon={ClipboardCheck} />
+          {isEgAdmin && (
+            <button className="secondary-button" onClick={() => setDrawerOpen(true)} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Settings size={16} />
+              Gerenciar Cliente
+            </button>
+          )}
+        </div>
       </div>
 
       {loadingPortal && <EmptyState text="Carregando hub..." />}
@@ -171,9 +203,16 @@ export function ClientHubView() {
           {activeTab === 'entregas' && (
             <div className="bento-grid">
               <article className="bento-card col-span-3">
-                <div className="bento-header">
-                  <h3>Todas as Entregas</h3>
-                  <CalendarCheck size={16} color="var(--brand-accent)" />
+                <div className="bento-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3>Todas as Entregas</h3>
+                    <CalendarCheck size={16} color="var(--brand-accent)" />
+                  </div>
+                  {isEgAdmin && (
+                    <button className="primary-button" style={{ padding: '4px 12px', fontSize: '0.85rem' }} onClick={() => setShowDeliverableModal(true)}>
+                      <Plus size={14} /> Nova Entrega
+                    </button>
+                  )}
                 </div>
                 {portal.deliverables.length === 0 && <EmptyState compact text="Nenhuma entrega cadastrada." />}
                 {portal.deliverables.map((deliverable) => (
@@ -224,9 +263,16 @@ export function ClientHubView() {
           {activeTab === 'artefatos' && (
             <div className="bento-grid">
               <article className="bento-card col-span-3">
-                <div className="bento-header">
-                  <h3>Todos os Artefatos</h3>
-                  <FileText size={16} color="var(--brand-accent)" />
+                <div className="bento-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3>Todos os Artefatos</h3>
+                    <FileText size={16} color="var(--brand-accent)" />
+                  </div>
+                  {isEgAdmin && (
+                    <button className="primary-button" style={{ padding: '4px 12px', fontSize: '0.85rem' }} onClick={() => setShowArtifactModal(true)}>
+                      <Plus size={14} /> Novo Artefato
+                    </button>
+                  )}
                 </div>
                 {portal.artifacts.length === 0 && <EmptyState compact text="Nenhum artefato publicado." />}
                 {portal.artifacts.map((artifact) => (
@@ -261,7 +307,123 @@ export function ClientHubView() {
         </div>
       )}
 
-      {isEgAdmin && <AdminDock selectedClient={selectedClient} />}
+      {isEgAdmin && <AdminDock selectedClient={selectedClient} isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />}
+      
+      {/* Modals for new creations */}
+      {showDeliverableModal && (
+        <div className="modal-overlay" onClick={() => setShowDeliverableModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nova Entrega</h3>
+              <button className="icon-btn" onClick={() => setShowDeliverableModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleCreateDeliverable} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-grid two">
+                  <label>
+                    Título / Resumo
+                    <input
+                      required
+                      value={deliverableDraft.title ?? ""}
+                      onChange={(event) => setDeliverableDraft({ ...deliverableDraft, title: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Data de Vencimento
+                    <input
+                      type="date"
+                      value={deliverableDraft.due_at ?? ""}
+                      onChange={(event) => setDeliverableDraft({ ...deliverableDraft, due_at: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    ClickUp Task ID
+                    <input
+                      value={deliverableDraft.clickup_task_id ?? ""}
+                      onChange={(event) => setDeliverableDraft({ ...deliverableDraft, clickup_task_id: event.target.value })}
+                    />
+                  </label>
+                </div>
+                <button className="primary-button" type="submit" disabled={isBusy} style={{ alignSelf: 'flex-start' }}>
+                  <Plus size={16} />
+                  Cadastrar entrega
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showArtifactModal && (
+        <div className="modal-overlay" onClick={() => setShowArtifactModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Novo Artefato</h3>
+              <button className="icon-btn" onClick={() => setShowArtifactModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleCreateArtifact} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-grid two">
+                  <label>
+                    Título
+                    <input
+                      required
+                      value={artifactDraft.title ?? ""}
+                      onChange={(event) => setArtifactDraft({ ...artifactDraft, title: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Tipo
+                    <select
+                      value={artifactDraft.kind ?? "link"}
+                      onChange={(event) => setArtifactDraft({ ...artifactDraft, kind: event.target.value as any })}
+                    >
+                      <option value="link">Link Externo</option>
+                      <option value="text">Texto Rico</option>
+                      <option value="image">Imagem</option>
+                      <option value="pdf">PDF</option>
+                    </select>
+                  </label>
+                  <label>
+                    Visibilidade
+                    <select
+                      value={artifactDraft.visibility ?? "client"}
+                      onChange={(event) => setArtifactDraft({ ...artifactDraft, visibility: event.target.value as "client" | "internal" })}
+                    >
+                      <option value="client">Visível para o cliente</option>
+                      <option value="internal">Apenas interno EG</option>
+                    </select>
+                  </label>
+                  <label>
+                    ClickUp Task ID
+                    <input
+                      value={artifactDraft.clickup_task_id ?? ""}
+                      onChange={(event) => setArtifactDraft({ ...artifactDraft, clickup_task_id: event.target.value })}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Conteúdo / URL
+                  <input
+                    required
+                    style={{ width: '100%' }}
+                    value={artifactDraft.content ?? ""}
+                    onChange={(event) => setArtifactDraft({ ...artifactDraft, content: event.target.value })}
+                  />
+                </label>
+                <button className="primary-button" type="submit" disabled={isBusy} style={{ alignSelf: 'flex-start' }}>
+                  <Plus size={16} />
+                  Criar artefato
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
