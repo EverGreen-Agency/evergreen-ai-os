@@ -398,13 +398,6 @@ export function ClientHubView() {
                       <option value="internal">Apenas interno EG</option>
                     </select>
                   </label>
-                  <label>
-                    ClickUp Task ID
-                    <input
-                      value={artifactDraft.clickup_task_id ?? ""}
-                      onChange={(event) => setArtifactDraft({ ...artifactDraft, clickup_task_id: event.target.value })}
-                    />
-                  </label>
                 </div>
                 <label>
                   Conteúdo / URL
