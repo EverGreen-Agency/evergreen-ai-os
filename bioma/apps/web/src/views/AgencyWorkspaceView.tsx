@@ -1,0 +1,142 @@
+import { Suspense, lazy } from "react";
+import { BarChart3, BriefcaseBusiness, Users, WalletCards } from "lucide-react";
+import { Link, Outlet, useOutletContext } from "react-router-dom";
+
+import { EmptyState } from "../components/shared";
+import { WorkspaceShell } from "../components/WorkspaceShell";
+import { useClients, useCurrentUser } from "../hooks/useBiomaApi";
+import { agencyWorkspaceNavItems } from "../lib/app-config";
+import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
+
+const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
+const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: module.CrmView })));
+const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
+
+type AgencyWorkspaceOutletContext = {
+  workspace: AgencyWorkspaceContext;
+};
+
+function ModuleLoading() {
+  return <EmptyState text="Carregando módulo da Operação EG..." />;
+}
+
+export function AgencyWorkspaceView() {
+  const { data: clientsData, isLoading } = useClients();
+  const { data: user } = useCurrentUser();
+  const resolution = resolveAgencyWorkspace(clientsData ?? [], user);
+
+  if (isLoading) {
+    return <EmptyState text="Carregando Operação EG..." />;
+  }
+
+  if (resolution.status !== "ready") {
+    const description = resolution.status === "ambiguous_bridge"
+      ? "Há mais de um registro operacional ligado à organização EG. A correção precisa ser feita no backend antes de abrir este workspace."
+      : resolution.status === "missing_bridge"
+        ? "O workspace interno ainda não foi provisionado para esta organização. Execute o provisionamento administrativo antes de usar os módulos operacionais."
+        : "Sua sessão não possui uma organização administrativa válida para a Operação EG.";
+
+    return (
+      <section className="workspace-empty agency-workspace-blocked">
+        <span className="context-badge agency">Workspace interno</span>
+        <EmptyState text="Operação EG não provisionada" />
+        <p>{description}</p>
+      </section>
+    );
+  }
+
+  const { workspace } = resolution;
+  const items = agencyWorkspaceNavItems.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    to: item.path ? `/operacao/${item.path}` : "/operacao",
+    end: !item.path,
+  }));
+
+  return (
+    <WorkspaceShell
+      eyebrow="Workspace da agência"
+      title={workspace.name}
+      icon={BriefcaseBusiness}
+      backTo="/"
+      backLabel="Voltar ao Cockpit"
+      items={items}
+    >
+      <Outlet context={{ workspace } satisfies AgencyWorkspaceOutletContext} />
+    </WorkspaceShell>
+  );
+}
+
+function useAgencyWorkspace() {
+  return useOutletContext<AgencyWorkspaceOutletContext>();
+}
+
+export function AgencyOverviewRoute() {
+  const { workspace } = useAgencyWorkspace();
+  const modules = [
+    {
+      title: "CRM da EG",
+      description: "Leads, oportunidades e pipeline comercial da própria EverGreen.",
+      to: "/operacao/crm",
+      icon: Users,
+    },
+    {
+      title: "Financeiro da EG",
+      description: "Recebimentos, vencimentos e visão financeira da operação interna.",
+      to: "/operacao/financeiro",
+      icon: WalletCards,
+    },
+    {
+      title: "Métricas da EG",
+      description: "Performance das fontes conectadas à organização EverGreen.",
+      to: "/operacao/metricas",
+      icon: BarChart3,
+    },
+  ];
+
+  return (
+    <section className="agency-workspace-home">
+      <header className="agency-workspace-hero">
+        <div>
+          <span className="context-badge agency">Operação interna</span>
+          <h1>{workspace.organizationName}</h1>
+          <p>O negócio da EG vive aqui. A carteira e os hubs de clientes permanecem isolados em seus próprios workspaces.</p>
+        </div>
+      </header>
+      <div className="agency-module-grid">
+        {modules.map((module) => {
+          const Icon = module.icon;
+          return (
+            <Link className="agency-module-card" to={module.to} key={module.to}>
+              <span><Icon size={19} /></span>
+              <div>
+                <strong>{module.title}</strong>
+                <p>{module.description}</p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function AgencyCrmRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.legacyClientId} /></Suspense>;
+}
+
+export function AgencyFinanceRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return <Suspense fallback={<ModuleLoading />}><FinanceView clientId={workspace.legacyClientId} /></Suspense>;
+}
+
+export function AgencyAnalyticsRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <AnalyticsView clientId={workspace.legacyClientId} workspaceName={workspace.name} />
+    </Suspense>
+  );
+}

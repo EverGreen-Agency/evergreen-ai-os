@@ -19,16 +19,37 @@ O build executa `tsc -b` e `vite build`. Por enquanto ele é o smoke mínimo do 
 
 O QA visual manual (desktop, notebook com DevTools aberto e mobile) está documentado na seção "Checklist de QA visual" do `bioma/ROADMAP-MVP.md` e precisa ser assinado antes de considerar a UI pronta para cliente real.
 
-## Fronteira operacional
+## Contextos operacionais
 
-O frontend separa dois contextos de navegação:
+O frontend separa três superfícies:
 
-- **Operação EG:** cockpit e backoffice internos da EverGreen.
-- **Carteira de Clientes:** lista apenas clientes externos e funciona como porta de entrada dos respectivos hubs.
+- **Control Plane:** Cockpit, administração da plataforma e Carteira de Clientes.
+- **Central da Agência:** operação da própria EG e, futuramente, times, carteiras atribuídas e gestão do tenant.
+- **Workspace:** contexto operacional completo da agência ou de um cliente.
 
-CRM, financeiro do contrato, métricas, documentos, integrações, entregáveis, aprovações, artefatos e score de um cliente ficam sob `/clientes/:clientId/...`. As rotas globais antigas de CRM, financeiro e Analytics apenas redirecionam para a Carteira. Essa regra deve ser mantida na URL, nos feature gates e na autorização da API; não deve ser recriado um seletor global que permita operar vários clientes fora dos hubs.
+A Operação EG vive sob `/operacao/...`; cada cliente vive sob `/clientes/:clientId/...`. CRM, financeiro e métricas usam as mesmas views nos dois tipos de workspace, mas toda rota passa um contexto explícito e nunca escolhe dados por um seletor global implícito.
 
-O registro técnico `EverGreen Internal` ainda pode existir no banco de desenvolvimento por compatibilidade com seeds anteriores, mas não pertence à Carteira e não deve ser usado como fallback de módulos de cliente.
+O Topbar exibe somente o contexto atual. `Ctrl/⌘ K` abre um navegador largo e pesquisável, com workspaces recentes e busca por cliente, organização ou responsável. A lista completa continua em uma página própria; ela não é despejada em um dropdown da Sidebar. Times, “Minha carteira”, favoritos e visões salvas dependem de modelo/atribuições no backend e ainda não devem ser simulados no frontend.
+
+O registro técnico `EverGreen Internal` é uma ponte temporária para endpoints ainda baseados em `client_id`. Ele fica oculto da Carteira e só pode ser resolvido por correspondência exata com a organização administrativa da sessão. Ausência ou ambiguidade bloqueiam `/operacao`; não existe fallback para nome, primeiro cliente ou seleção anterior.
+
+No ambiente local, a ponte é provisionada pelo script idempotente já existente:
+
+```bash
+cd ../api
+python scripts/create_eg_client.py
+```
+
+Destino do produto:
+
+```text
+Bioma Platform
+└── Tenant / Agência
+    ├── Workspace interno da agência
+    └── Workspaces de clientes
+```
+
+No estado transitório atual ainda existem apenas `eg_admin` e `client_user`; tenants, equipes, atribuições e papéis white-label completos estão no backlog arquitetural.
 
 ## Tema e branding
 

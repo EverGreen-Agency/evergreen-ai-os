@@ -1,11 +1,13 @@
-import { Suspense, lazy, useEffect } from "react";
-import { ArrowLeft, Building2 } from "lucide-react";
-import { NavLink, Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Suspense, lazy, useEffect, type ReactNode } from "react";
+import { Building2 } from "lucide-react";
+import { Navigate, Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
+import { WorkspaceShell } from "../components/WorkspaceShell";
 import { clientHubNavItems } from "../lib/app-config";
-import type { ClientSummary } from "../lib/api";
+import type { ClientModule, ClientSummary } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
+import { clientWorkspaceContext, type ClientWorkspaceContext } from "../lib/workspace-context";
 import { useClients, useCurrentUser } from "../hooks/useBiomaApi";
 import { useUiStore } from "../store/uiStore";
 
@@ -15,8 +17,9 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const FilesPanel = lazy(() => import("../components/FilesPanel").then((module) => ({ default: module.FilesPanel })));
 const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
 
-type ClientWorkspaceContext = {
+type ClientWorkspaceOutletContext = {
   client: ClientSummary;
+  workspace: ClientWorkspaceContext;
   isEgAdmin: boolean;
 };
 
@@ -33,7 +36,9 @@ export function ClientWorkspaceView() {
 
   const clients = externalClients(clientsData ?? []);
   const client = clients.find((candidate) => candidate.id === id) ?? null;
-  const isEgAdmin = user?.organizations.some((organization) => organization.role === "eg_admin") ?? false;
+  const isEgAdmin = user?.organizations.some(
+    (organization) => organization.slug === "eg" && organization.role === "eg_admin",
+  ) ?? false;
 
   useEffect(() => {
     if (!client) return;
@@ -51,7 +56,7 @@ export function ClientWorkspaceView() {
 
   if (!client) {
     return (
-      <section className="client-workspace-empty">
+      <section className="workspace-empty">
         <EmptyState text="Cliente não encontrado ou indisponível para esta sessão." />
         <button className="primary-button" type="button" onClick={() => navigate("/clientes")}>
           Voltar para a Carteira
@@ -65,71 +70,88 @@ export function ClientWorkspaceView() {
   const visibleItems = clientHubNavItems.filter(
     (item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin),
   );
+  const workspace = clientWorkspaceContext(client);
+  const items = visibleItems.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    to: item.path ? `/clientes/${client.id}/${item.path}` : `/clientes/${client.id}`,
+    end: !item.path,
+  }));
 
   return (
-    <section className="client-workspace-shell">
-      <header className="client-context-bar">
-        <button className="icon-button" type="button" onClick={() => navigate("/clientes")} aria-label="Voltar para a Carteira">
-          <ArrowLeft size={18} />
-        </button>
-        <div className="client-context-title">
-          <span><Building2 size={14} /> Hub do Cliente</span>
-          <strong>{client.name}</strong>
-        </div>
-        <nav className="client-context-nav" aria-label={`Módulos de ${client.name}`}>
-          {visibleItems.map((item) => {
-            const Icon = item.icon;
-            const destination = item.path ? `/clientes/${client.id}/${item.path}` : `/clientes/${client.id}`;
-            return (
-              <NavLink key={item.id} to={destination} end={!item.path}>
-                <Icon size={15} />
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-      </header>
-
-      <div className="client-workspace-content">
-        <Outlet context={{ client, isEgAdmin } satisfies ClientWorkspaceContext} />
-      </div>
-    </section>
+    <WorkspaceShell
+      eyebrow="Hub do Cliente"
+      title={client.name}
+      icon={Building2}
+      backTo="/clientes"
+      backLabel="Voltar para a Carteira"
+      items={items}
+    >
+      <Outlet context={{ client, workspace, isEgAdmin } satisfies ClientWorkspaceOutletContext} />
+    </WorkspaceShell>
   );
 }
 
 function useClientWorkspace() {
-  return useOutletContext<ClientWorkspaceContext>();
+  return useOutletContext<ClientWorkspaceOutletContext>();
+}
+
+function ClientModuleBoundary({ module, children }: { module: ClientModule; children: ReactNode }) {
+  const { client, isEgAdmin } = useClientWorkspace();
+  const enabledModules = new Set(client.enabled_modules ?? ["hub"]);
+  enabledModules.add("hub");
+  if (!isEgAdmin && !enabledModules.has(module)) {
+    return <Navigate to={`/clientes/${client.id}`} replace />;
+  }
+  return children;
 }
 
 export function ClientCrmRoute() {
   const { client } = useClientWorkspace();
-  return <Suspense fallback={<ModuleLoading />}><CrmView clientId={client.id} /></Suspense>;
+  return (
+    <ClientModuleBoundary module="commercial">
+      <Suspense fallback={<ModuleLoading />}><CrmView clientId={client.id} /></Suspense>
+    </ClientModuleBoundary>
+  );
 }
 
 export function ClientFinanceRoute() {
   const { client } = useClientWorkspace();
-  return <Suspense fallback={<ModuleLoading />}><FinanceView clientId={client.id} /></Suspense>;
+  return (
+    <ClientModuleBoundary module="commercial">
+      <Suspense fallback={<ModuleLoading />}><FinanceView clientId={client.id} /></Suspense>
+    </ClientModuleBoundary>
+  );
 }
 
 export function ClientAnalyticsRoute() {
   const { client } = useClientWorkspace();
-  return <Suspense fallback={<ModuleLoading />}><AnalyticsView clientId={client.id} /></Suspense>;
+  return (
+    <ClientModuleBoundary module="analytics">
+      <Suspense fallback={<ModuleLoading />}><AnalyticsView clientId={client.id} /></Suspense>
+    </ClientModuleBoundary>
+  );
 }
 
 export function ClientFilesRoute() {
   const { client, isEgAdmin } = useClientWorkspace();
   return (
-    <div className="client-module-panel">
-      <Suspense fallback={<ModuleLoading />}><FilesPanel clientId={client.id} isEgAdmin={isEgAdmin} /></Suspense>
-    </div>
+    <ClientModuleBoundary module="files">
+      <div className="workspace-module-panel">
+        <Suspense fallback={<ModuleLoading />}><FilesPanel clientId={client.id} isEgAdmin={isEgAdmin} /></Suspense>
+      </div>
+    </ClientModuleBoundary>
   );
 }
 
 export function ClientIntegrationsRoute() {
   const { client } = useClientWorkspace();
   return (
-    <div className="client-module-panel">
-      <Suspense fallback={<ModuleLoading />}><IntegrationsTab clientId={client.id} scope="client" /></Suspense>
-    </div>
+    <ClientModuleBoundary module="integrations">
+      <div className="workspace-module-panel">
+        <Suspense fallback={<ModuleLoading />}><IntegrationsTab clientId={client.id} scope="client" /></Suspense>
+      </div>
+    </ClientModuleBoundary>
   );
 }

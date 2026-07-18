@@ -348,7 +348,7 @@ function KommoTab({ organizationId }: { organizationId: string }) {
   );
 }
 
-export function AnalyticsView({ clientId }: { clientId: string }) {
+export function AnalyticsView({ clientId, workspaceName }: { clientId: string; workspaceName?: string }) {
   const { data: clientsData } = useClients();
   const clients = clientsData ?? [];
   const selectedClient = clients.find((client) => client.id === clientId) ?? null;
@@ -404,7 +404,7 @@ export function AnalyticsView({ clientId }: { clientId: string }) {
 
       <div className="analytics-header">
         <div>
-          <h2>Performance de {selectedClient?.name ?? "cliente"}</h2>
+          <h2>Performance de {workspaceName ?? selectedClient?.name ?? "cliente"}</h2>
           <p>
             {overview
               ? `${overview.period_start} até ${overview.period_end}`

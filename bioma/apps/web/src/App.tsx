@@ -1,7 +1,6 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { enabledModulesFor, navItems, viewModule, type ViewId } from "./lib/app-config";
-import type { ClientModule } from "./lib/api";
 import { externalClients } from "./lib/client-scope";
 import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
@@ -29,6 +28,11 @@ const ClientsView = lazy(() => import("./views/ClientsView").then((module) => ({
 const ClientHubView = lazy(() => import("./views/ClientHubView").then((module) => ({ default: module.ClientHubView })));
 const WikiEgView = lazy(() => import("./views/admin/WikiEgView").then((module) => ({ default: module.WikiEgView })));
 const EngineeringView = lazy(() => import("./views/EngineeringView").then((module) => ({ default: module.EngineeringView })));
+const AgencyWorkspaceView = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyWorkspaceView })));
+const AgencyOverviewRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyOverviewRoute })));
+const AgencyCrmRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyCrmRoute })));
+const AgencyFinanceRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyFinanceRoute })));
+const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAnalyticsRoute })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -67,7 +71,8 @@ export function App() {
   } = useUiStore();
 
   const { data: clientsData, isLoading: loadingClients } = useClients();
-  const clients = externalClients(clientsData ?? []);
+  const allClients = clientsData ?? [];
+  const clients = externalClients(allClients);
 
   const updateArtifact = useUpdateArtifact();
   const deleteArtifact = useDeleteArtifact();
@@ -166,12 +171,7 @@ export function App() {
     return enabledModules.has(viewModule[view]) ? element : <Navigate to="/" replace />;
   }
 
-  function guardModule(module: ClientModule, element: ReactNode) {
-    return enabledModules.has(module) ? element : <Navigate to="/clientes" replace />;
-  }
-
   function guardAdmin(element: ReactNode) {
-    const isEgAdmin = user?.organizations?.some(org => org.role === "eg_admin") ?? false;
     return isEgAdmin ? element : <Navigate to="/" replace />;
   }
 
@@ -210,7 +210,7 @@ export function App() {
       />
 
       <section className="workspace">
-        <Topbar />
+        <Topbar user={user} clients={allClients} isLoadingClients={loadingClients} />
 
         {dataError && <div className="notice error">{dataError}</div>}
 
@@ -227,6 +227,17 @@ export function App() {
           />
           <Route path="/configuracoes" element={<SettingsView />} />
 
+          <Route path="/operacao" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <AgencyWorkspaceView />
+            </Suspense>,
+          )}>
+            <Route index element={<AgencyOverviewRoute />} />
+            <Route path="crm" element={<AgencyCrmRoute />} />
+            <Route path="financeiro" element={<AgencyFinanceRoute />} />
+            <Route path="metricas" element={<AgencyAnalyticsRoute />} />
+          </Route>
+
           <Route path="/clientes" element={guard("clientes",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ClientsView />
@@ -239,17 +250,17 @@ export function App() {
                 <ClientHubView />
               </Suspense>
             } />
-            <Route path="crm" element={guard("crm", <ClientCrmRoute />)} />
-            <Route path="financeiro" element={guard("finance", <ClientFinanceRoute />)} />
-            <Route path="analytics" element={guard("analytics", <ClientAnalyticsRoute />)} />
-            <Route path="documentos" element={guardModule("files", <ClientFilesRoute />)} />
+            <Route path="crm" element={<ClientCrmRoute />} />
+            <Route path="financeiro" element={<ClientFinanceRoute />} />
+            <Route path="analytics" element={<ClientAnalyticsRoute />} />
+            <Route path="documentos" element={<ClientFilesRoute />} />
             <Route path="integracoes" element={guardAdmin(<ClientIntegrationsRoute />)} />
           </Route>
 
-          {/* Compatibilidade: módulos de cliente nunca operam fora do Hub. */}
-          <Route path="/crm" element={<Navigate to="/clientes" replace />} />
-          <Route path="/finance" element={<Navigate to="/clientes" replace />} />
-          <Route path="/analytics" element={<Navigate to="/clientes" replace />} />
+          {/* Compatibilidade: módulos operacionais sempre resolvem um workspace explícito. */}
+          <Route path="/crm" element={<Navigate to={isEgAdmin ? "/operacao/crm" : clientHomePath} replace />} />
+          <Route path="/finance" element={<Navigate to={isEgAdmin ? "/operacao/financeiro" : clientHomePath} replace />} />
+          <Route path="/analytics" element={<Navigate to={isEgAdmin ? "/operacao/metricas" : clientHomePath} replace />} />
 
           <Route path="/engenharia" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>

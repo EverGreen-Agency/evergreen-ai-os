@@ -1,9 +1,10 @@
-import { BarChart3, BookOpen, FileText, FolderOpen, GitBranch, LayoutDashboard, Link2, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, BriefcaseBusiness, FileText, FolderOpen, GitBranch, LayoutDashboard, Link2, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
 export type ViewId =
   | "cockpit"
+  | "operacao"
   | "clientes"
   | "crm"
   | "finance"
@@ -16,7 +17,8 @@ export type ViewId =
   | "eg-architecture";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
-  { id: "cockpit", label: "Operação EG", icon: LayoutDashboard },
+  { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
+  { id: "operacao", label: "Operação EG", icon: BriefcaseBusiness },
   { id: "clientes", label: "Carteira de Clientes", icon: Users },
   
   // Rotas internas EG. Módulos de cliente vivem na navegação do próprio Hub.
@@ -43,10 +45,15 @@ export const clientHubNavItems: Array<{
   { id: "integrations", label: "Integrações", path: "integracoes", module: "integrations", icon: Link2 },
 ];
 
+export const agencyWorkspaceNavItems = clientHubNavItems
+  .filter((item) => ["hub", "crm", "finance", "analytics"].includes(item.id))
+  .map((item) => item.id === "analytics" ? { ...item, path: "metricas" } : item);
+
 // Feature-gating por organização (decisão 2026-07-14): cada view exige um
 // módulo habilitado; EG admin enxerga tudo, client_user só o que a org tem.
 export const viewModule: Record<ViewId, ClientModule> = {
   cockpit: "hub",
+  operacao: "hub",
   clientes: "hub",
   crm: "commercial",
   finance: "commercial",
