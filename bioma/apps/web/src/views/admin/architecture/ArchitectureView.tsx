@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import type { SquadInfo } from "../../../types/state";
+import { api, type BackofficeArchitecture } from "../../../lib/api";
 
 // ── types ─────────────────────────────────────────────────────────────────────
-
-interface ArchData {
-  md: string;
-  squads: SquadInfo[];
-}
 
 // ── simple markdown renderer ──────────────────────────────────────────────────
 // Handles: h1-h3, blockquote, hr, code blocks, inline code, bullet lists, bold, plain text.
@@ -177,15 +173,15 @@ function SquadMap({ squads }: { squads: SquadInfo[] }) {
 // ── main component ────────────────────────────────────────────────────────────
 
 export function ArchitectureView() {
-  const [data, setData] = useState<ArchData | null>(null);
+  const [data, setData] = useState<BackofficeArchitecture | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"doc" | "map">("doc");
 
   useEffect(() => {
-    fetch("/api/architecture", { cache: "no-store", credentials: "include" })
-      .then((r) => r.json())
-      .then((d) => setData(d as ArchData))
-      .catch(() => {})
+    api.adminArchitecture()
+      .then(setData)
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Falha ao carregar o Banco de Arquitetura."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -193,6 +189,9 @@ export function ArchitectureView() {
     return (
       <div style={s.centered}>Carregando Banco de Arquitetura...</div>
     );
+  }
+  if (error) {
+    return <div style={s.centered}>Erro ao carregar arquitetura.md: {error}</div>;
   }
   if (!data) {
     return <div style={s.centered}>arquitetura.md não encontrado.</div>;

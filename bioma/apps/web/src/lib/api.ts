@@ -1,4 +1,5 @@
 import type { Idea } from "../types/idea";
+import type { SquadInfo, SquadState } from "../types/state";
 import type { StackRadar, Tech } from "../types/stack";
 
 export type ApiHealth = {
@@ -439,6 +440,51 @@ export type DeliverablePayload = {
   clickup_task_id?: string | null;
 };
 
+export type EngineeringModuleMaturity = {
+  id: string;
+  phase: string;
+  maturity: string;
+  nextGate: string;
+};
+
+export type EngineeringModuleSummary = {
+  id: string;
+  hasSpec: boolean;
+  specTitle: string | null;
+  specStatus: string | null;
+  specDate: string | null;
+  adrCount: number;
+  hasTasks: boolean;
+};
+
+export type EngineeringData = {
+  modules: EngineeringModuleSummary[];
+  matrix: Record<string, EngineeringModuleMaturity>;
+};
+
+export type EngineeringAdr = {
+  file: string;
+  title: string;
+  content: string;
+};
+
+export type EngineeringDetail = {
+  id: string;
+  specContent: string | null;
+  tasksContent: string | null;
+  adrs: EngineeringAdr[];
+};
+
+export type BackofficeArchitecture = {
+  md: string;
+  squads: SquadInfo[];
+};
+
+export type BackofficeSquads = {
+  squads: SquadInfo[];
+  activeStates: Record<string, SquadState>;
+};
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
 /** URL absoluta de um endpoint da API — para navegação de página inteira
@@ -652,15 +698,20 @@ export const api = {
   getKommoAnalytics: (organizationId: string) =>
     request<KommoMetricsResponse>(`/analytics/${organizationId}/kommo`),
 
-  // Backoffice EG (dados internos servidos pelo admin_legacy; EG admin only)
+  // Backoffice EG (dados internos do monorepo; EG admin only)
   adminIdeas: () => request<Partial<{ ideas: Idea[] }> & { ideas?: Idea[] }>("/backoffice/ideas"),
   saveAdminIdeas: (ideas: Idea[]) =>
     request<{ status: string }>("/backoffice/ideas", { method: "POST", body: JSON.stringify({ ideas }) }),
   adminIdeaDoc: (id: string) => requestText(`/backoffice/ideas/doc?id=${encodeURIComponent(id)}`),
   saveAdminIdeaDoc: (id: string, content: string) =>
     request<{ status: string }>(`/backoffice/ideas/doc/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ content }) }),
+  adminEngineering: () => request<EngineeringData>("/backoffice/engineering"),
+  adminEngineeringDetail: (modId: string) =>
+    request<EngineeringDetail>(`/backoffice/engineering/${encodeURIComponent(modId)}`),
   saveEngineeringDoc: (modId: string, docType: string, content: string, filename?: string) =>
     request<{ status: string }>(`/backoffice/engineering/${encodeURIComponent(modId)}/doc`, { method: "PUT", body: JSON.stringify({ doc_type: docType, content, filename }) }),
+  adminArchitecture: () => request<BackofficeArchitecture>("/backoffice/architecture"),
+  adminSquads: () => request<BackofficeSquads>("/backoffice/squads"),
   adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/backoffice/stack"),
   saveAdminStack: (techs: Tech[]) =>
     request<{ status: string }>("/backoffice/stack", { method: "POST", body: JSON.stringify({ techs }) }),

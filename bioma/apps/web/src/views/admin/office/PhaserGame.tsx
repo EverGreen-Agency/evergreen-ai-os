@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { OfficeScene } from './OfficeScene';
 import { useSquadStore } from '../../../store/useSquadStore';
 import { SquadSelector } from './components/SquadSelector';
+import { api } from '../../../lib/api';
 
 export function PhaserGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,8 +71,7 @@ export function PhaserGame() {
 
   // Fetch squads on mount to populate store
   useEffect(() => {
-    fetch("/api/squads", { cache: "no-store" })
-      .then((r) => r.json())
+    api.adminSquads()
       .then((data) => {
         if (data.squads) {
           useSquadStore.getState().setSnapshot(data.squads, data.activeStates || {});

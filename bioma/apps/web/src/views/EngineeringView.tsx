@@ -3,29 +3,14 @@ import { SectionHeader, EmptyState } from "../components/shared";
 import { FileText, ArrowRight, Activity, Calendar, X, Terminal, BookOpen, CheckSquare, Layers, Search } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-
-interface ModuleMaturity {
-  id: string;
-  phase: string;
-  maturity: string;
-  nextGate: string;
-}
-
-interface EngineeringModule {
-  id: string;
-  hasSpec: boolean;
-  specTitle: string | null;
-  specStatus: string | null;
-  specDate: string | null;
-  adrCount: number;
-  hasTasks: boolean;
-}
-
-interface EngineeringData {
-  modules: EngineeringModule[];
-  matrix: Record<string, ModuleMaturity>;
-}
+import {
+  api,
+  type EngineeringAdr,
+  type EngineeringData,
+  type EngineeringDetail,
+  type EngineeringModuleMaturity,
+  type EngineeringModuleSummary,
+} from "../lib/api";
 
 const PHASE_ORDER = ["P0", "P0.5", "P1", "P2", "P3", "P4"];
 
@@ -52,17 +37,13 @@ export function EngineeringView() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/engineering", { credentials: "include" })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch engineering data");
-        return res.json();
-      })
+    api.adminEngineering()
       .then(setData)
-      .catch(err => setError(err.message))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Falha ao carregar Engenharia."))
       .finally(() => setLoading(false));
   }, []);
 
-  const [detailData, setDetailData] = useState<any>(null);
+  const [detailData, setDetailData] = useState<EngineeringDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"spec" | "adrs" | "tasks">("spec");
   const [search, setSearch] = useState("");
@@ -79,10 +60,9 @@ export function EngineeringView() {
       return;
     }
     setDetailLoading(true);
-    fetch(`/api/engineering/${selectedModule}`, { credentials: "include" })
-      .then(res => res.json())
+    api.adminEngineeringDetail(selectedModule)
       .then(setDetailData)
-      .catch(console.error)
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Falha ao carregar o módulo."))
       .finally(() => setDetailLoading(false));
   }, [selectedModule]);
 
@@ -90,26 +70,20 @@ export function EngineeringView() {
     if (!selectedModule) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/engineering/${selectedModule}/doc`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doc_type: type, content, filename }),
-      });
-      if (!res.ok) throw new Error("Erro ao salvar");
+      await api.saveEngineeringDoc(selectedModule, type, content, filename);
       
-      setDetailData((prev: any) => {
+      setDetailData((prev) => {
+        if (!prev) return prev;
         const next = { ...prev };
         if (type === 'spec') next.specContent = content;
         if (type === 'tasks') next.tasksContent = content;
         if (type === 'adr' && filename) {
-          next.adrs = next.adrs.map((a: any) => a.file === filename ? { ...a, content } : a);
+          next.adrs = next.adrs.map((adr) => adr.file === filename ? { ...adr, content } : adr);
         }
         return next;
       });
       
-      fetch("/api/engineering", { credentials: "include" })
-        .then(res => res.json())
-        .then(setData);
+      setData(await api.adminEngineering());
 
       setIsEditing(null);
     } catch (err) {
@@ -139,7 +113,7 @@ export function EngineeringView() {
     ? data.modules.filter(m => m.id.toLowerCase().includes(search.toLowerCase()) || m.specTitle?.toLowerCase().includes(search.toLowerCase()))
     : data.modules;
 
-  const groups = new Map<string, Array<{ mod: EngineeringModule; mat?: ModuleMaturity }>>();
+  const groups = new Map<string, Array<{ mod: EngineeringModuleSummary; mat?: EngineeringModuleMaturity }>>();
   for (const mod of filteredModules) {
     const mat = data.matrix[mod.id];
     const phase = normalizePhase(mat?.phase);
@@ -336,7 +310,7 @@ export function EngineeringView() {
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                           {isEditing !== 'spec' ? (
-                            <button onClick={() => { setEditContent(detailData.specContent); setIsEditing('spec'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Spec</button>
+                            <button onClick={() => { setEditContent(detailData.specContent ?? ""); setIsEditing('spec'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Spec</button>
                           ) : (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
@@ -360,7 +334,7 @@ export function EngineeringView() {
                   {activeTab === 'adrs' && (
                     detailData.adrs && detailData.adrs.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {detailData.adrs.map((adr: any) => (
+                        {detailData.adrs.map((adr: EngineeringAdr) => (
                           <details key={adr.file} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
                             <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#34d399', padding: '1rem 1.5rem', background: 'rgba(255,255,255,0.02)', outline: 'none' }}>
                               {adr.file}: {adr.title}
@@ -397,7 +371,7 @@ export function EngineeringView() {
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                           {isEditing !== 'tasks' ? (
-                            <button onClick={() => { setEditContent(detailData.tasksContent); setIsEditing('tasks'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Tarefas</button>
+                            <button onClick={() => { setEditContent(detailData.tasksContent ?? ""); setIsEditing('tasks'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Tarefas</button>
                           ) : (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
