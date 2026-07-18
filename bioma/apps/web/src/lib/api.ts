@@ -246,6 +246,34 @@ export type GtmSnapshotSummary = {
   findings: TrackingFindingSummary[];
 };
 
+export type KommoConfigPayload = {
+  client_id: string;
+  client_secret: string;
+  access_token: string;
+  subdomain: string;
+};
+
+export type KommoConfigResponse = {
+  configured: boolean;
+  subdomain: string | null;
+};
+
+export type PipelineMetrics = {
+  pipeline_id: string;
+  pipeline_name: string;
+  snapshot_date: string;
+  total_leads: number;
+  won_leads: number;
+  lost_leads: number;
+  active_leads: number;
+  total_value: number;
+  won_value: number;
+};
+
+export type KommoMetricsResponse = {
+  pipelines: PipelineMetrics[];
+};
+
 export type ClientFileVisibility = "internal" | "client";
 
 export type ClientFileSummary = {
@@ -613,18 +641,29 @@ export const api = {
       body: JSON.stringify({ provider }),
     }),
   integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
+  
+  getKommoConfig: (organizationId: string) => 
+    request<KommoConfigResponse>(`/integrations/${organizationId}/kommo`),
+  setupKommoConfig: (organizationId: string, payload: KommoConfigPayload) =>
+    request<{ status: string }>(`/integrations/${organizationId}/kommo`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getKommoAnalytics: (organizationId: string) =>
+    request<KommoMetricsResponse>(`/analytics/${organizationId}/kommo`),
+
   // Backoffice EG (dados internos servidos pelo admin_legacy; EG admin only)
-  adminIdeas: () => request<Partial<{ ideas: Idea[] }> & { ideas?: Idea[] }>("/api/ideas"),
+  adminIdeas: () => request<Partial<{ ideas: Idea[] }> & { ideas?: Idea[] }>("/backoffice/ideas"),
   saveAdminIdeas: (ideas: Idea[]) =>
-    request<{ status: string }>("/api/ideas", { method: "POST", body: JSON.stringify({ ideas }) }),
-  adminIdeaDoc: (id: string) => requestText(`/api/ideas/doc?id=${encodeURIComponent(id)}`),
+    request<{ status: string }>("/backoffice/ideas", { method: "POST", body: JSON.stringify({ ideas }) }),
+  adminIdeaDoc: (id: string) => requestText(`/backoffice/ideas/doc?id=${encodeURIComponent(id)}`),
   saveAdminIdeaDoc: (id: string, content: string) =>
-    request<{ status: string }>(`/api/ideas/doc/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ content }) }),
+    request<{ status: string }>(`/backoffice/ideas/doc/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ content }) }),
   saveEngineeringDoc: (modId: string, docType: string, content: string, filename?: string) =>
-    request<{ status: string }>(`/api/engineering/${encodeURIComponent(modId)}/doc`, { method: "PUT", body: JSON.stringify({ doc_type: docType, content, filename }) }),
-  adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/api/stack"),
+    request<{ status: string }>(`/backoffice/engineering/${encodeURIComponent(modId)}/doc`, { method: "PUT", body: JSON.stringify({ doc_type: docType, content, filename }) }),
+  adminStack: () => request<Partial<StackRadar> & { techs?: Tech[] }>("/backoffice/stack"),
   saveAdminStack: (techs: Tech[]) =>
-    request<{ status: string }>("/api/stack", { method: "POST", body: JSON.stringify({ techs }) }),
+    request<{ status: string }>("/backoffice/stack", { method: "POST", body: JSON.stringify({ techs }) }),
   listFiles: (clientId: string) => request<ClientFileSummary[]>(`/clients/${clientId}/files`),
   uploadFile: (clientId: string, file: File, visibility: ClientFileVisibility) => {
     const formData = new FormData();

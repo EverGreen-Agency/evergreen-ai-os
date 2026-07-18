@@ -26,7 +26,7 @@ from bioma_api.access import require_platform_admin
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 
-router = APIRouter(prefix="/api", tags=["admin-legacy"])
+router = APIRouter(prefix="/backoffice", tags=["backoffice"])
 
 _DOC_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
 
@@ -228,7 +228,7 @@ def parse_spec_metadata(content: str):
     return {"title": title, "status": status, "date": date}
 
 @router.get("/engineering")
-def get_engineering_modules():
+def get_engineering_modules(_user: CurrentUserResponse = Depends(_require_eg_admin)):
     paths = _paths()
     if not paths or "engineering" not in paths:
         return {"modules": [], "matrix": {}}
@@ -286,7 +286,7 @@ def get_engineering_modules():
     return {"modules": modules, "matrix": matrix}
 
 @router.get("/engineering/{mod_id}")
-def get_engineering_detail(mod_id: str):
+def get_engineering_detail(mod_id: str, _user: CurrentUserResponse = Depends(_require_eg_admin)):
     import re
     if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
         raise HTTPException(status_code=400, detail="Invalid mod_id")
