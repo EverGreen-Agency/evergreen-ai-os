@@ -17,6 +17,7 @@ import { normalizeArtifactPayload } from "./lib/format";
 import { emptyArtifactDraft } from "./lib/app-config";
 import {
   ClientAnalyticsRoute,
+  ClientAiContentRoute,
   ClientCrmRoute,
   ClientFilesRoute,
   ClientFinanceRoute,
@@ -277,6 +278,7 @@ export function App() {
               </Suspense>
             } />
             <Route path="crm" element={<ClientCrmRoute />} />
+            <Route path="conteudo-ia" element={<ClientAiContentRoute />} />
             <Route path="financeiro" element={<ClientFinanceRoute />} />
             <Route path="analytics" element={<ClientAnalyticsRoute />} />
             <Route path="documentos" element={<ClientFilesRoute />} />

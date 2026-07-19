@@ -6,6 +6,24 @@ from psycopg import sql
 from psycopg.types.json import Jsonb
 
 
+def next_job_type(conn) -> str | None:
+    row = conn.execute(
+        """
+        select job_type
+        from (
+          select 'ai_content' as job_type, created_at as queued_at
+          from ai_content_requests where status = 'queued'
+          union all
+          select 'performance' as job_type, started_at as queued_at
+          from sync_runs where source = 'performance' and status = 'queued'
+        ) jobs
+        order by queued_at
+        limit 1
+        """
+    ).fetchone()
+    return row["job_type"] if row else None
+
+
 def claim_next_sync(conn):
     return conn.execute(
         """
@@ -25,6 +43,90 @@ def claim_next_sync(conn):
                   run.date_from, run.date_to, run.started_at
         """
     ).fetchone()
+
+
+def claim_next_ai_content(conn):
+    return conn.execute(
+        """
+        with next_request as (
+          select id
+          from ai_content_requests
+          where status = 'queued'
+          order by created_at
+          for update skip locked
+          limit 1
+        )
+        update ai_content_requests request
+        set status = 'running', started_at = now(), updated_at = now()
+        from next_request
+        where request.id = next_request.id
+        returning request.id, request.workspace_id, request.organization_id,
+          request.requested_by, request.brief, request.channels, request.quantity,
+          request.tone, request.objective, request.methodology_refs
+        """
+    ).fetchone()
+
+
+def complete_ai_content(conn, request: dict, result: dict) -> None:
+    conn.execute(
+        """
+        update ai_content_requests
+        set status = 'ready', provider = %s, model = %s, generation_mode = %s,
+          output = %s, error_message = null, finished_at = now(), updated_at = now()
+        where id = %s
+        """,
+        (
+            result["provider"],
+            result["model"],
+            result["generation_mode"],
+            Jsonb(result["output"]),
+            request["id"],
+        ),
+    )
+    conn.execute(
+        """
+        insert into ai_runs (
+          organization_id, workspace_id, user_id, content_request_id,
+          provider, model, prompt_version, input_schema, output_schema, status, metadata
+        )
+        values (%s, %s, %s, %s, %s, %s, 'ai-content-v1',
+          'AiContentRequestCreate', 'AiContentOutput', 'ok', %s)
+        """,
+        (
+            request["organization_id"],
+            request["workspace_id"],
+            request["requested_by"],
+            request["id"],
+            result["provider"],
+            result["model"],
+            Jsonb({"generation_mode": result["generation_mode"], "usage": result.get("usage", {})}),
+        ),
+    )
+
+
+def fail_ai_content(conn, request: dict, message: str) -> None:
+    conn.execute(
+        """
+        update ai_content_requests
+        set status = 'error', error_message = %s, finished_at = now(), updated_at = now()
+        where id = %s
+        """,
+        (message[:2000], request["id"]),
+    )
+    conn.execute(
+        """
+        insert into ai_runs (
+          organization_id, workspace_id, user_id, content_request_id,
+          provider, model, prompt_version, input_schema, output_schema, status, metadata
+        )
+        values (%s, %s, %s, %s, 'openai', 'unknown', 'ai-content-v1',
+          'AiContentRequestCreate', 'AiContentOutput', 'error', %s)
+        """,
+        (
+            request["organization_id"], request["workspace_id"], request["requested_by"], request["id"],
+            Jsonb({"error": message[:500]}),
+        ),
+    )
 
 
 def enqueue_scheduled_syncs(conn, date_from: date, date_to: date) -> int:

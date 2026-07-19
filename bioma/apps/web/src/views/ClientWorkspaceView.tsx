@@ -16,6 +16,7 @@ const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: modu
 const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
 const FilesPanel = lazy(() => import("../components/FilesPanel").then((module) => ({ default: module.FilesPanel })));
 const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
+const AiContentStudio = lazy(() => import("../components/AiContentStudio").then((module) => ({ default: module.AiContentStudio })));
 
 export type ClientWorkspaceOutletContext = {
   client: ClientSummary;
@@ -116,6 +117,15 @@ export function ClientCrmRoute() {
   return (
     <ClientModuleBoundary module="commercial">
       <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.workspaceId} /></Suspense>
+    </ClientModuleBoundary>
+  );
+}
+
+export function ClientAiContentRoute() {
+  const { workspace } = useClientWorkspace();
+  return (
+    <ClientModuleBoundary module="content">
+      <Suspense fallback={<ModuleLoading />}><AiContentStudio workspaceId={workspace.workspaceId} /></Suspense>
     </ClientModuleBoundary>
   );
 }

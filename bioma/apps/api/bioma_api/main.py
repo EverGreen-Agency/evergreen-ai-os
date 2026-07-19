@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from bioma_api.config import get_settings
 from bioma_api.routers import (
     admin,
+    ai_content,
     analytics,
     auth,
     benchmark,
@@ -48,6 +49,7 @@ app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
 app.include_router(workspaces.router)
 app.include_router(teams.router)
+app.include_router(ai_content.router)
 app.include_router(client_hub.workspace_router)
 app.include_router(invites.admin_router)
 app.include_router(invites.workspace_admin_router)

@@ -3,12 +3,46 @@ from typing import Any
 
 from bioma_worker.config import get_settings
 from bioma_worker.db import connect
-from bioma_worker.google_client import GoogleApiClient
-from bioma_worker.providers import ga4, google_ads, gtm, search_console
+from bioma_worker.ai_content import generate_content
 from bioma_worker import storage
 
 
+def run_next_job() -> dict[str, Any] | None:
+    with connect() as conn:
+        job_type = storage.next_job_type(conn)
+    if job_type == "ai_content":
+        return run_next_ai_content()
+    if job_type == "performance":
+        return run_next_sync()
+    return None
+
+
+def run_next_ai_content() -> dict[str, Any] | None:
+    with connect() as conn:
+        request = storage.claim_next_ai_content(conn)
+    if not request:
+        return None
+
+    try:
+        result = generate_content(request, get_settings())
+        with connect() as conn:
+            storage.complete_ai_content(conn, request, result)
+        return {
+            "job": "ai_content",
+            "id": str(request["id"]),
+            "status": "ready",
+            "provider": result["provider"],
+            "generation_mode": result["generation_mode"],
+        }
+    except Exception as exc:  # noqa: BLE001 - job failure must be persisted
+        message = _safe_error(exc)
+        with connect() as conn:
+            storage.fail_ai_content(conn, request, message)
+        return {"job": "ai_content", "id": str(request["id"]), "status": "error", "error": message}
+
+
 def run_next_sync() -> dict[str, Any] | None:
+    from bioma_worker.google_client import GoogleApiClient
     with connect() as conn:
         sync_run = storage.claim_next_sync(conn)
     if not sync_run:
@@ -90,13 +124,14 @@ def run_next_sync() -> dict[str, Any] | None:
 
 def _sync_provider(
     conn,
-    client: GoogleApiClient,
+    client,
     settings,
     client_id,
     connection,
     date_from: date,
     date_to: date,
 ) -> int:
+    from bioma_worker.providers import ga4, google_ads, gtm, search_console
     provider = connection["provider"]
     if provider == "google_ads":
         return google_ads.sync(conn, client, settings, client_id, connection, date_from, date_to)

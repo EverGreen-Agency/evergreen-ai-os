@@ -86,6 +86,35 @@ export type WorkspaceSavedView = {
   filters: WorkspaceSavedViewFilters;
 };
 
+export type AiContentPost = {
+  title: string;
+  channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
+  format: string;
+  hook: string;
+  caption: string;
+  cta: string;
+};
+
+export type AiContentRequest = {
+  id: string;
+  workspace_id: string;
+  content_type: "social_posts";
+  status: "queued" | "running" | "ready" | "error" | "cancelled";
+  brief: string;
+  channels: AiContentPost["channel"][];
+  quantity: number;
+  tone: string | null;
+  objective: string | null;
+  methodology_refs: string[];
+  provider: string | null;
+  model: string | null;
+  generation_mode: "live" | "preview" | null;
+  output: { strategy_note: string; posts: AiContentPost[] } | null;
+  error_message: string | null;
+  created_at: string;
+  finished_at: string | null;
+};
+
 export type ArtifactSummary = {
   id: string;
   title: string;
@@ -605,6 +634,22 @@ export const api = {
     }),
   deleteWorkspaceView: (viewId: string) =>
     request<WorkspaceSavedView[]>(`/workspaces/views/${viewId}`, { method: "DELETE" }),
+  aiContentRequests: (workspaceId: string) =>
+    request<AiContentRequest[]>(`/workspaces/${workspaceId}/ai/content`),
+  createAiContentRequest: (
+    workspaceId: string,
+    payload: {
+      brief: string;
+      channels: AiContentPost["channel"][];
+      quantity: number;
+      tone?: string | null;
+      objective?: string | null;
+      methodology_refs?: string[];
+    },
+  ) => request<AiContentRequest>(`/workspaces/${workspaceId}/ai/content`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>

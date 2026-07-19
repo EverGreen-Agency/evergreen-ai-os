@@ -8,6 +8,7 @@ Worker assíncrono e agendável do Bioma. O primeiro uso real é a sincronizaç�
 - Sincronizar Google Ads, GA4, Search Console e Google Tag Manager.
 - Fazer upsert idempotente nas tabelas diárias por cliente.
 - Isolar falhas por provider e concluir a execução como `ok`, `partial` ou `error`.
+- Consumir solicitações de conteúdo IA. Sem `OPENAI_API_KEY`, o worker produz somente uma prévia metodológica explicitamente identificada; com a chave, usa a Responses API e Structured Outputs.
 - Atualizar a saúde das conexões sem armazenar credenciais em texto puro no banco.
 
 O MVP usa o próprio Postgres como fila durável. Redis/RQ só deve entrar se volume, concorrência ou retry distribuído justificarem uma fila dedicada.
@@ -18,6 +19,8 @@ Copie `../../infra/env/worker.example.env` para `.env` e configure:
 
 - `DATABASE_URL`
 - `GOOGLE_SERVICE_ACCOUNT_JSON`
+- `OPENAI_API_KEY` (opcional no ambiente local; obrigatória para geração real)
+- `OPENAI_MODEL` (default atual do adapter: `gpt-5.6-sol`)
 - `GOOGLE_ADS_DEVELOPER_TOKEN`
 - `GOOGLE_ADS_LOGIN_CUSTOMER_ID`, quando a conta for acessada por MCC
 - `GOOGLE_ADS_API_VERSION`, atualmente `v21` por padrão e configurável sem alterar código

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import json
 
 from bioma_worker.db import connect
-from bioma_worker.orchestrator import run_next_sync
+from bioma_worker.orchestrator import run_next_job
 from bioma_worker.storage import enqueue_scheduled_syncs
 
 
@@ -23,7 +23,7 @@ def main() -> None:
 
     processed = 0
     while True:
-        result = run_next_sync()
+        result = run_next_job()
         if result is None:
             if processed == 0:
                 print(json.dumps({"status": "idle"}))
