@@ -36,3 +36,27 @@ class WorkspaceSummary(BaseModel):
     responsible_name: str | None = None
     enabled_modules: list[str] = Field(default_factory=list)
     access_role: WorkspaceAccessRole
+    is_favorite: bool = False
+    is_assigned: bool = False
+
+
+class WorkspaceSavedViewFilters(BaseModel):
+    query: str = ""
+    kinds: list[WorkspaceKind] = Field(default_factory=list)
+    access_roles: list[WorkspaceAccessRole] = Field(default_factory=list)
+    statuses: list[str] = Field(default_factory=list)
+    favorite_only: bool = False
+    mine_only: bool = False
+
+
+class WorkspaceSavedViewCreateRequest(BaseModel):
+    tenant_organization_id: UUID | None = None
+    name: str = Field(min_length=1, max_length=80)
+    filters: WorkspaceSavedViewFilters
+
+
+class WorkspaceSavedViewSummary(BaseModel):
+    id: UUID
+    tenant_organization_id: UUID | None = None
+    name: str
+    filters: WorkspaceSavedViewFilters

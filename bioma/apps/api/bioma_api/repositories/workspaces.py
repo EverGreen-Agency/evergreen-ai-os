@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from psycopg.types.json import Jsonb
+
 
 def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID):
     """Resolve o adapter de cliente somente dentro de um workspace ativo.
@@ -88,7 +90,12 @@ def list_accessible_workspaces(conn, is_admin: bool, user_id: UUID):
           case when w.kind = 'client' then c.status end as client_status,
           case when w.kind = 'client' then c.responsible_name end as responsible_name,
           subject.enabled_modules,
-          access.role as access_role
+          access.role as access_role,
+          exists (
+            select 1 from workspace_favorites favorite
+            where favorite.workspace_id = w.id and favorite.user_id = %s
+          ) as is_favorite,
+          workspace_is_assigned(w.id, %s) as is_assigned
         from workspaces w
         join organizations tenant on tenant.id = w.tenant_organization_id
         join organizations subject on subject.id = w.subject_organization_id
@@ -106,8 +113,69 @@ def list_accessible_workspaces(conn, is_admin: bool, user_id: UUID):
           lower(w.name),
           w.id
         """,
-        (is_admin, user_id),
+        (user_id, user_id, is_admin, user_id),
     ).fetchall()
+
+
+def find_accessible_workspace(conn, workspace_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select w.id, w.tenant_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
+        from workspaces w
+        where w.id = %s
+          and w.status = 'active'
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        """,
+        (is_admin, user_id, workspace_id, is_admin, user_id),
+    ).fetchone()
+
+
+def set_favorite(conn, workspace_id: UUID, user_id: UUID, favorite: bool) -> None:
+    if favorite:
+        conn.execute(
+            """
+            insert into workspace_favorites (user_id, workspace_id)
+            values (%s, %s)
+            on conflict do nothing
+            """,
+            (user_id, workspace_id),
+        )
+    else:
+        conn.execute(
+            "delete from workspace_favorites where user_id = %s and workspace_id = %s",
+            (user_id, workspace_id),
+        )
+
+
+def list_saved_views(conn, user_id: UUID):
+    return conn.execute(
+        """
+        select id, tenant_organization_id, name, filters
+        from workspace_saved_views
+        where user_id = %s
+        order by lower(name), id
+        """,
+        (user_id,),
+    ).fetchall()
+
+
+def create_saved_view(conn, user_id: UUID, tenant_organization_id: UUID | None, name: str, filters: dict):
+    return conn.execute(
+        """
+        insert into workspace_saved_views (user_id, tenant_organization_id, name, filters)
+        values (%s, %s, %s, %s)
+        returning id, tenant_organization_id, name, filters
+        """,
+        (user_id, tenant_organization_id, name, Jsonb(filters)),
+    ).fetchone()
+
+
+def delete_saved_view(conn, user_id: UUID, view_id: UUID) -> None:
+    conn.execute(
+        "delete from workspace_saved_views where id = %s and user_id = %s",
+        (view_id, user_id),
+    )
 
 
 def find_platform_tenant_id(conn, user_id: UUID) -> UUID | None:

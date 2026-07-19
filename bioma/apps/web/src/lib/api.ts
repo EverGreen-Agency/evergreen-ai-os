@@ -66,6 +66,24 @@ export type WorkspaceSummary = {
     | "approver"
     | "viewer"
     | "client_user";
+  is_favorite: boolean;
+  is_assigned: boolean;
+};
+
+export type WorkspaceSavedViewFilters = {
+  query: string;
+  kinds: WorkspaceSummary["kind"][];
+  access_roles: WorkspaceSummary["access_role"][];
+  statuses: string[];
+  favorite_only: boolean;
+  mine_only: boolean;
+};
+
+export type WorkspaceSavedView = {
+  id: string;
+  tenant_organization_id: string | null;
+  name: string;
+  filters: WorkspaceSavedViewFilters;
 };
 
 export type ArtifactSummary = {
@@ -575,6 +593,18 @@ export const api = {
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
+  favoriteWorkspace: (workspaceId: string, favorite: boolean) =>
+    request<WorkspaceSummary[]>(`/workspaces/${workspaceId}/favorite`, {
+      method: favorite ? "PUT" : "DELETE",
+    }),
+  workspaceViews: () => request<WorkspaceSavedView[]>("/workspaces/views"),
+  createWorkspaceView: (payload: { name: string; tenant_organization_id?: string | null; filters: WorkspaceSavedViewFilters }) =>
+    request<WorkspaceSavedView>("/workspaces/views", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  deleteWorkspaceView: (viewId: string) =>
+    request<WorkspaceSavedView[]>(`/workspaces/views/${viewId}`, { method: "DELETE" }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>

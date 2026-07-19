@@ -4,15 +4,19 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   Building2,
+  BookmarkPlus,
   ChevronDown,
   Clock3,
   LayoutDashboard,
   Search,
+  Star,
+  Trash2,
+  UserRound,
   X,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import type { ClientSummary, CurrentUser, WorkspaceSummary } from "../lib/api";
+import { api, type ClientSummary, type CurrentUser, type WorkspaceSavedView, type WorkspaceSummary } from "../lib/api";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { resolveAgencyWorkspace } from "../lib/workspace-context";
@@ -30,6 +34,8 @@ type ClientWorkspaceEntry = {
 type RecentWorkspaceEntry =
   | { kind: "agency"; workspace: WorkspaceSummary }
   | ({ kind: "client" } & ClientWorkspaceEntry);
+
+type WorkspaceFilter = "all" | "mine" | "favorites";
 
 function loadRecentWorkspaces(storageKey: string): StoredRecentWorkspace[] {
   try {
@@ -104,6 +110,12 @@ export function WorkspaceNavigator({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<WorkspaceFilter>("all");
+  const [savedViews, setSavedViews] = useState<WorkspaceSavedView[]>([]);
+  const [viewName, setViewName] = useState("");
+  const [isNamingView, setIsNamingView] = useState(false);
+  const [navigationError, setNavigationError] = useState<string | null>(null);
+  const [favoriteBusy, setFavoriteBusy] = useState<string | null>(null);
   const storageKey = `bioma_recent_workspaces_${user.id}`;
   const [recent, setRecent] = useState<StoredRecentWorkspace[]>(() => loadRecentWorkspaces(storageKey));
 
@@ -158,6 +170,11 @@ export function WorkspaceNavigator({
   useEffect(() => {
     if (!isOpen) return;
     setQuery("");
+    setFilter("all");
+    setNavigationError(null);
+    void api.workspaceViews()
+      .then(setSavedViews)
+      .catch((error: Error) => setNavigationError(error.message));
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => inputRef.current?.focus(), 0);
@@ -201,13 +218,70 @@ export function WorkspaceNavigator({
     navigate(clientDestination(entry.workspace.client_id, location.pathname));
   }
 
+  async function toggleFavorite(workspace: WorkspaceSummary) {
+    setFavoriteBusy(workspace.id);
+    setNavigationError(null);
+    try {
+      await api.favoriteWorkspace(workspace.id, !workspace.is_favorite);
+      onRetry();
+    } catch (error) {
+      setNavigationError(error instanceof Error ? error.message : "Não foi possível atualizar o favorito.");
+    } finally {
+      setFavoriteBusy(null);
+    }
+  }
+
+  function applySavedView(view: WorkspaceSavedView) {
+    setQuery(view.filters.query);
+    setFilter(view.filters.favorite_only ? "favorites" : view.filters.mine_only ? "mine" : "all");
+  }
+
+  async function saveCurrentView() {
+    const name = viewName.trim();
+    if (!name) return;
+    setNavigationError(null);
+    try {
+      const created = await api.createWorkspaceView({
+        name,
+        tenant_organization_id: persistedAgencyWorkspace?.tenant_organization_id ?? clientEntries[0]?.workspace.tenant_organization_id,
+        filters: {
+          query,
+          kinds: [],
+          access_roles: [],
+          statuses: [],
+          favorite_only: filter === "favorites",
+          mine_only: filter === "mine",
+        },
+      });
+      setSavedViews((views) => [...views, created].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setViewName("");
+      setIsNamingView(false);
+    } catch (error) {
+      setNavigationError(error instanceof Error ? error.message : "Não foi possível salvar a visão.");
+    }
+  }
+
+  async function deleteSavedView(viewId: string) {
+    setNavigationError(null);
+    try {
+      setSavedViews(await api.deleteWorkspaceView(viewId));
+    } catch (error) {
+      setNavigationError(error instanceof Error ? error.message : "Não foi possível excluir a visão.");
+    }
+  }
+
   const normalizedQuery = normalizeSearch(query);
-  const matchingClients = clientEntries.filter(({ workspace, client }) => normalizeSearch([
-    workspace.name,
-    workspace.organization_name,
-    workspace.tenant_name,
-    workspace.responsible_name ?? client.responsible_name ?? "",
-  ].join(" ")).includes(normalizedQuery));
+  const matchingClients = clientEntries.filter(({ workspace, client }) => {
+    const matchesMode = filter === "all"
+      || (filter === "favorites" && workspace.is_favorite)
+      || (filter === "mine" && (workspace.is_assigned || workspace.access_role === "client_user"));
+    return matchesMode && normalizeSearch([
+      workspace.name,
+      workspace.organization_name,
+      workspace.tenant_name,
+      workspace.responsible_name ?? client.responsible_name ?? "",
+    ].join(" ")).includes(normalizedQuery);
+  });
   const agencyMatches = isEgAdmin && normalizeSearch([
     persistedAgencyWorkspace?.name ?? "Operação EG",
     persistedAgencyWorkspace?.tenant_name ?? "EverGreen",
@@ -257,6 +331,58 @@ export function WorkspaceNavigator({
           <kbd>Esc</kbd>
         </label>
 
+        <div className="workspace-filterbar" aria-label="Filtros de carteira">
+          {([
+            ["all", "Todos"],
+            ["mine", "Minha carteira"],
+            ["favorites", "Favoritos"],
+          ] as const).map(([value, label]) => (
+            <button
+              className={filter === value ? "active" : ""}
+              type="button"
+              onClick={() => setFilter(value)}
+              key={value}
+            >
+              {value === "mine" && <UserRound size={13} />}
+              {value === "favorites" && <Star size={13} />}
+              {label}
+            </button>
+          ))}
+          <button className="save-view-trigger" type="button" onClick={() => setIsNamingView((value) => !value)}>
+            <BookmarkPlus size={13} /> Salvar visão
+          </button>
+        </div>
+
+        {isNamingView && (
+          <div className="workspace-save-view">
+            <input
+              value={viewName}
+              onChange={(event) => setViewName(event.target.value)}
+              placeholder="Nome da visão"
+              maxLength={80}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") void saveCurrentView();
+              }}
+            />
+            <button type="button" disabled={!viewName.trim()} onClick={() => void saveCurrentView()}>Salvar</button>
+          </div>
+        )}
+
+        {savedViews.length > 0 && (
+          <div className="workspace-saved-views">
+            {savedViews.map((view) => (
+              <span key={view.id}>
+                <button type="button" onClick={() => applySavedView(view)}>{view.name}</button>
+                <button type="button" aria-label={`Excluir visão ${view.name}`} onClick={() => void deleteSavedView(view.id)}>
+                  <Trash2 size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {navigationError && <div className="workspace-navigation-error" role="alert">{navigationError}</div>}
+
         <div className="workspace-navigator-results">
           {!isLoading && !errorMessage && !normalizedQuery && recentEntries.length > 0 && (
             <div className="workspace-result-section">
@@ -268,7 +394,13 @@ export function WorkspaceNavigator({
                   <ArrowRight size={16} />
                 </button>
               ) : (
-                <WorkspaceClientResult entry={entry} onSelect={() => openClientWorkspace(entry)} key={entry.workspace.id} />
+                <WorkspaceClientResult
+                  entry={entry}
+                  onSelect={() => openClientWorkspace(entry)}
+                  onToggleFavorite={() => void toggleFavorite(entry.workspace)}
+                  favoriteBusy={favoriteBusy === entry.workspace.id}
+                  key={entry.workspace.id}
+                />
               ))}
             </div>
           )}
@@ -302,6 +434,8 @@ export function WorkspaceNavigator({
                     entry={entry}
                     active={currentClientEntry?.workspace.id === entry.workspace.id}
                     onSelect={() => openClientWorkspace(entry)}
+                    onToggleFavorite={() => void toggleFavorite(entry.workspace)}
+                    favoriteBusy={favoriteBusy === entry.workspace.id}
                     key={entry.workspace.id}
                   />
                 ))}
@@ -359,20 +493,35 @@ function WorkspaceClientResult({
   entry,
   active = false,
   onSelect,
+  onToggleFavorite,
+  favoriteBusy,
 }: {
   entry: ClientWorkspaceEntry;
   active?: boolean;
   onSelect: () => void;
+  onToggleFavorite: () => void;
+  favoriteBusy: boolean;
 }) {
   const { client, workspace } = entry;
   return (
-    <button className={`workspace-result ${active ? "active" : ""}`} type="button" onClick={onSelect}>
-      <span className="workspace-result-icon"><Building2 size={17} /></span>
-      <span>
-        <strong>{workspace.name}</strong>
-        <small>{workspace.responsible_name ? `Responsável: ${workspace.responsible_name}` : workspace.organization_name}</small>
-      </span>
-      <span className="workspace-kind-pill">{statusLabel[client.status]}</span>
-    </button>
+    <div className={`workspace-result-row ${active ? "active" : ""}`}>
+      <button className="workspace-result" type="button" onClick={onSelect}>
+        <span className="workspace-result-icon"><Building2 size={17} /></span>
+        <span>
+          <strong>{workspace.name}</strong>
+          <small>{workspace.responsible_name ? `Responsável: ${workspace.responsible_name}` : workspace.organization_name}</small>
+        </span>
+        <span className="workspace-kind-pill">{statusLabel[client.status]}</span>
+      </button>
+      <button
+        className={`workspace-favorite ${workspace.is_favorite ? "active" : ""}`}
+        type="button"
+        disabled={favoriteBusy}
+        aria-label={workspace.is_favorite ? `Remover ${workspace.name} dos favoritos` : `Favoritar ${workspace.name}`}
+        onClick={onToggleFavorite}
+      >
+        <Star size={15} fill={workspace.is_favorite ? "currentColor" : "none"} />
+      </button>
+    </div>
   );
 }

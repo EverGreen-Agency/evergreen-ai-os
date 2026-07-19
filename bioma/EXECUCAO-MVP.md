@@ -69,7 +69,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | DATA-WS-001A | DONE | Full-stack | Persistir identidade de workspace, backfill, provisionamento e descoberta no navegador | ARCH-CTX-001 | compile + smoke API + tsc/build |
 | DATA-WS-001B | DONE | Backend | Migrar APIs/Performance de `client_id` para `workspace_id` com adapters e dual-read/write | DATA-WS-001A | paridade + smokes + backfill |
 | AUTHZ-WS-001 | DONE | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001B | matriz automatizada de autorização |
-| WEB-NAV-002 | TODO | Frontend | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | build + QA desktop/mobile |
+| WEB-NAV-002 | DONE | Full-stack | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | smoke de persistência + tsc/build |
 
 ### Onda 2 — Integrações reais
 
