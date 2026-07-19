@@ -161,6 +161,7 @@ export type FinancialRecordPayload = {
 export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm";
 
 export type PerformanceOverview = {
+  workspace_id: string;
   client_id: string;
   period_start: string;
   period_end: string;
@@ -257,10 +258,11 @@ export type TrackingFindingSummary = {
 
 export type GtmSnapshotSummary = {
   id: string;
+  workspace_id: string;
   collected_at: string;
   account_id: string;
   container_id: string;
-  workspace_id: string | null;
+  gtm_workspace_id: string | null;
   published_version: string | null;
   tags_count: number;
   triggers_count: number;
@@ -403,6 +405,7 @@ export type PerformanceConnectionStatus = "active" | "inactive" | "error";
 
 export type PerformanceConnection = {
   id: string;
+  workspace_id: string;
   client_id: string;
   provider: PerformanceProvider;
   external_account_id: string;
@@ -428,6 +431,7 @@ export type PerformanceConnectionPayload = {
 
 export type PerformanceSyncRun = {
   id: string;
+  workspace_id: string;
   source: string;
   provider: string | null;
   status: "queued" | "running" | "ok" | "error" | "partial";

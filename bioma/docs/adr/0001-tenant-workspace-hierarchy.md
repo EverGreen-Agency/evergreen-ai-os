@@ -112,13 +112,13 @@ limites do plano, mas não substituem RBAC/assignments.
 
 1. **Identidade e descoberta — entregue:** tabela `workspaces`, backfill,
    provisionamento transacional e `GET /workspaces`.
-2. **Adapters:** resolver `workspace_id → organization_id/client_id` antes de
-   reutilizar services/repositories atuais.
-3. **Domínios organization-scoped:** CRM, financeiro, arquivos, artefatos e
-   métricas manuais passam a aceitar workspace sem duplicar lógica.
-4. **Performance:** renomear primeiro o `workspace_id` externo do GTM para
-   `gtm_workspace_id`; depois adicionar o UUID canônico com dual-read/write e
-   backfill.
+2. **Adapters — entregue:** resolver `workspace_id → organization_id/client_id`
+   antes de reutilizar services/repositories atuais.
+3. **Domínios organization-scoped — entregue:** CRM, financeiro, arquivos,
+   artefatos e métricas manuais aceitam workspace sem duplicar lógica.
+4. **Performance — entregue em transição:** identificador externo renomeado para
+   `gtm_workspace_id`; UUID canônico adicionado com backfill e dual-write. As
+   colunas `client_id` permanecem até a remoção segura da ponte.
 5. **Papéis e assignments:** separar platform/tenant e introduzir times.
 6. **Remoção da ponte:** excluir `EverGreen Internal` apenas quando não houver
    endpoint, fila ou FK dependente de seu `client_id`.

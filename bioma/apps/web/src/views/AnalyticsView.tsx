@@ -243,7 +243,7 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
               <div className="gtm-snapshot" key={snapshot.id}>
                 <div className="table-row">
                   <strong>{snapshot.account_id}/{snapshot.container_id}</strong>
-                  <span>workspace {snapshot.workspace_id ?? "live"}</span>
+                  <span>GTM workspace {snapshot.gtm_workspace_id ?? "live"}</span>
                   <span>{snapshot.tags_count} tags</span>
                   <span>{snapshot.triggers_count} triggers · {snapshot.variables_count} variáveis</span>
                   <span>{new Date(snapshot.collected_at).toLocaleString("pt-BR")}</span>

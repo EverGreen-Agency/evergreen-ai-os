@@ -87,6 +87,7 @@ def get_overview(
         insights = performance_repo.list_insights(conn, resolved_client_id, period_start, period_end)
 
     return PerformanceOverviewResponse(
+        workspace_id=client["workspace_id"],
         client_id=resolved_client_id,
         period_start=period_start,
         period_end=period_end,

@@ -13,6 +13,7 @@ PerformanceSeverity = Literal["info", "low", "medium", "high", "critical", "warn
 
 class PerformanceConnectionSummary(BaseModel):
     id: UUID
+    workspace_id: UUID
     client_id: UUID
     provider: PerformanceProvider
     external_account_id: str
@@ -126,10 +127,11 @@ class TrackingFindingSummary(BaseModel):
 
 class GtmSnapshotSummary(BaseModel):
     id: UUID
+    workspace_id: UUID
     collected_at: datetime
     account_id: str
     container_id: str
-    workspace_id: str | None = None
+    gtm_workspace_id: str | None = None
     published_version: str | None = None
     tags_count: int
     triggers_count: int
@@ -154,6 +156,7 @@ class PerformanceInsightSummary(BaseModel):
 
 
 class PerformanceOverviewResponse(BaseModel):
+    workspace_id: UUID
     client_id: UUID
     period_start: date
     period_end: date
@@ -171,6 +174,7 @@ class PerformanceSyncRequest(BaseModel):
 
 class PerformanceSyncRunSummary(BaseModel):
     id: UUID
+    workspace_id: UUID
     source: str
     provider: str | None = None
     status: Literal["queued", "running", "ok", "error", "partial"]

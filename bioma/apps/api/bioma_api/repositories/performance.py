@@ -8,7 +8,7 @@ from psycopg.types.json import Jsonb
 def list_connections(conn, client_id: UUID):
     return conn.execute(
         """
-        select id, client_id, provider, external_account_id, external_parent_id, display_name,
+        select id, workspace_id, client_id, provider, external_account_id, external_parent_id, display_name,
                status, (credentials_ref is not null) as credentials_configured,
                last_synced_at, last_error_at, last_error_message,
                metadata, created_at, updated_at
@@ -211,6 +211,7 @@ def list_gtm_snapshots(conn, client_id: UUID, limit: int):
           account_id,
           container_id,
           workspace_id,
+          gtm_workspace_id,
           published_version,
           jsonb_array_length(tags) as tags_count,
           jsonb_array_length(triggers) as triggers_count,
@@ -304,7 +305,7 @@ def record_sync_request(
           date_from, date_to, records_processed
         )
         values ('performance', %s, %s, %s, 'queued', %s, %s, %s, %s)
-        returning id, source, provider, status, summary, date_from, date_to,
+        returning id, workspace_id, source, provider, status, summary, date_from, date_to,
                   records_processed, started_at, finished_at
         """,
         (

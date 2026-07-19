@@ -274,7 +274,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Persistir a identidade de workspace, provisionar junto com novos clientes e alimentar o navegador por endpoint autenticado.
 - [ ] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
 - [ ] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
-- [ ] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
+- [x] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
 - [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` somente após eliminar todas as dependências e FKs em cascata.
 - [ ] Adicionar favoritos e visões salvas ao navegador depois do modelo de times/atribuições.
 
@@ -414,3 +414,4 @@ Formato:
 - 2026-07-18 - Codex - ver git log - Separada a Operação EG da Carteira no frontend; CRM, financeiro, métricas, documentos e integrações agora operam somente sob `/clientes/:clientId/...`, com rotas globais fechadas e `EverGreen Internal` oculto do Hub - `npx.cmd tsc -b`, `npm.cmd run build` - pendente migração backend do registro técnico legado e QA visual humano.
 - 2026-07-18 - Codex - ver git log - Corrigida a separação anterior: restaurada a Operação EG como workspace próprio em paralelo aos hubs, criado navegador pesquisável com recentes e documentado o modelo `Platform → Tenant/Agência → Workspaces` - `npx.cmd tsc -b`, `npm.cmd run build` - pendentes migração `client_id`→`workspace_id`, times/atribuições, favoritos e QA visual humano.
 - 2026-07-18 - Codex - ver git log - Entregue a primeira etapa persistente de workspaces: ADR aceito, migration/backfill e provisionamento transacional, `GET /workspaces`, navegador alimentado pelo contexto autorizado, invariantes de tenant/slug e resolvedor ativo compartilhado por Client Hub, Files, Performance e Kommo - migration/seed, `compileall`, smoke API (membership, convite e archive), smoke Performance, smoke da fila, `npx.cmd tsc -b` e `npm.cmd run build` passaram - pendentes adapters dos demais domínios, migração canônica de Performance, RBAC/times e QA visual humano.
+- 2026-07-18 - Codex - ver git log - DATA-WS-001B concluído: rotas canônicas `/workspaces/{id}` com adapter legado, frontend operando por `workspace.id`, Performance backfilled com UUID canônico, `gtm_workspace_id` desambiguado e dual-write protegido por trigger - migrations, `compileall`, smoke API, smoke Performance, smoke da fila e `npx.cmd tsc -b` passaram - ponte `EverGreen Internal` ainda necessária até remover as FKs/client adapters restantes.

@@ -40,7 +40,7 @@ Glossário:
 
 Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
 
-Estado transitório: `workspaces` já fornece a identidade persistente de contexto e `GET /workspaces` faz a descoberta autorizada. `subject_organization_id` aponta para `organizations`, que ainda é o contêiner físico da maior parte dos dados; `clients` permanece como extensão comercial 1:1 e adapter das rotas atuais. `EverGreen Internal` fornece somente o `legacy_client_id` da Operação EG. Não removê-lo antes de migrar Performance/endpoints e suas FKs. `parent_organization_id` e `tenant_organization_id` descrevem pertencimento, mas não concedem autorização hierárquica.
+Estado transitório: `workspaces` fornece a identidade persistente e `GET /workspaces` faz a descoberta autorizada. Os domínios operacionais aceitam `/workspaces/{workspace_id}/...`; `/clients/{client_id}/...` permanece como adapter de compatibilidade. Performance mantém `client_id` e `workspace_id` em dual-write enquanto leitores e workers migram, e o identificador externo do GTM chama-se `gtm_workspace_id`. `subject_organization_id` ainda aponta para o contêiner físico dos dados e `clients` continua como extensão comercial 1:1. `EverGreen Internal` fornece somente a ponte técnica da Operação EG e não pode ser removido antes das FKs/adapters restantes. `parent_organization_id` e `tenant_organization_id` descrevem pertencimento, mas não concedem autorização hierárquica.
 
 Regras invioláveis:
 
