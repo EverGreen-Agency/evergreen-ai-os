@@ -15,6 +15,7 @@ from bioma_api.routers import (
     oauth,
     passwords,
     performance,
+    teams,
     workspaces,
 )
 
@@ -35,7 +36,7 @@ app.add_middleware(
         else None
     ),
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
@@ -46,6 +47,7 @@ app.include_router(invites.public_router)
 app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
 app.include_router(workspaces.router)
+app.include_router(teams.router)
 app.include_router(client_hub.workspace_router)
 app.include_router(invites.admin_router)
 app.include_router(invites.workspace_admin_router)

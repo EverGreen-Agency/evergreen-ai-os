@@ -18,24 +18,25 @@ def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID
           o.name as organization_name,
           o.enabled_modules,
           w.id as workspace_id,
-          w.kind as workspace_kind
+          w.kind as workspace_kind,
+          access.role as access_role
         from clients c
         join organizations o on o.id = c.organization_id
         join workspaces w
           on w.subject_organization_id = c.organization_id
          and w.status = 'active'
-        left join memberships membership
-          on membership.organization_id = c.organization_id
-         and membership.user_id = %s
+        cross join lateral (
+          select case
+            when %s then 'platform_admin'
+            else workspace_access_role(w.id, %s)
+          end as role
+        ) access
         where (w.id = %s or c.id = %s)
-          and (
-            %s
-            or (w.kind = 'client' and membership.role = 'client_user')
-          )
+          and access.role is not null
         order by case when w.id = %s then 0 else 1 end
         limit 1
         """,
-        (user_id, context_id, context_id, is_admin, context_id),
+        (is_admin, user_id, context_id, context_id, context_id),
     ).fetchone()
 
 
@@ -47,21 +48,22 @@ def find_accessible_organization(conn, organization_id: UUID, is_admin: bool, us
           o.id as organization_id,
           o.enabled_modules,
           w.id as workspace_id,
-          w.kind as workspace_kind
+          w.kind as workspace_kind,
+          access.role as access_role
         from organizations o
         join workspaces w
           on w.subject_organization_id = o.id
          and w.status = 'active'
-        left join memberships membership
-          on membership.organization_id = o.id
-         and membership.user_id = %s
+        cross join lateral (
+          select case
+            when %s then 'platform_admin'
+            else workspace_access_role(w.id, %s)
+          end as role
+        ) access
         where o.id = %s
-          and (
-            %s
-            or (w.kind = 'client' and membership.role = 'client_user')
-          )
+          and access.role is not null
         """,
-        (user_id, organization_id, is_admin),
+        (is_admin, user_id, organization_id),
     ).fetchone()
 
 
@@ -86,25 +88,25 @@ def list_accessible_workspaces(conn, is_admin: bool, user_id: UUID):
           case when w.kind = 'client' then c.status end as client_status,
           case when w.kind = 'client' then c.responsible_name end as responsible_name,
           subject.enabled_modules,
-          case when %s then 'platform_admin' else membership.role end as access_role
+          access.role as access_role
         from workspaces w
         join organizations tenant on tenant.id = w.tenant_organization_id
         join organizations subject on subject.id = w.subject_organization_id
         left join clients c on c.organization_id = w.subject_organization_id
-        left join memberships membership
-          on membership.organization_id = w.subject_organization_id
-         and membership.user_id = %s
+        cross join lateral (
+          select case
+            when %s then 'platform_admin'
+            else workspace_access_role(w.id, %s)
+          end as role
+        ) access
         where w.status = 'active'
-          and (
-            %s
-            or (w.kind = 'client' and membership.role = 'client_user')
-          )
+          and access.role is not null
         order by
           case w.kind when 'agency_internal' then 0 else 1 end,
           lower(w.name),
           w.id
         """,
-        (is_admin, user_id, is_admin),
+        (is_admin, user_id),
     ).fetchall()
 
 

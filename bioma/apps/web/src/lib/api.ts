@@ -58,7 +58,14 @@ export type WorkspaceSummary = {
   client_status: ClientStatus | null;
   responsible_name: string | null;
   enabled_modules: ClientModule[];
-  access_role: "platform_admin" | "eg_admin" | "client_user";
+  access_role:
+    | "platform_admin"
+    | "tenant_admin"
+    | "workspace_manager"
+    | "operator"
+    | "approver"
+    | "viewer"
+    | "client_user";
 };
 
 export type ArtifactSummary = {

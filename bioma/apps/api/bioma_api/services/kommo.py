@@ -10,7 +10,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from bioma_api.access import is_platform_admin, require_client_module, require_platform_admin
+from bioma_api.access import is_platform_admin, require_client_module, require_workspace_capability
 from bioma_api.crypto import encrypt_secret, require_encryption_configured
 from bioma_api.db import connect
 from bioma_api.repositories import client_hub as client_hub_repo
@@ -19,7 +19,7 @@ from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 
 
-def _require_access_and_module(conn, user: CurrentUserResponse, organization_id: UUID) -> None:
+def _require_access_and_module(conn, user: CurrentUserResponse, organization_id: UUID):
     org = workspaces_repo.find_accessible_organization(
         conn,
         organization_id,
@@ -29,8 +29,9 @@ def _require_access_and_module(conn, user: CurrentUserResponse, organization_id:
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organização não encontrada.")
     if is_platform_admin(user):
-        return
+        return org
     require_client_module(org, user, "commercial")
+    return org
 
 
 def get_config(user: CurrentUserResponse, organization_id: UUID) -> dict:
@@ -50,7 +51,6 @@ def save_config(
     access_token: str,
     subdomain: str,
 ) -> None:
-    require_platform_admin(user)
     require_encryption_configured()
 
     subdomain = subdomain.strip().lower()
@@ -61,7 +61,8 @@ def save_config(
         )
 
     with connect() as conn:
-        _require_access_and_module(conn, user, organization_id)
+        org = _require_access_and_module(conn, user, organization_id)
+        require_workspace_capability(org, user, "manage_config")
         kommo_repo.upsert_integration(
             conn,
             organization_id,

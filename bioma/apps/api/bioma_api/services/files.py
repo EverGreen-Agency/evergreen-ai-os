@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile, status
 
-from bioma_api.access import require_client_module
+from bioma_api.access import require_client_module, require_workspace_capability
 from bioma_api.config import get_settings
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
@@ -29,7 +29,6 @@ def upload_file(
     visibility: ClientFileVisibility,
     user: CurrentUserResponse,
 ) -> list[ClientFileSummary]:
-    _require_platform_admin(user)
     settings = get_settings()
 
     file_name = (upload.filename or "arquivo").strip()
@@ -50,7 +49,7 @@ def upload_file(
     content_type = upload.content_type or "application/octet-stream"
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_work")
         storage_key = f"clients/{client['organization_id']}/{uuid4()}-{_safe_filename(file_name)}"
 
         try:
@@ -102,9 +101,8 @@ def request_download(client_id: UUID, file_id: UUID, user: CurrentUserResponse) 
 
 
 def delete_file(client_id: UUID, file_id: UUID, user: CurrentUserResponse) -> list[ClientFileSummary]:
-    _require_platform_admin(user)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_work")
         row = files_repo.get_file(conn, client["organization_id"], file_id)
         if not row:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Arquivo não encontrado.")
@@ -142,10 +140,12 @@ def _require_platform_admin(user: CurrentUserResponse) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
 
 
-def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, capability: str | None = None):
     client = workspaces_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     # Todo o módulo de arquivos fica atrás do gate "files" para client_user.
     require_client_module(client, user, "files")
+    if capability:
+        require_workspace_capability(client, user, capability)
     return client

@@ -6,7 +6,15 @@ from pydantic import BaseModel, Field
 
 WorkspaceKind = Literal["agency_internal", "client"]
 WorkspaceStatus = Literal["active", "archived"]
-WorkspaceAccessRole = Literal["platform_admin", "eg_admin", "client_user"]
+WorkspaceAccessRole = Literal[
+    "platform_admin",
+    "tenant_admin",
+    "workspace_manager",
+    "operator",
+    "approver",
+    "viewer",
+    "client_user",
+]
 
 
 class WorkspaceSummary(BaseModel):

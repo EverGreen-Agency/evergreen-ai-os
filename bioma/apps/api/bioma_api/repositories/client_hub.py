@@ -594,21 +594,13 @@ def _client_access_filter() -> str:
     return """
       and (
         %s
-        or (
-          exists (
-            select 1
-            from workspaces w
-            where w.subject_organization_id = c.organization_id
-              and w.kind = 'client'
-              and w.status = 'active'
-          )
-          and exists (
-            select 1
-            from memberships m
-            where m.organization_id = c.organization_id
-              and m.user_id = %s
-              and m.role = 'client_user'
-          )
+        or exists (
+          select 1
+          from workspaces w
+          where w.subject_organization_id = c.organization_id
+            and w.kind = 'client'
+            and w.status = 'active'
+            and workspace_access_role(w.id, %s) is not null
         )
       )
     """
@@ -652,21 +644,13 @@ def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
         where d.assignee_emails ? %s
           and (
             %s
-            or (
-              exists (
-                select 1
-                from workspaces w
-                where w.subject_organization_id = d.organization_id
-                  and w.kind = 'client'
-                  and w.status = 'active'
-              )
-              and exists (
-                select 1
-                from memberships m
-                where m.organization_id = d.organization_id
-                  and m.user_id = %s
-                  and m.role = 'client_user'
-              )
+            or exists (
+              select 1
+              from workspaces w
+              where w.subject_organization_id = d.organization_id
+                and w.kind = 'client'
+                and w.status = 'active'
+                and workspace_access_role(w.id, %s) is not null
             )
           )
         order by d.due_at nulls last, d.updated_at desc

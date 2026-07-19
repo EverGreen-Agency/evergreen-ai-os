@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from bioma_api.access import require_client_module
+from bioma_api.access import require_client_module, require_workspace_capability
 from bioma_api.db import connect
 from bioma_api.domain.models import Role
 from bioma_api.repositories import performance as performance_repo
@@ -40,13 +40,12 @@ def create_connection(
     payload: PerformanceConnectionCreateRequest,
     user: CurrentUserResponse,
 ) -> list[PerformanceConnectionSummary]:
-    _require_platform_admin(user)
     connection_data = payload.model_dump()
     if not connection_data["external_account_id"].strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ID externo é obrigatório.")
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_config")
         performance_repo.create_connection(conn, client["id"], client["organization_id"], connection_data)
 
     return list_connections(client_id, user)
@@ -58,13 +57,12 @@ def update_connection(
     payload: PerformanceConnectionUpdateRequest,
     user: CurrentUserResponse,
 ) -> list[PerformanceConnectionSummary]:
-    _require_platform_admin(user)
     updates = payload.model_dump(exclude_unset=True)
     if "external_account_id" in updates and not updates["external_account_id"].strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ID externo é obrigatório.")
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_config")
         if not performance_repo.update_connection(conn, client["id"], connection_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conexão de performance não encontrada.")
 
@@ -174,10 +172,9 @@ def request_sync(
     payload: PerformanceSyncRequest,
     user: CurrentUserResponse,
 ) -> PerformanceSyncRunSummary:
-    _require_platform_admin(user)
     period_start, period_end = _period_or_default(payload.date_from, payload.date_to)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_config")
         resolved_client_id = client["id"]
         active_connections = performance_repo.count_active_connections(conn, resolved_client_id, payload.provider)
         if active_connections == 0:
@@ -266,10 +263,12 @@ def _require_platform_admin(user: CurrentUserResponse) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
 
 
-def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, capability: str | None = None):
     client = workspaces_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
     # Todo o módulo de Performance fica atrás do gate "analytics" para client_user.
     require_client_module(client, user, "analytics")
+    if capability:
+        require_workspace_capability(client, user, capability)
     return client

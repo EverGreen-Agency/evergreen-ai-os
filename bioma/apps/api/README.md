@@ -54,6 +54,8 @@ Também valida `GET /workspaces`: o EG admin recebe o workspace interno e os cli
 
 Client Hub, CRM, financeiro, métricas, arquivos, convites e Performance também estão expostos por `/workspaces/{workspace_id}/...`. As rotas `/clients/{client_id}/...` permanecem durante a transição. A migration `0013_performance_workspace_context.sql` faz backfill e dual-write do UUID canônico e reserva `gtm_workspace_id` para o identificador textual externo do Google Tag Manager.
 
+Carteiras e autorização usam `tenant_memberships`, `teams`, `team_memberships` e `workspace_assignments`. O acesso efetivo é resolvido uma única vez por workspace, com papéis `tenant_admin`, `workspace_manager`, `operator`, `approver`, `viewer` e o adapter legado `client_user`. A gestão administrativa está em `/teams`, `/tenants/{tenant_id}/members` e `/workspaces/{workspace_id}/assignments`.
+
 `smoke_clickup.py` valida o cliente ClickUp com `httpx.MockTransport`, sem chamar a API real.
 
 ## ClickUp real

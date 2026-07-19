@@ -14,6 +14,16 @@ from bioma_api.schemas.auth import CurrentUserResponse
 CLIENT_MODULES = ("hub", "content", "files", "commercial", "analytics", "integrations", "engineering")
 DEFAULT_CLIENT_MODULES = ("hub", "content", "files")
 
+WORKSPACE_CAPABILITIES = {
+    "platform_admin": {"view", "manage_work", "approve", "manage_config"},
+    "tenant_admin": {"view", "manage_work", "approve", "manage_config"},
+    "workspace_manager": {"view", "manage_work", "approve", "manage_config"},
+    "operator": {"view", "manage_work"},
+    "approver": {"view", "approve"},
+    "viewer": {"view"},
+    "client_user": {"view", "approve"},
+}
+
 MODULE_LABELS = {
     "hub": "Hub do cliente",
     "content": "Conteúdo",
@@ -76,3 +86,14 @@ def require_client_module(client_row, user: CurrentUserResponse, module: str) ->
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Módulo '{MODULE_LABELS.get(module, module)}' não habilitado para este cliente.",
         )
+
+
+def require_workspace_capability(client_row, user: CurrentUserResponse, capability: str) -> None:
+    """Aplica a matriz de autorização ao contexto já resolvido do workspace."""
+    role = "platform_admin" if is_platform_admin(user) else client_row.get("access_role")
+    if capability in WORKSPACE_CAPABILITIES.get(role, set()):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Seu papel neste workspace não permite esta ação.",
+    )
