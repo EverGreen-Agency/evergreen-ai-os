@@ -108,6 +108,10 @@ class ClientUpdateRequest(BaseModel):
     enabled_modules: list[str] | None = None
 
 
+class ClientPurgeRequest(BaseModel):
+    confirmation: str
+
+
 class ArtifactCreateRequest(BaseModel):
     title: str
     kind: str

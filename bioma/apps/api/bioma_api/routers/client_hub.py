@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -11,6 +11,7 @@ from bioma_api.schemas.client_hub import (
     ArtifactUpdateRequest,
     ClientCreateRequest,
     ClientPortalResponse,
+    ClientPurgeRequest,
     ClientSummary,
     ClientUpdateRequest,
     DeliverableCreateRequest,
@@ -31,12 +32,6 @@ from bioma_api.services import client_hub as client_hub_service
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
 workspace_router = APIRouter(prefix="/workspaces", tags=["workspace-client-hub"])
-
-
-@router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
-def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_request)):
-    return client_hub_service.list_my_deliverables(user)
-
 
 
 @router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
@@ -81,8 +76,19 @@ def update_client(
 def delete_client(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
-) -> None:
-    client_hub_service.delete_client(client_id, user)
+) -> Response:
+    client_hub_service.archive_client(client_id, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{client_id}/purge", status_code=status.HTTP_204_NO_CONTENT)
+def purge_client(
+    client_id: UUID,
+    payload: ClientPurgeRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> Response:
+    client_hub_service.purge_client(client_id, payload.confirmation, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)

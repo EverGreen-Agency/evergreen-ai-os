@@ -30,6 +30,7 @@ from bioma_api.schemas.client_hub import (
     PerformanceMetricSummary,
     PerformanceMetricUpdateRequest,
 )
+from bioma_api.services.storage import StorageNotConfiguredError, StorageOperationError, delete_object
 
 
 def list_clients(user: CurrentUserResponse) -> list[ClientSummary]:
@@ -86,17 +87,60 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
     return get_client_portal(client_id, user)
 
 
-def delete_client(client_id: UUID, user: CurrentUserResponse) -> None:
+def archive_client(client_id: UUID, user: CurrentUserResponse) -> None:
     _require_platform_admin(user)
     with connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT organization_id FROM clients WHERE id = %s", (str(client_id),))
-            row = cur.fetchone()
-            if not row:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
-            org_id = str(row["organization_id"])
-            cur.execute("DELETE FROM organizations WHERE id = %s", (org_id,))
-            conn.commit()
+        client = client_hub_repo.find_client_for_lifecycle(conn, client_id)
+        if not client:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+        if client["status"] == "archived" and client["workspace_status"] == "archived":
+            return
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "client.archived",
+            {"client_id": str(client_id), "name": client["name"]},
+        )
+        client_hub_repo.archive_client(conn, client_id, client["workspace_id"])
+
+
+def purge_client(client_id: UUID, confirmation: str, user: CurrentUserResponse) -> None:
+    _require_platform_admin(user)
+    with connect() as conn:
+        client = client_hub_repo.find_client_for_lifecycle(conn, client_id)
+        if not client:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+        if client["status"] != "archived" or client["workspace_status"] != "archived":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Arquive o cliente antes do purge permanente.",
+            )
+        if confirmation.strip() != client["name"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="A confirmação precisa corresponder exatamente ao nome do cliente.",
+            )
+        storage_keys = client_hub_repo.list_client_storage_keys(conn, client["organization_id"])
+        try:
+            for storage_key in storage_keys:
+                delete_object(storage_key)
+        except StorageNotConfiguredError as exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        except StorageOperationError as exc:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            client["organization_id"],
+            "client.purged",
+            {
+                "client_id": str(client_id),
+                "name": client["name"],
+                "storage_objects_deleted": len(storage_keys),
+            },
+        )
+        client_hub_repo.purge_client_organization(conn, client["organization_id"])
 
 
 def get_client_portal(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:

@@ -160,6 +160,45 @@ def update_client(conn, client_id: UUID, updates: dict[str, Any]) -> None:
     )
 
 
+def find_client_for_lifecycle(conn, client_id: UUID):
+    return conn.execute(
+        """
+        select c.id, c.name, c.status, c.organization_id,
+          w.id as workspace_id, w.tenant_organization_id, w.status as workspace_status
+        from clients c
+        join workspaces w on w.subject_organization_id = c.organization_id and w.kind = 'client'
+        where c.id = %s
+        for update of c, w
+        """,
+        (client_id,),
+    ).fetchone()
+
+
+def archive_client(conn, client_id: UUID, workspace_id: UUID) -> None:
+    conn.execute(
+        "update clients set status = 'archived', updated_at = now() where id = %s",
+        (client_id,),
+    )
+    conn.execute(
+        "update workspaces set status = 'archived', updated_at = now() where id = %s",
+        (workspace_id,),
+    )
+
+
+def list_client_storage_keys(conn, organization_id: UUID) -> list[str]:
+    return [
+        row["storage_key"]
+        for row in conn.execute(
+            "select storage_key from client_files where organization_id = %s order by id",
+            (organization_id,),
+        ).fetchall()
+    ]
+
+
+def purge_client_organization(conn, organization_id: UUID) -> None:
+    conn.execute("delete from organizations where id = %s", (organization_id,))
+
+
 def update_organization_name(conn, organization_id: UUID, name: str) -> None:
     conn.execute(
         "update organizations set name = %s, updated_at = now() where id = %s",

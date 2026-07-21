@@ -1,4 +1,5 @@
 from pathlib import Path
+import atexit
 import sys
 from uuid import uuid4
 
@@ -13,10 +14,11 @@ from bioma_api.config import Settings, get_settings
 from bioma_api.db import connect
 from bioma_api.main import app
 from bioma_api.security import hash_session_token
+from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
-CLIENT_EMAIL = "henrique@hmconexoes.com.br"
+CLIENT_EMAIL = "smoke-api-client@bioma.example.com"
 DEV_PASSWORD = "senha-dev-123"
 
 
@@ -62,6 +64,15 @@ def main() -> None:
     else:
         raise AssertionError("configuração de produção insegura deveria ser rejeitada")
 
+    smoke_workspace = create_smoke_workspace("API")
+    smoke_client_user_id = upsert_smoke_user(CLIENT_EMAIL, "API Client Smoke", DEV_PASSWORD)
+    grant_client_user(smoke_workspace, smoke_client_user_id)
+
+    def cleanup_initial_workspace() -> None:
+        cleanup_smoke_data([smoke_workspace.organization_id], [CLIENT_EMAIL])
+
+    atexit.register(cleanup_initial_workspace)
+
     admin = TestClient(app)
     guest = TestClient(app)
     client_user = TestClient(app)
@@ -106,9 +117,7 @@ def main() -> None:
     assert_status(clients_response, 200, "admin list clients")
     clients = clients_response.json()
     assert clients, "seed precisa criar ao menos um cliente"
-    # Seleção por slug: clients[0] varia quando outros clientes existem
-    # (ex.: "EverGreen Internal" criado pelo create_eg_client.py).
-    hm_client = next(row for row in clients if row["organization_slug"] == "hm-conexoes")
+    hm_client = next(row for row in clients if row["id"] == str(smoke_workspace.client_id))
     hm_client_id = hm_client["id"]
     hm_organization_id = hm_client["organization_id"]
 
@@ -136,7 +145,7 @@ def main() -> None:
         200,
         "admin opera Kommo interno",
     )
-    hm_workspace = next(row for row in admin_workspaces if row["organization_slug"] == "hm-conexoes")
+    hm_workspace = next(row for row in admin_workspaces if row["id"] == str(smoke_workspace.workspace_id))
     assert hm_workspace["kind"] == "client"
     assert hm_workspace["client_id"] == hm_client_id
     legacy_portal = admin.get(f"/clients/{hm_client_id}")
@@ -150,7 +159,7 @@ def main() -> None:
     assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/performance"), 200, "canonical workspace performance")
     assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/invites"), 200, "canonical workspace invites")
     stable_workspace = next(
-        row for row in admin.get("/workspaces").json() if row["organization_slug"] == "hm-conexoes"
+        row for row in admin.get("/workspaces").json() if row["id"] == str(smoke_workspace.workspace_id)
     )
     assert stable_workspace["id"] == hm_workspace["id"], "workspace precisa ter identidade estável"
 
@@ -161,7 +170,7 @@ def main() -> None:
     assert_status(client_workspaces_response, 200, "client list workspaces")
     client_workspaces = client_workspaces_response.json()
     assert len(client_workspaces) == 1, "cliente deve enxergar somente o próprio workspace"
-    assert client_workspaces[0]["organization_slug"] == "hm-conexoes"
+    assert client_workspaces[0]["organization_slug"] == smoke_workspace.slug
     assert all(row["kind"] != "agency_internal" for row in client_workspaces)
     assert_status(
         client_user.get(f"/workspaces/{hm_workspace['id']}"),
@@ -449,7 +458,48 @@ def main() -> None:
 
     with connect() as conn:
         conn.execute("delete from deliverables where id = %s", (own_assigned_id,))
-        conn.execute("delete from organizations where id = %s", (created_org_id,))
+
+    archived = admin.delete(f"/clients/{created_client_id}")
+    assert_status(archived, 204, "archive client")
+    assert archived.content == b"", "archive deve responder 204 sem corpo"
+    assert_status(admin.get(f"/clients/{created_client_id}"), 404, "archived client is inaccessible")
+    assert_status(
+        admin.get(f"/workspaces/{created_workspace['id']}"),
+        404,
+        "archived workspace is inaccessible",
+    )
+
+    invalid_purge = admin.post(
+        f"/clients/{created_client_id}/purge",
+        json={"confirmation": "nome incorreto"},
+    )
+    assert_status(invalid_purge, 422, "purge requires exact client name")
+
+    purged = admin.post(
+        f"/clients/{created_client_id}/purge",
+        json={"confirmation": f"Smoke Cliente {suffix}"},
+    )
+    assert_status(purged, 204, "purge archived client")
+    assert purged.content == b"", "purge deve responder 204 sem corpo"
+    assert_status(admin.get(f"/clients/{created_client_id}"), 404, "purged client is absent")
+
+    with connect() as conn:
+        purge_audit = conn.execute(
+            """
+            select organization_id, metadata
+            from audit_logs
+            where event_type = 'client.purged'
+              and metadata ->> 'client_id' = %s
+            order by created_at desc
+            limit 1
+            """,
+            (str(created_client_id),),
+        ).fetchone()
+    assert purge_audit is not None, "purge precisa preservar evento de auditoria"
+    assert purge_audit["organization_id"] is None, "auditoria preservada não deve reter FK removida"
+
+    cleanup_initial_workspace()
+    atexit.unregister(cleanup_initial_workspace)
 
     print("smoke ok")
 
