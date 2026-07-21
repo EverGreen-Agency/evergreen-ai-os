@@ -122,6 +122,7 @@ export function IntegrationsTab({
       localStorage.setItem("bioma_clickup_sync_enabled", String(nextState));
     } catch {}
   };
+  const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
   const [accountId, setAccountId] = useState("");
   const [parentId, setParentId] = useState("");
   const [displayName, setDisplayName] = useState("");
