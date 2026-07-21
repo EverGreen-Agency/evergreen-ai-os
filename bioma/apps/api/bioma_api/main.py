@@ -18,6 +18,7 @@ from bioma_api.routers import (
     performance,
     teams,
     workspaces,
+    tasks,
 )
 
 
@@ -48,6 +49,7 @@ app.include_router(invites.public_router)
 app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
 app.include_router(workspaces.router)
+app.include_router(tasks.router)
 app.include_router(teams.router)
 app.include_router(ai_content.router)
 app.include_router(client_hub.workspace_router)

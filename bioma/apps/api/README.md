@@ -58,6 +58,10 @@ Carteiras e autorização usam `tenant_memberships`, `teams`, `team_memberships`
 
 Preferências do navegador ficam em `workspace_favorites` e `workspace_saved_views`. A descoberta em `GET /workspaces` informa `is_favorite` e `is_assigned`; favoritos usam `/workspaces/{id}/favorite` e visões salvas usam `/workspaces/views`.
 
+O Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
+
+O ClickUp Bridge classifica listas como `social`, `growth`, `tech` ou `general` e traduz status externos para o contrato de entregáveis. `clickup_mappings.status_mapping` permite ajuste por tenant/lista; sem configuração, o adapter usa defaults testados. Escritas externas continuam HITL.
+
 `smoke_clickup.py` valida o cliente ClickUp com `httpx.MockTransport`, sem chamar a API real.
 
 ## ClickUp real

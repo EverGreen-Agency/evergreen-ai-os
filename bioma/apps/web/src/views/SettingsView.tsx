@@ -11,6 +11,9 @@ import getCroppedImg from '../lib/cropImage';
 const IntegrationsTab = lazy(() =>
   import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })),
 );
+const TeamPortfolioManager = lazy(() =>
+  import("../components/TeamPortfolioManager").then((module) => ({ default: module.TeamPortfolioManager })),
+);
 
 export function SettingsView() {
   const { data: user } = useCurrentUser();
@@ -19,7 +22,7 @@ export function SettingsView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
-  const [activeSubTab, setActiveSubTab] = useState<"general" | "integrations">("general");
+  const [activeSubTab, setActiveSubTab] = useState<"general" | "teams" | "integrations">("general");
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;
@@ -447,6 +450,12 @@ export function SettingsView() {
               Geral
             </button>
             <button
+              onClick={() => setActiveSubTab("teams")}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "teams" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "teams" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "teams" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
+            >
+              Equipes & carteiras
+            </button>
+            <button
               onClick={() => setActiveSubTab("integrations")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "integrations" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "integrations" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
@@ -480,6 +489,12 @@ export function SettingsView() {
               </div>
             </div>
           </article>
+          )}
+
+          {activeSubTab === "teams" && (
+            <Suspense fallback={<div className="notice">Carregando equipes e carteiras...</div>}>
+              <TeamPortfolioManager />
+            </Suspense>
           )}
 
           {activeSubTab === "integrations" && (

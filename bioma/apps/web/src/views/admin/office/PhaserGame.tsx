@@ -74,7 +74,7 @@ export function PhaserGame() {
     api.adminSquads()
       .then((data) => {
         if (data.squads) {
-          useSquadStore.getState().setSnapshot(data.squads, data.activeStates || {});
+          useSquadStore.getState().setSnapshot(data.squads as any, (data as any).activeStates || {});
         }
       })
       .catch((err) => console.error("Failed to fetch squads:", err));

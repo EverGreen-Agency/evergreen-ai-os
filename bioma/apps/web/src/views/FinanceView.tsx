@@ -82,7 +82,7 @@ export function FinanceView({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="finance-view fade-in">
+    <div className="operations-layout fade-in">
       {error && <div className="notice error">{error}</div>}
 
       <div className="bento-grid">

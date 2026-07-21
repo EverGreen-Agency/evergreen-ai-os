@@ -206,6 +206,7 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 
 - [ ] Aplicar logos/assets finais da EG e, quando houver autorização, da HM; os SVGs atuais são placeholders.
 - [x] Criar experiência específica de Briefing além do artefato textual.
+- [x] Criar Estúdio IA por workspace para gerar lotes de posts a partir de briefing, canais e referências metodológicas, sempre com revisão humana.
 - [x] Renderizar documentos estratégicos estruturados de forma genérica, incluindo brand book quando cadastrado.
 - [ ] Implementar geração, aprovação e versionamento específicos de Brand Book, caso retornem ao escopo.
 - [x] Criar calendário editorial semanal navegável alimentado por entregas reais.
@@ -245,7 +246,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Fazer upsert local de entregáveis por `clickup_task_id`.
 - [x] Registrar erros de sync no histórico retornado pelo portal.
 - [x] Definir política de escrita: sempre HITL no MVP.
-- [ ] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação.
+- [x] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação; validação contra listas reais depende de credencial/staging.
 
 ### P3 - Segurança e qualidade
 
@@ -272,11 +273,11 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Aplicar feature gate das rotas filhas ao cliente atual, em vez de unir módulos de todas as organizações do usuário.
 - [x] Especificar em ADR a hierarquia `Platform → Tenant/Agência → Workspaces`, inclusive limites de white-label e billing.
 - [x] Persistir a identidade de workspace, provisionar junto com novos clientes e alimentar o navegador por endpoint autenticado.
-- [ ] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
-- [ ] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
+- [x] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
+- [x] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
 - [x] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
 - [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` somente após eliminar todas as dependências e FKs em cascata.
-- [ ] Adicionar favoritos e visões salvas ao navegador depois do modelo de times/atribuições.
+- [x] Adicionar favoritos e visões salvas ao navegador depois do modelo de times/atribuições.
 
 ### P4 - Staging
 
@@ -417,3 +418,6 @@ Formato:
 - 2026-07-18 - Codex - ver git log - DATA-WS-001B concluído: rotas canônicas `/workspaces/{id}` com adapter legado, frontend operando por `workspace.id`, Performance backfilled com UUID canônico, `gtm_workspace_id` desambiguado e dual-write protegido por trigger - migrations, `compileall`, smoke API, smoke Performance, smoke da fila e `npx.cmd tsc -b` passaram - ponte `EverGreen Internal` ainda necessária até remover as FKs/client adapters restantes.
 - 2026-07-18 - Codex - ver git log - AUTHZ-WS-001 concluído e TEAM-001 iniciado: papéis de tenant/workspace, times, membros e atribuições de carteira persistidos; resolução central de acesso aplicada ao Client Hub, Files, Performance e Kommo - migration, `compileall`, smoke de matriz RBAC, smoke API e smoke Performance passaram - pendente gestão visual de times e favoritos/visões da carteira.
 - 2026-07-18 - Codex - ver git log - WEB-NAV-002 concluído: favoritos persistentes, filtro “Minha carteira” derivado de assignments e visões salvas por usuário integrados ao navegador premium de workspaces - migration, smoke de navegação e `npx.cmd tsc -b` passaram - pendente QA visual humano em desktop/mobile.
+- 2026-07-18 - Codex - ver git log - AI-CONTENT-001 concluído: Estúdio IA no Hub do Cliente, fila Postgres compartilhada sem starvation, auditoria em `ai_runs`, prévia local honesta e adapter OpenAI Responses API com Structured Outputs - migration, compile API/worker, smoke preview + provider mock e `npx.cmd tsc -b` passaram - geração externa real depende de `OPENAI_API_KEY` no worker e QA humano.
+- 2026-07-18 - Codex - ver git log - Estratégia ClickUp/Kommo consolidada no ADR 0002 como integration-first e INT-CU-002 concluído com classificação Social/Growth/Tech e tradução configurável de status - migration, compile e smoke ClickUp mockado passaram - tokens, listas e conta Kommo reais continuam bloqueados até staging controlado.
+- 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.

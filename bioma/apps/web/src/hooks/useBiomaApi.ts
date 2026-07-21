@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload } from "../lib/api";
+import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
 
@@ -477,6 +477,74 @@ export function useDeleteFinancialRecord() {
     mutationFn: ({ clientId, recordId }: { clientId: string; recordId: string }) => api.deleteFinancialRecord(clientId, recordId),
     onSuccess: (data, variables) => {
       queryClient.setQueryData(["finance", variables.clientId], data);
+    },
+  });
+}
+
+// Task Management Hooks
+
+export function useTaskLists(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["task-lists", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.taskLists(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useCreateTaskList() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, name, type }: { workspaceId: string; name: string; type: TaskListType }) => 
+      api.createTaskList(workspaceId, name, type),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["task-lists", variables.workspaceId] });
+    },
+  });
+}
+
+export function useTasksInList(listId: string | null) {
+  return useQuery({
+    queryKey: ["tasks", listId],
+    queryFn: () => {
+      if (!listId) throw new Error("No list ID provided");
+      return api.tasksInList(listId);
+    },
+    enabled: Boolean(listId),
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) => 
+      api.createTask(listId, payload),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", variables.listId] });
+    },
+  });
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, payload }: { taskId: string; payload: Partial<TaskPayload> }) => 
+      api.updateTask(taskId, payload),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", data.list_id] });
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, listId }: { taskId: string; listId: string }) => 
+      api.deleteTask(taskId).then(() => listId),
+    onSuccess: (listId) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", listId] });
     },
   });
 }

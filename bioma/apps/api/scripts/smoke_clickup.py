@@ -12,7 +12,7 @@ from bioma_api.integrations.clickup import sync_clickup_folder  # noqa: E402
 
 
 def main() -> None:
-    os.environ.pop("CLICKUP_API_TOKEN", None)
+    os.environ["CLICKUP_API_TOKEN"] = ""
     get_settings.cache_clear()
     dry_status, dry_summary = sync_clickup_folder("folder-1")
     assert dry_status == "partial"
@@ -41,7 +41,7 @@ def main() -> None:
                         {
                             "id": "task-1",
                             "name": "Post LinkedIn",
-                            "status": {"status": "in progress"},
+                            "status": {"status": "PUBLICADO"},
                             "due_date": "1767225600000",
                             "url": "https://app.clickup.com/t/task-1",
                         }
@@ -56,7 +56,7 @@ def main() -> None:
                         {
                             "id": "task-2",
                             "name": "Revisar funil",
-                            "status": {"status": "done"},
+                            "status": {"status": "VALIDAÇÃO"},
                             "due_date": None,
                             "url": "https://app.clickup.com/t/task-2",
                         }
@@ -74,9 +74,13 @@ def main() -> None:
     assert summary["lists"] == 2
     assert summary["tasks_count"] == 2
     assert summary["tasks"][0]["id"] == "task-1"
+    assert summary["tasks"][0]["operation"] == "social"
+    assert summary["tasks"][0]["bioma_status"] == "done"
+    assert summary["tasks"][1]["operation"] == "growth"
+    assert summary["tasks"][1]["bioma_status"] == "waiting_approval"
     assert summary["writes_to_clickup"] is False
 
-    os.environ.pop("CLICKUP_API_TOKEN", None)
+    os.environ["CLICKUP_API_TOKEN"] = ""
     get_settings.cache_clear()
     print("clickup smoke ok")
 

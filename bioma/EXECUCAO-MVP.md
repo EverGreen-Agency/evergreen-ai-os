@@ -65,18 +65,19 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | WEB-CTX-001 | DONE | Frontend | Restaurar CRM, financeiro e métricas EG preservando os Hubs de Cliente | WEB-CRM-001..PERF-001 | tsc + build + isolamento por rota |
 | WEB-NAV-001 | DONE | Frontend | Navegador pesquisável de workspaces com recentes; sem dropdown longo na Sidebar | WEB-CTX-001 | tsc + build + QA teclado/mobile |
 | ARCH-CTX-001 | DONE | Arquitetura | ADR `Platform → Tenant/Agência → Workspaces`, limites white-label e billing | WEB-CTX-001 | `docs/adr/0001-tenant-workspace-hierarchy.md` |
-| TEAM-001 | DOING | Full-stack | Times, memberships e atribuições para carteira por gestor/time | ARCH-CTX-001 | backend e smokes concluídos; gestão visual pendente |
+| TEAM-001 | DONE | Full-stack | Times, memberships e atribuições para carteira por gestor/time | ARCH-CTX-001 | backend, smokes e gestão visual em Configurações |
 | DATA-WS-001A | DONE | Full-stack | Persistir identidade de workspace, backfill, provisionamento e descoberta no navegador | ARCH-CTX-001 | compile + smoke API + tsc/build |
 | DATA-WS-001B | DONE | Backend | Migrar APIs/Performance de `client_id` para `workspace_id` com adapters e dual-read/write | DATA-WS-001A | paridade + smokes + backfill |
 | AUTHZ-WS-001 | DONE | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001B | matriz automatizada de autorização |
 | WEB-NAV-002 | DONE | Full-stack | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | smoke de persistência + tsc/build |
+| AI-CONTENT-001 | DONE | Full-stack/Worker | Gerar rascunhos sociais por workspace com metodologia, fila, auditoria e provider OpenAI | AUTHZ-WS-001 | preview local + mock Responses API + tsc/build |
 
 ### Onda 2 — Integrações reais
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
 | INT-CU-001 | BLOCKED | Backend/Operação | Cadastrar token e mapeamento ClickUp controlado | DPL-005 | sync sem dry-run |
-| INT-CU-002 | TODO | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture + lista real |
+| INT-CU-002 | DONE | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture local; lista real segue bloqueada por credencial |
 | INT-G-001 | BLOCKED | Backend/Operação | Validar Google Ads real | DPL-005 | comparação por campanha/data |
 | INT-G-002 | BLOCKED | Backend/Operação | Validar GA4 real | DPL-005 | comparação aquisição/eventos |
 | INT-G-003 | BLOCKED | Backend/Operação | Validar GSC real | DPL-005 | comparação consultas/páginas |

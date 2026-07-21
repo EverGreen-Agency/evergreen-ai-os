@@ -24,12 +24,16 @@ O QA visual manual (desktop, notebook com DevTools aberto e mobile) está docume
 O frontend separa três superfícies:
 
 - **Control Plane:** Cockpit, administração da plataforma e Carteira de Clientes.
-- **Central da Agência:** operação da própria EG e, futuramente, times, carteiras atribuídas e gestão do tenant.
+- **Central da Agência:** operação da própria EG, times, carteiras atribuídas e gestão do tenant.
 - **Workspace:** contexto operacional completo da agência ou de um cliente.
 
 A Operação EG vive sob `/operacao/...`; cada cliente vive sob `/clientes/:clientId/...`. CRM, financeiro e métricas usam as mesmas views nos dois tipos de workspace, mas toda rota passa um contexto explícito e nunca escolhe dados por um seletor global implícito.
 
 O Topbar exibe somente o contexto atual. `Ctrl/⌘ K` abre um navegador largo e pesquisável, com workspaces recentes e busca por cliente, organização ou responsável. A lista completa continua em uma página própria; ela não é despejada em um dropdown da Sidebar. Favoritos e visões salvas são persistidos pela API; “Minha carteira” filtra `is_assigned`, calculado a partir das atribuições diretas e por time do backend.
+
+Administradores EG configuram times, membros já habilitados e distribuição de workspaces em **Configurações → Empresa → Equipes & carteiras**. Essa superfície organiza a operação da agência sem transformar a EG em um item da carteira de clientes.
+
+Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
 A fonte da navegação é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs visuais continuam legíveis como `/clientes/:clientId`, mas os módulos chamam a API canônica por `/workspaces/:workspaceId`; o backend ainda aceita `client_id` como adapter de compatibilidade.
 

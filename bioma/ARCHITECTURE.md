@@ -20,6 +20,8 @@ prefixo `/backoffice`). Transversais: `access.py` (papéis, membership,
 feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
 `migrations/*.sql` (só aditivas, aplicadas no boot por `scripts/start.py`).
 
+O domínio `ai_content` persiste ativações por workspace e não publica conteúdo automaticamente. A API apenas enfileira; o worker escolhe o job mais antigo entre Performance e IA, registra execução em `ai_runs` e produz saída estruturada. Sem credencial externa, o modo local é explicitamente `preview`; com `OPENAI_API_KEY`, o adapter usa a Responses API com JSON Schema estrito.
+
 ## Modelo de produto e tenancy
 
 O destino canônico é:
@@ -39,6 +41,8 @@ Glossário:
 - **Team / Membership / WorkspaceAssignment:** modelo futuro de pessoas, times e carteiras atribuídas.
 
 Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
+
+Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): ClickUp e Kommo permanecem motores especializados atrás de adapters; o Bioma possui contexto, autorização, inteligência e experiência, substituindo capacidades externas apenas por evidência de uso e paridade.
 
 Estado transitório: `workspaces` fornece a identidade persistente e `GET /workspaces` faz a descoberta autorizada. Os domínios operacionais aceitam `/workspaces/{workspace_id}/...`; `/clients/{client_id}/...` permanece como adapter de compatibilidade. Performance mantém `client_id` e `workspace_id` em dual-write enquanto leitores e workers migram, e o identificador externo do GTM chama-se `gtm_workspace_id`. `subject_organization_id` ainda aponta para o contêiner físico dos dados e `clients` continua como extensão comercial 1:1. `EverGreen Internal` fornece somente a ponte técnica da Operação EG e não pode ser removido antes das FKs/adapters restantes. `parent_organization_id` e `tenant_organization_id` descrevem pertencimento, mas não concedem autorização hierárquica. A carteira é uma projeção de `workspace_assignments`: atribuições podem apontar diretamente para usuário ou time, e `workspace_access_role(...)` centraliza a precedência dos papéis.
 

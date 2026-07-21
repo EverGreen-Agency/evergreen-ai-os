@@ -28,11 +28,31 @@ def map_status_to_group(status_str: str) -> str:
 def slugify(text: str) -> str:
     return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
 
+def resolve_custom_field_value(cf):
+    val = cf.get("value")
+    if val is None:
+        return None
+    cf_type = cf.get("type")
+    options = cf.get("type_config", {}).get("options", [])
+    
+    if cf_type == "drop_down" and isinstance(val, int):
+        for opt in options:
+            if opt.get("orderindex") == val:
+                return opt.get("name") or opt.get("label")
+    elif cf_type in ["labels", "drop_down"] and isinstance(val, list):
+        resolved = []
+        for v in val:
+            for opt in options:
+                if opt.get("id") == v or str(opt.get("orderindex")) == str(v):
+                    resolved.append(opt.get("name") or opt.get("label"))
+        if resolved:
+            return ", ".join(resolved)
+    return str(val)
+
 def run_import():
-    print("🚀 Iniciando migração total de dados do ClickUp para o Bioma...")
+    print("🚀 Iniciando migração total de dados com resolução de campos do ClickUp...")
 
     with httpx.Client(timeout=30) as client:
-        # Get space EverGreen | Operação
         space_id = "90174075681"
         f_r = client.get(f"https://api.clickup.com/api/v2/space/{space_id}/folder", headers=headers)
         if f_r.status_code != 200:
@@ -43,7 +63,6 @@ def run_import():
         
         with connect() as conn:
             with conn.cursor() as cur:
-                # Pegar ID da organização principal EverGreen (EG)
                 cur.execute("SELECT id FROM organizations WHERE type = 'eg' LIMIT 1")
                 eg_org = cur.fetchone()
                 if not eg_org:
@@ -70,7 +89,6 @@ def run_import():
 
                     if not matched:
                         print(f"\n✨ Criando novo Cliente e Workspace no Bioma: '{folder_name}'...")
-                        # 1. Criar Organização do Cliente
                         cur.execute("""
                             INSERT INTO organizations (name, slug, type)
                             VALUES (%s, %s, 'client')
@@ -78,7 +96,6 @@ def run_import():
                         """, (folder_name, slugify(folder_name)))
                         client_org_id = str(cur.fetchone()["id"])
 
-                        # 2. Criar registro de Cliente
                         cur.execute("""
                             INSERT INTO clients (organization_id, name, status, responsible_name, clickup_folder_id)
                             VALUES (%s, %s, 'active', 'Eduardo EG', %s)
@@ -86,7 +103,6 @@ def run_import():
                         """, (client_org_id, folder_name, folder_id))
                         client_id = str(cur.fetchone()["id"])
 
-                        # 3. Criar Workspace do Cliente
                         cur.execute("""
                             INSERT INTO workspaces (tenant_organization_id, subject_organization_id, kind, name, slug, status)
                             VALUES (%s, %s, 'client', %s, %s, 'active')
@@ -113,7 +129,6 @@ def run_import():
                         elif "tech" in list_name.lower():
                             list_type = "tech"
                             
-                        # Verificar se a lista já existe no Bioma
                         cur.execute("""
                             SELECT id FROM eg_task_lists
                             WHERE workspace_id = %s AND name = %s
@@ -151,35 +166,36 @@ def run_import():
                                 pr_map = {"1": "Alta", "2": "Alta", "3": "Média", "4": "Baixa"}
                                 priority_str = pr_map.get(str(t["priority"].get("id")), "Média")
 
-                            # Verificar se a tarefa já existe pelo título e lista
+                            # Buscar tarefa existente
                             cur.execute("SELECT id FROM eg_tasks WHERE list_id = %s AND title = %s", (bioma_list_id, task_title))
-                            if cur.fetchone():
-                                continue
-
-                            # Inserir tarefa no Bioma
-                            cur.execute("""
-                                INSERT INTO eg_tasks (list_id, title, description, status, group_status, priority, due_date)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                                RETURNING id
-                            """, (bioma_list_id, task_title, task_desc, clickup_status.upper(), group_status, priority_str, due_date))
-                            bioma_task_id = str(cur.fetchone()["id"])
+                            existing_task = cur.fetchone()
+                            if existing_task:
+                                bioma_task_id = str(existing_task["id"])
+                            else:
+                                cur.execute("""
+                                    INSERT INTO eg_tasks (list_id, title, description, status, group_status, priority, due_date)
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                    RETURNING id
+                                """, (bioma_list_id, task_title, task_desc, clickup_status.upper(), group_status, priority_str, due_date))
+                                bioma_task_id = str(cur.fetchone()["id"])
                             
-                            # Importar campos personalizados
+                            # Limpar e re-inserir campos personalizados com valores resolvidos
+                            cur.execute("DELETE FROM eg_task_custom_fields WHERE task_id = %s", (bioma_task_id,))
                             if t.get("custom_fields"):
                                 for cf in t["custom_fields"]:
-                                    val = cf.get("value")
-                                    if val is not None:
+                                    resolved_val = resolve_custom_field_value(cf)
+                                    if resolved_val:
                                         cur.execute("""
                                             INSERT INTO eg_task_custom_fields (task_id, field_name, field_value)
                                             VALUES (%s, %s, %s)
-                                        """, (bioma_task_id, cf["name"], str(val)))
+                                        """, (bioma_task_id, cf["name"], resolved_val))
 
                             imported_count += 1
                             
-                        print(f"   ✅ Lista '{list_name}': {imported_count} tarefas importadas com sucesso.")
+                        print(f"   ✅ Lista '{list_name}': {imported_count} tarefas processadas/atualizadas.")
 
                 conn.commit()
-                print("\n🎉 MIGRAÇÃO TOTAL DO CLICKUP PARA O BIOMA CONCLUÍDA COM SUCESSO!")
+                print("\n🎉 RESOLUÇÃO DE CAMPOS E IMPORTAÇÃO CONCLUÍDAS COM SUCESSO!")
 
 if __name__ == "__main__":
     run_import()

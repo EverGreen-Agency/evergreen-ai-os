@@ -31,7 +31,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
 ];
 
 export const clientHubNavItems: Array<{
-  id: "hub" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "integrations";
+  id: "hub" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "integrations";
   label: string;
   path: string;
   module: ClientModule;
@@ -43,6 +43,7 @@ export const clientHubNavItems: Array<{
   { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
   { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
   { id: "files", label: "Documentos", path: "documentos", module: "files", icon: FolderOpen },
+  { id: "tasks", label: "Tarefas", path: "tarefas", module: "hub", icon: LayoutDashboard },
   { id: "integrations", label: "Integrações", path: "integracoes", module: "integrations", icon: Link2 },
 ];
 

@@ -353,8 +353,8 @@ def decide_approval(
 def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
         client = _accessible_client(conn, client_id, user, capability="manage_config")
-        mapped_list_ids = client_hub_repo.list_clickup_list_ids(conn, client["organization_id"])
-        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_list_ids)
+        mapped_lists = client_hub_repo.list_clickup_mappings(conn, client["organization_id"])
+        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_lists)
         summary["deliverables"] = _upsert_clickup_tasks(conn, client["organization_id"], summary.get("tasks", []))
         summary["write_policy"] = {
             "clickup": "hitl_required",
@@ -587,7 +587,7 @@ def _upsert_clickup_tasks(conn, organization_id: UUID, tasks: list[dict]) -> dic
             organization_id,
             task_id,
             title,
-            _clickup_status_to_deliverable_status(task.get("status")),
+            task.get("bioma_status") or _clickup_status_to_deliverable_status(task.get("status")),
             task.get("due_at"),
             task.get("assignee_emails", []),
         )

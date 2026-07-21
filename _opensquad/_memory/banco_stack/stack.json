@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-07-15",
+  "updated_at": "2026-07-17",
   "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
   "rings": [
     "assess",

@@ -292,6 +292,9 @@ export function IntegrationsTab({
                   ? <span className="status-pill open">Mapeado</span>
                   : <span className="status-pill draft">Sem pasta</span>}
               </div>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.4, margin: 0 }}>
+                Para conectar o ClickUp, edite os dados do cliente e preencha o <strong>Folder ID</strong>. A sincronização importa as tarefas e responsáveis da pasta para a plataforma.
+              </p>
               <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
                 <div>Pasta: <strong>{selectedClient.clickup_folder_id ?? "não mapeada (edite o cliente)"}</strong></div>
                 <div>

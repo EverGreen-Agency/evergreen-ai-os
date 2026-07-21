@@ -120,18 +120,19 @@ def list_sync_runs(conn, organization_id: UUID):
     ).fetchall()
 
 
-def list_clickup_list_ids(conn, organization_id: UUID) -> list[str]:
+def list_clickup_mappings(conn, organization_id: UUID) -> list[dict]:
     rows = conn.execute(
         """
-        select distinct clickup_list_id
+        select distinct on (clickup_list_id)
+          clickup_list_id as id, operation, status_mapping
         from clickup_mappings
         where organization_id = %s
           and clickup_list_id is not null
-        order by clickup_list_id
+        order by clickup_list_id, created_at
         """,
         (organization_id,),
     ).fetchall()
-    return [row["clickup_list_id"] for row in rows]
+    return [dict(row) for row in rows]
 
 
 def list_audit_logs(conn, organization_id: UUID):
