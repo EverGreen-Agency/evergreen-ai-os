@@ -86,6 +86,19 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
     return get_client_portal(client_id, user)
 
 
+def delete_client(client_id: UUID, user: CurrentUserResponse) -> None:
+    _require_platform_admin(user)
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT organization_id FROM clients WHERE id = %s", (str(client_id),))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+            org_id = str(row["organization_id"])
+            cur.execute("DELETE FROM organizations WHERE id = %s", (org_id,))
+            conn.commit()
+
+
 def get_client_portal(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     is_admin = _is_platform_admin(user)
     with connect() as conn:

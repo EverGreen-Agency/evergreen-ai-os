@@ -7,7 +7,7 @@ import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel }
 import type { ArtifactSummary, DeliverableStatus } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient, useDeleteClient } from "../hooks/useBiomaApi";
 
 export function ClientsView() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export function ClientsView() {
 
   const { newClientDraft, setNewClientDraft } = useUiStore();
   const createClient = useCreateClient();
+  const deleteClient = useDeleteClient();
 
   const handleCreateClient = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,6 +32,13 @@ export function ClientsView() {
 
   const { data: clientsData, isLoading: loadingClients } = useClients();
   const clients = externalClients(clientsData ?? []);
+
+  const handleDeleteClient = (e: React.MouseEvent, clientId: string, clientName: string) => {
+    e.stopPropagation();
+    if (window.confirm(`Tem certeza que deseja excluir permanentemente o cliente "${clientName}" e todas as suas tarefas/workspaces?`)) {
+      deleteClient.mutate(clientId);
+    }
+  };
 
   return (
     <section style={{ padding: '32px', width: '100%' }}>
@@ -46,15 +54,28 @@ export function ClientsView() {
         {!loadingClients && clients.length === 0 && <EmptyState text="Nenhum cliente disponível para esta sessão." />}
         <div className="bento-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
           {clients.map((client) => (
-            <button
+            <div
               className="client-card"
               key={client.id}
-              type="button"
+              style={{ cursor: "pointer", position: "relative" }}
               onClick={() => navigate(`/clientes/${client.id}`)}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: '8px' }}>
                 <strong style={{ fontSize: '1.05rem', lineHeight: 1.3 }}>{client.name}</strong>
-                <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <span className={`status-pill ${client.status}`}>{statusLabel[client.status]}</span>
+                  {isEgAdmin && (
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title="Excluir cliente"
+                      onClick={(e) => handleDeleteClient(e, client.id, client.name)}
+                      style={{ color: "var(--danger-soft)", padding: 4 }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
               <small style={{ display: 'block', textAlign: 'left', marginBottom: '16px', color: 'var(--text-muted)' }}>
                 Responsável: {client.responsible_name ?? "Sem responsável"}
@@ -64,7 +85,7 @@ export function ClientsView() {
                 <span>{client.approvals_pending} aprovações</span>
                 <span>{client.artifacts_client} artefatos</span>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 

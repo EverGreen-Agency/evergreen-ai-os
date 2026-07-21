@@ -38,6 +38,12 @@ def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_r
     return client_hub_service.list_my_deliverables(user)
 
 
+
+@router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
+def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return client_hub_service.list_my_deliverables(user)
+
+
 @router.get("", response_model=list[ClientSummary])
 def list_clients(user: CurrentUserResponse = Depends(current_user_from_request)) -> list[ClientSummary]:
     return client_hub_service.list_clients(user)
@@ -70,9 +76,17 @@ def update_client(
     return client_hub_service.update_client(client_id, payload, user)
 
 
+@router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+@workspace_router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_client(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> None:
+    client_hub_service.delete_client(client_id, user)
+
+
 @router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
 @workspace_router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
-def create_artifact(
     client_id: UUID,
     payload: ArtifactCreateRequest,
     user: CurrentUserResponse = Depends(current_user_from_request),

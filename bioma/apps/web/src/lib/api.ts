@@ -837,6 +837,10 @@ export const api = {
     request<ClientPortal>(`/workspaces/${clientId}/sync/clickup`, {
       method: "POST",
     }),
+  deleteClient: (clientId: string) =>
+    request<void>(`/clients/${clientId}`, {
+      method: "DELETE",
+    }),
   leads: (clientId: string) => request<LeadSummary[]>(`/workspaces/${clientId}/leads`),
   createLead: (clientId: string, payload: LeadPayload) =>
     request<LeadSummary[]>(`/workspaces/${clientId}/leads`, {

@@ -495,6 +495,15 @@ html, body, #root {
   grid-template-columns: 80px minmax(0, 1fr);
 }
 
+.app-shell > section.workspace,
+.app-shell > .workspace {
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .mobile-menu-toggle {
   display: none;
   position: fixed;
