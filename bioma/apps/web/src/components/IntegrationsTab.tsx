@@ -107,7 +107,21 @@ export function IntegrationsTab({
   const updateConnection = useUpdatePerformanceConnection();
   const requestSync = useRequestPerformanceSync();
 
-  const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
+  const [isClickUpSyncEnabled, setIsClickUpSyncEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("bioma_clickup_sync_enabled") !== "false";
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleClickUpSync = () => {
+    const nextState = !isClickUpSyncEnabled;
+    setIsClickUpSyncEnabled(nextState);
+    try {
+      localStorage.setItem("bioma_clickup_sync_enabled", String(nextState));
+    } catch {}
+  };
   const [accountId, setAccountId] = useState("");
   const [parentId, setParentId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -288,13 +302,35 @@ export function IntegrationsTab({
                   <Link size={20} color="var(--accent)" />
                   <h4 style={{ margin: 0, fontSize: 15 }}>ClickUp</h4>
                 </div>
-                {selectedClient.clickup_folder_id
-                  ? <span className="status-pill open">Mapeado</span>
-                  : <span className="status-pill draft">Sem pasta</span>}
+                {isClickUpSyncEnabled
+                  ? (selectedClient.clickup_folder_id ? <span className="status-pill open">Mapeado</span> : <span className="status-pill draft">Sem pasta</span>)
+                  : <span className="status-pill draft" style={{ background: "rgba(255,255,255,0.1)", color: "var(--text-faint)" }}>Pausada</span>}
               </div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.4, margin: 0 }}>
-                Para conectar o ClickUp, edite os dados do cliente e preencha o <strong>Folder ID</strong>. A sincronização importa as tarefas e responsáveis da pasta para a plataforma.
+                A sincronização bidirecional lê e atualiza as tarefas entre o Bioma e o ClickUp. Você pode interromper a integração a qualquer momento.
               </p>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: 6, margin: "4px 0" }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Status da Integração:</span>
+                <button 
+                  type="button" 
+                  onClick={toggleClickUpSync}
+                  style={{
+                    background: isClickUpSyncEnabled ? "var(--accent)" : "rgba(255,255,255,0.15)",
+                    color: isClickUpSyncEnabled ? "var(--moss-950)" : "var(--text-dim)",
+                    border: "none",
+                    padding: "4px 12px",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  {isClickUpSyncEnabled ? "⚡ ATIVADA" : "⏸️ PAUSADA"}
+                </button>
+              </div>
+
               <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
                 <div>Pasta: <strong>{selectedClient.clickup_folder_id ?? "não mapeada (edite o cliente)"}</strong></div>
                 <div>
@@ -303,19 +339,16 @@ export function IntegrationsTab({
                     {clickupRun ? `${clickupRun.status} · ${formatDateTime(clickupRun.started_at)}` : "nunca executado"}
                   </strong>
                 </div>
-                {envStatus && !envStatus.clickup_token_configured && (
-                  <div style={{ color: "var(--amber-soft)" }}>Sem CLICKUP_API_TOKEN: o sync roda em modo dry-run.</div>
-                )}
               </div>
               <button
                 className="primary-button"
                 style={{ padding: 8, fontSize: 13 }}
                 type="button"
                 onClick={() => syncClickUp.mutate(selectedClientId!)}
-                disabled={syncClickUp.isPending}
+                disabled={!isClickUpSyncEnabled || syncClickUp.isPending}
               >
                 <RefreshCw size={14} />
-                {syncClickUp.isPending ? "Sincronizando..." : "Sincronizar agora"}
+                {!isClickUpSyncEnabled ? "Integração Pausada" : syncClickUp.isPending ? "Sincronizando..." : "Sincronizar agora"}
               </button>
             </article>
 

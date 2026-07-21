@@ -16,15 +16,14 @@ export function TasksView({ workspaceId }: TasksViewProps) {
   const { data: lists, isLoading } = useTaskLists(workspaceId);
   const createList = useCreateTaskList();
   
-  const activeListId = searchParams.get("list");
+  const activeListId = searchParams.get("list") || lists?.[0]?.id || "";
   const [viewMode, setViewMode] = useState<"board" | "list" | "calendar">("board");
 
-  // Se não tiver lista selecionada mas existirem listas, pega a primeira
   useEffect(() => {
-    if (lists && lists.length > 0 && !activeListId) {
-      setSearchParams({ list: lists[0].id });
+    if (lists && lists.length > 0 && !searchParams.get("list")) {
+      setSearchParams({ list: lists[0].id }, { replace: true });
     }
-  }, [lists, activeListId, setSearchParams]);
+  }, [lists, searchParams, setSearchParams]);
 
   if (isLoading) {
     return <EmptyState text="Carregando tarefas..." />;
