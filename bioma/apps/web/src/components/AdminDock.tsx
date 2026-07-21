@@ -1,13 +1,15 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus, X, Settings } from "lucide-react";
+import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus, X, Settings, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DockTitle } from "./shared";
 import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCreateClient, useUpdateClient, useCreateInvite } from "../hooks/useBiomaApi";
+import { useCreateClient, useUpdateClient, useCreateInvite, useDeleteClient } from "../hooks/useBiomaApi";
 import { api } from "../lib/api";
 import type { ClientModule, ClientStatus, ClientSummary } from "../lib/api";
 
 export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient: ClientSummary | null, isOpen: boolean, onClose: () => void }) {
+  const navigate = useNavigate();
   const {
     selectedClientId,
     actionBusy,
@@ -17,6 +19,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
 
   const updateClient = useUpdateClient();
   const createInvite = useCreateInvite();
+  const deleteClient = useDeleteClient();
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
@@ -252,6 +255,45 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 </button>
               </div>
             )}
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid rgba(239, 68, 68, 0.2)', margin: '20px 0' }} />
+
+          <div style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", borderRadius: "8px", padding: "16px" }}>
+            <DockTitle icon={Trash2} title="Excluir Cliente" />
+            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 4, marginBottom: "14px", lineHeight: 1.4 }}>
+              Esta ação excluirá permanentemente a organização <strong>{selectedClient.name}</strong>, seus workspaces e todo o histórico associado.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Tem certeza que deseja excluir permanentemente o cliente "${selectedClient.name}"? Esta ação não pode ser desfeita.`)) {
+                  deleteClient.mutate(selectedClient.id, {
+                    onSuccess: () => {
+                      onClose();
+                      navigate("/clientes");
+                    }
+                  });
+                }
+              }}
+              disabled={deleteClient.isPending}
+              style={{
+                background: "#ef4444",
+                color: "#ffffff",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "6px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "0.85rem"
+              }}
+            >
+              <Trash2 size={16} />
+              {deleteClient.isPending ? "Excluindo..." : "Excluir este cliente"}
+            </button>
           </div>
         </div>
       </div>

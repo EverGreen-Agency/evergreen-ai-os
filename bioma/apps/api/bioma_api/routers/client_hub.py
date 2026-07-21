@@ -87,6 +87,7 @@ def delete_client(
 
 @router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
 @workspace_router.post("/{client_id}/artifacts", response_model=ClientPortalResponse, status_code=status.HTTP_201_CREATED)
+def create_artifact(
     client_id: UUID,
     payload: ArtifactCreateRequest,
     user: CurrentUserResponse = Depends(current_user_from_request),
