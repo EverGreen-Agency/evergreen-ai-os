@@ -76,7 +76,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| INT-CU-001 | BLOCKED | Backend/Operação | Cadastrar token e mapeamento ClickUp controlado | DPL-005 | sync sem dry-run |
+| INT-CU-001 | DONE | Backend/Operação | Cadastrar token e migração ao vivo do ClickUp | DPL-005 | import_clickup_to_bioma.py executado |
 | INT-CU-002 | DONE | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture local; lista real segue bloqueada por credencial |
 | INT-G-001 | BLOCKED | Backend/Operação | Validar Google Ads real | DPL-005 | comparação por campanha/data |
 | INT-G-002 | BLOCKED | Backend/Operação | Validar GA4 real | DPL-005 | comparação aquisição/eventos |

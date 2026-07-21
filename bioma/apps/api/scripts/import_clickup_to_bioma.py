@@ -103,12 +103,23 @@ def run_import():
                         """, (client_org_id, folder_name, folder_id))
                         client_id = str(cur.fetchone()["id"])
 
+                        # 3. Criar Workspace do Cliente
                         cur.execute("""
                             INSERT INTO workspaces (tenant_organization_id, subject_organization_id, kind, name, slug, status)
                             VALUES (%s, %s, 'client', %s, %s, 'active')
                             RETURNING id
                         """, (eg_org_id, client_org_id, folder_name, slugify(folder_name)))
                         workspace_id = str(cur.fetchone()["id"])
+
+                        # 4. Adicionar membros EG Admin a esta organização
+                        cur.execute("SELECT user_id FROM memberships WHERE role = 'eg_admin'")
+                        eg_admins = list(set([row["user_id"] for row in cur.fetchall()]))
+                        for admin_uid in eg_admins:
+                            cur.execute("""
+                                INSERT INTO memberships (user_id, organization_id, role)
+                                VALUES (%s, %s, 'eg_admin')
+                                ON CONFLICT DO NOTHING
+                            """, (admin_uid, client_org_id))
                     else:
                         workspace_id = str(matched["workspace_id"])
                         print(f"\n📦 Atualizando Cliente existente: '{matched['client_name']}' (Workspace ID: {workspace_id})...")

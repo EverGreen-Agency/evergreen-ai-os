@@ -37,36 +37,52 @@ def get_tasks_in_list(list_id: UUID, user: CurrentUserResponse) -> list[Task]:
                 SELECT id, list_id, title, description, status, group_status, priority, assignee_id, owner_id, due_date, recurrence, created_at, updated_at
                 FROM eg_tasks
                 WHERE list_id = %s
+                ORDER BY created_at DESC
             """, (str(list_id),))
             tasks_rows = cur.fetchall()
-            
+            if not tasks_rows:
+                return []
+
+            task_ids = [str(r["id"]) for r in tasks_rows]
+
+            cur.execute("""
+                SELECT id, task_id, field_name, field_value
+                FROM eg_task_custom_fields
+                WHERE task_id = ANY(%s)
+            """, (task_ids,))
+            cfs_by_task: dict[str, list[dict]] = {}
+            for cf in cur.fetchall():
+                tid = str(cf["task_id"])
+                cfs_by_task.setdefault(tid, []).append(dict(cf))
+
+            cur.execute("""
+                SELECT id, task_id, depends_on_task_id, type
+                FROM eg_task_dependencies
+                WHERE task_id = ANY(%s)
+            """, (task_ids,))
+            deps_by_task: dict[str, list[dict]] = {}
+            for dep in cur.fetchall():
+                tid = str(dep["task_id"])
+                deps_by_task.setdefault(tid, []).append(dict(dep))
+
+            cur.execute("""
+                SELECT id, task_id, title, is_completed, created_at, updated_at
+                FROM eg_task_subtasks
+                WHERE task_id = ANY(%s)
+                ORDER BY created_at ASC
+            """, (task_ids,))
+            subtasks_by_task: dict[str, list[dict]] = {}
+            for st in cur.fetchall():
+                tid = str(st["task_id"])
+                subtasks_by_task.setdefault(tid, []).append(dict(st))
+
             tasks = []
             for row in tasks_rows:
                 task = dict(row)
-                task_id = str(task["id"])
-                
-                cur.execute("""
-                    SELECT id, task_id, field_name, field_value
-                    FROM eg_task_custom_fields
-                    WHERE task_id = %s
-                """, (task_id,))
-                task["custom_fields"] = [dict(cf) for cf in cur.fetchall()]
-                
-                cur.execute("""
-                    SELECT id, task_id, depends_on_task_id, type
-                    FROM eg_task_dependencies
-                    WHERE task_id = %s
-                """, (task_id,))
-                task["dependencies"] = [dict(d) for d in cur.fetchall()]
-
-                cur.execute("""
-                    SELECT id, task_id, title, is_completed, created_at, updated_at
-                    FROM eg_task_subtasks
-                    WHERE task_id = %s
-                    ORDER BY created_at ASC
-                """, (task_id,))
-                task["subtasks"] = [dict(st) for st in cur.fetchall()]
-                
+                tid = str(task["id"])
+                task["custom_fields"] = cfs_by_task.get(tid, [])
+                task["dependencies"] = deps_by_task.get(tid, [])
+                task["subtasks"] = subtasks_by_task.get(tid, [])
                 tasks.append(Task(**task))
             return tasks
 
