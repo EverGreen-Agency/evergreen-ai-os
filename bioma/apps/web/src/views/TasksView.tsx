@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useTaskLists, useCreateTaskList, useTasksInList } from "../hooks/useBiomaApi";
+import { useTaskLists, useCreateTaskList } from "../hooks/useBiomaApi";
 import { TaskBoard } from "../components/tasks/TaskBoard";
 import { TaskListView } from "../components/tasks/TaskListView";
+import { TaskCalendarView } from "../components/tasks/TaskCalendarView";
 import { EmptyState, SectionHeader } from "../components/shared";
-import { LayoutDashboard, Kanban, List } from "lucide-react";
+import { LayoutDashboard, Kanban, List, Calendar } from "lucide-react";
 
 type TasksViewProps = {
   workspaceId: string;
@@ -16,7 +17,7 @@ export function TasksView({ workspaceId }: TasksViewProps) {
   const createList = useCreateTaskList();
   
   const activeListId = searchParams.get("list");
-  const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [viewMode, setViewMode] = useState<"board" | "list" | "calendar">("board");
 
   // Se não tiver lista selecionada mas existirem listas, pega a primeira
   useEffect(() => {
@@ -59,12 +60,12 @@ export function TasksView({ workspaceId }: TasksViewProps) {
         <SectionHeader eyebrow="Lista" title={activeList?.name || "Tarefas"} icon={LayoutDashboard} />
         
         {activeListId && (
-          <div style={{ display: "flex", gap: 8, background: "var(--surface-sunken)", padding: 4, borderRadius: 6 }}>
+          <div style={{ display: "flex", gap: 6, background: "var(--surface-sunken)", padding: 4, borderRadius: 6 }}>
             <button
               type="button"
               className={viewMode === "board" ? "primary-button" : "icon-button"}
               onClick={() => setViewMode("board")}
-              title="Visão Kanban"
+              title="Visão Quadro (Kanban)"
               style={{ padding: "4px 8px" }}
             >
               <Kanban size={16} />
@@ -73,10 +74,19 @@ export function TasksView({ workspaceId }: TasksViewProps) {
               type="button"
               className={viewMode === "list" ? "primary-button" : "icon-button"}
               onClick={() => setViewMode("list")}
-              title="Visão em Lista"
+              title="Visão em Lista (Planejamento)"
               style={{ padding: "4px 8px" }}
             >
               <List size={16} />
+            </button>
+            <button
+              type="button"
+              className={viewMode === "calendar" ? "primary-button" : "icon-button"}
+              onClick={() => setViewMode("calendar")}
+              title="Visão de Calendário Editorial"
+              style={{ padding: "4px 8px" }}
+            >
+              <Calendar size={16} />
             </button>
           </div>
         )}
@@ -86,7 +96,9 @@ export function TasksView({ workspaceId }: TasksViewProps) {
         {activeListId ? (
           viewMode === "board" 
             ? <TaskBoard listId={activeListId} /> 
-            : <TaskListView listId={activeListId} />
+            : viewMode === "list"
+              ? <TaskListView listId={activeListId} />
+              : <TaskCalendarView listId={activeListId} />
         ) : (
           <EmptyState text="Selecione uma lista na barra lateral." />
         )}

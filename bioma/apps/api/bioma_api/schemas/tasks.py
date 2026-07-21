@@ -19,6 +19,16 @@ class TaskDependency(TaskDependencyBase):
     id: UUID
     task_id: UUID
 
+class TaskSubtaskBase(BaseModel):
+    title: str
+    is_completed: bool = False
+
+class TaskSubtask(TaskSubtaskBase):
+    id: UUID
+    task_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -28,10 +38,12 @@ class TaskBase(BaseModel):
     assignee_id: Optional[UUID] = None
     owner_id: Optional[UUID] = None
     due_date: Optional[datetime] = None
+    recurrence: Optional[Literal["none", "weekly", "monthly"]] = "none"
 
 class TaskCreate(TaskBase):
     custom_fields: list[TaskCustomFieldBase] = []
     dependencies: list[TaskDependencyBase] = []
+    subtasks: list[TaskSubtaskBase] = []
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -42,6 +54,8 @@ class TaskUpdate(BaseModel):
     assignee_id: Optional[UUID] = None
     owner_id: Optional[UUID] = None
     due_date: Optional[datetime] = None
+    recurrence: Optional[Literal["none", "weekly", "monthly"]] = None
+    custom_fields: Optional[list[TaskCustomFieldBase]] = None
 
 class Task(TaskBase):
     id: UUID
@@ -50,6 +64,7 @@ class Task(TaskBase):
     updated_at: datetime
     custom_fields: list[TaskCustomField] = []
     dependencies: list[TaskDependency] = []
+    subtasks: list[TaskSubtask] = []
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,6 +80,5 @@ class TaskList(TaskListBase):
     workspace_id: UUID
     created_at: datetime
     updated_at: datetime
-    tasks: list[Task] = []
-
+    
     model_config = ConfigDict(from_attributes=True)

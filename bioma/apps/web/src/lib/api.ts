@@ -86,6 +86,46 @@ export type WorkspaceSavedView = {
   filters: WorkspaceSavedViewFilters;
 };
 
+export type TenantRole = "tenant_admin" | "operator" | "approver" | "viewer";
+export type TeamRole = "manager" | "member";
+export type WorkspaceAssignmentRole = "workspace_manager" | "operator" | "approver" | "viewer";
+
+export type TeamSummary = {
+  id: string;
+  tenant_organization_id: string;
+  name: string;
+  slug: string;
+  status: "active" | "archived";
+  members_total: number;
+  workspaces_total: number;
+};
+
+export type TenantMembershipSummary = {
+  tenant_organization_id: string;
+  user_id: string;
+  email: string;
+  display_name: string;
+  role: TenantRole;
+};
+
+export type TeamMemberSummary = {
+  team_id: string;
+  user_id: string;
+  email: string;
+  display_name: string;
+  role: TeamRole;
+};
+
+export type WorkspaceAssignmentSummary = {
+  id: string;
+  workspace_id: string;
+  user_id: string | null;
+  team_id: string | null;
+  assignee_name: string;
+  assignee_email: string | null;
+  role: WorkspaceAssignmentRole;
+};
+
 export type AiContentPost = {
   title: string;
   channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
@@ -560,8 +600,65 @@ export type BackofficeArchitecture = {
 };
 
 export type BackofficeSquads = {
-  squads: SquadInfo[];
-  activeStates: Record<string, SquadState>;
+  squads: SquadState[];
+};
+
+export type TaskGroupStatus = "NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED";
+export type TaskPriority = "Alta" | "Média" | "Baixa";
+export type TaskListType = "social" | "growth" | "tech" | "general";
+
+export type TaskCustomField = {
+  id?: string;
+  task_id?: string;
+  field_name: string;
+  field_value: string;
+};
+
+export type TaskDependency = {
+  id?: string;
+  task_id?: string;
+  depends_on_task_id: string;
+  type?: string;
+};
+
+export type TaskSubtask = {
+  id: string;
+  task_id: string;
+  title: string;
+  is_completed: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TaskPayload = {
+  title: string;
+  description?: string | null;
+  status: string;
+  group_status: TaskGroupStatus;
+  priority?: TaskPriority | null;
+  assignee_id?: string | null;
+  owner_id?: string | null;
+  due_date?: string | null;
+  recurrence?: "none" | "weekly" | "monthly" | null;
+  custom_fields?: TaskCustomField[];
+  dependencies?: TaskDependency[];
+  subtasks?: TaskSubtask[];
+};
+
+export type TaskSummary = TaskPayload & {
+  id: string;
+  list_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TaskListSummary = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  type: TaskListType;
+  created_at: string;
+  updated_at: string;
 };
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -622,6 +719,41 @@ export const api = {
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
+  teams: (tenantOrganizationId: string) =>
+    request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),
+  createTeam: (tenantOrganizationId: string, name: string) =>
+    request<TeamSummary>("/teams", {
+      method: "POST",
+      body: JSON.stringify({ tenant_organization_id: tenantOrganizationId, name }),
+    }),
+  tenantMembers: (tenantOrganizationId: string) =>
+    request<TenantMembershipSummary[]>(`/tenants/${tenantOrganizationId}/members`),
+  upsertTenantMember: (tenantOrganizationId: string, userId: string, role: TenantRole) =>
+    request<TenantMembershipSummary[]>(`/tenants/${tenantOrganizationId}/members`, {
+      method: "PUT",
+      body: JSON.stringify({ user_id: userId, role }),
+    }),
+  teamMembers: (teamId: string) => request<TeamMemberSummary[]>(`/teams/${teamId}/members`),
+  upsertTeamMember: (teamId: string, userId: string, role: TeamRole) =>
+    request<TeamMemberSummary[]>(`/teams/${teamId}/members`, {
+      method: "PUT",
+      body: JSON.stringify({ user_id: userId, role }),
+    }),
+  deleteTeamMember: (teamId: string, userId: string) =>
+    request<TeamMemberSummary[]>(`/teams/${teamId}/members/${userId}`, { method: "DELETE" }),
+  workspaceAssignments: (workspaceId: string) =>
+    request<WorkspaceAssignmentSummary[]>(`/workspaces/${workspaceId}/assignments`),
+  upsertWorkspaceAssignment: (
+    workspaceId: string,
+    payload: { user_id?: string | null; team_id?: string | null; role: WorkspaceAssignmentRole },
+  ) => request<WorkspaceAssignmentSummary[]>(`/workspaces/${workspaceId}/assignments`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  }),
+  deleteWorkspaceAssignment: (workspaceId: string, assignmentId: string) =>
+    request<WorkspaceAssignmentSummary[]>(`/workspaces/${workspaceId}/assignments/${assignmentId}`, {
+      method: "DELETE",
+    }),
   favoriteWorkspace: (workspaceId: string, favorite: boolean) =>
     request<WorkspaceSummary[]>(`/workspaces/${workspaceId}/favorite`, {
       method: favorite ? "PUT" : "DELETE",
@@ -834,4 +966,27 @@ export const api = {
     request<ClientFileDownload>(`/workspaces/${clientId}/files/${fileId}/download`),
   deleteFile: (clientId: string, fileId: string) =>
     request<ClientFileSummary[]>(`/workspaces/${clientId}/files/${fileId}`, { method: "DELETE" }),
+  
+  // Task Management
+  taskLists: (workspaceId: string) => 
+    request<TaskListSummary[]>(`/workspaces/${workspaceId}/task-lists`),
+  createTaskList: (workspaceId: string, name: string, type: TaskListType) =>
+    request<TaskListSummary>(`/workspaces/${workspaceId}/task-lists`, {
+      method: "POST",
+      body: JSON.stringify({ name, type }),
+    }),
+  tasksInList: (listId: string) =>
+    request<TaskSummary[]>(`/task-lists/${listId}/tasks`),
+  createTask: (listId: string, payload: TaskPayload) =>
+    request<TaskSummary>(`/task-lists/${listId}/tasks`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateTask: (taskId: string, payload: Partial<TaskPayload>) =>
+    request<TaskSummary>(`/tasks/${taskId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteTask: (taskId: string) =>
+    request<void>(`/tasks/${taskId}`, { method: "DELETE" }),
 };

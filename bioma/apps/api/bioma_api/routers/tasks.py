@@ -1,11 +1,15 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.tasks import TaskList, TaskListCreate, Task, TaskCreate, TaskUpdate
 from bioma_api.services import tasks as tasks_service
 
 router = APIRouter(prefix="", tags=["tasks"])
+
+class SubtaskCreatePayload(BaseModel):
+    title: str
 
 @router.get("/workspaces/{workspace_id}/task-lists", response_model=list[TaskList])
 def list_task_lists(
@@ -51,3 +55,25 @@ def delete_task(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     tasks_service.delete_task(task_id, user)
+
+@router.post("/tasks/{task_id}/subtasks", status_code=status.HTTP_201_CREATED)
+def add_subtask(
+    task_id: UUID,
+    payload: SubtaskCreatePayload,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return tasks_service.add_subtask(task_id, payload.title, user)
+
+@router.patch("/subtasks/{subtask_id}/toggle")
+def toggle_subtask(
+    subtask_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return tasks_service.toggle_subtask(subtask_id, user)
+
+@router.delete("/subtasks/{subtask_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_subtask(
+    subtask_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    tasks_service.delete_subtask(subtask_id, user)

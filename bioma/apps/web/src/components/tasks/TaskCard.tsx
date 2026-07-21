@@ -33,6 +33,16 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
       )}
       
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+        {task.recurrence && task.recurrence !== "none" && (
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--brand-accent)" }} title={`Recorrência: ${task.recurrence}`}>
+            🔄 {task.recurrence === "weekly" ? "Semanal" : "Mensal"}
+          </span>
+        )}
+        {task.subtasks && task.subtasks.length > 0 && (
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--text-normal)" }}>
+            ☑️ {task.subtasks.filter(s => s.is_completed).length}/{task.subtasks.length}
+          </span>
+        )}
         {task.custom_fields?.filter(f => ["Área do Projeto", "Esforço", "Missão", "Plataforma"].includes(f.field_name) && f.field_value).map(f => (
           <span key={f.field_name} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--text-normal)" }}>
             {f.field_name === "Esforço" ? "⏱️ " : ""}{f.field_value}
