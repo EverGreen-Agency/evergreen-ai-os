@@ -8,10 +8,11 @@ from fastapi.testclient import TestClient
 
 from bioma_api.db import connect
 from bioma_api.main import app
+from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
-CLIENT_EMAIL = "henrique@hmconexoes.com.br"
+CLIENT_EMAIL = "smoke-navigation-client@bioma.example.com"
 PASSWORD = "senha-dev-123"
 VIEW_NAME = "Smoke Minha carteira"
 
@@ -26,13 +27,17 @@ def login(client: TestClient, email: str) -> None:
     assert_status(response, 200, f"login {email}")
 
 
-def cleanup() -> None:
+def cleanup(organization_ids=None) -> None:
     with connect() as conn:
         conn.execute("delete from workspace_saved_views where name = %s", (VIEW_NAME,))
+    cleanup_smoke_data(organization_ids or [], [CLIENT_EMAIL])
 
 
 def main() -> None:
     cleanup()
+    smoke_workspace = create_smoke_workspace("Navigation")
+    client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Navigation Client", PASSWORD)
+    grant_client_user(smoke_workspace, client_user_id)
     admin = TestClient(app)
     client_user = TestClient(app)
     login(admin, ADMIN_EMAIL)
@@ -42,7 +47,7 @@ def main() -> None:
         workspaces_response = admin.get("/workspaces")
         assert_status(workspaces_response, 200, "list workspaces")
         workspaces = workspaces_response.json()
-        hm = next(row for row in workspaces if row["organization_slug"] == "hm-conexoes")
+        hm = next(row for row in workspaces if row["id"] == str(smoke_workspace.workspace_id))
         internal = next(row for row in workspaces if row["kind"] == "agency_internal")
         assert "is_favorite" in hm and "is_assigned" in hm
 
@@ -95,7 +100,7 @@ def main() -> None:
         assert_status(unfavorite, 200, "unfavorite workspace")
         assert next(row for row in unfavorite.json() if row["id"] == hm["id"])["is_favorite"] is False
     finally:
-        cleanup()
+        cleanup([smoke_workspace.organization_id])
 
     print("workspace navigation smoke ok")
 

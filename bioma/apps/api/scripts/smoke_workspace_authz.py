@@ -8,11 +8,11 @@ from fastapi.testclient import TestClient
 
 from bioma_api.db import connect
 from bioma_api.main import app
-from bioma_api.security import hash_password
+from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
-CLIENT_EMAIL = "henrique@hmconexoes.com.br"
+CLIENT_EMAIL = "smoke-authz-client@bioma.example.com"
 OPERATOR_EMAIL = "smoke-operator@bioma.example.com"
 VIEWER_EMAIL = "smoke-viewer@bioma.example.com"
 TENANT_ADMIN_EMAIL = "smoke-tenant-admin@bioma.example.com"
@@ -29,36 +29,24 @@ def login(client: TestClient, email: str) -> None:
     assert_status(response, 200, f"login {email}")
 
 
-def upsert_user(email: str, name: str):
-    with connect() as conn:
-        row = conn.execute("select id from users where lower(email) = %s", (email,)).fetchone()
-        if row:
-            conn.execute(
-                "update users set display_name = %s, password_hash = %s, is_active = true where id = %s",
-                (name, hash_password(PASSWORD), row["id"]),
-            )
-            return row["id"]
-        return conn.execute(
-            "insert into users (email, display_name, password_hash) values (%s, %s, %s) returning id",
-            (email, name, hash_password(PASSWORD)),
-        ).fetchone()["id"]
-
-
-def cleanup() -> None:
+def cleanup(organization_ids=None) -> None:
     with connect() as conn:
         conn.execute("delete from artifacts where title in ('Smoke RBAC', 'Should fail')")
         conn.execute("delete from teams where name = 'Smoke Carteira'")
-        conn.execute(
-            "delete from users where email = any(%s)",
-            ([OPERATOR_EMAIL, VIEWER_EMAIL, TENANT_ADMIN_EMAIL],),
-        )
+    cleanup_smoke_data(
+        organization_ids or [],
+        [OPERATOR_EMAIL, VIEWER_EMAIL, TENANT_ADMIN_EMAIL, CLIENT_EMAIL],
+    )
 
 
 def main() -> None:
     cleanup()
-    operator_id = upsert_user(OPERATOR_EMAIL, "Operador Smoke")
-    viewer_id = upsert_user(VIEWER_EMAIL, "Viewer Smoke")
-    tenant_admin_id = upsert_user(TENANT_ADMIN_EMAIL, "Tenant Admin Smoke")
+    smoke_workspace = create_smoke_workspace("Authz")
+    operator_id = upsert_smoke_user(OPERATOR_EMAIL, "Operador Smoke", PASSWORD)
+    viewer_id = upsert_smoke_user(VIEWER_EMAIL, "Viewer Smoke", PASSWORD)
+    tenant_admin_id = upsert_smoke_user(TENANT_ADMIN_EMAIL, "Tenant Admin Smoke", PASSWORD)
+    client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Client Smoke", PASSWORD)
+    grant_client_user(smoke_workspace, client_user_id)
 
     admin = TestClient(app)
     operator = TestClient(app)
@@ -72,7 +60,7 @@ def main() -> None:
         workspaces = admin.get("/workspaces")
         assert_status(workspaces, 200, "admin workspaces")
         workspace_rows = workspaces.json()
-        hm_workspace = next(row for row in workspace_rows if row["organization_slug"] == "hm-conexoes")
+        hm_workspace = next(row for row in workspace_rows if row["id"] == str(smoke_workspace.workspace_id))
         internal_workspace = next(row for row in workspace_rows if row["kind"] == "agency_internal")
         tenant_id = hm_workspace["tenant_organization_id"]
 
@@ -163,7 +151,7 @@ def main() -> None:
             "client user cannot cross into internal operation",
         )
     finally:
-        cleanup()
+        cleanup([smoke_workspace.organization_id])
 
     print("workspace authz smoke ok")
 
