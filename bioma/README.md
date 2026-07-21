@@ -153,6 +153,9 @@ python scripts/migrate.py
 python scripts/seed_dev.py
 python scripts/smoke_api.py
 python scripts/smoke_clickup.py
+python scripts/smoke_workspace_authz.py
+python scripts/smoke_workspace_navigation.py
+python scripts/smoke_tasks.py
 python scripts/smoke_performance.py
 python scripts/smoke_files.py  # exige STORAGE_S3_* configurado (ver seção Storage acima)
 ```
@@ -171,6 +174,10 @@ Frontend:
 cd apps/web
 npm run build
 ```
+
+Os smokes de workspace e tarefas criam organizações/workspaces efêmeros próprios; não dependem do cliente HM presente no seed. O ClickUp permanece o system of record da execução: a importação é tenant-scoped e idempotente por identificador externo, e itens importados são projeções locais somente leitura. O Bioma não escreve no ClickUp no MVP.
+
+Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
 
 ## Comunicação Web/API
 

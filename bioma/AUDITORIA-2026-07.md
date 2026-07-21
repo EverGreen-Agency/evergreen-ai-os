@@ -2,6 +2,22 @@
 
 Avaliação geral de código, segurança, negócio e próximos passos, feita por Claude Code (Sonnet 5) a pedido do Eduardo. Complementa `ROADMAP-MVP.md` (estado/backlog) e `DEPLOY.md` (runbook) — não os substitui.
 
+## Adendo de remediação — 2026-07-21
+
+A afirmação original de que nenhum endpoint pulava a checagem de BOLA/IDOR não abrangia corretamente `services/tasks.py`. A janela `85bb410..82c73ca` também continha uma credencial ClickUp hardcoded. O token foi revogado fora do repositório, o commit local ainda não publicado foi reescrito e os scripts passaram a exigir `CLICKUP_API_TOKEN` no ambiente, sem fallback.
+
+Remediações aplicadas nesta rodada:
+
+- SQL de tarefas extraído para `repositories/tasks.py`; leitura exige `view` e escrita exige `manage_work`.
+- Toda lista/tarefa/subtarefa é resolvida no workspace autorizado; assignee, owner e dependencies precisam pertencer ao mesmo tenant/workspace, e ciclos são rejeitados.
+- Recorrência usa uma origem única e não duplica sucessores; subtarefas e dependências têm edição real e tipada.
+- `smoke_tasks.py` cobre EG admin, operator, viewer, client_user e cliente A tentando ler/mutar cliente B. Os smokes de API/workspace/tarefas usam massa efêmera, sem depender da HM.
+- ClickUp continua como system of record. A importação é ClickUp → Bioma, tenant-scoped, transacional por pasta e idempotente por `external_id`; projeções são somente leitura e a UI não promete bidirecionalidade.
+- `DELETE /clients/{id}` agora arquiva. Purge físico é separado, exige confirmação exata, limpa S3 antes do banco e preserva auditoria.
+- `request<T>` trata corretamente 204/corpo vazio, e a rota duplicada `GET /clients/deliverables/me` foi removida.
+
+O texto abaixo é preservado como fotografia da auditoria de 2026-07-12; quando houver divergência, este adendo e os documentos de arquitetura atuais prevalecem.
+
 
 ### Storage S3 — pergunta do Eduardo
 

@@ -14,7 +14,7 @@ services/<dominio>.py      # regra de negócio, permissões, auditoria
 repositories/<dominio>.py  # SQL puro, sempre parametrizado
 ```
 
-Domínios: `auth`, `oauth`, `passwords`, `invites`, `workspaces`, `client_hub`, `performance`,
+Domínios: `auth`, `oauth`, `passwords`, `invites`, `workspaces`, `client_hub`, `tasks`, `performance`,
 `files`, `kommo` (routers `integrations`/`analytics`), `admin` (= backoffice EG,
 prefixo `/backoffice`). Transversais: `access.py` (papéis, membership,
 feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
@@ -42,7 +42,9 @@ Glossário:
 
 Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
 
-Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): ClickUp e Kommo permanecem motores especializados atrás de adapters; o Bioma possui contexto, autorização, inteligência e experiência, substituindo capacidades externas apenas por evidência de uso e paridade.
+Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): ClickUp e Kommo permanecem motores especializados atrás de adapters; o Bioma possui contexto, autorização, inteligência e experiência, substituindo capacidades externas apenas por evidência de uso e paridade. Para tarefas, ClickUp é o system of record e a sincronização atual é exclusivamente ClickUp → Bioma: registros importados são projeções locais somente leitura, enquanto tarefas nativas do Bioma permanecem locais.
+
+O domínio `tasks` segue a trinca completa: o router só traduz HTTP, o service aplica capacidades e invariantes, e `repositories/tasks.py` concentra todo SQL. Leituras exigem `view`; listas e mutações exigem `manage_work`. Assignee, owner e dependencies são resolvidos dentro do mesmo tenant/workspace, ciclos são rejeitados e a recorrência usa uma chave de origem única para ser idempotente.
 
 Estado transitório: `workspaces` fornece a identidade persistente e `GET /workspaces` faz a descoberta autorizada. Os domínios operacionais aceitam `/workspaces/{workspace_id}/...`; `/clients/{client_id}/...` permanece como adapter de compatibilidade. Performance mantém `client_id` e `workspace_id` em dual-write enquanto leitores e workers migram, e o identificador externo do GTM chama-se `gtm_workspace_id`. `subject_organization_id` ainda aponta para o contêiner físico dos dados e `clients` continua como extensão comercial 1:1. `EverGreen Internal` fornece somente a ponte técnica da Operação EG e não pode ser removido antes das FKs/adapters restantes. `parent_organization_id` e `tenant_organization_id` descrevem pertencimento, mas não concedem autorização hierárquica. A carteira é uma projeção de `workspace_assignments`: atribuições podem apontar diretamente para usuário ou time, e `workspace_access_role(...)` centraliza a precedência dos papéis.
 
@@ -93,6 +95,7 @@ Regras invioláveis:
    inexistente falha em silêncio (já aconteceu duas vezes).
 5. **URL/contexto é a fonte da verdade operacional.** Componentes podem ser compartilhados entre EG e clientes, mas toda consulta/mutação recebe workspace explícito; `selectedClientId` é apenas ponte legada de UI.
 6. **Carteira não é navegador de módulos.** A troca em escala acontece pelo navegador pesquisável do Topbar; a Sidebar e as tabs mostram apenas o contexto corrente.
+7. **DELETE de cliente significa archive.** Purge físico é uma operação separada de platform admin, exige o cliente já arquivado e confirmação exata do nome, remove objetos S3 antes do banco e preserva o evento de auditoria.
 
 ## Protocolo de sessão (humano ou IA)
 

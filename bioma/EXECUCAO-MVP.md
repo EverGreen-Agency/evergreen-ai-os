@@ -71,13 +71,18 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | AUTHZ-WS-001 | DONE | Full-stack | Separar platform/tenant/workspace roles e testar EG→cliente, cliente→cliente e time→workspace | TEAM-001, DATA-WS-001B | matriz automatizada de autorização |
 | WEB-NAV-002 | DONE | Full-stack | Favoritos, “Minha carteira” e visões salvas alimentados por assignments reais | TEAM-001 | smoke de persistência + tsc/build |
 | AI-CONTENT-001 | DONE | Full-stack/Worker | Gerar rascunhos sociais por workspace com metodologia, fila, auditoria e provider OpenAI | AUTHZ-WS-001 | preview local + mock Responses API + tsc/build |
+| TASK-AUTHZ-001 | DONE | Backend | Extrair repositório de tarefas e aplicar `view`/`manage_work`, BOLA/IDOR e invariantes de assignee/owner/dependencies | AUTHZ-WS-001 | `smoke_tasks.py` com matriz de papéis e cliente A→B |
+| TASK-DOM-001 | DONE | Full-stack | CRUD real de subtarefas/dependências, resposta 204 segura e recorrência idempotente | TASK-AUTHZ-001 | `smoke_tasks.py` + tsc/build |
+| CLIENT-LIFE-001 | DONE | Full-stack | Trocar delete cotidiano por archive e separar purge confirmado com auditoria e limpeza S3 | AUTHZ-WS-001 | `smoke_api.py` |
 
 ### Onda 2 — Integrações reais
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
-| INT-CU-001 | DONE | Backend/Operação | Cadastrar token e migração ao vivo do ClickUp | DPL-005 | import_clickup_to_bioma.py executado |
+| INT-CU-001 | DONE | Backend/Operação | Importador ClickUp env-only, tenant-scoped, transacional por pasta e idempotente por external ID | DPL-005 | importador compilado + smoke mockado |
 | INT-CU-002 | DONE | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture local; lista real segue bloqueada por credencial |
+| INT-CU-003 | DONE | Produto/Full-stack | Formalizar ClickUp como system of record e projeção local somente leitura, sem falso bidirecional | INT-CU-001 | ADR 0002 + `smoke_tasks.py` + tsc/build |
+| INT-CU-LIVE-001 | BLOCKED | Operação | Validar import com novo token efêmero e mapeamento controlado em staging | DPL-006 | execução ao vivo sem segredo no Git |
 | INT-G-001 | BLOCKED | Backend/Operação | Validar Google Ads real | DPL-005 | comparação por campanha/data |
 | INT-G-002 | BLOCKED | Backend/Operação | Validar GA4 real | DPL-005 | comparação aquisição/eventos |
 | INT-G-003 | BLOCKED | Backend/Operação | Validar GSC real | DPL-005 | comparação consultas/páginas |

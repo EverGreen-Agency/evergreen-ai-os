@@ -12,6 +12,7 @@ npm run dev
 ## Validar
 
 ```bash
+npx tsc -b
 npm run build
 ```
 
@@ -35,6 +36,8 @@ Administradores EG configuram times, membros já habilitados e distribuição de
 
 Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
+Tarefas ClickUp aparecem com indicação de projeção somente leitura. Edição de tarefa, subtarefas, dependências, recorrência e exclusão só ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A tela de Integrações não mantém toggle em `localStorage` nem promete sincronização bidirecional: ela aciona somente a atualização ClickUp → Bioma configurada no backend.
+
 A fonte da navegação é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs visuais continuam legíveis como `/clientes/:clientId`, mas os módulos chamam a API canônica por `/workspaces/:workspaceId`; o backend ainda aceita `client_id` como adapter de compatibilidade.
 
 O registro técnico `EverGreen Internal` é uma ponte temporária para endpoints ainda baseados em `client_id`. Ele fica oculto da Carteira e só pode ser resolvido por correspondência exata com a organização administrativa da sessão. Ausência ou ambiguidade bloqueiam `/operacao`; não existe fallback para nome, primeiro cliente ou seleção anterior.
@@ -55,7 +58,9 @@ Bioma Platform
     └── Workspaces de clientes
 ```
 
-No estado transitório atual ainda existem apenas `eg_admin` e `client_user`; tenants, equipes, atribuições e papéis white-label completos estão no backlog arquitetural.
+O estado atual já separa platform admin, tenant admin, workspace manager, operator, approver, viewer e o adapter legado `client_user`; times e atribuições alimentam “Minha carteira”.
+
+Ao remover um cliente na administração, a ação exposta é arquivamento e preserva histórico. Purge permanente não é oferecido como botão cotidiano no frontend.
 
 ## Tema e branding
 

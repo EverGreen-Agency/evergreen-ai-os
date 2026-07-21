@@ -34,7 +34,7 @@ Documentos operacionais:
 
 ## Estado atual
 
-Data de referência: 2026-07-10.
+Data de referência: 2026-07-21.
 
 O MVP técnico local está testável e operável. O MVP comercial baseado na proposta HM ainda não está concluído nem publicado em staging.
 
@@ -52,7 +52,7 @@ Funcional hoje:
 - Aprovar/reprovar pendência pelo front.
 - EG admin consegue solicitar aprovação de uma entrega pelo front; o cliente decide no próprio hub.
 - Cliente enxerga apenas o próprio hub no seed.
-- ClickUp Bridge em modo manual/dry-run.
+- ClickUp Bridge manual e unidirecional: ClickUp → projeção local somente leitura.
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
 - Área documentada para assets em `apps/web/public/assets/`.
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
@@ -65,15 +65,17 @@ Funcional hoje:
 - Identidade de workspace persistente em `workspaces`, com backfill/provisionamento transacional e descoberta autenticada por `GET /workspaces`; módulos ainda usam adapters `client_id` onde necessário.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 - Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
+- Tarefas nativas do Bioma com CRUD, subtarefas, dependências e recorrência idempotente, protegidas por workspace e capability.
+- Times, atribuições e papéis `platform_admin`, `tenant_admin`, `workspace_manager`, `operator`, `approver`, `viewer` e adapter legado `client_user`.
+- Remoção cotidiana de cliente por archive; purge físico separado, confirmado, auditado e com limpeza S3.
 
 Ainda demo/dry-run:
 
 - Dados iniciais HM vêm de seed, mas já podem ser editados pelo front.
-- ClickUp ainda não sincroniza tarefas reais sem token e mapeamento real.
+- ClickUp real exige token efêmero no ambiente, tenant/team explícitos e mapeamento controlado; nenhum segredo é versionado.
 - Briefing, brand book e calendário existem como artefatos editáveis, não como módulos ricos completos.
 - Analytics não deve exibir números reais enquanto não houver fonte real conectada.
 - Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
-- Permissões ainda são simples: `eg_admin` e `client_user`.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
 - Analytics consome endpoints reais de Performance, mas ainda pode exibir dados de seed enquanto não houver sync real.
 - LinkedIn orgânico e LinkedIn Ads, centrais no caso HM, ainda não foram integrados.
@@ -131,7 +133,7 @@ MVP do ClickUp Bridge:
 3. Normalizar status para entregáveis/aprovações no Bioma.
 4. Registrar `sync_runs`.
 5. Permitir ação manual EG primeiro.
-6. Só depois permitir escrita bidirecional com HITL.
+6. Só considerar escrita externa após implementar comando real, idempotente, auditado e confirmado por HITL; até lá, não classificar a integração como bidirecional.
 
 Não fazer ainda:
 
@@ -239,7 +241,7 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 
 ### P2 - ClickUp real
 
-- [ ] Configurar `CLICKUP_API_TOKEN`.
+- [ ] Configurar um novo `CLICKUP_API_TOKEN` somente no ambiente controlado de staging quando a validação ao vivo for autorizada.
 - [ ] Cadastrar mapeamento real de pasta/listas.
 - [x] Implementar leitura real de tarefas quando `CLICKUP_API_TOKEN` e pasta/listas estiverem configurados.
 - [x] Suportar leitura por `clickup_mappings` quando houver mapeamento de lista.
@@ -247,11 +249,19 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Registrar erros de sync no histórico retornado pelo portal.
 - [x] Definir política de escrita: sempre HITL no MVP.
 - [x] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação; validação contra listas reais depende de credencial/staging.
+- [x] Tornar o import tenant-scoped, transacional por pasta e idempotente por `external_id` para listas, tarefas e subtarefas.
+- [x] Fixar ClickUp como system of record e bloquear mutação local de projeções importadas.
+- [x] Remover toggle local fictício e qualquer alegação de sincronização bidirecional.
 
 ### P3 - Segurança e qualidade
 
 - [x] Smoke test de autorização entre `eg_admin` e `client_user`.
 - [x] Smoke test básico de BOLA/IDOR para outro cliente.
+- [x] Matriz de autorização de tarefas para EG admin, operator, viewer e client_user, incluindo cliente A contra cliente B.
+- [x] Validar assignee, owner e dependencies no mesmo tenant/workspace e rejeitar ciclos.
+- [x] Tornar recorrência idempotente e cobrir CRUD/subtarefas/dependências no `smoke_tasks.py`.
+- [x] Tornar smokes de API/workspace/tarefas independentes do cliente HM no banco compartilhado.
+- [x] Substituir delete físico cotidiano de cliente por archive e purge confirmado com auditoria/limpeza S3.
 - [x] Teste de CORS local.
 - [x] Teste de sessão revogada.
 - [x] Teste de sessão expirada.
@@ -333,7 +343,7 @@ O MVP v0 pode ser considerado funcional localmente quando:
 - EG admin consegue entrar, ver clientes, criar/editar cliente, criar/editar entregáveis e artefatos.
 - Cliente consegue entrar e ver apenas o próprio hub.
 - Aprovações funcionam ponta a ponta.
-- ClickUp dry-run registra sync de forma visível.
+- ClickUp registra import/sync de forma visível sem escrita externa.
 - A UI funciona em desktop e largura reduzida sem quebrar layout.
 - Não há dados fake apresentados como se fossem reais.
 - Há smoke test básico de API e build frontend passando.
@@ -356,21 +366,22 @@ Para aderir ao escopo comercial de referência HM, também faltam:
 
 ## Status de testes
 
-Testes rodados nesta rodada:
+Validações executadas na remediação de 2026-07-21:
 
 - `python -m compileall bioma/apps/api/bioma_api bioma/apps/api/scripts`
+- `python -m compileall bioma/apps/worker/bioma_worker bioma/apps/worker/scripts`
 - `python scripts/migrate.py`
-- `python scripts/seed_dev.py`
 - `python scripts/smoke_api.py`
 - `python scripts/smoke_clickup.py`
-- `python scripts/smoke_performance.py`
-- `python apps/worker/scripts/smoke_worker.py`
-- `python apps/worker/scripts/smoke_queue.py`
-- `docker compose -f infra/docker-compose.yml --profile worker config --quiet`
-- `docker compose -f infra/docker-compose.yml --profile worker build worker`
-- `docker compose -f infra/docker-compose.yml --profile worker run --rm worker`
+- `python scripts/smoke_workspace_authz.py`
+- `python scripts/smoke_workspace_navigation.py`
+- `python scripts/smoke_tasks.py`
 - `npx tsc -b`
 - `npm.cmd run build`
+- `npm.cmd audit --omit=dev` — 0 vulnerabilidades
+- `git diff --check`
+- build web a partir de `git archive HEAD`, reutilizando somente as dependências instaladas
+- `graphify update .`
 
 Os testes atuais são funcionais e smoke tests de desenvolvimento. Eles não substituem auditoria de segurança, pentest, teste de carga ou revisão LGPD.
 
@@ -421,3 +432,4 @@ Formato:
 - 2026-07-18 - Codex - ver git log - AI-CONTENT-001 concluído: Estúdio IA no Hub do Cliente, fila Postgres compartilhada sem starvation, auditoria em `ai_runs`, prévia local honesta e adapter OpenAI Responses API com Structured Outputs - migration, compile API/worker, smoke preview + provider mock e `npx.cmd tsc -b` passaram - geração externa real depende de `OPENAI_API_KEY` no worker e QA humano.
 - 2026-07-18 - Codex - ver git log - Estratégia ClickUp/Kommo consolidada no ADR 0002 como integration-first e INT-CU-002 concluído com classificação Social/Growth/Tech e tradução configurável de status - migration, compile e smoke ClickUp mockado passaram - tokens, listas e conta Kommo reais continuam bloqueados até staging controlado.
 - 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
+- 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
