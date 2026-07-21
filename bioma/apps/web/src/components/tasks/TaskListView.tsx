@@ -70,6 +70,8 @@ export function TaskListView({ listId }: TaskListViewProps) {
                     <button 
                       className="icon-button" 
                       style={{ padding: 4 }}
+                      disabled={task.external_source === "clickup"}
+                      title={task.external_source === "clickup" ? "Atualize esta tarefa no ClickUp." : undefined}
                       onClick={() => {
                         updateTask.mutate({ 
                           taskId: task.id, 
@@ -82,6 +84,7 @@ export function TaskListView({ listId }: TaskListViewProps) {
                   </td>
                   <td style={{ padding: "12px 16px", fontWeight: 500, textDecoration: isDone ? "line-through" : "none" }}>
                     {task.title}
+                    {task.external_source === "clickup" && <small style={{ display: "block", color: "var(--text-faint)" }}>ClickUp · somente leitura</small>}
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <span style={{ fontSize: 11, padding: "4px 8px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)" }}>

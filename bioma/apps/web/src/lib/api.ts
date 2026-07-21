@@ -630,6 +630,12 @@ export type TaskSubtask = {
   updated_at: string;
 };
 
+export type TaskSubtaskInput = {
+  id?: string;
+  title: string;
+  is_completed: boolean;
+};
+
 export type TaskPayload = {
   title: string;
   description?: string | null;
@@ -642,12 +648,14 @@ export type TaskPayload = {
   recurrence?: "none" | "weekly" | "monthly" | null;
   custom_fields?: TaskCustomField[];
   dependencies?: TaskDependency[];
-  subtasks?: TaskSubtask[];
+  subtasks?: TaskSubtaskInput[];
 };
 
 export type TaskSummary = TaskPayload & {
   id: string;
   list_id: string;
+  external_source?: "clickup" | null;
+  external_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -692,7 +700,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new Error(message);
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204 || response.headers.get("Content-Length") === "0") {
+    return undefined as T;
+  }
+  const body = await response.text();
+  return body ? JSON.parse(body) as T : undefined as T;
 }
 
 async function requestText(path: string): Promise<string> {
@@ -837,7 +849,7 @@ export const api = {
     request<ClientPortal>(`/workspaces/${clientId}/sync/clickup`, {
       method: "POST",
     }),
-  deleteClient: (clientId: string) =>
+  archiveClient: (clientId: string) =>
     request<void>(`/clients/${clientId}`, {
       method: "DELETE",
     }),

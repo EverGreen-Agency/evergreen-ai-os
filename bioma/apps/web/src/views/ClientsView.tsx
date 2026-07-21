@@ -7,7 +7,7 @@ import { clickUpSummary, formatDueDate, approvalStatusLabel, artifactKindLabel }
 import type { ArtifactSummary, DeliverableStatus } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient, useDeleteClient } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useSyncClickUp, useUpdateDeliverable, useDeleteDeliverable, useCreateApproval, useDecideApproval, useCurrentUser, useCreateClient } from "../hooks/useBiomaApi";
 
 export function ClientsView() {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ export function ClientsView() {
 
   const { newClientDraft, setNewClientDraft } = useUiStore();
   const createClient = useCreateClient();
-  const deleteClient = useDeleteClient();
 
   const handleCreateClient = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

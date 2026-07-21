@@ -33,6 +33,11 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
       )}
       
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+        {task.external_source === "clickup" && (
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--surface-sunken)", border: "1px solid var(--border-color)", color: "var(--text-dim)" }}>
+            ClickUp · somente leitura
+          </span>
+        )}
         {task.recurrence && task.recurrence !== "none" && (
           <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--brand-accent)" }} title={`Recorrência: ${task.recurrence}`}>
             🔄 {task.recurrence === "weekly" ? "Semanal" : "Mensal"}
@@ -66,6 +71,7 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
         
         <select 
           value={task.group_status}
+          disabled={task.external_source === "clickup"}
           onChange={(e) => {
             e.stopPropagation();
             onStatusChange(e.target.value as TaskGroupStatus);
@@ -77,7 +83,7 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
             background: "transparent", 
             border: "none", 
             color: "var(--text-dim)",
-            cursor: "pointer"
+            cursor: task.external_source === "clickup" ? "not-allowed" : "pointer"
           }}
         >
           {columns.map(c => (

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { DockTitle } from "./shared";
 import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCreateClient, useUpdateClient, useCreateInvite, useDeleteClient } from "../hooks/useBiomaApi";
+import { useCreateClient, useUpdateClient, useCreateInvite, useArchiveClient } from "../hooks/useBiomaApi";
 import { api } from "../lib/api";
 import type { ClientModule, ClientStatus, ClientSummary } from "../lib/api";
 
@@ -19,7 +19,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
 
   const updateClient = useUpdateClient();
   const createInvite = useCreateInvite();
-  const deleteClient = useDeleteClient();
+  const archiveClient = useArchiveClient();
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
@@ -260,15 +260,15 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
           <hr style={{ border: 'none', borderTop: '1px solid rgba(239, 68, 68, 0.2)', margin: '20px 0' }} />
 
           <div style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", borderRadius: "8px", padding: "16px" }}>
-            <DockTitle icon={Trash2} title="Excluir Cliente" />
+            <DockTitle icon={Trash2} title="Arquivar cliente" />
             <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 4, marginBottom: "14px", lineHeight: 1.4 }}>
-              Esta ação excluirá permanentemente a organização <strong>{selectedClient.name}</strong>, seus workspaces e todo o histórico associado.
+              Arquivar remove <strong>{selectedClient.name}</strong> da operação ativa sem apagar histórico ou arquivos. O purge permanente exige uma ação administrativa separada e confirmação nominal.
             </p>
             <button
               type="button"
               onClick={() => {
-                if (window.confirm(`Tem certeza que deseja excluir permanentemente o cliente "${selectedClient.name}"? Esta ação não pode ser desfeita.`)) {
-                  deleteClient.mutate(selectedClient.id, {
+                if (window.confirm(`Arquivar o cliente "${selectedClient.name}"? O histórico será preservado.`)) {
+                  archiveClient.mutate(selectedClient.id, {
                     onSuccess: () => {
                       onClose();
                       navigate("/clientes");
@@ -276,7 +276,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                   });
                 }
               }}
-              disabled={deleteClient.isPending}
+              disabled={archiveClient.isPending}
               style={{
                 background: "#ef4444",
                 color: "#ffffff",
@@ -292,7 +292,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
               }}
             >
               <Trash2 size={16} />
-              {deleteClient.isPending ? "Excluindo..." : "Excluir este cliente"}
+              {archiveClient.isPending ? "Arquivando..." : "Arquivar este cliente"}
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat } from "lucide-react";
 import { useCreateTask, useUpdateTask, useDeleteTask, useTasksInList } from "../../hooks/useBiomaApi";
-import type { TaskSummary, TaskGroupStatus, TaskPriority, TaskCustomField, TaskSubtask } from "../../lib/api";
+import type { TaskDependency, TaskGroupStatus, TaskPriority, TaskCustomField, TaskSubtaskInput } from "../../lib/api";
 
 type TaskDrawerProps = {
   listId: string;
@@ -16,6 +16,7 @@ const SOCIAL_STATUSES = ["IDEAÇÃO", "ROTEIRIZAÇÃO", "EM PRODUÇÃO", "REVIS�
 export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawerProps) {
   const { data: tasks } = useTasksInList(listId);
   const existingTask = taskId ? tasks?.find(t => t.id === taskId) : null;
+  const readOnlyProjection = existingTask?.external_source === "clickup";
   
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -29,7 +30,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
   const [dueDate, setDueDate] = useState("");
   const [recurrence, setRecurrence] = useState<"none" | "weekly" | "monthly">("none");
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
-  const [subtasks, setSubtasks] = useState<{ id?: string; title: string; is_completed: boolean }[]>([]);
+  const [subtasks, setSubtasks] = useState<TaskSubtaskInput[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [waitingOnTaskId, setWaitingOnTaskId] = useState<string>("");
 
@@ -87,7 +88,9 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
       field_value: v
     }));
 
-    const dependencies = waitingOnTaskId ? [{ depends_on_task_id: waitingOnTaskId, type: "waiting_on" }] : [];
+    const dependencies: TaskDependency[] = waitingOnTaskId
+      ? [{ depends_on_task_id: waitingOnTaskId, type: "waiting_on" }]
+      : [];
     
     if (taskId) {
       updateTask.mutate({
@@ -101,8 +104,8 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
           custom_fields: formattedFields,
-          dependencies: dependencies as any,
-          subtasks: subtasks as any
+          dependencies,
+          subtasks,
         }
       }, {
         onSuccess: onClose
@@ -119,8 +122,8 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
           custom_fields: formattedFields,
-          dependencies: dependencies as any,
-          subtasks: subtasks as any
+          dependencies,
+          subtasks,
         }
       }, {
         onSuccess: onClose
@@ -164,6 +167,11 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+          {readOnlyProjection && (
+            <div className="empty-state compact">
+              Projeção do ClickUp em modo somente leitura. Faça alterações na fonte de verdade e atualize a projeção.
+            </div>
+          )}
           <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 500 }}>Título</span>
             <input 
@@ -243,7 +251,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             <select 
               className="text-input"
               value={recurrence}
-              onChange={(e) => setRecurrence(e.target.value as any)}
+              onChange={(e) => setRecurrence(e.target.value as "none" | "weekly" | "monthly")}
               disabled={isBusy}
             >
               <option value="none">Não recorrente (Única)</option>
@@ -368,7 +376,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
           {taskId ? (
-            <button className="danger-button" type="button" onClick={handleDelete} disabled={isBusy}>
+            <button className="danger-button" type="button" onClick={handleDelete} disabled={isBusy || readOnlyProjection}>
               <Trash2 size={16} /> Excluir
             </button>
           ) : <div></div>}
@@ -377,7 +385,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             <button className="secondary-button" type="button" onClick={onClose} disabled={isBusy}>
               Cancelar
             </button>
-            <button className="primary-button" type="button" onClick={handleSave} disabled={isBusy || !title}>
+            <button className="primary-button" type="button" onClick={handleSave} disabled={isBusy || !title || readOnlyProjection}>
               <Save size={16} /> Salvar
             </button>
           </div>

@@ -177,10 +177,10 @@ export function useSyncClickUp() {
   });
 }
 
-export function useDeleteClient() {
+export function useArchiveClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (clientId: string) => api.deleteClient(clientId),
+    mutationFn: (clientId: string) => api.archiveClient(clientId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
