@@ -91,52 +91,52 @@ export function FilesPanel({
 
   if (!clientId) return null;
 
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
   return (
-    <article className="surface">
+    <article className="surface section-card files-panel">
       <SectionHeader eyebrow="Documentos" title="Arquivos do cliente" icon={FileText} />
-      {error && <div className="notice error">{error}</div>}
+
+      {error && <div className="notice error mt-2">{error}</div>}
 
       {loading ? (
-        <EmptyState compact text="Carregando arquivos..." />
+        <EmptyState text="Carregando arquivos..." />
       ) : files.length === 0 ? (
-        <EmptyState compact text="Nenhum arquivo enviado para este cliente." />
+        <EmptyState text="Nenhum arquivo enviado para este cliente." />
       ) : (
-        <div className="hub-block-list">
+        <div className="files-list mt-2">
           {files.map((file) => (
-            <div className="work-row" key={file.id}>
-              <FileText size={16} />
-              <div>
-                <strong>{file.file_name}</strong>
-                <small>
-                  {formatBytes(file.size_bytes)} · {new Date(file.created_at).toLocaleDateString("pt-BR")}
-                </small>
-              </div>
-              <div className="row-tail">
-                <span className={file.visibility === "client" ? "status-pill" : "status-pill onboarding"}>
-                  {file.visibility === "client" ? "Cliente" : "Interno"}
-                </span>
-                <div className="row-actions">
-                  <button
-                    className="icon-button"
-                    type="button"
-                    onClick={() => handleDownload(file)}
-                    disabled={busy === `download:${file.id}`}
-                    title="Baixar arquivo"
-                  >
-                    <Download size={15} />
-                  </button>
-                  {isEgAdmin && (
-                    <button
-                      className="icon-button danger"
-                      type="button"
-                      onClick={() => handleDelete(file)}
-                      disabled={busy === `delete:${file.id}`}
-                      title="Excluir arquivo"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  )}
+            <div className="file-row" key={file.id}>
+              <div className="file-row-main">
+                <FileText size={18} />
+                <div>
+                  <strong>{file.file_name}</strong>
+                  <span>
+                    {formatBytes(file.size_bytes)} · {file.visibility === "client" ? "Visível ao cliente" : "Somente EG"}
+                  </span>
                 </div>
+              </div>
+              <div className="file-row-actions">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => handleDownload(file)}
+                  disabled={busy === `download:${file.id}`}
+                >
+                  <Download size={15} />
+                  Baixar
+                </button>
+                {isEgAdmin && (
+                  <button
+                    className="icon-button danger"
+                    type="button"
+                    onClick={() => handleDelete(file)}
+                    disabled={busy === `delete:${file.id}`}
+                    title="Excluir arquivo"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -145,18 +145,42 @@ export function FilesPanel({
 
       {isEgAdmin && (
         <form className="files-upload-form mt-3" onSubmit={handleUpload}>
-          <label>
-            Arquivo
-            <input type="file" name="file" required />
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 500 }}>Arquivo</span>
+            <label 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 8, 
+                background: "var(--surface-sunken)", 
+                padding: "8px 12px", 
+                borderRadius: 6, 
+                border: "1px dashed var(--border-color)", 
+                cursor: "pointer",
+                height: 38
+              }}
+            >
+              <Upload size={16} style={{ color: "var(--brand-accent)" }} />
+              <span style={{ fontSize: 13, color: selectedFileName ? "var(--text-normal)" : "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {selectedFileName || "Escolher arquivo..."}
+              </span>
+              <input 
+                type="file" 
+                name="file" 
+                required 
+                style={{ display: "none" }}
+                onChange={(e) => setSelectedFileName(e.target.files?.[0]?.name || null)}
+              />
+            </label>
           </label>
-          <label>
-            Visibilidade
-            <select value={visibility} onChange={(event) => setVisibility(event.target.value as ClientFileVisibility)}>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 500 }}>Visibilidade</span>
+            <select className="text-input" style={{ height: 38 }} value={visibility} onChange={(event) => setVisibility(event.target.value as ClientFileVisibility)}>
               <option value="client">Visível ao cliente</option>
               <option value="internal">Somente EG</option>
             </select>
           </label>
-          <button className="primary-button" type="submit" disabled={busy === "upload"}>
+          <button className="primary-button" type="submit" disabled={busy === "upload"} style={{ alignSelf: "flex-end", height: 38 }}>
             <Upload size={16} />
             Enviar arquivo
           </button>

@@ -13,6 +13,7 @@ import { useUiStore } from "../store/uiStore";
 
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: module.CrmView })));
+const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
 const FilesPanel = lazy(() => import("../components/FilesPanel").then((module) => ({ default: module.FilesPanel })));
 const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
@@ -85,16 +86,11 @@ export function ClientWorkspaceView() {
   }));
 
   return (
-    <WorkspaceShell
-      eyebrow="Hub do Cliente"
-      title={client.name}
-      icon={Building2}
-      backTo="/clientes"
-      backLabel="Voltar para a Carteira"
-      items={items}
-    >
-      <Outlet context={{ client, workspace, isEgAdmin } satisfies ClientWorkspaceOutletContext} />
-    </WorkspaceShell>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+      <div className="workspace-shell-content" style={{ flex: 1, overflow: "auto", position: "relative" }}>
+        <Outlet context={{ client, workspace, isEgAdmin } satisfies ClientWorkspaceOutletContext} />
+      </div>
+    </div>
   );
 }
 
@@ -117,6 +113,15 @@ export function ClientCrmRoute() {
   return (
     <ClientModuleBoundary module="commercial">
       <Suspense fallback={<ModuleLoading />}><CrmView clientId={workspace.workspaceId} /></Suspense>
+    </ClientModuleBoundary>
+  );
+}
+
+export function ClientTasksRoute() {
+  const { workspace } = useClientWorkspace();
+  return (
+    <ClientModuleBoundary module="hub">
+      <Suspense fallback={<ModuleLoading />}><TasksView workspaceId={workspace.workspaceId} /></Suspense>
     </ClientModuleBoundary>
   );
 }
