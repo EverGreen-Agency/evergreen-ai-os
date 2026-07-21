@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -55,6 +55,7 @@ def delete_task(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     tasks_service.delete_task(task_id, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post("/tasks/{task_id}/subtasks", status_code=status.HTTP_201_CREATED)
 def add_subtask(
@@ -77,3 +78,4 @@ def delete_subtask(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     tasks_service.delete_subtask(subtask_id, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
