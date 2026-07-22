@@ -733,6 +733,7 @@ export type ProjectDeliverable = {
   id: string;
   project_id: string;
   scope_item_id: string | null;
+  phase_id: string | null;
   title: string;
   status: DeliverableStatus;
   due_at: string | null;
@@ -741,9 +742,50 @@ export type ProjectDeliverable = {
   updated_at: string;
 };
 
+export type ProjectPhaseStatus = "planned" | "development" | "blocked" | "internal_testing" | "client_validation" | "released";
+export type ProjectPhase = {
+  id: string;
+  project_id: string;
+  sequence: number;
+  name: string;
+  description: string | null;
+  status: ProjectPhaseStatus;
+  client_summary: string | null;
+  client_visible: boolean;
+  starts_at: string | null;
+  due_at: string | null;
+  released_at: string | null;
+  deliverables_total: number;
+  deliverables_done: number;
+};
+
+export type ProjectDocument = {
+  id: string;
+  project_id: string;
+  kind: "proposal" | "technical_spec" | "scope" | "acceptance" | "release_notes";
+  title: string;
+  url: string;
+  client_visible: boolean;
+  created_at: string;
+};
+
+export type ProjectUpdateEntry = {
+  id: string;
+  project_id: string;
+  phase_id: string | null;
+  kind: "progress" | "blocker" | "testing" | "release" | "note";
+  summary: string;
+  detail: string | null;
+  client_visible: boolean;
+  created_at: string;
+};
+
 export type ProjectDetail = ProjectSummary & {
   contracts: ProjectContract[];
   deliverables: ProjectDeliverable[];
+  phases: ProjectPhase[];
+  documents: ProjectDocument[];
+  updates: ProjectUpdateEntry[];
 };
 
 export type ProjectPayload = {
@@ -960,8 +1002,14 @@ export const api = {
     request<ProjectDetail>(`/projects/${projectId}/contracts`, { method: "POST", body: JSON.stringify(payload) }),
   createContractScopeItem: (contractId: string, payload: { title: string; quantity?: number; unit?: string; cadence?: ContractScopeItem["cadence"]; acceptance_criteria?: string | null }) =>
     request<ProjectDetail>(`/contracts/${contractId}/scope-items`, { method: "POST", body: JSON.stringify(payload) }),
-  createProjectDeliverable: (projectId: string, payload: { title: string; scope_item_id?: string | null; status?: DeliverableStatus; due_at?: string | null }) =>
+  createProjectDeliverable: (projectId: string, payload: { title: string; scope_item_id?: string | null; phase_id?: string | null; status?: DeliverableStatus; due_at?: string | null }) =>
     request<ProjectDetail>(`/projects/${projectId}/deliverables`, { method: "POST", body: JSON.stringify(payload) }),
+  createProjectPhase: (projectId: string, payload: { sequence: number; name: string; description?: string | null; status?: ProjectPhaseStatus; client_summary?: string | null; client_visible?: boolean }) =>
+    request<ProjectDetail>(`/projects/${projectId}/phases`, { method: "POST", body: JSON.stringify(payload) }),
+  createProjectDocument: (projectId: string, payload: { kind: ProjectDocument["kind"]; title: string; url: string; client_visible?: boolean }) =>
+    request<ProjectDetail>(`/projects/${projectId}/documents`, { method: "POST", body: JSON.stringify(payload) }),
+  createProjectUpdate: (projectId: string, payload: { phase_id?: string | null; kind?: ProjectUpdateEntry["kind"]; summary: string; detail?: string | null; client_visible?: boolean }) =>
+    request<ProjectDetail>(`/projects/${projectId}/updates`, { method: "POST", body: JSON.stringify(payload) }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>

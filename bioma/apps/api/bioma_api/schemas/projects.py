@@ -12,6 +12,9 @@ ContractStatus = Literal["draft", "pending_signature", "active", "expired", "ter
 ScopeCadence = Literal["one_off", "weekly", "biweekly", "monthly", "quarterly", "custom"]
 ScopeStatus = Literal["active", "paused", "removed"]
 DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
+ProjectPhaseStatus = Literal["planned", "development", "blocked", "internal_testing", "client_validation", "released"]
+ProjectDocumentKind = Literal["proposal", "technical_spec", "scope", "acceptance", "release_notes"]
+ProjectUpdateKind = Literal["progress", "blocker", "testing", "release", "note"]
 
 
 class ProjectCreate(BaseModel):
@@ -114,8 +117,52 @@ class ScopeItemUpdate(BaseModel):
 class ProjectDeliverableCreate(BaseModel):
     title: str = Field(min_length=2, max_length=240)
     scope_item_id: UUID | None = None
+    phase_id: UUID | None = None
     status: DeliverableStatus = "planned"
     due_at: datetime | None = None
+
+
+class ProjectPhaseCreate(BaseModel):
+    sequence: int = Field(gt=0, le=100)
+    name: str = Field(min_length=2, max_length=240)
+    description: str | None = Field(default=None, max_length=5_000)
+    status: ProjectPhaseStatus = "planned"
+    client_summary: str | None = Field(default=None, max_length=2_000)
+    client_visible: bool = True
+    starts_at: date | None = None
+    due_at: date | None = None
+
+    @model_validator(mode="after")
+    def valid_dates(self):
+        if self.starts_at and self.due_at and self.due_at < self.starts_at:
+            raise ValueError("A data final da fase não pode ser anterior à inicial.")
+        return self
+
+
+class ProjectPhaseUpdate(BaseModel):
+    sequence: int | None = Field(default=None, gt=0, le=100)
+    name: str | None = Field(default=None, min_length=2, max_length=240)
+    description: str | None = Field(default=None, max_length=5_000)
+    status: ProjectPhaseStatus | None = None
+    client_summary: str | None = Field(default=None, max_length=2_000)
+    client_visible: bool | None = None
+    starts_at: date | None = None
+    due_at: date | None = None
+
+
+class ProjectDocumentCreate(BaseModel):
+    kind: ProjectDocumentKind
+    title: str = Field(min_length=2, max_length=240)
+    url: str = Field(min_length=8, max_length=2_000)
+    client_visible: bool = True
+
+
+class ProjectUpdateCreate(BaseModel):
+    phase_id: UUID | None = None
+    kind: ProjectUpdateKind = "progress"
+    summary: str = Field(min_length=3, max_length=1_000)
+    detail: str | None = Field(default=None, max_length=5_000)
+    client_visible: bool = True
 
 
 class ScopeItemSummary(BaseModel):
@@ -156,12 +203,50 @@ class ProjectDeliverableSummary(BaseModel):
     id: UUID
     project_id: UUID
     scope_item_id: UUID | None = None
+    phase_id: UUID | None = None
     title: str
     status: DeliverableStatus
     due_at: datetime | None = None
     completed_at: datetime | None = None
     approval_status: str | None = None
     updated_at: datetime
+
+
+class ProjectPhaseSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    sequence: int
+    name: str
+    description: str | None = None
+    status: ProjectPhaseStatus
+    client_summary: str | None = None
+    client_visible: bool
+    starts_at: date | None = None
+    due_at: date | None = None
+    released_at: datetime | None = None
+    deliverables_total: int = 0
+    deliverables_done: int = 0
+
+
+class ProjectDocumentSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    kind: ProjectDocumentKind
+    title: str
+    url: str
+    client_visible: bool
+    created_at: datetime
+
+
+class ProjectUpdateSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    phase_id: UUID | None = None
+    kind: ProjectUpdateKind
+    summary: str
+    detail: str | None = None
+    client_visible: bool
+    created_at: datetime
 
 
 class ProjectSummary(BaseModel):
@@ -190,3 +275,6 @@ class ProjectSummary(BaseModel):
 class ProjectDetail(ProjectSummary):
     contracts: list[ContractSummary] = Field(default_factory=list)
     deliverables: list[ProjectDeliverableSummary] = Field(default_factory=list)
+    phases: list[ProjectPhaseSummary] = Field(default_factory=list)
+    documents: list[ProjectDocumentSummary] = Field(default_factory=list)
+    updates: list[ProjectUpdateSummary] = Field(default_factory=list)

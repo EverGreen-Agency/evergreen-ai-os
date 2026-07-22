@@ -84,6 +84,92 @@ def main() -> None:
         project = created.json()
         project_id = project["id"]
 
+        tech_created = operator.post(
+            f"/workspaces/{workspace_a.workspace_id}/projects",
+            json={
+                "name": "Evolucao tecnica smoke",
+                "code": "SMOKE-TECH",
+                "project_type": "tech",
+                "status": "active",
+                "objective": "Dar visibilidade honesta de fases, testes e bloqueios.",
+            },
+        )
+        assert_status(tech_created, 201, "operator creates tech project")
+        tech_project_id = tech_created.json()["id"]
+
+        phase_created = operator.post(
+            f"/projects/{tech_project_id}/phases",
+            json={
+                "sequence": 1,
+                "name": "Evolucao do aplicativo",
+                "status": "development",
+                "client_summary": "Implementacao em andamento; atualizacoes publicadas com contexto de testes e bloqueios.",
+            },
+        )
+        assert_status(phase_created, 201, "create client-visible phase")
+        phase_id = phase_created.json()["phases"][0]["id"]
+        assert_status(
+            operator.post(
+                f"/projects/{tech_project_id}/documents",
+                json={
+                    "kind": "technical_spec",
+                    "title": "Especificacao tecnica smoke",
+                    "url": "https://example.test/especificacao-smoke",
+                },
+            ),
+            201,
+            "link technical document",
+        )
+        assert_status(
+            operator.post(
+                f"/projects/{tech_project_id}/documents",
+                json={
+                    "kind": "proposal",
+                    "title": "Proposta interna smoke",
+                    "url": "https://example.test/proposta-interna-smoke",
+                    "client_visible": False,
+                },
+            ),
+            201,
+            "link internal proposal",
+        )
+        assert_status(
+            operator.post(
+                f"/projects/{tech_project_id}/updates",
+                json={
+                    "phase_id": phase_id,
+                    "kind": "blocker",
+                    "summary": "Dia dedicado a corrigir uma inconsistencia de integracao.",
+                    "detail": "Nao houve nova entrega liberada hoje; o proximo passo e retomar os testes de integracao.",
+                },
+            ),
+            201,
+            "publish honest client update",
+        )
+        assert_status(
+            operator.post(
+                f"/projects/{tech_project_id}/updates",
+                json={
+                    "phase_id": phase_id,
+                    "kind": "note",
+                    "summary": "Anotacao interna smoke",
+                    "client_visible": False,
+                },
+            ),
+            201,
+            "create internal project update",
+        )
+        phase_deliverable = operator.post(
+            f"/projects/{tech_project_id}/deliverables",
+            json={"title": "Teste de integracao", "phase_id": phase_id, "status": "in_progress"},
+        )
+        assert_status(phase_deliverable, 201, "create phase deliverable")
+        assert_status(
+            operator.patch(f"/project-phases/{phase_id}", json={"status": "internal_testing"}),
+            200,
+            "update phase status",
+        )
+
         assert_status(viewer.get(f"/projects/{project_id}"), 200, "viewer reads project")
         assert_status(
             viewer.patch(f"/projects/{project_id}", json={"status": "on_hold"}),
@@ -91,6 +177,12 @@ def main() -> None:
             "viewer cannot mutate project",
         )
         assert_status(client_a.get(f"/projects/{project_id}"), 200, "client reads visible project")
+        tech_client_view = client_a.get(f"/projects/{tech_project_id}")
+        assert_status(tech_client_view, 200, "client reads visible tech project")
+        assert len(tech_client_view.json()["phases"]) == 1
+        assert len(tech_client_view.json()["documents"]) == 1
+        assert len(tech_client_view.json()["updates"]) == 1
+        assert tech_client_view.json()["phases"][0]["status"] == "internal_testing"
         assert_status(
             client_a.post(
                 f"/projects/{project_id}/contracts",
@@ -169,7 +261,7 @@ def main() -> None:
         assert_status(client_a.get(f"/projects/{hidden_id}"), 404, "client cannot read internal project")
         client_list = client_a.get(f"/workspaces/{workspace_a.workspace_id}/projects")
         assert_status(client_list, 200, "client lists projects")
-        assert {row["id"] for row in client_list.json()} == {project_id}
+        assert {row["id"] for row in client_list.json()} == {project_id, tech_project_id}
 
         hidden_contract = admin.post(
             f"/projects/{hidden_id}/contracts",
@@ -190,6 +282,19 @@ def main() -> None:
             ),
             422,
             "scope must belong to project",
+        )
+        hidden_phase = admin.post(
+            f"/projects/{hidden_id}/phases",
+            json={"sequence": 1, "name": "Fase de outro projeto"},
+        )
+        assert_status(hidden_phase, 201, "create foreign project phase")
+        assert_status(
+            operator.post(
+                f"/projects/{tech_project_id}/deliverables",
+                json={"title": "Wrong phase", "phase_id": hidden_phase.json()["phases"][0]["id"]},
+            ),
+            422,
+            "phase must belong to project",
         )
 
         project_b = admin.post(

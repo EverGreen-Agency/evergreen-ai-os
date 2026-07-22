@@ -12,9 +12,11 @@ Implementações locais desta rodada:
 - área Acessos no Hub; cliente pode entregar segredo à EG sem poder revelá-lo, e valores revelados são limpos da memória da tela após 60 segundos;
 - motor nativo de projetos (`migration 0022`): projeto, contrato versionado, item de escopo, vínculo de entrega, conclusão, aceite separado e indicadores de progresso/ritmo;
 - área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
+- acompanhamento Tech (`migration 0023`): fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release filtradas por visibilidade do cliente;
+- aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
 - smoke isolado para cofre e projetos, sem dependência da HM.
 
-Validação executada: compile/OpenAPI da API, TypeScript e build Vite passaram. `smoke_vault.py` e `smoke_projects.py` não foram executados de ponta a ponta porque o PostgreSQL local em `localhost:5433` estava indisponível; portanto migrations e comportamento runtime no banco continuam pendentes de confirmação, sem alegação de release/deploy.
+Validação executada no desenvolvimento local: migrations 0021/0022/0023, compile/OpenAPI da API, TypeScript, build Vite, `smoke_vault.py` e `smoke_projects.py` passaram. Isso confirma o comportamento local e não constitui validação de deploy ou QA visual humano.
 
 SleekFlow foi classificado apenas como possível adapter omnichannel em descoberta. A parceria e o contrato técnico ainda não existem; não há integração implementada nem promessa bidirecional.
 

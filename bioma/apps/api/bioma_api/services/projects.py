@@ -8,8 +8,9 @@ from bioma_api.repositories import projects as project_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
     ContractCreate, ContractSummary, ContractUpdate, ProjectCreate, ProjectDeliverableCreate,
-    ProjectDeliverableSummary, ProjectDetail, ProjectSummary, ProjectUpdate,
-    ScopeItemCreate, ScopeItemSummary, ScopeItemUpdate,
+    ProjectDeliverableSummary, ProjectDetail, ProjectDocumentCreate, ProjectDocumentSummary,
+    ProjectPhaseCreate, ProjectPhaseSummary, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
+    ProjectUpdateCreate, ProjectUpdateSummary, ScopeItemCreate, ScopeItemSummary, ScopeItemUpdate,
 )
 
 
@@ -34,8 +35,18 @@ def get_project(project_id: UUID, user: CurrentUserResponse) -> ProjectDetail:
         for row in scope_items:
             scope_by_contract.setdefault(row["contract_id"], []).append(ScopeItemSummary(**row))
         contract_models = [ContractSummary(**row, scope_items=scope_by_contract.get(row["id"], [])) for row in contracts]
-        deliverables = [ProjectDeliverableSummary(**row) for row in project_repo.list_deliverables(conn, project_id)]
-    return ProjectDetail(**_project_summary(summary_row).model_dump(), contracts=contract_models, deliverables=deliverables)
+        deliverables = [ProjectDeliverableSummary(**row) for row in project_repo.list_deliverables(conn, project_id, include_internal)]
+        phases = [ProjectPhaseSummary(**row) for row in project_repo.list_phases(conn, project_id, include_internal)]
+        documents = [ProjectDocumentSummary(**row) for row in project_repo.list_documents(conn, project_id, include_internal)]
+        updates = [ProjectUpdateSummary(**row) for row in project_repo.list_updates(conn, project_id, include_internal)]
+    return ProjectDetail(
+        **_project_summary(summary_row).model_dump(),
+        contracts=contract_models,
+        deliverables=deliverables,
+        phases=phases,
+        documents=documents,
+        updates=updates,
+    )
 
 
 def create_project(workspace_id: UUID, payload: ProjectCreate, user: CurrentUserResponse) -> ProjectDetail:
@@ -130,10 +141,66 @@ def create_deliverable(project_id: UUID, payload: ProjectDeliverableCreate, user
             scope = _scope(conn, payload.scope_item_id, user, "manage_work")
             if scope["project_id"] != project_id:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Item de escopo pertence a outro projeto.")
+        if payload.phase_id:
+            phase = _phase(conn, payload.phase_id, user, "manage_work")
+            if phase["project_id"] != project_id:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Fase pertence a outro projeto.")
         row = project_repo.create_deliverable(conn, project, payload.model_dump())
         project_repo.write_audit(conn, user.id, project["organization_id"], "project.deliverable_created", {
             "project_id": str(project_id), "deliverable_id": str(row["id"]),
             "scope_item_id": str(payload.scope_item_id) if payload.scope_item_id else None,
+        })
+    return get_project(project_id, user)
+
+
+def create_phase(project_id: UUID, payload: ProjectPhaseCreate, user: CurrentUserResponse) -> ProjectDetail:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        row = project_repo.create_phase(conn, project_id, payload.model_dump())
+        project_repo.write_audit(conn, user.id, project["organization_id"], "project.phase_created", {
+            "project_id": str(project_id), "phase_id": str(row["id"]), "sequence": row["sequence"],
+        })
+    return get_project(project_id, user)
+
+
+def update_phase(phase_id: UUID, payload: ProjectPhaseUpdate, user: CurrentUserResponse) -> ProjectDetail:
+    with connect() as conn:
+        phase = _phase(conn, phase_id, user, "manage_work")
+        updates = payload.model_dump(exclude_unset=True)
+        _validate_date_range(
+            updates.get("starts_at", phase["starts_at"]),
+            updates.get("due_at", phase["due_at"]),
+            "A data final da fase não pode ser anterior à inicial.",
+        )
+        project_repo.update_phase(conn, phase_id, updates)
+        project_repo.write_audit(conn, user.id, phase["organization_id"], "project.phase_updated", {
+            "project_id": str(phase["project_id"]), "phase_id": str(phase_id), "fields": sorted(updates),
+        })
+        project_id = phase["project_id"]
+    return get_project(project_id, user)
+
+
+def create_document(project_id: UUID, payload: ProjectDocumentCreate, user: CurrentUserResponse) -> ProjectDetail:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        row = project_repo.create_document(conn, project_id, user.id, payload.model_dump())
+        project_repo.write_audit(conn, user.id, project["organization_id"], "project.document_linked", {
+            "project_id": str(project_id), "document_id": str(row["id"]), "kind": row["kind"],
+        })
+    return get_project(project_id, user)
+
+
+def create_project_update(project_id: UUID, payload: ProjectUpdateCreate, user: CurrentUserResponse) -> ProjectDetail:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        if payload.phase_id:
+            phase = _phase(conn, payload.phase_id, user, "manage_work")
+            if phase["project_id"] != project_id:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Fase pertence a outro projeto.")
+        row = project_repo.create_project_update(conn, project_id, user.id, payload.model_dump())
+        project_repo.write_audit(conn, user.id, project["organization_id"], "project.update_created", {
+            "project_id": str(project_id), "update_id": str(row["id"]), "kind": row["kind"],
+            "phase_id": str(payload.phase_id) if payload.phase_id else None,
         })
     return get_project(project_id, user)
 
@@ -168,6 +235,14 @@ def _scope(conn, scope_item_id: UUID, user: CurrentUserResponse, capability: str
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item de escopo não encontrado.")
     require_workspace_capability(scope, user, capability)
     return scope
+
+
+def _phase(conn, phase_id: UUID, user: CurrentUserResponse, capability: str):
+    phase = project_repo.find_phase_context(conn, phase_id, is_platform_admin(user), user.id)
+    if not phase:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fase não encontrada.")
+    require_workspace_capability(phase, user, capability)
+    return phase
 
 
 def _validate_user(conn, workspace_id: UUID, user_id: UUID | None):

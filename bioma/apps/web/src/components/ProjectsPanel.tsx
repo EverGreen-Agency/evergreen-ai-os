@@ -4,6 +4,7 @@ import { AlertTriangle, BriefcaseBusiness, CalendarClock, CheckCircle2, CircleGa
 
 import { api, type ProjectDetail, type ProjectPayload, type ProjectSummary, type WorkspaceSummary } from "../lib/api";
 import { EmptyState, SectionHeader } from "./shared";
+import { TechProjectTracking } from "./TechProjectTracking";
 
 const STATUS_LABELS: Record<ProjectSummary["status"], string> = {
   planned: "Planejado", active: "Ativo", on_hold: "Pausado", completed: "Concluído",
@@ -116,6 +117,7 @@ export function ProjectsPanel({ workspaceId, accessRole }: { workspaceId: string
               {detail.data.deliverables.map((item) => <div className="scope-row" key={item.id}><span>{item.title}</span><small>{item.status}{item.approval_status ? ` · aceite ${item.approval_status}` : ""}</small></div>)}
               {canManage && <form className="project-inline-form" onSubmit={(event) => { event.preventDefault(); createDeliverable.mutate(); }}><input required minLength={2} value={deliverableTitle} onChange={(event) => setDeliverableTitle(event.target.value)} placeholder="Nova entrega" /><select value={scopeItemId} onChange={(event) => setScopeItemId(event.target.value)}><option value="">Sem item de escopo</option>{scopeItems.map((scope) => <option key={scope.id} value={scope.id}>{scope.title}</option>)}</select><button className="mini-button" type="submit">Adicionar entrega</button></form>}
             </section>
+            {detail.data.project_type === "tech" && <TechProjectTracking project={detail.data} accessRole={accessRole} onChanged={refresh} />}
           </article>
         )}
       </div>

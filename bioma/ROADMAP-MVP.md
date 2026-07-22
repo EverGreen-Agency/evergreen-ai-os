@@ -120,7 +120,7 @@ O Bioma substitui o ClickUp como fonte de verdade da execução. A estrutura imp
 
 - Social, Growth, Tech e projetos gerais compartilham o núcleo, com templates e status configuráveis por projeto;
 - projetos Social podem exigir aprovação da ideia antes da gravação ou somente aprovação final, conforme o cliente;
-- projetos Tech devem ganhar adapter GitHub para issues/PRs, mantendo contrato, contexto e acompanhamento canônicos no Bioma;
+- projetos Tech possuem fases, documentos de proposta/especificação e atualizações honestas visíveis ao cliente; o adapter GitHub para issues/PRs continua separado, mantendo contrato, contexto e acompanhamento canônicos no Bioma;
 - itens de escopo registram quantidade, unidade, cadência e critério de aceite;
 - conclusão de entrega não presume aceite do cliente;
 - progresso/ritmo consideram concluídas, atrasadas e bloqueadas;
@@ -147,6 +147,8 @@ As decisões sobre ClickUp, calendário e rigidez dos fluxos acima foram superse
 - **Fonte de verdade operacional:** Bioma, não ClickUp.
 - **ClickUp:** cancelar a dependência paga após snapshot/reconciliação; adapter permanece somente durante a migração controlada.
 - **Contratos/escopo:** primeira classe por projeto, com vigência, versão, quantidade/cadência e aceite separados da conclusão.
+- **Acompanhamento Tech:** fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release. Um dia de depuração sem entrega é publicado como atualização honesta, não como avanço fictício.
+- **GitHub:** ainda não cria nem altera issues/PRs. Quando o adapter entrar, escrita externa exigirá mapeamento explícito de repositório, idempotência, auditoria e confirmação humana (HITL).
 - **Cofre de acessos:** substituir planilhas; segredos cifrados, listagem sem valores, revelação auditada e RBAC.
 - **SleekFlow:** descoberta de parceria; possível adapter omnichannel, sem compromisso de implementação antes do contrato oficial de API/dados.
 - **Kommo/CRM:** manter adapter onde fizer sentido e evoluir CRM nativo pelo uso real.
@@ -218,7 +220,8 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
 - [x] Criar primeira área de Projetos e Contratos no Hub, com contrato, escopo, entregas e indicador de ritmo.
 - [x] Criar primeira área de Acessos com cofre cifrado, depósito pelo cliente, RBAC e auditoria de revelação/cópia.
-- [ ] Aplicar migrations 0021/0022 e executar `smoke_vault.py`/`smoke_projects.py` quando o Postgres local estiver disponível.
+- [x] Aplicar migrations 0021/0022/0023 e executar `smoke_vault.py`/`smoke_projects.py` em Postgres local.
+- [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
 - [ ] Integrar projetos Tech ao GitHub (issues/PRs + links bidirecionais auditados, com confirmação para criação externa).
 - [ ] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente.
 

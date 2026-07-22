@@ -32,13 +32,13 @@ A Operação EG vive sob `/operacao/...`; cada cliente vive sob `/clientes/:clie
 
 O Topbar exibe somente o contexto atual. `Ctrl/⌘ K` abre um navegador largo e pesquisável, com workspaces recentes e busca por cliente, organização ou responsável. A lista completa continua em uma página própria; ela não é despejada em um dropdown da Sidebar. Favoritos e visões salvas são persistidos pela API; “Minha carteira” filtra `is_assigned`, calculado a partir das atribuições diretas e por time do backend.
 
-Administradores EG configuram times, membros já habilitados e distribuição de workspaces em **Configurações → Empresa → Equipes & carteiras**. Essa superfície organiza a operação da agência sem transformar a EG em um item da carteira de clientes.
+Administradores EG configuram times, membros já habilitados e distribuição de workspaces em **Configurações → Empresa → Equipes & carteiras**. Na aba **Acessos**, escolhem o workspace do cliente e gerenciam o cofre cifrado sem expor valores na listagem. Essa superfície organiza a operação da agência sem transformar a EG em um item da carteira de clientes.
 
 Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
 Tarefas importadas do ClickUp aparecem apenas como legado somente leitura. Edição, subtarefas, dependências, recorrência e exclusão ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A sincronização ClickUp foi removida das superfícies do produto.
 
-O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, entregas, conclusão e ritmo; Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, sem incluir segredo nas listagens.
+O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, fases, entregas, conclusão e ritmo; em Tech também há links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release. Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, sem incluir segredo nas listagens.
 
 A fonte da navegação é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs visuais continuam legíveis como `/clientes/:clientId`, mas os módulos chamam a API canônica por `/workspaces/:workspaceId`; o backend ainda aceita `client_id` como adapter de compatibilidade.
 

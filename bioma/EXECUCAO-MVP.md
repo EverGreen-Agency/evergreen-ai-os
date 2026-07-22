@@ -74,8 +74,9 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | TASK-AUTHZ-001 | DONE | Backend | Extrair repositório de tarefas e aplicar `view`/`manage_work`, BOLA/IDOR e invariantes de assignee/owner/dependencies | AUTHZ-WS-001 | `smoke_tasks.py` com matriz de papéis e cliente A→B |
 | TASK-DOM-001 | DONE | Full-stack | CRUD real de subtarefas/dependências, resposta 204 segura e recorrência idempotente | TASK-AUTHZ-001 | `smoke_tasks.py` + tsc/build |
 | CLIENT-LIFE-001 | DONE | Full-stack | Trocar delete cotidiano por archive e separar purge confirmado com auditoria e limpeza S3 | AUTHZ-WS-001 | `smoke_api.py` |
-| VAULT-001 | DOING | Full-stack | Cofre de acessos por workspace: cifra, depósito do cliente, RBAC, rotação e auditoria | AUTHZ-WS-001 | compile/OpenAPI + tsc/build passaram; `smoke_vault.py` aguarda Postgres local |
-| PROJECT-001 | DOING | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | compile/OpenAPI + tsc/build passaram; `smoke_projects.py` aguarda Postgres local |
+| VAULT-001 | DONE | Full-stack | Cofre de acessos por workspace: cifra, depósito do cliente, RBAC, rotação e auditoria | AUTHZ-WS-001 | migration 0021 + `smoke_vault.py` + compile/OpenAPI + tsc/build |
+| PROJECT-001 | DONE | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | migrations 0022/0023 + `smoke_projects.py` + compile/OpenAPI + tsc/build |
+| PROJECT-TECH-001 | DONE | Full-stack | Fases ordenadas, entregas por fase, links de proposta/especificação e feed de progresso/bloqueio/teste/release para projetos Tech | PROJECT-001 | `smoke_projects.py` cobre visibilidade do cliente, conteúdo interno e fase cruzada |
 | PROJECT-GH-001 | TODO | Full-stack | Ligar projetos Tech a issues/PRs GitHub sem perder IDs e contexto canônicos | PROJECT-001 | mock adapter + smoke BOLA/idempotência/HITL |
 | AI-METHOD-001 | TODO | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | fixtures + revisão humana + tsc/build |
 

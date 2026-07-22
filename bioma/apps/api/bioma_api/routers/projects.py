@@ -6,7 +6,8 @@ from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
     ContractCreate, ContractUpdate, ProjectCreate, ProjectDeliverableCreate, ProjectDetail,
-    ProjectSummary, ProjectUpdate, ScopeItemCreate, ScopeItemUpdate,
+    ProjectDocumentCreate, ProjectPhaseCreate, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
+    ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
 )
 from bioma_api.services import projects as project_service
 
@@ -58,3 +59,23 @@ def update_scope_item(scope_item_id: UUID, payload: ScopeItemUpdate, user: Curre
 @router.post("/projects/{project_id}/deliverables", response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
 def create_deliverable(project_id: UUID, payload: ProjectDeliverableCreate, user: CurrentUserResponse = Depends(current_user_from_request)):
     return project_service.create_deliverable(project_id, payload, user)
+
+
+@router.post("/projects/{project_id}/phases", response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
+def create_phase(project_id: UUID, payload: ProjectPhaseCreate, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.create_phase(project_id, payload, user)
+
+
+@router.patch("/project-phases/{phase_id}", response_model=ProjectDetail)
+def update_phase(phase_id: UUID, payload: ProjectPhaseUpdate, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.update_phase(phase_id, payload, user)
+
+
+@router.post("/projects/{project_id}/documents", response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
+def create_document(project_id: UUID, payload: ProjectDocumentCreate, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.create_document(project_id, payload, user)
+
+
+@router.post("/projects/{project_id}/updates", response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
+def create_project_update(project_id: UUID, payload: ProjectUpdateCreate, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.create_project_update(project_id, payload, user)

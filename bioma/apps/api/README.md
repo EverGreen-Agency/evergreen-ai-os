@@ -79,7 +79,7 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 
 ## Projetos e cofre
 
-`projects` segue router → service → repository e exige `view` para leitura e `manage_work` para escrita. `smoke_projects.py` cobre papéis, BOLA cliente A→B, owner, escopo cruzado, contrato, entrega, ritmo e auditoria.
+`projects` segue router → service → repository e exige `view` para leitura e `manage_work` para escrita. O subdomínio Tech adiciona fases, documentos por URL e atualizações de progresso/bloqueio/teste/release, sempre filtrados por `client_visible`. `smoke_projects.py` cobre papéis, BOLA cliente A→B, owner, escopo/fase cruzados, contrato, entrega, ritmo, feed Tech e auditoria.
 
 `vault` exige `SECRET_ENCRYPTION_KEY`, guarda ciphertext versionado, separa `submit_secrets`, `manage_secrets` e `reveal_secrets`, e audita criação, rotação, status, revelação e cópia. `smoke_vault.py` cobre a matriz de acesso.
 
