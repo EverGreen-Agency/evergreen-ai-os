@@ -24,6 +24,7 @@ import {
   ClientIntegrationsRoute,
   ClientFilesRoute,
   ClientVaultRoute,
+  ClientProjectsRoute,
   ClientWorkspaceView,
 } from "./views/ClientWorkspaceView";
 
@@ -286,6 +287,7 @@ export function App() {
             <Route path="analytics" element={<ClientAnalyticsRoute />} />
             <Route path="documentos" element={<ClientFilesRoute />} />
             <Route path="acessos" element={<ClientVaultRoute />} />
+            <Route path="projetos" element={<ClientProjectsRoute />} />
             <Route path="integracoes" element={guardAdmin(<ClientIntegrationsRoute />)} />
           </Route>
 

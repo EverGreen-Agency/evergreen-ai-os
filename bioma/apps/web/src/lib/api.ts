@@ -668,6 +668,96 @@ export type VaultRevealResponse = {
   expires_in_seconds: number;
 };
 
+export type ProjectType = "social" | "growth" | "tech" | "general";
+export type ProjectStatus = "planned" | "active" | "on_hold" | "completed" | "cancelled" | "archived";
+export type ProjectPace = "unknown" | "on_track" | "at_risk" | "off_track";
+
+export type ProjectSummary = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  code: string | null;
+  project_type: ProjectType;
+  status: ProjectStatus;
+  owner_user_id: string | null;
+  owner_name: string | null;
+  start_at: string | null;
+  due_at: string | null;
+  cadence_days: number | null;
+  client_visible: boolean;
+  objective: string | null;
+  deliverables_total: number;
+  deliverables_done: number;
+  deliverables_overdue: number;
+  deliverables_blocked: number;
+  completion_percentage: number;
+  pace_status: ProjectPace;
+  updated_at: string;
+};
+
+export type ContractScopeItem = {
+  id: string;
+  contract_id: string;
+  title: string;
+  description: string | null;
+  quantity: string;
+  unit: string;
+  cadence: "one_off" | "weekly" | "biweekly" | "monthly" | "quarterly" | "custom";
+  cadence_days: number | null;
+  acceptance_required: boolean;
+  acceptance_criteria: string | null;
+  client_visible: boolean;
+  status: "active" | "paused" | "removed";
+  delivered_total: number;
+  accepted_total: number;
+};
+
+export type ProjectContract = {
+  id: string;
+  project_id: string;
+  version: number;
+  title: string;
+  status: "draft" | "pending_signature" | "active" | "expired" | "terminated" | "superseded";
+  starts_at: string | null;
+  ends_at: string | null;
+  total_value: string | null;
+  currency: string;
+  source_provider: string | null;
+  external_id: string | null;
+  signed_at: string | null;
+  client_visible: boolean;
+  scope_items: ContractScopeItem[];
+};
+
+export type ProjectDeliverable = {
+  id: string;
+  project_id: string;
+  scope_item_id: string | null;
+  title: string;
+  status: DeliverableStatus;
+  due_at: string | null;
+  completed_at: string | null;
+  approval_status: ApprovalStatus | null;
+  updated_at: string;
+};
+
+export type ProjectDetail = ProjectSummary & {
+  contracts: ProjectContract[];
+  deliverables: ProjectDeliverable[];
+};
+
+export type ProjectPayload = {
+  name: string;
+  code?: string | null;
+  project_type?: ProjectType;
+  status?: ProjectStatus;
+  start_at?: string | null;
+  due_at?: string | null;
+  cadence_days?: number | null;
+  client_visible?: boolean;
+  objective?: string | null;
+};
+
 export type TaskSubtaskInput = {
   id?: string;
   title: string;
@@ -859,6 +949,19 @@ export const api = {
       `/workspaces/${workspaceId}/vault/${credentialId}/copy`,
       { method: "POST", body: JSON.stringify({ field, reason }) },
     ),
+  projects: (workspaceId: string) => request<ProjectSummary[]>(`/workspaces/${workspaceId}/projects`),
+  project: (projectId: string) => request<ProjectDetail>(`/projects/${projectId}`),
+  createProject: (workspaceId: string, payload: ProjectPayload) =>
+    request<ProjectDetail>(`/workspaces/${workspaceId}/projects`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  createProjectContract: (projectId: string, payload: { title: string; status?: ProjectContract["status"]; starts_at?: string | null; ends_at?: string | null; total_value?: number | null }) =>
+    request<ProjectDetail>(`/projects/${projectId}/contracts`, { method: "POST", body: JSON.stringify(payload) }),
+  createContractScopeItem: (contractId: string, payload: { title: string; quantity?: number; unit?: string; cadence?: ContractScopeItem["cadence"]; acceptance_criteria?: string | null }) =>
+    request<ProjectDetail>(`/contracts/${contractId}/scope-items`, { method: "POST", body: JSON.stringify(payload) }),
+  createProjectDeliverable: (projectId: string, payload: { title: string; scope_item_id?: string | null; status?: DeliverableStatus; due_at?: string | null }) =>
+    request<ProjectDetail>(`/projects/${projectId}/deliverables`, { method: "POST", body: JSON.stringify(payload) }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>

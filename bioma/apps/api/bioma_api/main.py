@@ -16,6 +16,7 @@ from bioma_api.routers import (
     oauth,
     passwords,
     performance,
+    projects,
     teams,
     vault,
     workspaces,
@@ -59,6 +60,8 @@ app.include_router(invites.admin_router)
 app.include_router(invites.workspace_admin_router)
 app.include_router(performance.router)
 app.include_router(performance.workspace_router)
+app.include_router(projects.router)
+app.include_router(projects.workspace_router)
 app.include_router(analytics.router)
 app.include_router(files.router)
 app.include_router(files.workspace_router)

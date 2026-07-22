@@ -59,6 +59,38 @@
   text-rendering: optimizeLegibility;
 }
 
+.projects-layout { display: grid; gap: 18px; }
+.projects-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.project-create-form { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; padding: 18px; align-items: end; }
+.project-create-form label, .project-inline-form { display: grid; gap: 6px; }
+.project-objective { grid-column: 1 / -1; }
+.projects-split { display: grid; grid-template-columns: minmax(230px, .7fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.projects-list { display: grid; gap: 10px; }
+.project-card { width: 100%; padding: 14px; border: 1px solid var(--border-subtle); text-align: left; color: inherit; cursor: pointer; }
+.project-card.selected { border-color: var(--brand-accent); box-shadow: 0 0 0 1px var(--brand-accent); }
+.project-card-top, .project-pace { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.project-card-top small, .contract-block small, .scope-row small { color: var(--text-muted); }
+.project-progress { display: block; height: 5px; margin: 12px 0; border-radius: 999px; overflow: hidden; background: var(--border-subtle); }
+.project-progress i { display: block; height: 100%; background: var(--brand-accent); }
+.project-pace { justify-content: flex-start; font-size: 12px; color: var(--text-muted); }
+.project-pace.off_track { color: var(--danger); }
+.project-pace.at_risk { color: var(--warning); }
+.project-detail { padding: 20px; display: grid; gap: 20px; }
+.project-detail > header, .contract-block > div:first-child, .scope-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.project-detail > header span, .project-detail > header h2 { margin: 0; }
+.project-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.project-metrics span { display: flex; align-items: center; gap: 7px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 10px; font-size: 13px; }
+.project-section { display: grid; gap: 10px; }
+.project-section h3 { margin: 0; }
+.contract-block { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 10px; }
+.scope-row { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.scope-row:last-child { border-bottom: 0; }
+.project-inline-form { grid-template-columns: minmax(150px, 1fr) minmax(130px, auto) auto; align-items: end; }
+@media (max-width: 800px) {
+  .projects-split, .project-create-form, .project-metrics { grid-template-columns: 1fr; }
+  .project-inline-form { grid-template-columns: 1fr; }
+}
+
 .vault-layout { display: grid; gap: 18px; }
 .vault-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .vault-notice { display: flex; align-items: center; gap: 10px; }

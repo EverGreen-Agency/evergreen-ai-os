@@ -31,13 +31,14 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
 ];
 
 export const clientHubNavItems: Array<{
-  id: "hub" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
+  id: "hub" | "projects" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
   label: string;
   path: string;
   module: ClientModule;
   icon: LucideIcon;
 }> = [
   { id: "hub", label: "Visão geral", path: "", module: "hub", icon: LayoutDashboard },
+  { id: "projects", label: "Projetos e contratos", path: "projetos", module: "hub", icon: BriefcaseBusiness },
   { id: "ai-content", label: "Estúdio IA", path: "conteudo-ia", module: "content", icon: Sparkles },
   { id: "crm", label: "CRM", path: "crm", module: "commercial", icon: Users },
   { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
