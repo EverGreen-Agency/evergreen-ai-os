@@ -3,9 +3,7 @@ import {
   Activity,
   BarChart3,
   Cloud,
-  GitBranch,
   KeyRound,
-  Link,
   PenLine,
   Plus,
   RefreshCw,
@@ -17,12 +15,10 @@ import {
 import { useUiStore } from "../store/uiStore";
 import {
   useClients,
-  useClientPortal,
   useCreatePerformanceConnection,
   useIntegrationsStatus,
   usePerformanceConnections,
   useRequestPerformanceSync,
-  useSyncClickUp,
   useUpdatePerformanceConnection,
   useKommoConfig,
   useSetupKommoConfig,
@@ -31,8 +27,8 @@ import { formatDateTime } from "../lib/format";
 import type { PerformanceConnection, PerformanceProvider } from "../lib/api";
 import { Briefcase } from "lucide-react";
 
-// Tudo aqui é estado real: flags de ambiente vêm de /integrations/status,
-// conexões de /clients/{id}/performance/connections e o ClickUp do portal.
+// Tudo aqui é estado real: flags de ambiente vêm de /integrations/status e
+// conexões de /clients/{id}/performance/connections.
 // Meta/LinkedIn entram como novos providers no worker (roadmap), não como card fake.
 
 const PROVIDER_META: Record<PerformanceProvider, {
@@ -98,11 +94,9 @@ export function IntegrationsTab({
   const { selectedClientId: storedClientId, setSelectedClientId } = useUiStore();
   const selectedClientId = clientId ?? storedClientId;
   const { data: clients = [] } = useClients();
-  const { data: portal } = useClientPortal(selectedClientId);
   const { data: envStatus } = useIntegrationsStatus();
   const { data: connections = [], isLoading: loadingConnections } = usePerformanceConnections(selectedClientId);
 
-  const syncClickUp = useSyncClickUp();
   const createConnection = useCreatePerformanceConnection();
   const updateConnection = useUpdatePerformanceConnection();
   const requestSync = useRequestPerformanceSync();
@@ -124,7 +118,6 @@ export function IntegrationsTab({
   const [kommoAccessToken, setKommoAccessToken] = useState("");
   const [kommoSubdomain, setKommoSubdomain] = useState("");
   const [isEditingKommo, setIsEditingKommo] = useState(false);
-  const clickupRun = portal?.sync_runs.find((run) => run.source === "clickup") ?? null;
   const connectionFor = (provider: PerformanceProvider) =>
     connections.find((connection) => connection.provider === provider) ?? null;
 
@@ -233,11 +226,6 @@ export function IntegrationsTab({
         </div>
         <div className="health-list">
           <div className="health-row">
-            <GitBranch size={18} />
-            <span>ClickUp API <small style={{ color: "var(--text-faint)" }}>· CLICKUP_API_TOKEN</small></span>
-            {envStatus ? <EnvStatusPill configured={envStatus.clickup_token_configured} /> : <span className="status-pill draft">...</span>}
-          </div>
-          <div className="health-row">
             <Cloud size={18} />
             <span>Storage de arquivos (S3) <small style={{ color: "var(--text-faint)" }}>· STORAGE_S3_*</small></span>
             {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <span className="status-pill draft">...</span>}
@@ -281,42 +269,6 @@ export function IntegrationsTab({
 
         {selectedClient && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-            {/* ClickUp por cliente */}
-            <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <Link size={20} color="var(--accent)" />
-                  <h4 style={{ margin: 0, fontSize: 15 }}>ClickUp</h4>
-                </div>
-                {selectedClient.clickup_folder_id
-                  ? <span className="status-pill open">Mapeado</span>
-                  : <span className="status-pill draft">Sem pasta</span>}
-              </div>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.4, margin: 0 }}>
-                O ClickUp permanece como fonte de verdade. A sincronização manual lê tarefas e atualiza a projeção local do Bioma; nenhuma escrita externa é feita.
-              </p>
-
-              <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
-                <div>Pasta: <strong>{selectedClient.clickup_folder_id ?? "não mapeada (edite o cliente)"}</strong></div>
-                <div>
-                  Último sync:{" "}
-                  <strong>
-                    {clickupRun ? `${clickupRun.status} · ${formatDateTime(clickupRun.started_at)}` : "nunca executado"}
-                  </strong>
-                </div>
-              </div>
-              <button
-                className="primary-button"
-                style={{ padding: 8, fontSize: 13 }}
-                type="button"
-                onClick={() => syncClickUp.mutate(selectedClientId!)}
-                disabled={!selectedClient.clickup_folder_id || syncClickUp.isPending}
-              >
-                <RefreshCw size={14} />
-                {syncClickUp.isPending ? "Sincronizando..." : "Atualizar projeção do ClickUp"}
-              </button>
-            </article>
-
             {/* Kommo CRM */}
             <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>

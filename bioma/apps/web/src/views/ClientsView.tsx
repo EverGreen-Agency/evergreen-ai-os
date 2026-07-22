@@ -24,7 +24,7 @@ export function ClientsView() {
     createClient.mutate(newClientDraft, {
       onSuccess: () => {
         setShowNewClientModal(false);
-        setNewClientDraft({ name: "", organization_name: "", responsible_name: "", clickup_folder_id: "" });
+        setNewClientDraft({ name: "", organization_name: "", responsible_name: "" });
       }
     });
   };
@@ -101,13 +101,6 @@ export function ClientsView() {
                       <input
                         value={newClientDraft.responsible_name ?? ""}
                         onChange={(event) => setNewClientDraft({ ...newClientDraft, responsible_name: event.target.value })}
-                      />
-                    </label>
-                    <label>
-                      ClickUp folder
-                      <input
-                        value={newClientDraft.clickup_folder_id ?? ""}
-                        onChange={(event) => setNewClientDraft({ ...newClientDraft, clickup_folder_id: event.target.value })}
                       />
                     </label>
                   </div>

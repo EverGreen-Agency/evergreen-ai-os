@@ -41,7 +41,6 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
       organization_name: selectedClient.organization_name,
       status: selectedClient.status,
       responsible_name: selectedClient.responsible_name ?? "",
-      clickup_folder_id: selectedClient.clickup_folder_id ?? "",
       enabled_modules: selectedClient.enabled_modules,
     });
   }, [selectedClient, setClientDraft, isOpen]);
@@ -145,13 +144,6 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 <input
                   value={clientDraft.responsible_name ?? ""}
                   onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
-                />
-              </label>
-              <label>
-                ClickUp folder
-                <input
-                  value={clientDraft.clickup_folder_id ?? ""}
-                  onChange={(event) => setClientDraft({ ...clientDraft, clickup_folder_id: event.target.value })}
                 />
               </label>
             </div>

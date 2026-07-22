@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { ClipboardCheck, GitBranch, CheckCircle2, AlertCircle, ArrowLeft, RefreshCw, Settings } from "lucide-react";
+import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, Settings } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
-import { clickUpSummary } from "../lib/format";
 import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useSyncClickUp, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
 import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
@@ -28,12 +27,9 @@ export function ClientHubView() {
 
   const { data: portalData, isLoading: loadingPortal } = useClientPortal(contextId);
   const portal = portalData ?? null;
-  const latestSync = portal?.sync_runs.find((run) => run.source === "clickup")?.status;
-
-  const syncClickUp = useSyncClickUp();
   const decideApproval = useDecideApproval();
   
-  const isBusy = syncClickUp.isPending || decideApproval.isPending;
+  const isBusy = decideApproval.isPending;
 
   useEffect(() => {
     if (id && useUiStore.getState().selectedClientId !== id) {
@@ -90,15 +86,6 @@ export function ClientHubView() {
               </div>
               <div style={{ marginTop: '16px' }}>
                 <p>Responsável: <strong>{selectedClient.responsible_name ?? "não definido"}</strong></p>
-              </div>
-              <div className="sync-summary" style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-                <GitBranch size={16} />
-                <span style={{ fontSize: '13px' }}>{clickUpSummary(selectedClient.clickup_folder_id, latestSync)}</span>
-                {isEgAdmin && (
-                  <button className="sync-button" type="button" onClick={() => syncClickUp.mutate(contextId)} disabled={isBusy} style={{ marginLeft: 'auto' }}>
-                    <RefreshCw size={14} /> Sincronizar
-                  </button>
-                )}
               </div>
             </article>
             

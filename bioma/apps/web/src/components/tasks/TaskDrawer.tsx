@@ -169,7 +169,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
         <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
           {readOnlyProjection && (
             <div className="empty-state compact">
-              Projeção do ClickUp em modo somente leitura. Faça alterações na fonte de verdade e atualize a projeção.
+              Registro legado importado em modo somente leitura. Duplique-o como tarefa nativa para continuar o trabalho no Bioma.
             </div>
           )}
           <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>

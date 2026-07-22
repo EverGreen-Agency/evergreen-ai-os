@@ -117,7 +117,7 @@ export function CockpitView() {
           <article className="surface large">
             <div className="surface-header">
               <CalendarCheck size={18} />
-              <h3>Minhas Tarefas (ClickUp)</h3>
+              <h3>Minhas tarefas</h3>
             </div>
             <div className="timeline-list">
               {myDeliverables.length === 0 ? (

@@ -117,7 +117,7 @@ export const deliverableStatusLabel: Record<DeliverableStatus, string> = {
 };
 
 export const integrationRows = [
-  { name: "ClickUp", status: "MVP", detail: "dry-run manual; próximo passo é leitura real de tasks por lista" },
+  { name: "SleekFlow", status: "Descoberta", detail: "adapter omnichannel condicionado à parceria e ao contrato oficial da API" },
   { name: "Drive", status: "Backlog", detail: "centralizar links e arquivos do cliente no hub" },
   { name: "LinkedIn/Analytics", status: "MVP Demo", detail: "Demonstração visual do dashboard de performance (sem dados reais ainda)" },
   { name: "Autentique", status: "Backlog", detail: "contratos e assinaturas sem duplicar ferramenta jurídica" },

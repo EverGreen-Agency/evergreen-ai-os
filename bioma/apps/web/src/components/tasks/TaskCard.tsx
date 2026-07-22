@@ -35,7 +35,7 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
         {task.external_source === "clickup" && (
           <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--surface-sunken)", border: "1px solid var(--border-color)", color: "var(--text-dim)" }}>
-            ClickUp · somente leitura
+            Legado importado · somente leitura
           </span>
         )}
         {task.recurrence && task.recurrence !== "none" && (
