@@ -75,6 +75,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | TASK-DOM-001 | DONE | Full-stack | CRUD real de subtarefas/dependências, resposta 204 segura e recorrência idempotente | TASK-AUTHZ-001 | `smoke_tasks.py` + tsc/build |
 | CLIENT-LIFE-001 | DONE | Full-stack | Trocar delete cotidiano por archive e separar purge confirmado com auditoria e limpeza S3 | AUTHZ-WS-001 | `smoke_api.py` |
 | VAULT-001 | DONE | Full-stack | Cofre de acessos por workspace: cifra, depósito do cliente, RBAC, rotação e auditoria | AUTHZ-WS-001 | migration 0021 + `smoke_vault.py` + compile/OpenAPI + tsc/build |
+| VAULT-002 | DONE | Full-stack | Campos equivalentes à planilha de acessos: plataforma, conta, usuário, e-mail, senha, outro método e link | VAULT-001 | migration 0024 + compile/OpenAPI + tsc; smoke mutável passa a exigir banco isolado |
 | PROJECT-001 | DONE | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | migrations 0022/0023 + `smoke_projects.py` + compile/OpenAPI + tsc/build |
 | PROJECT-TECH-001 | DONE | Full-stack | Fases ordenadas, entregas por fase, links de proposta/especificação e feed de progresso/bloqueio/teste/release para projetos Tech | PROJECT-001 | `smoke_projects.py` cobre visibilidade do cliente, conteúdo interno e fase cruzada |
 | PROJECT-GH-001 | TODO | Full-stack | Ligar projetos Tech a issues/PRs GitHub sem perder IDs e contexto canônicos | PROJECT-001 | mock adapter + smoke BOLA/idempotência/HITL |

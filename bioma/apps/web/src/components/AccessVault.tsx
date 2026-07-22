@@ -17,7 +17,9 @@ import { EmptyState, SectionHeader } from "./shared";
 
 const SECRET_LABELS: Record<VaultSecretField, string> = {
   username: "Usuário",
+  email: "E-mail",
   password: "Senha",
+  other_access: "Outra forma de acesso",
   token: "Token",
   recovery_codes: "Códigos de recuperação",
   notes: "Notas seguras",
@@ -35,6 +37,7 @@ const EMPTY_DRAFT: VaultCredentialPayload = {
   platform: "",
   label: "",
   account_hint: "",
+  platform_url: "",
   visibility: "internal",
   expires_at: null,
   secrets: {},
@@ -145,14 +148,17 @@ export function AccessVault({ workspaceId, accessRole }: { workspaceId: string; 
       {showForm && (
         <form className="surface vault-form" onSubmit={submit}>
           <div className="form-grid">
-            <label>Plataforma<input required minLength={2} value={draft.platform} onChange={(event) => setDraft({ ...draft, platform: event.target.value })} placeholder="Meta Business, Google Ads, Kommo..." /></label>
-            <label>Identificação<input required minLength={2} value={draft.label} onChange={(event) => setDraft({ ...draft, label: event.target.value })} placeholder="Conta principal" /></label>
-            <label>Referência não sensível<input value={draft.account_hint ?? ""} onChange={(event) => setDraft({ ...draft, account_hint: event.target.value })} placeholder="ID ou final do e-mail" /></label>
+            <label>Conta / plataforma<input required minLength={2} value={draft.platform} onChange={(event) => setDraft({ ...draft, platform: event.target.value })} placeholder="Meta Business, Google Ads, Kommo..." /></label>
+            <label>Conta / perfil<input required minLength={2} value={draft.label} onChange={(event) => setDraft({ ...draft, label: event.target.value })} placeholder="Conta principal" /></label>
+            <label>Referência não sensível<input value={draft.account_hint ?? ""} onChange={(event) => setDraft({ ...draft, account_hint: event.target.value })} placeholder="ID, final do e-mail ou apelido" /></label>
+            <label>Link da plataforma<input type="url" value={draft.platform_url ?? ""} onChange={(event) => setDraft({ ...draft, platform_url: event.target.value })} placeholder="https://..." /></label>
             {!isClientDeposit && (
               <label>Visibilidade<select value={draft.visibility} onChange={(event) => setDraft({ ...draft, visibility: event.target.value as VaultCredentialPayload["visibility"] })}><option value="internal">Somente equipe</option><option value="client">Cliente vê o registro</option></select></label>
             )}
             <label>Usuário<input autoComplete="off" value={draft.secrets.username ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, username: event.target.value } })} /></label>
+            <label>E-mail<input type="email" autoComplete="off" value={draft.secrets.email ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, email: event.target.value } })} /></label>
             <label>Senha<input type="password" autoComplete="new-password" value={draft.secrets.password ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, password: event.target.value } })} /></label>
+            <label>Outra forma de acesso<textarea rows={3} value={draft.secrets.other_access ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, other_access: event.target.value } })} placeholder="Google, GitHub, CPF, telefone ou instruções de acesso" /></label>
             <label>Token<textarea rows={3} value={draft.secrets.token ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, token: event.target.value } })} /></label>
             <label>Códigos de recuperação<textarea rows={3} value={draft.secrets.recovery_codes ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, recovery_codes: event.target.value } })} /></label>
             <label>Notas seguras<textarea rows={3} value={draft.secrets.notes ?? ""} onChange={(event) => setDraft({ ...draft, secrets: { ...draft.secrets, notes: event.target.value } })} /></label>
@@ -183,6 +189,7 @@ export function AccessVault({ workspaceId, accessRole }: { workspaceId: string; 
             </header>
             <dl>
               {credential.account_hint && <><dt>Referência</dt><dd>{credential.account_hint}</dd></>}
+              {credential.platform_url && <><dt>Link</dt><dd><a href={credential.platform_url} target="_blank" rel="noreferrer">Abrir plataforma</a></dd></>}
               <dt>Visibilidade</dt><dd>{credential.visibility === "client" ? "Cliente" : "Equipe EG"}</dd>
               <dt>Versão</dt><dd>{credential.version}</dd>
               <dt>Atualizado</dt><dd>{formatDateTime(credential.updated_at)}</dd>

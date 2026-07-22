@@ -81,7 +81,7 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 
 `projects` segue router → service → repository e exige `view` para leitura e `manage_work` para escrita. O subdomínio Tech adiciona fases, documentos por URL e atualizações de progresso/bloqueio/teste/release, sempre filtrados por `client_visible`. `smoke_projects.py` cobre papéis, BOLA cliente A→B, owner, escopo/fase cruzados, contrato, entrega, ritmo, feed Tech e auditoria.
 
-`vault` exige `SECRET_ENCRYPTION_KEY`, guarda ciphertext versionado, separa `submit_secrets`, `manage_secrets` e `reveal_secrets`, e audita criação, rotação, status, revelação e cópia. `smoke_vault.py` cobre a matriz de acesso.
+`vault` exige `SECRET_ENCRYPTION_KEY`, guarda ciphertext versionado, separa `submit_secrets`, `manage_secrets` e `reveal_secrets`, e audita criação, rotação, status, revelação e cópia. O registro suporta plataforma, conta/perfil, usuário, e-mail, senha, outra forma de acesso e link; somente o link é metadado legível. `smoke_vault.py` cobre a matriz de acesso e deve apontar para banco isolado.
 
 `DELETE /clients/{client_id}` arquiva cliente e workspace, preservando o histórico. O purge físico é separado em `POST /clients/{client_id}/purge`, exclusivo de EG admin, exige confirmação exata do nome, limpa objetos S3 antes do banco e mantém o evento `client.purged` na auditoria.
 

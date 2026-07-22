@@ -14,6 +14,7 @@ Implementações locais desta rodada:
 - área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
 - acompanhamento Tech (`migration 0023`): fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release filtradas por visibilidade do cliente;
 - aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
+- cofre ampliado com os campos mínimos da operação (plataforma, conta, usuário, e-mail, senha, outro acesso e link), mantendo valores de acesso cifrados;
 - smoke isolado para cofre e projetos, sem dependência da HM.
 
 Validação executada no desenvolvimento local: migrations 0021/0022/0023, compile/OpenAPI da API, TypeScript, build Vite, `smoke_vault.py` e `smoke_projects.py` passaram. Isso confirma o comportamento local e não constitui validação de deploy ou QA visual humano.

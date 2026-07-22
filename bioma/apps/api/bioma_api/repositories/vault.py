@@ -6,7 +6,7 @@ from psycopg.types.json import Jsonb
 
 SUMMARY_COLUMNS = """
   credential.id, credential.workspace_id, credential.platform, credential.label,
-  credential.account_hint, credential.visibility, credential.status, credential.expires_at,
+  credential.account_hint, credential.platform_url, credential.visibility, credential.status, credential.expires_at,
   credential.owner_user_id, owner.display_name as owner_name, credential.version,
   credential.last_rotated_at, credential.created_at, credential.updated_at
 """
@@ -45,13 +45,13 @@ def create_credential(conn, context, user_id: UUID, payload: dict[str, Any]):
         f"""
         with inserted as (
           insert into vault_credentials (
-            tenant_organization_id, workspace_id, platform, label, account_hint,
+            tenant_organization_id, workspace_id, platform, label, account_hint, platform_url,
             visibility, expires_at, owner_user_id, created_by, updated_by,
-            encrypted_username, encrypted_password, encrypted_token,
+            encrypted_username, encrypted_email, encrypted_password, encrypted_other_access, encrypted_token,
             encrypted_recovery_codes, encrypted_notes
           ) values (
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-            %s, %s, %s, %s, %s
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s, %s
           ) returning *
         )
         select {SUMMARY_COLUMNS.replace('credential.', 'inserted.')}
@@ -64,13 +64,16 @@ def create_credential(conn, context, user_id: UUID, payload: dict[str, Any]):
             payload["platform"],
             payload["label"],
             payload.get("account_hint"),
+            payload.get("platform_url"),
             payload["visibility"],
             payload.get("expires_at"),
             payload.get("owner_user_id"),
             user_id,
             user_id,
             payload.get("encrypted_username"),
+            payload.get("encrypted_email"),
             payload.get("encrypted_password"),
+            payload.get("encrypted_other_access"),
             payload.get("encrypted_token"),
             payload.get("encrypted_recovery_codes"),
             payload.get("encrypted_notes"),
@@ -101,8 +104,8 @@ def update_credential(conn, workspace_id: UUID, credential_id: UUID, user_id: UU
     assignments = []
     values: list[Any] = []
     for column in (
-        "platform", "label", "account_hint", "visibility", "expires_at", "owner_user_id",
-        "encrypted_username", "encrypted_password", "encrypted_token",
+        "platform", "label", "account_hint", "platform_url", "visibility", "expires_at", "owner_user_id",
+        "encrypted_username", "encrypted_email", "encrypted_password", "encrypted_other_access", "encrypted_token",
         "encrypted_recovery_codes", "encrypted_notes",
     ):
         if column in payload:

@@ -220,6 +220,7 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
 - [x] Criar primeira área de Projetos e Contratos no Hub, com contrato, escopo, entregas e indicador de ritmo.
 - [x] Criar primeira área de Acessos com cofre cifrado, depósito pelo cliente, RBAC e auditoria de revelação/cópia.
+- [x] Cobrir o formato mínimo operacional de acessos: plataforma, conta, usuário, e-mail, senha, outro método e link, sem segredos em listagens.
 - [x] Aplicar migrations 0021/0022/0023 e executar `smoke_vault.py`/`smoke_projects.py` em Postgres local.
 - [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
 - [ ] Integrar projetos Tech ao GitHub (issues/PRs + links bidirecionais auditados, com confirmação para criação externa).

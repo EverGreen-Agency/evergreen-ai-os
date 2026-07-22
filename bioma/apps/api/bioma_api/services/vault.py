@@ -22,7 +22,9 @@ from bioma_api.schemas.vault import (
 
 SECRET_COLUMNS = {
     "username": "encrypted_username",
+    "email": "encrypted_email",
     "password": "encrypted_password",
+    "other_access": "encrypted_other_access",
     "token": "encrypted_token",
     "recovery_codes": "encrypted_recovery_codes",
     "notes": "encrypted_notes",

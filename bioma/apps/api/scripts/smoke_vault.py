@@ -1,11 +1,20 @@
 import os
 from pathlib import Path
 import sys
+from urllib.parse import urlparse
 
 from cryptography.fernet import Fernet
 
 
 os.environ.setdefault("SECRET_ENCRYPTION_KEY", Fernet.generate_key().decode("utf-8"))
+
+SMOKE_DATABASE_URL = os.environ.get("BIOMA_SMOKE_DATABASE_URL")
+if not SMOKE_DATABASE_URL:
+    raise RuntimeError("Defina BIOMA_SMOKE_DATABASE_URL para executar smoke_vault.py fora do banco operacional.")
+smoke_database_name = urlparse(SMOKE_DATABASE_URL).path.lstrip("/").lower()
+if not smoke_database_name.endswith(("_test", "_smoke")):
+    raise RuntimeError("BIOMA_SMOKE_DATABASE_URL deve apontar para um banco com sufixo _test ou _smoke.")
+os.environ["DATABASE_URL"] = SMOKE_DATABASE_URL
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -53,8 +62,14 @@ def credential_payload(label: str, visibility: str = "internal") -> dict:
         "platform": "Smoke Platform",
         "label": label,
         "account_hint": "conta de teste",
+        "platform_url": "https://example.test/vault-smoke",
         "visibility": visibility,
-        "secrets": {"username": "smoke-user", "password": SECRET_VALUE},
+        "secrets": {
+            "username": "smoke-user",
+            "email": "smoke@example.test",
+            "password": SECRET_VALUE,
+            "other_access": "Google Workspace",
+        },
     }
 
 
@@ -93,12 +108,15 @@ def main() -> None:
 
         with connect() as conn:
             stored = conn.execute(
-                "select encrypted_username, encrypted_password from vault_credentials where id = %s",
+                "select encrypted_username, encrypted_email, encrypted_password, encrypted_other_access, platform_url from vault_credentials where id = %s",
                 (credential_id,),
             ).fetchone()
         assert stored["encrypted_username"].startswith("enc:v1:")
+        assert stored["encrypted_email"].startswith("enc:v1:")
         assert stored["encrypted_password"].startswith("enc:v1:")
+        assert stored["encrypted_other_access"].startswith("enc:v1:")
         assert SECRET_VALUE not in stored["encrypted_password"]
+        assert stored["platform_url"] == "https://example.test/vault-smoke"
 
         for http_client, label in ((admin, "admin"), (operator, "operator"), (viewer, "viewer")):
             listed = http_client.get(f"/workspaces/{workspace_a.workspace_id}/vault")
@@ -154,6 +172,8 @@ def main() -> None:
         )
         assert_status(revealed, 200, "admin reveals with reason")
         assert revealed.json()["secrets"]["password"] == SECRET_VALUE
+        assert revealed.json()["secrets"]["email"] == "smoke@example.test"
+        assert revealed.json()["secrets"]["other_access"] == "Google Workspace"
 
         copied = admin.post(
             f"/workspaces/{workspace_a.workspace_id}/vault/{credential_id}/copy",

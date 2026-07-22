@@ -1,10 +1,20 @@
 from datetime import date
+import os
 from pathlib import Path
 import sys
+from urllib.parse import urlparse
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+
+SMOKE_DATABASE_URL = os.environ.get("BIOMA_SMOKE_DATABASE_URL")
+if not SMOKE_DATABASE_URL:
+    raise RuntimeError("Defina BIOMA_SMOKE_DATABASE_URL para executar smoke_queue.py fora do banco operacional.")
+smoke_database_name = urlparse(SMOKE_DATABASE_URL).path.lstrip("/").lower()
+if not smoke_database_name.endswith(("_test", "_smoke")):
+    raise RuntimeError("BIOMA_SMOKE_DATABASE_URL deve apontar para um banco com sufixo _test ou _smoke.")
+os.environ["DATABASE_URL"] = SMOKE_DATABASE_URL
 
 from bioma_worker.db import connect
 from bioma_worker.orchestrator import run_next_sync

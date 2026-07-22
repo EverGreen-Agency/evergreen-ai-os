@@ -632,7 +632,7 @@ export type TaskSubtask = {
 
 export type VaultStatus = "active" | "expired" | "rotating" | "compromised" | "revoked";
 export type VaultVisibility = "internal" | "client";
-export type VaultSecretField = "username" | "password" | "token" | "recovery_codes" | "notes";
+export type VaultSecretField = "username" | "email" | "password" | "other_access" | "token" | "recovery_codes" | "notes";
 
 export type VaultSecrets = Partial<Record<VaultSecretField, string>>;
 
@@ -642,6 +642,7 @@ export type VaultCredentialSummary = {
   platform: string;
   label: string;
   account_hint: string | null;
+  platform_url: string | null;
   visibility: VaultVisibility;
   status: VaultStatus;
   expires_at: string | null;
@@ -657,6 +658,7 @@ export type VaultCredentialPayload = {
   platform: string;
   label: string;
   account_hint?: string | null;
+  platform_url?: string | null;
   visibility: VaultVisibility;
   expires_at?: string | null;
   secrets: VaultSecrets;
