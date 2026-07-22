@@ -3,8 +3,8 @@
 - **Cliente:** EverGreen + clientes EG (`target: internal`, plataforma)
 - **Autor:** Especificador EG + revisão Codex
 - **Data:** 2026-07-07
-- **Status:** rascunho
-- **Versão:** 1.0
+- **Status:** em execução — primeira vertical slice implementada, smoke runtime pendente
+- **Versão:** 1.1
 - **Ideias relacionadas:** `cofre-senhas`, `access-request-portal`, `mod-integrations-hub`, `mod-comercial`, `client-hub`
 
 ## 1. Objetivo
@@ -14,6 +14,10 @@ Substituir a prática atual de planilhas com usuário/senha por um cofre seguro,
 ## 2. Contexto
 
 Hoje acessos de cliente podem ficar em planilha com senha e usuário das plataformas. Isso é um risco operacional e jurídico: qualquer pessoa com acesso à planilha pode visualizar credenciais sensíveis, não há trilha confiável de quem viu/copiu e offboarding vira manual.
+
+### Estado da implementação — 2026-07-22
+
+A primeira vertical slice está em `bioma/`: migration 0021, API router/service/repository, tela `/clientes/:id/acessos` e `smoke_vault.py`. Ela cobre cifra obrigatória, metadados sem segredo, depósito pelo cliente, gestão por operador, revelação somente por administradores/workspace manager, motivo e auditoria. Aplicação da migration e smoke contra Postgres continuam pendentes; checklist de onboarding/offboarding, solicitação estruturada e decisão build-vs-buy antes de produção permanecem no backlog.
 
 ## 3. Escopo
 

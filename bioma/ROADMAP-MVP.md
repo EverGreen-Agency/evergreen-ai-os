@@ -109,37 +109,23 @@ Arquivos sensíveis que não devem ser editados por duas IAs ao mesmo tempo:
 
 Divisão recomendada:
 
-- Backend/API: FastAPI, migrations, auth, permissões, ClickUp, testes API.
+- Backend/API: FastAPI, migrations, auth, permissões, motor nativo de trabalho, adapters e testes API.
 - Frontend/UI: componentes, responsividade, assets, UX, estados vazios.
 - Produto/QA: comparação com proposta HM, bugs, critérios de pronto, gaps.
 - Docs/Coordenação: manter este roadmap, README, specs e handoff.
 
-## ClickUp - direção operacional
+## Motor operacional nativo — decisão 2026-07-22
 
-A integração deve respeitar os manuais operacionais da EG.
+O Bioma substitui o ClickUp como fonte de verdade da execução. A estrutura importada e os manuais operacionais servem de referência, mas o produto passa a possuir `workspace → projeto → contrato versionado → escopo → entregas/tarefas → aceite`.
 
-Estrutura de referência:
-
-- Workspace: operação EG.
-- Cada cliente deve ter pasta própria.
-- Social Media e Growth/Projetos devem ser listas separadas quando aplicável.
-- Tech & Software deve seguir SDLC com status de engenharia.
-- O cliente deve ter visão por portal único, não uma coleção de links soltos.
-
-MVP do ClickUp Bridge:
-
-1. Mapear cliente Bioma para pasta/listas ClickUp.
-2. Ler tarefas por lista.
-3. Normalizar status para entregáveis/aprovações no Bioma.
-4. Registrar `sync_runs`.
-5. Permitir ação manual EG primeiro.
-6. Só considerar escrita externa após implementar comando real, idempotente, auditado e confirmado por HITL; até lá, não classificar a integração como bidirecional.
-
-Não fazer ainda:
-
-- Escrita automática sem confirmação humana.
-- Criar estrutura de cliente no ClickUp sem revisão EG.
-- Misturar Social, Growth e Tech em uma lista única.
+- Social, Growth, Tech e projetos gerais compartilham o núcleo, com templates e status configuráveis por projeto;
+- projetos Social podem exigir aprovação da ideia antes da gravação ou somente aprovação final, conforme o cliente;
+- projetos Tech devem ganhar adapter GitHub para issues/PRs, mantendo contrato, contexto e acompanhamento canônicos no Bioma;
+- itens de escopo registram quantidade, unidade, cadência e critério de aceite;
+- conclusão de entrega não presume aceite do cliente;
+- progresso/ritmo consideram concluídas, atrasadas e bloqueadas;
+- ClickUp fica temporariamente apenas como importador legado, sem UI de sync e sem nova credencial;
+- não existe integração bidirecional ClickUp.
 
 ## Decisões de escopo - 2026-07-10
 
@@ -153,6 +139,19 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 - **Financeiro:** backend e tela mínima concluídos; integração com a fonte financeira real ainda pendente.
 - **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
 - Notion: depois.
+
+As decisões sobre ClickUp, calendário e rigidez dos fluxos acima foram superseded pela decisão de 2026-07-22 e pelo ADR 0002 revisado.
+
+## Decisões de produto — 2026-07-22
+
+- **Fonte de verdade operacional:** Bioma, não ClickUp.
+- **ClickUp:** cancelar a dependência paga após snapshot/reconciliação; adapter permanece somente durante a migração controlada.
+- **Contratos/escopo:** primeira classe por projeto, com vigência, versão, quantidade/cadência e aceite separados da conclusão.
+- **Cofre de acessos:** substituir planilhas; segredos cifrados, listagem sem valores, revelação auditada e RBAC.
+- **SleekFlow:** descoberta de parceria; possível adapter omnichannel, sem compromisso de implementação antes do contrato oficial de API/dados.
+- **Kommo/CRM:** manter adapter onde fizer sentido e evoluir CRM nativo pelo uso real.
+- **IA aplicada:** priorizar Estúdio IA, geração de posts, imagens, brand book versionado, metodologia e score visível ao cliente.
+- **Deploy e validação humana:** postergados por decisão do produto; continuar apenas validações locais essenciais durante o desenvolvimento.
 
 ## Decisões de escopo - 2026-07-14
 
@@ -217,6 +216,11 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Conectar Analytics principal aos endpoints reais de Performance.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 - [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
+- [x] Criar primeira área de Projetos e Contratos no Hub, com contrato, escopo, entregas e indicador de ritmo.
+- [x] Criar primeira área de Acessos com cofre cifrado, depósito pelo cliente, RBAC e auditoria de revelação/cópia.
+- [ ] Aplicar migrations 0021/0022 e executar `smoke_vault.py`/`smoke_projects.py` quando o Postgres local estiver disponível.
+- [ ] Integrar projetos Tech ao GitHub (issues/PRs + links bidirecionais auditados, com confirmação para criação externa).
+- [ ] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente.
 
 ### P1.5 - Port do BIAds / Performance
 
@@ -239,19 +243,15 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Criar páginas profundas de Performance: Ads, GA4, GSC e GTM.
 - [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
-### P2 - ClickUp real
+### P2 - Encerramento controlado do ClickUp
 
-- [ ] Configurar um novo `CLICKUP_API_TOKEN` somente no ambiente controlado de staging quando a validação ao vivo for autorizada.
-- [ ] Cadastrar mapeamento real de pasta/listas.
-- [x] Implementar leitura real de tarefas quando `CLICKUP_API_TOKEN` e pasta/listas estiverem configurados.
-- [x] Suportar leitura por `clickup_mappings` quando houver mapeamento de lista.
-- [x] Fazer upsert local de entregáveis por `clickup_task_id`.
-- [x] Registrar erros de sync no histórico retornado pelo portal.
-- [x] Definir política de escrita: sempre HITL no MVP.
-- [x] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação; validação contra listas reais depende de credencial/staging.
-- [x] Tornar o import tenant-scoped, transacional por pasta e idempotente por `external_id` para listas, tarefas e subtarefas.
-- [x] Fixar ClickUp como system of record e bloquear mutação local de projeções importadas.
-- [x] Remover toggle local fictício e qualquer alegação de sincronização bidirecional.
+- [x] Implementar importador tenant-scoped e idempotente para preservar dados legados.
+- [x] Remover sincronização ClickUp das superfícies operacionais do frontend.
+- [x] Revisar ADR 0002 e fixar o Bioma como fonte de verdade operacional.
+- [ ] Reconciliar listas/tarefas importadas com projetos e itens de escopo nativos.
+- [ ] Gerar snapshot final e relatório de itens sem correspondência.
+- [ ] Remover endpoint/configuração/adapter ClickUp após a reconciliação.
+- [ ] Remover colunas e tabelas legadas em migration posterior, somente após confirmar ausência de consumidores.
 
 ### P3 - Segurança e qualidade
 

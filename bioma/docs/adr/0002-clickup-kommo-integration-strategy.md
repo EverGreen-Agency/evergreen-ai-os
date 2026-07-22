@@ -1,67 +1,61 @@
-# ADR 0002 — Estratégia ClickUp e Kommo: integração antes de substituição
+# ADR 0002 — Bioma como motor operacional e integrações externas por adapters
 
-- Status: aceito
-- Data: 2026-07-18 (revisado em 2026-07-21)
+- Status: aceito; decisão anterior superseded
+- Data: 2026-07-18 (revisado em 2026-07-22)
 
 ## Contexto
 
-O Bioma precisa servir simultaneamente a operação da EG, os Hubs de clientes e, no futuro, tenants white-label. Reimplementar de imediato todo o motor de tarefas do ClickUp e todo o CRM/automação do Kommo criaria uma superfície muito maior do que o diferencial atual do produto e duplicaria sistemas maduros antes de validar uso, custo e aderência.
+O Bioma precisa servir a operação da EG, os Hubs de clientes e futuros tenants white-label. A decisão inicial preservava o ClickUp como *system of record* e tratava tarefas locais como projeções. Depois da importação dos projetos existentes, a EG decidiu encerrar o uso pago do ClickUp e absorver no Bioma as capacidades realmente utilizadas.
 
-Ao mesmo tempo, limitar o Bioma a um painel passivo impediria que ele se tornasse o sistema operacional da relação agência–cliente e a camada de inteligência descrita na Mega Plataforma.
+Continuar exibindo sincronização ou mantendo o ClickUp como dependência operacional geraria custo, ruído de produto e duas fontes de verdade. Kommo e possíveis parceiros omnichannel, como SleekFlow, têm outro papel: são sistemas externos especializados que podem ser conectados ao contexto canônico do cliente.
 
 ## Decisão
 
-Adotar uma evolução **integration-first, com substituição seletiva por evidência**.
+O **Bioma é o system of record de projetos, contratos, escopo, tarefas, subtarefas, dependências, entregas, recorrência e aceite**.
 
-### O que o Bioma possui desde já
+### Motor nativo
 
-- tenancy, workspaces, times, carteira e autorização;
-- experiência única da operação EG, agência e cliente;
-- documentos, artefatos, arquivos, aprovações e auditoria;
-- contexto cruzado de CRM, financeiro, Performance e conteúdo;
-- ativações de IA e metodologia EG;
-- IDs canônicos e mapeamentos para sistemas externos.
+- `workspace` delimita cliente, tenant e autorização;
+- `project` organiza uma frente Social, Growth, Tech ou geral;
+- versões de contrato registram vigência, valor, assinatura e origem;
+- itens de escopo registram quantidade, unidade, cadência e critério de aceite;
+- entregas ligam execução ao projeto e, quando aplicável, ao item de escopo;
+- tarefas detalham o trabalho e podem se ligar a listas/projetos;
+- progresso e ritmo derivam de entregas concluídas, atrasadas e bloqueadas;
+- entrega concluída não equivale automaticamente a aceite do cliente;
+- toda escrita exige `manage_work`; leitura exige `view`; tenant/workspace são verificados em cada recurso.
 
-### O que o ClickUp continua possuindo
+### ClickUp
 
-- execução detalhada de tarefas, subtarefas e dependências;
-- automações operacionais, carga/capacidade e calendário de produção;
-- esteiras Social, Growth e Tech enquanto não houver paridade comprovada.
+O ClickUp deixa de ser integração operacional e fonte de verdade. O código de importação existente fica temporariamente como **ferramenta de migração legada**, sem botão de sincronização na interface, sem token persistente e sem escrita externa. Registros já importados mantêm `external_source='clickup'` e `external_id` para rastreabilidade e permanecem imutáveis; o trabalho novo é nativo do Bioma.
 
-O ClickUp permanece o **system of record da execução operacional**. Tarefas importadas são projeções locais somente leitura, identificadas por `external_source='clickup'` e `external_id`; o Bioma não aceita mutações locais nesses registros. Tarefas criadas nativamente no Bioma continuam locais e não são propagadas ao ClickUp.
+A remoção definitiva do adapter e das colunas legadas ocorrerá somente depois de reconciliar os dados importados e confirmar que nenhum registro necessário ficou para trás. Não há integração bidirecional.
 
-O bridge é unidirecional, ClickUp → Bioma. Status são traduzidos por lista/operação para o vocabulário estável do Bioma, sem obrigar todos os tenants a usar exatamente os mesmos nomes no ClickUp. Não chamaremos a integração de bidirecional enquanto não existir escrita externa real, idempotente, auditada e confirmada por HITL.
+### Kommo e outros CRMs
 
-O importador exige token por variável de ambiente, tenant e team explícitos. Cada pasta é uma unidade transacional independente, e listas, tarefas e subtarefas são reconciliadas por identificador externo para permitir reexecução sem duplicação.
+O Bioma possui o contexto canônico do cliente e pode apresentar uma visão integrada do funil. Kommo continua sendo um adapter especializado enquanto a EG o utilizar. Escritas externas devem ser comandos explícitos, tenant-scoped, idempotentes, auditados e sujeitos a HITL quando houver impacto comercial.
 
-### O que o Kommo continua possuindo
+O CRM nativo pode evoluir de forma incremental quando isso reduzir custo ou concentrar o trabalho diário no Bioma. O adapter não define autorização nem substitui IDs canônicos locais.
 
-- pipeline especializado, atividades comerciais e histórico de relacionamento;
-- automações, canais e recursos nativos do CRM;
-- credenciais e tokens operacionais, cifrados quando referenciados pelo Bioma.
+### SleekFlow
 
-O Bioma oferece a visão de CRM dentro do workspace, combina métricas com os demais domínios e só adicionará escrita no Kommo por comandos explícitos, idempotentes e auditados.
+SleekFlow está em descoberta comercial e técnica. A direção provável é um adapter de canais/atendimento omnichannel para contatos, conversas, tickets e eventos, não um motor de projetos. Nenhuma integração será prometida antes de existir parceria, acesso à documentação/API aplicável e contrato de dados confirmado.
 
-## Critério para substituir uma capacidade externa
-
-Uma capacidade só migra para o núcleo do Bioma quando todos os itens forem verdadeiros:
-
-1. é diferencial recorrente para a EG ou para tenants white-label;
-2. usuários executam a ação principalmente no Bioma, não no sistema externo;
-3. há contrato de dados, autorização, auditoria e recuperação de falha;
-4. existe paridade mínima validada com usuários reais;
-5. o custo total de manter a integração supera o de possuir a capacidade.
-
-## Sequência
-
-1. Projeção confiável, tenant-scoped e observável, sem escrita externa.
-2. Comandos externos assistidos somente após confirmação humana, idempotência e auditoria.
-3. Automação opt-in por tenant e por operação.
-4. Substituição seletiva apenas para capacidades que cumpram os critérios acima.
+Se implementado, o adapter deve usar webhooks/HTTP com assinatura ou autenticação adequada, deduplicação por evento externo, fila de retry, auditoria, consentimento/LGPD e isolamento por tenant. Automação com efeito externo exige HITL conforme risco.
 
 ## Consequências
 
-- O Bioma pode se tornar o ponto principal de trabalho sem reconstruir dois SaaS completos agora.
-- ClickUp e Kommo são dependências substituíveis por adapters, não fronteiras de autorização.
-- Credenciais reais nunca entram em código, fixtures ou histórico Git; validação ao vivo exige segredo efêmero no ambiente e conta controlada.
-- A direção white-label permanece viável: cada tenant traz ou recebe seus próprios mapeamentos e credenciais.
+- o Hub do Cliente mostra projetos, contratos, escopo, entregas e acessos sem depender do ClickUp;
+- status de Social podem variar por projeto/cliente, preservando templates de processo sem impor uma esteira rígida;
+- projetos Tech poderão ligar tarefas a issues/PRs do GitHub, mantendo o Bioma como contexto contratual e de acompanhamento do cliente;
+- integrações de CRM, canais, analytics e storage são adapters substituíveis;
+- credenciais ficam no cofre cifrado e nunca em planilha, código, fixture ou histórico Git;
+- uma integração só pode ser chamada de bidirecional após escrita externa real, idempotente, auditada e confirmada pelo fluxo HITL definido.
+
+## Próxima remoção controlada do ClickUp
+
+1. reconciliar projetos/tarefas importados e criar vínculos locais de projeto/escopo;
+2. gerar relatório de itens sem correspondência e resolver duplicidades;
+3. exportar snapshot final independente da assinatura do ClickUp;
+4. remover endpoint, configuração e adapter de importação;
+5. em migration posterior, retirar colunas/tabelas legadas quando não houver mais consumidores.

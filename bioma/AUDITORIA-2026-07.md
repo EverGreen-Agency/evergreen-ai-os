@@ -2,6 +2,22 @@
 
 Avaliação geral de código, segurança, negócio e próximos passos, feita por Claude Code (Sonnet 5) a pedido do Eduardo. Complementa `ROADMAP-MVP.md` (estado/backlog) e `DEPLOY.md` (runbook) — não os substitui.
 
+## Adendo de produto e implementação — 2026-07-22
+
+A decisão ClickUp do adendo anterior foi superseded: a EG pretende encerrar o SaaS e o **Bioma passa a ser o system of record operacional**. A sincronização foi retirada das telas; o adapter fica somente para snapshot/reconciliação do legado antes de sua remoção.
+
+Implementações locais desta rodada:
+
+- cofre de acessos por workspace (`migration 0021`), com ciphertext versionado, RBAC separado para depósito/gestão/revelação, motivo obrigatório e auditoria de criação, rotação, status, revelação e cópia;
+- área Acessos no Hub; cliente pode entregar segredo à EG sem poder revelá-lo, e valores revelados são limpos da memória da tela após 60 segundos;
+- motor nativo de projetos (`migration 0022`): projeto, contrato versionado, item de escopo, vínculo de entrega, conclusão, aceite separado e indicadores de progresso/ritmo;
+- área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
+- smoke isolado para cofre e projetos, sem dependência da HM.
+
+Validação executada: compile/OpenAPI da API, TypeScript e build Vite passaram. `smoke_vault.py` e `smoke_projects.py` não foram executados de ponta a ponta porque o PostgreSQL local em `localhost:5433` estava indisponível; portanto migrations e comportamento runtime no banco continuam pendentes de confirmação, sem alegação de release/deploy.
+
+SleekFlow foi classificado apenas como possível adapter omnichannel em descoberta. A parceria e o contrato técnico ainda não existem; não há integração implementada nem promessa bidirecional.
+
 ## Adendo de remediação — 2026-07-21
 
 A afirmação original de que nenhum endpoint pulava a checagem de BOLA/IDOR não abrangia corretamente `services/tasks.py`. A janela `85bb410..82c73ca` também continha uma credencial ClickUp hardcoded. O token foi revogado fora do repositório, o commit local ainda não publicado foi reescrito e os scripts passaram a exigir `CLICKUP_API_TOKEN` no ambiente, sem fallback.
@@ -12,7 +28,7 @@ Remediações aplicadas nesta rodada:
 - Toda lista/tarefa/subtarefa é resolvida no workspace autorizado; assignee, owner e dependencies precisam pertencer ao mesmo tenant/workspace, e ciclos são rejeitados.
 - Recorrência usa uma origem única e não duplica sucessores; subtarefas e dependências têm edição real e tipada.
 - `smoke_tasks.py` cobre EG admin, operator, viewer, client_user e cliente A tentando ler/mutar cliente B. Os smokes de API/workspace/tarefas usam massa efêmera, sem depender da HM.
-- ClickUp continua como system of record. A importação é ClickUp → Bioma, tenant-scoped, transacional por pasta e idempotente por `external_id`; projeções são somente leitura e a UI não promete bidirecionalidade.
+- À época, ClickUp continuava como system of record; esta decisão foi superseded pelo adendo de 2026-07-22. O importador preservado continua tenant-scoped/idempotente apenas para migração.
 - `DELETE /clients/{id}` agora arquiva. Purge físico é separado, exige confirmação exata, limpa S3 antes do banco e preserva auditoria.
 - `request<T>` trata corretamente 204/corpo vazio, e a rota duplicada `GET /clients/deliverables/me` foi removida.
 
@@ -61,7 +77,7 @@ Railway lançou **Railway Buckets**: object storage S3-compatible nativo, isolad
 
 - O motor operacional (Client Hub, aprovações, CRM mínimo, financeiro, Performance) está sólido e testável — mais avançado que a maioria dos MVPs nesse estágio.
 - **Maior gap comercial: LinkedIn (orgânico + Ads)**, que é o centro da proposta HM, ainda não foi integrado (`INT-LI-001` ainda é só um ADR pendente). Sem isso, por mais completo que o resto esteja, a entrega não cobre o que foi vendido para a HM.
-- **ClickUp real** (token + mapeamento) segue pendente — sem isso, a automação prometida ainda é só dry-run.
+- **ClickUp real** não é mais objetivo de produto. O pendente é reconciliar/exportar o legado e então remover o adapter.
 - **Assets de marca** são placeholders (SVGs genéricos "EG"/"HM") — o produto não está apresentável a um cliente externo como está, mesmo com o motor pronto.
 - CRM mínimo e Brand Book rico foram conscientemente adiados (decisão já registrada em `ROADMAP-MVP.md`) — correto, mas bom lembrar que "CRM" hoje é kanban simples, não deve ser vendido como CRM completo.
 
@@ -75,7 +91,7 @@ Railway lançou **Railway Buckets**: object storage S3-compatible nativo, isolad
 
 **P1 — produto/aderência comercial:**
 8. ADR + implementação de LinkedIn orgânico/Ads (`INT-LI-001`/`002`).
-9. Token + mapeamento real do ClickUp (`P2` do roadmap).
+9. Reconciliar o legado ClickUp com projetos/escopo nativos e remover o adapter após snapshot final.
 10. Assets finais de marca (EG e, com autorização, HM).
 
 **P2 — qualidade/manutenibilidade:**

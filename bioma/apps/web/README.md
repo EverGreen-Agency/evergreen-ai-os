@@ -36,7 +36,9 @@ Administradores EG configuram times, membros já habilitados e distribuição de
 
 Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
-Tarefas ClickUp aparecem com indicação de projeção somente leitura. Edição de tarefa, subtarefas, dependências, recorrência e exclusão só ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A tela de Integrações não mantém toggle em `localStorage` nem promete sincronização bidirecional: ela aciona somente a atualização ClickUp → Bioma configurada no backend.
+Tarefas importadas do ClickUp aparecem apenas como legado somente leitura. Edição, subtarefas, dependências, recorrência e exclusão ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A sincronização ClickUp foi removida das superfícies do produto.
+
+O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, entregas, conclusão e ritmo; Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, sem incluir segredo nas listagens.
 
 A fonte da navegação é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs visuais continuam legíveis como `/clientes/:clientId`, mas os módulos chamam a API canônica por `/workspaces/:workspaceId`; o backend ainda aceita `client_id` como adapter de compatibilidade.
 

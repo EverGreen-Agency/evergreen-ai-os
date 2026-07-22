@@ -1,6 +1,6 @@
 # Bioma MVP v0
 
-Bioma é a plataforma operacional da EverGreen. Este repositório interno começa pelo MVP mínimo: cockpit interno EG, Client Hub, ClickUp Bridge, auth simples, Postgres e ambientes separados.
+Bioma é a plataforma operacional da EverGreen. O MVP ativo reúne cockpit interno EG, Client Hub, motor nativo de projetos/tarefas, contratos e escopo, cofre de acessos, auth, Postgres e adapters externos.
 
 ## Modelo de produto
 
@@ -175,13 +175,15 @@ cd apps/web
 npm run build
 ```
 
-Os smokes de workspace e tarefas criam organizações/workspaces efêmeros próprios; não dependem do cliente HM presente no seed. O ClickUp permanece o system of record da execução: a importação é tenant-scoped e idempotente por identificador externo, e itens importados são projeções locais somente leitura. O Bioma não escreve no ClickUp no MVP.
+Os smokes de workspace, tarefas, projetos e cofre criam organizações/workspaces efêmeros próprios; não dependem do cliente HM presente no seed. O Bioma é o system of record da execução. O importador ClickUp fica temporariamente apenas para reconciliar o legado; itens importados preservam IDs externos e permanecem somente leitura até serem convertidos em registros nativos. Não há sync ClickUp na interface nem escrita externa.
+
+Projetos conectam contrato versionado, itens de escopo, entregas e aceite. A área Acessos substitui planilhas: credenciais são cifradas antes do banco, listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` com Postgres migrado.
 
 Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
 
 ## Comunicação Web/API
 
-O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, aprovações, entregáveis, artefatos, sync de ClickUp e auditoria são comandos explícitos.
+O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, projetos, contratos, escopo, aprovações, cofre, artefatos, adapters e auditoria são comandos explícitos.
 
 GraphQL pode entrar depois como BFF ou camada de consulta se surgirem telas com múltiplas visões altamente customizáveis, overfetching real ou muitos consumidores externos. A decisão atual preserva essa opção porque o frontend não chama `fetch` direto espalhado pela aplicação; ele passa por um cliente HTTP isolado.
 

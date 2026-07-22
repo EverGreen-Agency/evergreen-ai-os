@@ -74,15 +74,20 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | TASK-AUTHZ-001 | DONE | Backend | Extrair repositório de tarefas e aplicar `view`/`manage_work`, BOLA/IDOR e invariantes de assignee/owner/dependencies | AUTHZ-WS-001 | `smoke_tasks.py` com matriz de papéis e cliente A→B |
 | TASK-DOM-001 | DONE | Full-stack | CRUD real de subtarefas/dependências, resposta 204 segura e recorrência idempotente | TASK-AUTHZ-001 | `smoke_tasks.py` + tsc/build |
 | CLIENT-LIFE-001 | DONE | Full-stack | Trocar delete cotidiano por archive e separar purge confirmado com auditoria e limpeza S3 | AUTHZ-WS-001 | `smoke_api.py` |
+| VAULT-001 | DOING | Full-stack | Cofre de acessos por workspace: cifra, depósito do cliente, RBAC, rotação e auditoria | AUTHZ-WS-001 | compile/OpenAPI + tsc/build passaram; `smoke_vault.py` aguarda Postgres local |
+| PROJECT-001 | DOING | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | compile/OpenAPI + tsc/build passaram; `smoke_projects.py` aguarda Postgres local |
+| PROJECT-GH-001 | TODO | Full-stack | Ligar projetos Tech a issues/PRs GitHub sem perder IDs e contexto canônicos | PROJECT-001 | mock adapter + smoke BOLA/idempotência/HITL |
+| AI-METHOD-001 | TODO | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | fixtures + revisão humana + tsc/build |
 
-### Onda 2 — Integrações reais
+### Onda 2 — Integrações reais e migração legada
 
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
 | INT-CU-001 | DONE | Backend/Operação | Importador ClickUp env-only, tenant-scoped, transacional por pasta e idempotente por external ID | DPL-005 | importador compilado + smoke mockado |
 | INT-CU-002 | DONE | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture local; lista real segue bloqueada por credencial |
-| INT-CU-003 | DONE | Produto/Full-stack | Formalizar ClickUp como system of record e projeção local somente leitura, sem falso bidirecional | INT-CU-001 | ADR 0002 + `smoke_tasks.py` + tsc/build |
-| INT-CU-LIVE-001 | BLOCKED | Operação | Validar import com novo token efêmero e mapeamento controlado em staging | DPL-006 | execução ao vivo sem segredo no Git |
+| INT-CU-003 | DONE | Produto/Full-stack | Superseded em 2026-07-22: Bioma passa a ser fonte de verdade; manter somente rastreabilidade do legado | PROJECT-001 | ADR 0002 revisado + UI sem sync |
+| INT-CU-RETIRE-001 | TODO | Dados/Backend | Reconciliar import, gerar snapshot final e remover endpoint/config/adapter ClickUp | PROJECT-001 | relatório sem órfãos + smokes nativos |
+| INT-SF-001 | BLOCKED | Arquitetura/Parcerias | Definir contrato SleekFlow como adapter omnichannel | proposta de parceria + documentação/API oficial | ADR de eventos, auth, LGPD e limites aprovado |
 | INT-G-001 | BLOCKED | Backend/Operação | Validar Google Ads real | DPL-005 | comparação por campanha/data |
 | INT-G-002 | BLOCKED | Backend/Operação | Validar GA4 real | DPL-005 | comparação aquisição/eventos |
 | INT-G-003 | BLOCKED | Backend/Operação | Validar GSC real | DPL-005 | comparação consultas/páginas |

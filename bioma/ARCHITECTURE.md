@@ -14,7 +14,7 @@ services/<dominio>.py      # regra de negócio, permissões, auditoria
 repositories/<dominio>.py  # SQL puro, sempre parametrizado
 ```
 
-Domínios: `auth`, `oauth`, `passwords`, `invites`, `workspaces`, `client_hub`, `tasks`, `performance`,
+Domínios: `auth`, `oauth`, `passwords`, `invites`, `workspaces`, `client_hub`, `projects`, `tasks`, `vault`, `performance`,
 `files`, `kommo` (routers `integrations`/`analytics`), `admin` (= backoffice EG,
 prefixo `/backoffice`). Transversais: `access.py` (papéis, membership,
 feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
@@ -42,7 +42,11 @@ Glossário:
 
 Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
 
-Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): ClickUp e Kommo permanecem motores especializados atrás de adapters; o Bioma possui contexto, autorização, inteligência e experiência, substituindo capacidades externas apenas por evidência de uso e paridade. Para tarefas, ClickUp é o system of record e a sincronização atual é exclusivamente ClickUp → Bioma: registros importados são projeções locais somente leitura, enquanto tarefas nativas do Bioma permanecem locais.
+Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): o Bioma é a fonte de verdade de projetos e execução; ClickUp é apenas fonte legada de migração, sem sincronização exposta na UI. Kommo, GitHub, SleekFlow e providers de Performance entram como adapters substituíveis, tenant-scoped e auditados. Escrita externa com impacto exige idempotência e HITL conforme o risco.
+
+O domínio `projects` materializa `workspace → project → project_contracts → contract_scope_items → deliverables`. Contrato é versionado; entrega pode apontar para item de escopo; conclusão e aceite são sinais distintos. O progresso é calculado a partir das entregas e o ritmo considera atraso/bloqueio. O banco valida coerência de tenant/workspace/organização/projeto/escopo por FKs e triggers.
+
+O domínio `vault` guarda somente ciphertext `enc:v1:`. A listagem devolve metadados, nunca segredos; revelação/cópia exige capability específica, motivo e auditoria. Cliente pode depositar credenciais para o próprio workspace sem obter permissão de revelação. O frontend descarta o segredo revelado após 60 segundos, mas esse TTL de UI não substitui controles de servidor.
 
 O domínio `tasks` segue a trinca completa: o router só traduz HTTP, o service aplica capacidades e invariantes, e `repositories/tasks.py` concentra todo SQL. Leituras exigem `view`; listas e mutações exigem `manage_work`. Assignee, owner e dependencies são resolvidos dentro do mesmo tenant/workspace, ciclos são rejeitados e a recorrência usa uma chave de origem única para ser idempotente.
 
@@ -81,7 +85,7 @@ Mapa de acesso atual (quem vê o quê):
 | Público | `/` (login), `/convite/:token`, `/redefinir/:token`, `/privacidade` | nenhuma |
 | Control Plane EG | `/`, `/clientes` | sessão + `guardAdmin()` quando administrativo |
 | Operação EG | `/operacao`, `/operacao/crm`, `/operacao/financeiro`, `/operacao/metricas` | `guardAdmin()` + ponte exata da organização EG |
-| Workspace cliente | `/clientes/:id`, `/clientes/:id/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
+| Workspace cliente | `/clientes/:id`, `/projetos`, `/tarefas`, `/acessos`, `/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
 | Backoffice EG | `/engenharia`, `/eg-office`, `/eg-ideas`, `/eg-tech`, `/eg-architecture`, `/configuracoes` | `guardAdmin()` + lazy-load |
 
 Regras invioláveis:
