@@ -187,7 +187,7 @@ def main() -> None:
             audit_events = {
                 row["event_type"]
                 for row in conn.execute(
-                    "select event_type from audit_logs where organization_id = %s and event_type like 'vault.%'",
+                    "select event_type from audit_logs where organization_id = %s and event_type like 'vault.%%'",
                     (workspace_a.organization_id,),
                 ).fetchall()
             }

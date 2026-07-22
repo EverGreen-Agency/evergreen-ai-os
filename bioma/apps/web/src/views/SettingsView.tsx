@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X } from "lucide-react";
 import { api, apiUrl } from "../lib/api";
-import { useCurrentUser } from "../hooks/useBiomaApi";
+import { useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
@@ -14,6 +14,9 @@ const IntegrationsTab = lazy(() =>
 const TeamPortfolioManager = lazy(() =>
   import("../components/TeamPortfolioManager").then((module) => ({ default: module.TeamPortfolioManager })),
 );
+const AccessVault = lazy(() =>
+  import("../components/AccessVault").then((module) => ({ default: module.AccessVault })),
+);
 
 export function SettingsView() {
   const { data: user } = useCurrentUser();
@@ -22,7 +25,11 @@ export function SettingsView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
-  const [activeSubTab, setActiveSubTab] = useState<"general" | "teams" | "integrations">("general");
+  const [activeSubTab, setActiveSubTab] = useState<"general" | "teams" | "integrations" | "vault">("general");
+  const { data: workspaces = [] } = useWorkspaces(Boolean(user));
+  const [vaultWorkspaceId, setVaultWorkspaceId] = useState("");
+  const clientWorkspaces = workspaces.filter((workspace) => workspace.kind === "client" && workspace.status === "active");
+  const selectedVaultWorkspace = clientWorkspaces.find((workspace) => workspace.id === vaultWorkspaceId) ?? clientWorkspaces[0] ?? null;
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;
@@ -461,6 +468,12 @@ export function SettingsView() {
             >
               Integrações
             </button>
+            <button
+              onClick={() => setActiveSubTab("vault")}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "vault" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "vault" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "vault" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
+            >
+              Acessos
+            </button>
           </div>
 
           {activeSubTab === "general" && (
@@ -501,6 +514,30 @@ export function SettingsView() {
             <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
               <IntegrationsTab scope="environment" />
             </Suspense>
+          )}
+
+          {activeSubTab === "vault" && (
+            <section className="workspace-module-panel">
+              <div className="surface" style={{ padding: 16, marginBottom: 16 }}>
+                <label style={{ display: "grid", gap: 6, maxWidth: 420 }}>
+                  Empresa / workspace do cliente
+                  <select
+                    value={selectedVaultWorkspace?.id ?? ""}
+                    onChange={(event) => setVaultWorkspaceId(event.target.value)}
+                    disabled={clientWorkspaces.length === 0}
+                  >
+                    {clientWorkspaces.length === 0 && <option value="">Nenhum workspace de cliente disponível</option>}
+                    {clientWorkspaces.map((workspace) => <option value={workspace.id} key={workspace.id}>{workspace.organization_name}</option>)}
+                  </select>
+                </label>
+                <p className="panel-footnote" style={{ marginBottom: 0 }}>Gerencie os acessos por empresa sem expor segredos nas listagens.</p>
+              </div>
+              {selectedVaultWorkspace ? (
+                <Suspense fallback={<div className="notice">Carregando cofre...</div>}>
+                  <AccessVault workspaceId={selectedVaultWorkspace.id} accessRole={selectedVaultWorkspace.access_role} />
+                </Suspense>
+              ) : <div className="notice">Crie ou atribua um workspace de cliente para acessar o cofre.</div>}
+            </section>
           )}
         </div>
       )}
