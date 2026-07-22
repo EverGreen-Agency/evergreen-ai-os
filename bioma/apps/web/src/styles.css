@@ -59,6 +59,30 @@
   text-rendering: optimizeLegibility;
 }
 
+.vault-layout { display: grid; gap: 18px; }
+.vault-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.vault-notice { display: flex; align-items: center; gap: 10px; }
+.vault-form { padding: 20px; display: grid; gap: 16px; }
+.vault-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.vault-card { padding: 18px; display: grid; gap: 15px; }
+.vault-card header, .vault-reveal header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.vault-card header span, .vault-reveal header span { color: var(--text-muted); font-size: 12px; }
+.vault-card h3, .vault-reveal h3 { margin: 3px 0 0; }
+.vault-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 12px; margin: 0; font-size: 13px; }
+.vault-card dt { color: var(--text-muted); }
+.vault-card dd { margin: 0; overflow-wrap: anywhere; }
+.vault-card select { max-width: 150px; }
+.vault-reveal { width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; padding: 22px; display: grid; gap: 18px; }
+.vault-reveal form { display: grid; gap: 14px; }
+.vault-reveal label { display: grid; gap: 7px; }
+.vault-secret-list { display: grid; gap: 12px; }
+.vault-secret-list > div { display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; align-items: center; gap: 10px; }
+.vault-secret-list code { white-space: pre-wrap; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 8px; background: var(--surface-muted); }
+
+@media (max-width: 680px) {
+  .vault-secret-list > div { grid-template-columns: 1fr; }
+}
+
 * {
   box-sizing: border-box;
 }

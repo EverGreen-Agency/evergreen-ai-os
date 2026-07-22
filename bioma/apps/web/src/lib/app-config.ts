@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, BriefcaseBusiness, FileText, FolderOpen, GitBranch, LayoutDashboard, Link2, Sparkles, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Sparkles, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -31,7 +31,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
 ];
 
 export const clientHubNavItems: Array<{
-  id: "hub" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "integrations";
+  id: "hub" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
   label: string;
   path: string;
   module: ClientModule;
@@ -44,6 +44,7 @@ export const clientHubNavItems: Array<{
   { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
   { id: "files", label: "Documentos", path: "documentos", module: "files", icon: FolderOpen },
   { id: "tasks", label: "Tarefas", path: "tarefas", module: "hub", icon: LayoutDashboard },
+  { id: "vault", label: "Acessos", path: "acessos", module: "hub", icon: KeyRound },
   { id: "integrations", label: "Integrações", path: "integracoes", module: "integrations", icon: Link2 },
 ];
 

@@ -15,13 +15,13 @@ CLIENT_MODULES = ("hub", "content", "files", "commercial", "analytics", "integra
 DEFAULT_CLIENT_MODULES = ("hub", "content", "files")
 
 WORKSPACE_CAPABILITIES = {
-    "platform_admin": {"view", "manage_work", "approve", "manage_config", "generate_content"},
-    "tenant_admin": {"view", "manage_work", "approve", "manage_config", "generate_content"},
-    "workspace_manager": {"view", "manage_work", "approve", "manage_config", "generate_content"},
-    "operator": {"view", "manage_work", "generate_content"},
+    "platform_admin": {"view", "manage_work", "approve", "manage_config", "generate_content", "submit_secrets", "manage_secrets", "reveal_secrets"},
+    "tenant_admin": {"view", "manage_work", "approve", "manage_config", "generate_content", "submit_secrets", "manage_secrets", "reveal_secrets"},
+    "workspace_manager": {"view", "manage_work", "approve", "manage_config", "generate_content", "submit_secrets", "manage_secrets", "reveal_secrets"},
+    "operator": {"view", "manage_work", "generate_content", "submit_secrets", "manage_secrets"},
     "approver": {"view", "approve"},
     "viewer": {"view"},
-    "client_user": {"view", "approve", "generate_content"},
+    "client_user": {"view", "approve", "generate_content", "submit_secrets"},
 }
 
 MODULE_LABELS = {

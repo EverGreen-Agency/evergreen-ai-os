@@ -18,6 +18,7 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const FilesPanel = lazy(() => import("../components/FilesPanel").then((module) => ({ default: module.FilesPanel })));
 const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
 const AiContentStudio = lazy(() => import("../components/AiContentStudio").then((module) => ({ default: module.AiContentStudio })));
+const AccessVault = lazy(() => import("../components/AccessVault").then((module) => ({ default: module.AccessVault })));
 
 export type ClientWorkspaceOutletContext = {
   client: ClientSummary;
@@ -159,6 +160,19 @@ export function ClientFilesRoute() {
     <ClientModuleBoundary module="files">
       <div className="workspace-module-panel">
         <Suspense fallback={<ModuleLoading />}><FilesPanel clientId={workspace.workspaceId} isEgAdmin={isEgAdmin} /></Suspense>
+      </div>
+    </ClientModuleBoundary>
+  );
+}
+
+export function ClientVaultRoute() {
+  const { workspace } = useClientWorkspace();
+  return (
+    <ClientModuleBoundary module="hub">
+      <div className="workspace-module-panel">
+        <Suspense fallback={<ModuleLoading />}>
+          <AccessVault workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
+        </Suspense>
       </div>
     </ClientModuleBoundary>
   );

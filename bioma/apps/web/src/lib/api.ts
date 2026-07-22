@@ -630,6 +630,44 @@ export type TaskSubtask = {
   updated_at: string;
 };
 
+export type VaultStatus = "active" | "expired" | "rotating" | "compromised" | "revoked";
+export type VaultVisibility = "internal" | "client";
+export type VaultSecretField = "username" | "password" | "token" | "recovery_codes" | "notes";
+
+export type VaultSecrets = Partial<Record<VaultSecretField, string>>;
+
+export type VaultCredentialSummary = {
+  id: string;
+  workspace_id: string;
+  platform: string;
+  label: string;
+  account_hint: string | null;
+  visibility: VaultVisibility;
+  status: VaultStatus;
+  expires_at: string | null;
+  owner_user_id: string | null;
+  owner_name: string | null;
+  version: number;
+  last_rotated_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VaultCredentialPayload = {
+  platform: string;
+  label: string;
+  account_hint?: string | null;
+  visibility: VaultVisibility;
+  expires_at?: string | null;
+  secrets: VaultSecrets;
+};
+
+export type VaultRevealResponse = {
+  credential_id: string;
+  secrets: VaultSecrets;
+  expires_in_seconds: number;
+};
+
 export type TaskSubtaskInput = {
   id?: string;
   title: string;
@@ -794,6 +832,33 @@ export const api = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
+  vaultCredentials: (workspaceId: string) =>
+    request<VaultCredentialSummary[]>(`/workspaces/${workspaceId}/vault`),
+  createVaultCredential: (workspaceId: string, payload: VaultCredentialPayload) =>
+    request<VaultCredentialSummary>(`/workspaces/${workspaceId}/vault`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateVaultCredential: (workspaceId: string, credentialId: string, payload: Partial<VaultCredentialPayload>) =>
+    request<VaultCredentialSummary>(`/workspaces/${workspaceId}/vault/${credentialId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  setVaultCredentialStatus: (workspaceId: string, credentialId: string, status: VaultStatus) =>
+    request<VaultCredentialSummary>(`/workspaces/${workspaceId}/vault/${credentialId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+  revealVaultCredential: (workspaceId: string, credentialId: string, reason: string) =>
+    request<VaultRevealResponse>(`/workspaces/${workspaceId}/vault/${credentialId}/reveal`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  copyVaultSecret: (workspaceId: string, credentialId: string, field: VaultSecretField, reason: string) =>
+    request<{ credential_id: string; field: VaultSecretField; value: string; expires_in_seconds: number }>(
+      `/workspaces/${workspaceId}/vault/${credentialId}/copy`,
+      { method: "POST", body: JSON.stringify({ field, reason }) },
+    ),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>
