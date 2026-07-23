@@ -24,6 +24,7 @@ Implementações locais desta rodada:
 - motor nativo de projetos (`migration 0022`): projeto, contrato versionado, item de escopo, vínculo de entrega, conclusão, aceite separado e indicadores de progresso/ritmo;
 - área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
 - acompanhamento Tech (`migration 0023`): fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release filtradas por visibilidade do cliente;
+- GitHub Tech em leitura (`migration 0028`): mapping auditado por projeto, autorização de workspace e projeção de issues, PRs e commits; escrita externa continua inexistente;
 - aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
 - cofre ampliado com os campos mínimos da operação (plataforma, conta, usuário, e-mail, senha, outro acesso e link), mantendo valores de acesso cifrados;
 - smoke isolado para cofre e projetos, sem dependência da HM.

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Bug, FileText, FlaskConical, ListChecks, Rocket, Send } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Bug, FileText, FlaskConical, Github, GitPullRequest, ListChecks, Rocket, Send } from "lucide-react";
 
 import { api, type ProjectDetail, type ProjectDocument, type ProjectPhaseStatus, type WorkspaceSummary } from "../lib/api";
 
@@ -36,6 +36,20 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
   const [updateKind, setUpdateKind] = useState<"progress" | "blocker" | "testing" | "release" | "note">("progress");
   const [updateSummary, setUpdateSummary] = useState("");
   const [updatePhaseId, setUpdatePhaseId] = useState("");
+  const [githubRepository, setGithubRepository] = useState("");
+  const [githubBranch, setGithubBranch] = useState("main");
+
+  const githubConnection = useQuery({
+    queryKey: ["github-connection", project.id],
+    queryFn: () => api.githubConnection(project.id),
+    retry: false,
+  });
+  const githubActivity = useQuery({
+    queryKey: ["github-activity", project.id],
+    queryFn: () => api.githubProjectActivity(project.id),
+    enabled: githubConnection.isSuccess && githubConnection.data.status === "active",
+    retry: false,
+  });
 
   const createPhase = useMutation({
     mutationFn: () => api.createProjectPhase(project.id, {
@@ -58,15 +72,44 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
     }),
     onSuccess: async (next) => { setUpdateSummary(""); await onChanged(next); },
   });
+  const configureGitHub = useMutation({
+    mutationFn: () => api.configureGitHubConnection(project.id, {
+      repository: githubRepository.trim(), default_branch: githubBranch.trim(), status: "active",
+    }),
+    onSuccess: async () => {
+      setGithubRepository("");
+      await githubConnection.refetch();
+    },
+  });
 
   function submitPhase(event: FormEvent) { event.preventDefault(); createPhase.mutate(); }
   function submitDocument(event: FormEvent) { event.preventDefault(); createDocument.mutate(); }
   function submitUpdate(event: FormEvent) { event.preventDefault(); createUpdate.mutate(); }
+  function submitGitHub(event: FormEvent) { event.preventDefault(); configureGitHub.mutate(); }
 
   return (
     <section className="project-section tech-tracking">
       <h3>Roadmap técnico</h3>
       <p className="panel-footnote">Fases, validações e atualizações de engenharia explicam o andamento sem transformar tempo de debugging em “avanço” artificial.</p>
+
+      <div className="tech-documents">
+        <h4><Github size={15} /> GitHub do projeto</h4>
+        {githubConnection.data && <p className="panel-footnote">Repositório canônico: <a href={`https://github.com/${githubConnection.data.repository}`} target="_blank" rel="noreferrer">{githubConnection.data.repository}</a> · branch {githubConnection.data.default_branch}</p>}
+        {!githubConnection.data && <p className="panel-footnote">Nenhum repositório ligado. O Bioma consulta atividade em leitura e não cria issues ou PRs automaticamente.</p>}
+        {canManage && <form className="project-inline-form tech-form" onSubmit={submitGitHub}>
+          <input required pattern="[^/]+/[^/]+" value={githubRepository} onChange={(event) => setGithubRepository(event.target.value)} placeholder="owner/repository" />
+          <input required value={githubBranch} onChange={(event) => setGithubBranch(event.target.value)} placeholder="main" />
+          <button className="mini-button" type="submit" disabled={configureGitHub.isPending}>Conectar repositório</button>
+        </form>}
+        {configureGitHub.error && <p className="form-error">{configureGitHub.error.message}</p>}
+        {githubActivity.error && githubConnection.data && <p className="panel-footnote">Conexão salva. A leitura ficará disponível quando o token GitHub for configurado no ambiente.</p>}
+        {githubActivity.data && <div className="tech-phase-list">
+          <article className="tech-phase development"><div><strong>{githubActivity.data.issues.length} issues</strong><span>Leitura</span></div>{githubActivity.data.issues.slice(0, 3).map((issue) => <a key={issue.number} href={issue.url} target="_blank" rel="noreferrer">#{issue.number} {issue.title}</a>)}</article>
+          <article className="tech-phase internal_testing"><div><strong>{githubActivity.data.pull_requests.length} pull requests</strong><span><GitPullRequest size={13} /> Revisões</span></div>{githubActivity.data.pull_requests.slice(0, 3).map((pull) => <a key={pull.number} href={pull.url} target="_blank" rel="noreferrer">#{pull.number} {pull.title}</a>)}</article>
+          <article className="tech-phase released"><div><strong>{githubActivity.data.commits.length} commits recentes</strong><span>Branch</span></div>{githubActivity.data.commits.slice(0, 3).map((commit) => <a key={commit.sha} href={commit.url} target="_blank" rel="noreferrer">{commit.sha.slice(0, 7)} {commit.message}</a>)}</article>
+        </div>}
+      </div>
+
       <div className="tech-phase-list">
         {project.phases.map((phase) => (
           <article className={`tech-phase ${phase.status}`} key={phase.id}>

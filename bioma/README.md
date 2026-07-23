@@ -179,6 +179,8 @@ Os smokes de workspace, tarefas, projetos e cofre criam organizações/workspace
 
 Projetos conectam contrato versionado, itens de escopo, fases, entregas e aceite. Em projetos Tech, proposta e especificação podem ser vinculadas por URL e o cliente acompanha atualizações de progresso, bloqueio, testes e release — inclusive quando um dia foi gasto somente depurando um problema. A área Acessos substitui planilhas: conta/plataforma, usuário, e-mail, senha, outra forma de acesso e link. E-mail, usuário, senha e outro método são cifrados antes do banco; listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` somente contra banco de teste isolado e migrado.
 
+Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes em leitura usando `GITHUB_API_TOKEN`; nenhuma escrita externa é executada por essa integração.
+
 Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
 
 ## Comunicação Web/API

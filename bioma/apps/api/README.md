@@ -73,6 +73,8 @@ O Bioma é o system of record da execução. O importador legado classifica list
 
 `smoke_clickup.py` valida o cliente ClickUp com `httpx.MockTransport`, sem chamar a API real.
 
+`smoke_github_read.py` valida, também sem rede, a projeção de issues, PRs e commits. O mapping projeto Tech → `owner/repository` é tenant-scoped; `view` consulta e `manage_work` configura. A leitura real exige `GITHUB_API_TOKEN`.
+
 ## Encerramento do ClickUp
 
 Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.py` permanece temporariamente como ferramenta de migração env-only, tenant-scoped, transacional por pasta e idempotente por `external_id`. Depois do snapshot e da reconciliação com projetos/escopo nativos, endpoint, configuração, adapter e colunas legadas devem ser removidos em etapas verificáveis.

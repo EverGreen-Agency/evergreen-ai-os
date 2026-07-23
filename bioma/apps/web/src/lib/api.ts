@@ -577,9 +577,29 @@ export type PerformanceSyncRun = {
 
 export type IntegrationsStatus = {
   clickup_token_configured: boolean;
+  github_token_configured: boolean;
   storage_configured: boolean;
   google_oauth_configured: boolean;
   app_env: string;
+};
+
+export type GitHubConnection = {
+  id: string;
+  project_id: string;
+  repository: string;
+  default_branch: string;
+  status: "active" | "paused";
+  updated_at: string;
+};
+
+export type GitHubProjectActivity = {
+  project_id: string;
+  repository: string;
+  default_branch: string;
+  fetched_at: string;
+  issues: Array<{ number: number; title: string; state: string; url: string; labels: string[]; updated_at: string }>;
+  pull_requests: Array<{ number: number; title: string; state: string; draft: boolean; url: string; source_branch: string; target_branch: string; updated_at: string }>;
+  commits: Array<{ sha: string; message: string; url: string; author_name: string | null; authored_at: string | null }>;
 };
 
 export type ArtifactPayload = {
@@ -1199,6 +1219,11 @@ export const api = {
       body: JSON.stringify({ provider }),
     }),
   integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
+  githubConnection: (projectId: string) => request<GitHubConnection>(`/integrations/github/projects/${projectId}`),
+  configureGitHubConnection: (projectId: string, payload: { repository: string; default_branch: string; status?: "active" | "paused" }) =>
+    request<GitHubConnection>(`/integrations/github/projects/${projectId}`, { method: "PUT", body: JSON.stringify(payload) }),
+  githubProjectActivity: (projectId: string, limit = 20) =>
+    request<GitHubProjectActivity>(`/integrations/github/projects/${projectId}/activity?limit=${limit}`),
   
   getKommoConfig: (organizationId: string) => 
     request<KommoConfigResponse>(`/integrations/${organizationId}/kommo`),

@@ -78,7 +78,8 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | VAULT-002 | DONE | Full-stack | Campos equivalentes à planilha de acessos: plataforma, conta, usuário, e-mail, senha, outro método e link | VAULT-001 | migration 0024 + compile/OpenAPI + tsc; smoke mutável passa a exigir banco isolado |
 | PROJECT-001 | DONE | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | migrations 0022/0023 + `smoke_projects.py` + compile/OpenAPI + tsc/build |
 | PROJECT-TECH-001 | DONE | Full-stack | Fases ordenadas, entregas por fase, links de proposta/especificação e feed de progresso/bloqueio/teste/release para projetos Tech | PROJECT-001 | `smoke_projects.py` cobre visibilidade do cliente, conteúdo interno e fase cruzada |
-| PROJECT-GH-001 | TODO | Full-stack | Ligar projetos Tech a issues/PRs GitHub sem perder IDs e contexto canônicos | PROJECT-001 | mock adapter + smoke BOLA/idempotência/HITL |
+| PROJECT-GH-001 | DONE | Full-stack | Ligar projetos Tech em leitura a repositório, issues, PRs e commits sem perder o Bioma como fonte canônica | PROJECT-001 | migration 0028 + adapter mockado sem rede + compile/OpenAPI + tsc/build |
+| PROJECT-GH-002 | TODO | Full-stack | Escrita GitHub idempotente e auditada com confirmação HITL | PROJECT-GH-001 | teste de replay, BOLA e confirmação explícita |
 | AI-METHOD-001 | TODO | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | fixtures + revisão humana + tsc/build |
 
 ### Onda 2 — Integrações reais e migração legada

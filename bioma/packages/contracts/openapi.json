@@ -2475,6 +2475,276 @@
         "title": "Ga4AcquisitionSummary",
         "type": "object"
       },
+      "GitHubCommitSummary": {
+        "properties": {
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "authored_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authored At"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "sha": {
+            "title": "Sha",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sha",
+          "message",
+          "url"
+        ],
+        "title": "GitHubCommitSummary",
+        "type": "object"
+      },
+      "GitHubConnectionInput": {
+        "properties": {
+          "default_branch": {
+            "default": "main",
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Default Branch",
+            "type": "string"
+          },
+          "repository": {
+            "examples": [
+              "evergreen-ai-os/bioma"
+            ],
+            "maxLength": 240,
+            "minLength": 3,
+            "title": "Repository",
+            "type": "string"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository"
+        ],
+        "title": "GitHubConnectionInput",
+        "type": "object"
+      },
+      "GitHubConnectionSummary": {
+        "properties": {
+          "default_branch": {
+            "title": "Default Branch",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "repository",
+          "default_branch",
+          "status",
+          "updated_at"
+        ],
+        "title": "GitHubConnectionSummary",
+        "type": "object"
+      },
+      "GitHubIssueSummary": {
+        "properties": {
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "title",
+          "state",
+          "url",
+          "labels",
+          "updated_at"
+        ],
+        "title": "GitHubIssueSummary",
+        "type": "object"
+      },
+      "GitHubProjectActivity": {
+        "properties": {
+          "commits": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubCommitSummary"
+            },
+            "title": "Commits",
+            "type": "array"
+          },
+          "default_branch": {
+            "title": "Default Branch",
+            "type": "string"
+          },
+          "fetched_at": {
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubIssueSummary"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "pull_requests": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubPullRequestSummary"
+            },
+            "title": "Pull Requests",
+            "type": "array"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "repository",
+          "default_branch",
+          "fetched_at",
+          "issues",
+          "pull_requests",
+          "commits"
+        ],
+        "title": "GitHubProjectActivity",
+        "type": "object"
+      },
+      "GitHubPullRequestSummary": {
+        "properties": {
+          "draft": {
+            "title": "Draft",
+            "type": "boolean"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "source_branch": {
+            "title": "Source Branch",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_branch": {
+            "title": "Target Branch",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "title",
+          "state",
+          "draft",
+          "url",
+          "source_branch",
+          "target_branch",
+          "updated_at"
+        ],
+        "title": "GitHubPullRequestSummary",
+        "type": "object"
+      },
       "GlobalDeliverableSummary": {
         "properties": {
           "assignee_emails": {
@@ -2767,6 +3037,10 @@
             "title": "Clickup Token Configured",
             "type": "boolean"
           },
+          "github_token_configured": {
+            "title": "Github Token Configured",
+            "type": "boolean"
+          },
           "google_oauth_configured": {
             "title": "Google Oauth Configured",
             "type": "boolean"
@@ -2778,6 +3052,7 @@
         },
         "required": [
           "clickup_token_configured",
+          "github_token_configured",
           "storage_configured",
           "google_oauth_configured",
           "app_env"
@@ -12422,6 +12697,155 @@
         "summary": "Readiness",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/integrations/github/projects/{project_id}": {
+      "get": {
+        "operationId": "get_github_connection_integrations_github_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubConnectionSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Github Connection",
+        "tags": [
+          "integrations"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_github_connection_integrations_github_projects__project_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubConnectionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubConnectionSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Github Connection",
+        "tags": [
+          "integrations"
+        ]
+      }
+    },
+    "/integrations/github/projects/{project_id}/activity": {
+      "get": {
+        "operationId": "get_github_activity_integrations_github_projects__project_id__activity_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubProjectActivity"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Github Activity",
+        "tags": [
+          "integrations"
         ]
       }
     },

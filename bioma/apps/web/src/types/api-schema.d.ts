@@ -1112,6 +1112,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/github/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Github Connection */
+        get: operations["get_github_connection_integrations_github_projects__project_id__get"];
+        /** Upsert Github Connection */
+        put: operations["upsert_github_connection_integrations_github_projects__project_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/github/projects/{project_id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Github Activity */
+        get: operations["get_github_activity_integrations_github_projects__project_id__activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/status": {
         parameters: {
             query?: never;
@@ -3023,6 +3058,128 @@ export interface components {
             /** Total Users */
             total_users: number;
         };
+        /** GitHubCommitSummary */
+        GitHubCommitSummary: {
+            /** Author Name */
+            author_name?: string | null;
+            /** Authored At */
+            authored_at?: string | null;
+            /** Message */
+            message: string;
+            /** Sha */
+            sha: string;
+            /** Url */
+            url: string;
+        };
+        /** GitHubConnectionInput */
+        GitHubConnectionInput: {
+            /**
+             * Default Branch
+             * @default main
+             */
+            default_branch: string;
+            /**
+             * Repository
+             * @example evergreen-ai-os/bioma
+             */
+            repository: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "paused";
+        };
+        /** GitHubConnectionSummary */
+        GitHubConnectionSummary: {
+            /** Default Branch */
+            default_branch: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Repository */
+            repository: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "paused";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** GitHubIssueSummary */
+        GitHubIssueSummary: {
+            /** Labels */
+            labels: string[];
+            /** Number */
+            number: number;
+            /** State */
+            state: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
+        /** GitHubProjectActivity */
+        GitHubProjectActivity: {
+            /** Commits */
+            commits: components["schemas"]["GitHubCommitSummary"][];
+            /** Default Branch */
+            default_branch: string;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** Issues */
+            issues: components["schemas"]["GitHubIssueSummary"][];
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Pull Requests */
+            pull_requests: components["schemas"]["GitHubPullRequestSummary"][];
+            /** Repository */
+            repository: string;
+        };
+        /** GitHubPullRequestSummary */
+        GitHubPullRequestSummary: {
+            /** Draft */
+            draft: boolean;
+            /** Number */
+            number: number;
+            /** Source Branch */
+            source_branch: string;
+            /** State */
+            state: string;
+            /** Target Branch */
+            target_branch: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
         /** GlobalDeliverableSummary */
         GlobalDeliverableSummary: {
             /**
@@ -3150,6 +3307,8 @@ export interface components {
             app_env: string;
             /** Clickup Token Configured */
             clickup_token_configured: boolean;
+            /** Github Token Configured */
+            github_token_configured: boolean;
             /** Google Oauth Configured */
             google_oauth_configured: boolean;
             /** Storage Configured */
@@ -7830,6 +7989,105 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    get_github_connection_integrations_github_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubConnectionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_github_connection_integrations_github_projects__project_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubConnectionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubConnectionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_github_activity_integrations_github_projects__project_id__activity_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubProjectActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

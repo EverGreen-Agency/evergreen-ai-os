@@ -148,7 +148,7 @@ As decisões sobre ClickUp, calendário e rigidez dos fluxos acima foram superse
 - **ClickUp:** cancelar a dependência paga após snapshot/reconciliação; adapter permanece somente durante a migração controlada.
 - **Contratos/escopo:** primeira classe por projeto, com vigência, versão, quantidade/cadência e aceite separados da conclusão.
 - **Acompanhamento Tech:** fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release. Um dia de depuração sem entrega é publicado como atualização honesta, não como avanço fictício.
-- **GitHub:** ainda não cria nem altera issues/PRs. Quando o adapter entrar, escrita externa exigirá mapeamento explícito de repositório, idempotência, auditoria e confirmação humana (HITL).
+- **GitHub:** projetos Tech podem mapear `owner/repository` e consultar issues, PRs e commits em modo leitura. O Bioma ainda não cria nem altera itens externos; escrita exigirá idempotência, auditoria e confirmação humana (HITL).
 - **Cofre de acessos:** substituir planilhas; segredos cifrados, listagem sem valores, revelação auditada e RBAC.
 - **SleekFlow:** descoberta de parceria; possível adapter omnichannel, sem compromisso de implementação antes do contrato oficial de API/dados.
 - **Kommo/CRM:** manter adapter onde fizer sentido e evoluir CRM nativo pelo uso real.
@@ -223,7 +223,8 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Cobrir o formato mínimo operacional de acessos: plataforma, conta, usuário, e-mail, senha, outro método e link, sem segredos em listagens.
 - [x] Aplicar migrations 0021/0022/0023 e executar `smoke_vault.py`/`smoke_projects.py` em Postgres local.
 - [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
-- [ ] Integrar projetos Tech ao GitHub (issues/PRs + links bidirecionais auditados, com confirmação para criação externa).
+- [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
+- [ ] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa.
 - [ ] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente.
 
 ### P1.5 - Port do BIAds / Performance

@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     clickup_api_token: str | None = None
     clickup_api_base_url: str = "https://api.clickup.com/api/v2"
     clickup_task_page_limit: int = 3
+    github_api_token: str | None = None
+    github_api_base_url: str = "https://api.github.com"
     storage_s3_bucket: str | None = None
     storage_s3_region: str = "auto"
     storage_s3_endpoint_url: str | None = None

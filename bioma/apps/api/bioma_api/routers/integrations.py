@@ -6,13 +6,15 @@ credenciais. EG admin only: alimenta a aba Integrações das Configurações.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from bioma_api.access import require_platform_admin
 from bioma_api.auth import current_user_from_request
 from bioma_api.config import get_settings
 from bioma_api.schemas.auth import CurrentUserResponse
+from bioma_api.schemas.github import GitHubConnectionInput, GitHubConnectionSummary, GitHubProjectActivity
+from bioma_api.services import github as github_service
 from bioma_api.services import kommo as kommo_service
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
@@ -20,6 +22,7 @@ router = APIRouter(prefix="/integrations", tags=["integrations"])
 
 class IntegrationsStatusResponse(BaseModel):
     clickup_token_configured: bool
+    github_token_configured: bool
     storage_configured: bool
     google_oauth_configured: bool
     app_env: str
@@ -31,6 +34,7 @@ def get_status(user: CurrentUserResponse = Depends(current_user_from_request)) -
     settings = get_settings()
     return IntegrationsStatusResponse(
         clickup_token_configured=bool(settings.clickup_api_token),
+        github_token_configured=bool(settings.github_api_token),
         storage_configured=settings.storage_configured,
         google_oauth_configured=settings.google_oauth_configured,
         app_env=settings.app_env,
@@ -72,3 +76,29 @@ def setup_kommo_config(
         payload.subdomain,
     )
     return {"status": "ok"}
+
+
+@router.get("/github/projects/{project_id}", response_model=GitHubConnectionSummary)
+def get_github_connection(
+    project_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> GitHubConnectionSummary:
+    return github_service.get_connection(project_id, user)
+
+
+@router.put("/github/projects/{project_id}", response_model=GitHubConnectionSummary)
+def upsert_github_connection(
+    project_id: UUID,
+    payload: GitHubConnectionInput,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> GitHubConnectionSummary:
+    return github_service.upsert_connection(project_id, payload, user)
+
+
+@router.get("/github/projects/{project_id}/activity", response_model=GitHubProjectActivity)
+def get_github_activity(
+    project_id: UUID,
+    limit: int = Query(default=20, ge=1, le=100),
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> GitHubProjectActivity:
+    return github_service.get_activity(project_id, user, limit)
