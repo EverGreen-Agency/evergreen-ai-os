@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Sparkles, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Sparkles, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -49,9 +49,24 @@ export const clientHubNavItems: Array<{
   { id: "integrations", label: "Integrações", path: "integracoes", module: "integrations", icon: Link2 },
 ];
 
-export const agencyWorkspaceNavItems = clientHubNavItems
-  .filter((item) => ["hub", "crm", "finance", "analytics"].includes(item.id))
-  .map((item) => item.id === "analytics" ? { ...item, path: "metricas" } : item);
+export const agencyWorkspaceNavItems: Array<{
+  id: string;
+  label: string;
+  path: string;
+  module: ClientModule;
+  icon: LucideIcon;
+}> = [
+  ...clientHubNavItems
+    .filter((item) => ["hub", "crm", "finance", "analytics"].includes(item.id))
+    .map((item) => item.id === "analytics" ? { ...item, path: "metricas" } : item),
+  {
+    id: "ai-operations",
+    label: "Operações IA",
+    path: "ia",
+    module: "hub",
+    icon: Bot,
+  },
+];
 
 // Feature-gating por organização (decisão 2026-07-14): cada view exige um
 // módulo habilitado; EG admin enxerga tudo, client_user só o que a org tem.

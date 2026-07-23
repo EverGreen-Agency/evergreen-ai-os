@@ -583,6 +583,145 @@ export type IntegrationsStatus = {
   app_env: string;
 };
 
+export type AiQuotaSnapshot = {
+  id: string;
+  total_units: string | null;
+  used_units: string | null;
+  remaining_units: string | null;
+  unit: string;
+  source: "api" | "manual" | "configured" | "unavailable";
+  period_start: string | null;
+  period_end: string | null;
+  measured_at: string;
+  notes: string | null;
+};
+
+export type AiSubscription = {
+  id: string;
+  provider: string;
+  product_name: string;
+  billing_mode: "subscription" | "api" | "hybrid";
+  billing_cycle: "monthly" | "annual" | "custom";
+  billing_cycle_months: number;
+  amount_cents: number;
+  monthly_equivalent_cents: number;
+  currency: string;
+  seats: number;
+  status: "active" | "paused" | "cancelled";
+  renews_at: string | null;
+  owner_label: string | null;
+  notes: string | null;
+  latest_quota: AiQuotaSnapshot | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiSubscriptionPayload = {
+  provider: string;
+  product_name: string;
+  billing_mode?: AiSubscription["billing_mode"];
+  billing_cycle?: AiSubscription["billing_cycle"];
+  billing_cycle_months?: number;
+  amount_cents?: number;
+  currency?: string;
+  seats?: number;
+  status?: AiSubscription["status"];
+  renews_at?: string | null;
+  owner_label?: string | null;
+  notes?: string | null;
+};
+
+export type AiQuotaPayload = {
+  total_units: string | null;
+  used_units: string | null;
+  unit: string;
+  source: AiQuotaSnapshot["source"];
+  period_start?: string | null;
+  period_end?: string | null;
+  notes?: string | null;
+};
+
+export type AiFinOpsDashboard = {
+  subscriptions: AiSubscription[];
+  totals_by_currency: Array<{
+    currency: string;
+    committed_monthly_cents: number;
+    measured_usage_cents: number;
+  }>;
+  usage_current_month: Array<{
+    provider: string;
+    model: string | null;
+    source: string;
+    events: number;
+    input_units: number;
+    output_units: number;
+    cached_units: number;
+    known_cost_cents: number;
+    unknown_cost_events: number;
+    currency: string;
+  }>;
+  generated_at: string;
+};
+
+export type AiWorkflowStepDefinition = {
+  key: string;
+  name: string;
+  description: string;
+  interactive: boolean;
+  capability: string | null;
+};
+
+export type AiWorkflowTemplate = {
+  slug: string;
+  name: string;
+  version: number;
+  description: string;
+  source_ref: string;
+  input_schema: Record<string, unknown>;
+  steps: AiWorkflowStepDefinition[];
+};
+
+export type AiWorkflowDefinition = AiWorkflowTemplate & {
+  id: string;
+  status: "draft" | "active" | "retired";
+  created_at: string;
+};
+
+export type AiWorkflowRun = {
+  id: string;
+  definition_id: string;
+  definition_slug: string;
+  definition_name: string;
+  definition_version: number;
+  workspace_id: string | null;
+  status: "pending_approval" | "ready" | "running" | "completed" | "failed" | "cancelled";
+  idempotency_key: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  current_step_key: string | null;
+  estimated_cost_cents: number | null;
+  actual_cost_cents: number;
+  currency: string;
+  approved_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  steps: Array<{
+    id: string;
+    step_key: string;
+    position: number;
+    name: string;
+    interactive: boolean;
+    status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "skipped";
+    provider: string | null;
+    model: string | null;
+    output: Record<string, unknown> | null;
+    cost_cents: number | null;
+    started_at: string | null;
+    finished_at: string | null;
+  }>;
+};
+
 export type GitHubConnection = {
   id: string;
   project_id: string;
@@ -1158,6 +1297,48 @@ export const api = {
   deleteFinancialRecord: (clientId: string, recordId: string) =>
     request<FinancialRecordSummary[]>(`/workspaces/${clientId}/finance/${recordId}`, {
       method: "DELETE",
+    }),
+  aiFinOps: () => request<AiFinOpsDashboard>("/backoffice/ai-operations/finops"),
+  createAiSubscription: (payload: AiSubscriptionPayload) =>
+    request<AiFinOpsDashboard>("/backoffice/ai-operations/subscriptions", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateAiSubscription: (subscriptionId: string, payload: Partial<AiSubscriptionPayload>) =>
+    request<AiFinOpsDashboard>(`/backoffice/ai-operations/subscriptions/${subscriptionId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  recordAiQuota: (subscriptionId: string, payload: AiQuotaPayload) =>
+    request<AiFinOpsDashboard>(`/backoffice/ai-operations/subscriptions/${subscriptionId}/quota`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  aiWorkflowTemplates: () =>
+    request<AiWorkflowTemplate[]>("/backoffice/ai-operations/workflow-templates"),
+  aiWorkflowDefinitions: () =>
+    request<AiWorkflowDefinition[]>("/backoffice/ai-operations/workflow-definitions"),
+  installAiWorkflowTemplate: (slug: string) =>
+    request<AiWorkflowDefinition[]>(`/backoffice/ai-operations/workflow-templates/${slug}/install`, {
+      method: "POST",
+    }),
+  aiWorkflowRuns: () =>
+    request<AiWorkflowRun[]>("/backoffice/ai-operations/workflow-runs"),
+  createAiWorkflowRun: (payload: {
+    definition_id: string;
+    workspace_id?: string | null;
+    idempotency_key: string;
+    input: Record<string, unknown>;
+    estimated_cost_cents?: number | null;
+    currency?: string;
+  }) =>
+    request<AiWorkflowRun>("/backoffice/ai-operations/workflow-runs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  approveAiWorkflowRun: (runId: string) =>
+    request<AiWorkflowRun>(`/backoffice/ai-operations/workflow-runs/${runId}/approve`, {
+      method: "POST",
     }),
   performanceOverview: (clientId: string) => request<PerformanceOverview>(`/workspaces/${clientId}/performance`),
   adsCampaigns: (clientId: string) =>

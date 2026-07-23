@@ -259,6 +259,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/ai-operations/finops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Finops */
+        get: operations["get_finops_backoffice_ai_operations_finops_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Subscription */
+        post: operations["create_subscription_backoffice_ai_operations_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Subscription */
+        patch: operations["update_subscription_backoffice_ai_operations_subscriptions__subscription_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/ai-operations/subscriptions/{subscription_id}/quota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Quota */
+        post: operations["record_quota_backoffice_ai_operations_subscriptions__subscription_id__quota_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Usage */
+        post: operations["record_usage_backoffice_ai_operations_usage_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workflow Definitions */
+        get: operations["list_workflow_definitions_backoffice_ai_operations_workflow_definitions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workflow Runs */
+        get: operations["list_workflow_runs_backoffice_ai_operations_workflow_runs_get"];
+        put?: never;
+        /** Create Workflow Run */
+        post: operations["create_workflow_run_backoffice_ai_operations_workflow_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-runs/{run_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Workflow Run */
+        post: operations["approve_workflow_run_backoffice_ai_operations_workflow_runs__run_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-runs/{run_id}/steps/{step_key}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Workflow Step */
+        post: operations["complete_workflow_step_backoffice_ai_operations_workflow_runs__run_id__steps__step_key__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workflow Templates */
+        get: operations["list_workflow_templates_backoffice_ai_operations_workflow_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/workflow-templates/{slug}/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install Workflow Template */
+        post: operations["install_workflow_template_backoffice_ai_operations_workflow_templates__slug__install_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/architecture": {
         parameters: {
             query?: never;
@@ -2403,6 +2591,275 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /** AiCostTotal */
+        AiCostTotal: {
+            /** Committed Monthly Cents */
+            committed_monthly_cents: number;
+            /** Currency */
+            currency: string;
+            /** Measured Usage Cents */
+            measured_usage_cents: number;
+        };
+        /** AiFinOpsDashboard */
+        AiFinOpsDashboard: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Subscriptions */
+            subscriptions: components["schemas"]["AiSubscriptionSummary"][];
+            /** Totals By Currency */
+            totals_by_currency: components["schemas"]["AiCostTotal"][];
+            /** Usage Current Month */
+            usage_current_month: components["schemas"]["AiUsageSummary"][];
+        };
+        /** AiQuotaSnapshotCreate */
+        AiQuotaSnapshotCreate: {
+            /** Notes */
+            notes?: string | null;
+            /** Period End */
+            period_end?: string | null;
+            /** Period Start */
+            period_start?: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "api" | "manual" | "configured" | "unavailable";
+            /** Total Units */
+            total_units?: number | string | null;
+            /** Unit */
+            unit: string;
+            /** Used Units */
+            used_units?: number | string | null;
+        };
+        /** AiQuotaSnapshotSummary */
+        AiQuotaSnapshotSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Measured At
+             * Format: date-time
+             */
+            measured_at: string;
+            /** Notes */
+            notes?: string | null;
+            /** Period End */
+            period_end?: string | null;
+            /** Period Start */
+            period_start?: string | null;
+            /** Remaining Units */
+            remaining_units?: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "api" | "manual" | "configured" | "unavailable";
+            /** Total Units */
+            total_units?: string | null;
+            /** Unit */
+            unit: string;
+            /** Used Units */
+            used_units?: string | null;
+        };
+        /** AiSubscriptionCreate */
+        AiSubscriptionCreate: {
+            /**
+             * Amount Cents
+             * @default 0
+             */
+            amount_cents: number;
+            /**
+             * Billing Cycle
+             * @default monthly
+             * @enum {string}
+             */
+            billing_cycle: "monthly" | "annual" | "custom";
+            /**
+             * Billing Cycle Months
+             * @default 1
+             */
+            billing_cycle_months: number;
+            /**
+             * Billing Mode
+             * @default subscription
+             * @enum {string}
+             */
+            billing_mode: "subscription" | "api" | "hybrid";
+            /**
+             * Currency
+             * @default BRL
+             */
+            currency: string;
+            /** Notes */
+            notes?: string | null;
+            /** Owner Label */
+            owner_label?: string | null;
+            /** Product Name */
+            product_name: string;
+            /** Provider */
+            provider: string;
+            /** Renews At */
+            renews_at?: string | null;
+            /**
+             * Seats
+             * @default 1
+             */
+            seats: number;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "paused" | "cancelled";
+        };
+        /** AiSubscriptionSummary */
+        AiSubscriptionSummary: {
+            /** Amount Cents */
+            amount_cents: number;
+            /**
+             * Billing Cycle
+             * @enum {string}
+             */
+            billing_cycle: "monthly" | "annual" | "custom";
+            /** Billing Cycle Months */
+            billing_cycle_months: number;
+            /**
+             * Billing Mode
+             * @enum {string}
+             */
+            billing_mode: "subscription" | "api" | "hybrid";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency */
+            currency: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            latest_quota?: components["schemas"]["AiQuotaSnapshotSummary"] | null;
+            /** Monthly Equivalent Cents */
+            monthly_equivalent_cents: number;
+            /** Notes */
+            notes?: string | null;
+            /** Owner Label */
+            owner_label?: string | null;
+            /** Product Name */
+            product_name: string;
+            /** Provider */
+            provider: string;
+            /** Renews At */
+            renews_at?: string | null;
+            /** Seats */
+            seats: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "paused" | "cancelled";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** AiSubscriptionUpdate */
+        AiSubscriptionUpdate: {
+            /** Amount Cents */
+            amount_cents?: number | null;
+            /** Billing Cycle */
+            billing_cycle?: ("monthly" | "annual" | "custom") | null;
+            /** Billing Cycle Months */
+            billing_cycle_months?: number | null;
+            /** Billing Mode */
+            billing_mode?: ("subscription" | "api" | "hybrid") | null;
+            /** Currency */
+            currency?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Owner Label */
+            owner_label?: string | null;
+            /** Product Name */
+            product_name?: string | null;
+            /** Provider */
+            provider?: string | null;
+            /** Renews At */
+            renews_at?: string | null;
+            /** Seats */
+            seats?: number | null;
+            /** Status */
+            status?: ("active" | "paused" | "cancelled") | null;
+        };
+        /** AiUsageEventCreate */
+        AiUsageEventCreate: {
+            /** Cached Units */
+            cached_units?: number | null;
+            /** Cost Cents */
+            cost_cents?: number | null;
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
+            /** External Event Id */
+            external_event_id?: string | null;
+            /** Input Units */
+            input_units?: number | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Model */
+            model?: string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Output Units */
+            output_units?: number | null;
+            /** Provider */
+            provider: string;
+            /** Source */
+            source: string;
+            /**
+             * Unit
+             * @default tokens
+             */
+            unit: string;
+            /** Workflow Run Id */
+            workflow_run_id?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** AiUsageSummary */
+        AiUsageSummary: {
+            /** Cached Units */
+            cached_units: number;
+            /** Currency */
+            currency: string;
+            /** Events */
+            events: number;
+            /** Input Units */
+            input_units: number;
+            /** Known Cost Cents */
+            known_cost_cents: number;
+            /** Model */
+            model?: string | null;
+            /** Output Units */
+            output_units: number;
+            /** Provider */
+            provider: string;
+            /** Source */
+            source: string;
+            /** Unknown Cost Events */
+            unknown_cost_events: number;
         };
         /** ApprovalCreateRequest */
         ApprovalCreateRequest: {
@@ -5235,6 +5692,216 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** WorkflowDefinitionSummary */
+        WorkflowDefinitionSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Schema */
+            input_schema: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Source Ref */
+            source_ref: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "active" | "retired";
+            /** Steps */
+            steps: components["schemas"]["WorkflowStepDefinition"][];
+            /** Version */
+            version: number;
+        };
+        /** WorkflowRunCreate */
+        WorkflowRunCreate: {
+            /**
+             * Currency
+             * @default BRL
+             */
+            currency: string;
+            /**
+             * Definition Id
+             * Format: uuid
+             */
+            definition_id: string;
+            /** Estimated Cost Cents */
+            estimated_cost_cents?: number | null;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Input */
+            input?: {
+                [key: string]: unknown;
+            };
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** WorkflowRunSummary */
+        WorkflowRunSummary: {
+            /** Actual Cost Cents */
+            actual_cost_cents: number;
+            /** Approved At */
+            approved_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency */
+            currency: string;
+            /** Current Step Key */
+            current_step_key?: string | null;
+            /**
+             * Definition Id
+             * Format: uuid
+             */
+            definition_id: string;
+            /** Definition Name */
+            definition_name: string;
+            /** Definition Slug */
+            definition_slug: string;
+            /** Definition Version */
+            definition_version: number;
+            /** Estimated Cost Cents */
+            estimated_cost_cents?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Input */
+            input: {
+                [key: string]: unknown;
+            };
+            /** Output */
+            output?: {
+                [key: string]: unknown;
+            } | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending_approval" | "ready" | "running" | "completed" | "failed" | "cancelled";
+            /** Steps */
+            steps: components["schemas"]["WorkflowStepRunSummary"][];
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** WorkflowStepComplete */
+        WorkflowStepComplete: {
+            /** Cached Units */
+            cached_units?: number | null;
+            /** Cost Cents */
+            cost_cents?: number | null;
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
+            /** External Event Id */
+            external_event_id?: string | null;
+            /** Input Units */
+            input_units?: number | null;
+            /** Model */
+            model?: string | null;
+            /** Output */
+            output?: {
+                [key: string]: unknown;
+            };
+            /** Output Units */
+            output_units?: number | null;
+            /** Provider */
+            provider?: string | null;
+        };
+        /** WorkflowStepDefinition */
+        WorkflowStepDefinition: {
+            /** Capability */
+            capability?: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Interactive
+             * @default false
+             */
+            interactive: boolean;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+        };
+        /** WorkflowStepRunSummary */
+        WorkflowStepRunSummary: {
+            /** Cost Cents */
+            cost_cents?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Interactive */
+            interactive: boolean;
+            /** Model */
+            model?: string | null;
+            /** Name */
+            name: string;
+            /** Output */
+            output?: {
+                [key: string]: unknown;
+            } | null;
+            /** Position */
+            position: number;
+            /** Provider */
+            provider?: string | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "skipped";
+            /** Step Key */
+            step_key: string;
+        };
+        /** WorkflowTemplateSummary */
+        WorkflowTemplateSummary: {
+            /** Description */
+            description: string;
+            /** Input Schema */
+            input_schema: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Source Ref */
+            source_ref: string;
+            /** Steps */
+            steps: components["schemas"]["WorkflowStepDefinition"][];
+            /** Version */
+            version: number;
+        };
         /** WorkspaceAssignmentSummary */
         WorkspaceAssignmentSummary: {
             /** Assignee Email */
@@ -5824,6 +6491,353 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_finops_backoffice_ai_operations_finops_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+        };
+    };
+    create_subscription_backoffice_ai_operations_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiSubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_subscription_backoffice_ai_operations_subscriptions__subscription_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiSubscriptionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_quota_backoffice_ai_operations_subscriptions__subscription_id__quota_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiQuotaSnapshotCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_usage_backoffice_ai_operations_usage_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiUsageEventCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_workflow_definitions_backoffice_ai_operations_workflow_definitions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowDefinitionSummary"][];
+                };
+            };
+        };
+    };
+    list_workflow_runs_backoffice_ai_operations_workflow_runs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowRunSummary"][];
+                };
+            };
+        };
+    };
+    create_workflow_run_backoffice_ai_operations_workflow_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowRunCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowRunSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_workflow_run_backoffice_ai_operations_workflow_runs__run_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowRunSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_workflow_step_backoffice_ai_operations_workflow_runs__run_id__steps__step_key__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                step_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowStepComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowRunSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_workflow_templates_backoffice_ai_operations_workflow_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowTemplateSummary"][];
+                };
+            };
+        };
+    };
+    install_workflow_template_backoffice_ai_operations_workflow_templates__slug__install_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowDefinitionSummary"][];
                 };
             };
             /** @description Validation Error */

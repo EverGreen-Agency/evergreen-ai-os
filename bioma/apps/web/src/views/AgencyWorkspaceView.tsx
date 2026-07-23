@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BarChart3, Users, WalletCards } from "lucide-react";
+import { BarChart3, Bot, Users, WalletCards } from "lucide-react";
 import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
@@ -11,6 +11,7 @@ import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/work
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: module.CrmView })));
 const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
+const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 
 type AgencyWorkspaceOutletContext = {
   workspace: AgencyWorkspaceContext;
@@ -72,6 +73,12 @@ function useAgencyWorkspace() {
 export function AgencyOverviewRoute() {
   const { workspace } = useAgencyWorkspace();
   const modules = [
+    {
+      title: "Operações de IA",
+      description: "Workflows versionados, aprovações e execução auditável dos squads EG.",
+      to: "/operacao/ia",
+      icon: Bot,
+    },
     {
       title: "CRM da EG",
       description: "Leads, oportunidades e pipeline comercial da própria EverGreen.",
@@ -136,4 +143,9 @@ export function AgencyAnalyticsRoute() {
       <AnalyticsView clientId={workspace.workspaceId} workspaceName={workspace.name} />
     </Suspense>
   );
+}
+
+export function AgencyAiOperationsRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return <Suspense fallback={<ModuleLoading />}><AiOperationsView workspaceId={workspace.workspaceId} /></Suspense>;
 }

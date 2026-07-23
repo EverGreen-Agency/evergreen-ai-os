@@ -37,6 +37,7 @@ const AgencyOverviewRoute = lazy(() => import("./views/AgencyWorkspaceView").the
 const AgencyCrmRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyCrmRoute })));
 const AgencyFinanceRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyFinanceRoute })));
 const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAnalyticsRoute })));
+const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -266,6 +267,7 @@ export function App() {
             <Route path="crm" element={<AgencyCrmRoute />} />
             <Route path="financeiro" element={<AgencyFinanceRoute />} />
             <Route path="metricas" element={<AgencyAnalyticsRoute />} />
+            <Route path="ia" element={<AgencyAiOperationsRoute />} />
           </Route>
 
           <Route path="/clientes" element={guard("clientes",

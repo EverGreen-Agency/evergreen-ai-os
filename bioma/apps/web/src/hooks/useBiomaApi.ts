@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, TaskPayload, TaskListType } from "../lib/api";
+import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
 
@@ -489,6 +489,76 @@ export function useDeleteFinancialRecord() {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(["finance", variables.clientId], data);
     },
+  });
+}
+
+export function useAiFinOps(enabled = true) {
+  return useQuery({
+    queryKey: ["ai-finops"],
+    queryFn: api.aiFinOps,
+    enabled,
+  });
+}
+
+export function useCreateAiSubscription() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AiSubscriptionPayload) => api.createAiSubscription(payload),
+    onSuccess: (data) => queryClient.setQueryData(["ai-finops"], data),
+  });
+}
+
+export function useUpdateAiSubscription() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subscriptionId, payload }: { subscriptionId: string; payload: Partial<AiSubscriptionPayload> }) =>
+      api.updateAiSubscription(subscriptionId, payload),
+    onSuccess: (data) => queryClient.setQueryData(["ai-finops"], data),
+  });
+}
+
+export function useRecordAiQuota() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ subscriptionId, payload }: { subscriptionId: string; payload: AiQuotaPayload }) =>
+      api.recordAiQuota(subscriptionId, payload),
+    onSuccess: (data) => queryClient.setQueryData(["ai-finops"], data),
+  });
+}
+
+export function useAiWorkflowTemplates() {
+  return useQuery({ queryKey: ["ai-workflow-templates"], queryFn: api.aiWorkflowTemplates });
+}
+
+export function useAiWorkflowDefinitions() {
+  return useQuery({ queryKey: ["ai-workflow-definitions"], queryFn: api.aiWorkflowDefinitions });
+}
+
+export function useInstallAiWorkflowTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (slug: string) => api.installAiWorkflowTemplate(slug),
+    onSuccess: (data) => queryClient.setQueryData(["ai-workflow-definitions"], data),
+  });
+}
+
+export function useAiWorkflowRuns() {
+  return useQuery({ queryKey: ["ai-workflow-runs"], queryFn: api.aiWorkflowRuns });
+}
+
+export function useCreateAiWorkflowRun() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.createAiWorkflowRun,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-workflow-runs"] }),
+  });
+}
+
+export function useApproveAiWorkflowRun() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (runId: string) => api.approveAiWorkflowRun(runId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-workflow-runs"] }),
   });
 }
 
