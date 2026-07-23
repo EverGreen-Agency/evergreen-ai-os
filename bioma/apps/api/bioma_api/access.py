@@ -9,6 +9,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 
 from bioma_api.domain.models import Role
+from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 
 CLIENT_MODULES = ("hub", "content", "files", "commercial", "analytics", "integrations", "engineering")
@@ -97,3 +98,35 @@ def require_workspace_capability(client_row, user: CurrentUserResponse, capabili
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Seu papel neste workspace não permite esta ação.",
     )
+
+
+def resolve_accessible_client(
+    conn,
+    client_id: UUID,
+    user: CurrentUserResponse,
+    module: str | None = None,
+    capability: str | None = None,
+    require_kind: str | None = None,
+):
+    """Ponto único de resolução de cliente/workspace (BOLA/IDOR + gates).
+
+    Antes desta função cada service tinha a sua cópia de `_accessible_client`
+    (`client_hub`, `files`, `performance`, `invites`), o que obrigava a
+    replicar qualquer mudança de regra em quatro lugares. Os parâmetros
+    cobrem as variações que existiam: `module` fixo (`files`/`analytics`),
+    `capability` da matriz de papéis e `require_kind` para recusar workspace
+    interno onde só cliente faz sentido (convites).
+
+    404 em vez de 403 é intencional: não confirma a existência do cliente a
+    quem não tem acesso a ele.
+    """
+    client = workspaces_repo.find_accessible_client(conn, client_id, is_platform_admin(user), user.id)
+    if not client:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+    if require_kind and client["workspace_kind"] != require_kind:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+    if module:
+        require_client_module(client, user, module)
+    if capability:
+        require_workspace_capability(client, user, capability)
+    return client

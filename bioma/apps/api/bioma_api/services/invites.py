@@ -4,12 +4,11 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from bioma_api.access import is_platform_admin, require_platform_admin
+from bioma_api.access import require_platform_admin, resolve_accessible_client
 from bioma_api.config import get_settings
 from bioma_api.db import connect
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import invites as invites_repo
-from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.invites import (
     InviteAcceptRequest,
@@ -136,7 +135,5 @@ def accept_invite(token: str, payload: InviteAcceptRequest) -> tuple[str, dateti
 
 
 def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
-    client = workspaces_repo.find_accessible_client(conn, client_id, is_platform_admin(user), user.id)
-    if not client or client["workspace_kind"] != "client":
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
-    return client
+    # Convite só faz sentido em workspace de cliente; o interno da agência não é convidável.
+    return resolve_accessible_client(conn, client_id, user, require_kind="client")

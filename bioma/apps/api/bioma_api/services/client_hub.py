@@ -2,9 +2,13 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from bioma_api.access import CLIENT_MODULES, require_client_module, require_workspace_capability
+from bioma_api.access import (
+    CLIENT_MODULES,
+    is_platform_admin,
+    require_platform_admin,
+    resolve_accessible_client,
+)
 from bioma_api.db import connect
-from bioma_api.domain.models import Role
 from bioma_api.integrations.clickup import sync_clickup_folder
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import workspaces as workspaces_repo
@@ -34,14 +38,14 @@ from bioma_api.services.storage import StorageNotConfiguredError, StorageOperati
 
 
 def list_clients(user: CurrentUserResponse) -> list[ClientSummary]:
-    is_admin = _is_platform_admin(user)
+    is_admin = is_platform_admin(user)
     with connect() as conn:
         rows = client_hub_repo.list_clients(conn, is_admin, user.id)
     return [ClientSummary(**row) for row in rows]
 
 
 def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> ClientPortalResponse:
-    _require_platform_admin(user)
+    require_platform_admin(user)
     client_name = payload.name.strip()
     if not client_name:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Nome do cliente é obrigatório.")
@@ -88,7 +92,7 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
 
 
 def archive_client(client_id: UUID, user: CurrentUserResponse) -> None:
-    _require_platform_admin(user)
+    require_platform_admin(user)
     with connect() as conn:
         client = client_hub_repo.find_client_for_lifecycle(conn, client_id)
         if not client:
@@ -106,7 +110,7 @@ def archive_client(client_id: UUID, user: CurrentUserResponse) -> None:
 
 
 def purge_client(client_id: UUID, confirmation: str, user: CurrentUserResponse) -> None:
-    _require_platform_admin(user)
+    require_platform_admin(user)
     with connect() as conn:
         client = client_hub_repo.find_client_for_lifecycle(conn, client_id)
         if not client:
@@ -144,9 +148,9 @@ def purge_client(client_id: UUID, confirmation: str, user: CurrentUserResponse) 
 
 
 def get_client_portal(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
-    is_admin = _is_platform_admin(user)
+    is_admin = is_platform_admin(user)
     with connect() as conn:
-        context = _accessible_client(conn, client_id, user)
+        context = resolve_accessible_client(conn, client_id, user)
         resolved_client_id = context["id"]
         client = client_hub_repo.get_client_summary(conn, resolved_client_id, is_admin, user.id)
         if not client:
@@ -172,7 +176,7 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
     updates = payload.model_dump(exclude_unset=True)
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_config")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_config")
         resolved_client_id = client["id"]
         client_updates = {key: updates[key] for key in ("name", "status", "responsible_name", "clickup_folder_id") if key in updates}
         client_hub_repo.update_client(conn, resolved_client_id, client_updates)
@@ -208,7 +212,7 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
 
 def create_artifact(client_id: UUID, payload: ArtifactCreateRequest, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         artifact_id = client_hub_repo.create_artifact(
             conn,
             client["organization_id"],
@@ -239,7 +243,7 @@ def update_artifact(
     updates = payload.model_dump(exclude_unset=True)
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         if not client_hub_repo.update_artifact(conn, client["organization_id"], artifact_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artefato não encontrado.")
         client_hub_repo.write_audit(
@@ -255,7 +259,7 @@ def update_artifact(
 
 def delete_artifact(client_id: UUID, artifact_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         if not client_hub_repo.delete_artifact(conn, client["organization_id"], artifact_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artefato não encontrado.")
         client_hub_repo.write_audit(
@@ -271,7 +275,7 @@ def delete_artifact(client_id: UUID, artifact_id: UUID, user: CurrentUserRespons
 
 def create_deliverable(client_id: UUID, payload: DeliverableCreateRequest, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         deliverable_id = client_hub_repo.create_deliverable(
             conn,
             client["organization_id"],
@@ -300,7 +304,7 @@ def update_deliverable(
     updates = payload.model_dump(exclude_unset=True)
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         if not client_hub_repo.update_deliverable(conn, client["organization_id"], deliverable_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
         client_hub_repo.write_audit(
@@ -316,7 +320,7 @@ def update_deliverable(
 
 def delete_deliverable(client_id: UUID, deliverable_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         if not client_hub_repo.delete_deliverable(conn, client["organization_id"], deliverable_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrega não encontrada.")
         client_hub_repo.write_audit(
@@ -336,7 +340,7 @@ def create_approval(
     user: CurrentUserResponse,
 ) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_work")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_work")
         deliverable = client_hub_repo.get_deliverable(
             conn,
             client["organization_id"],
@@ -385,7 +389,7 @@ def decide_approval(
     user: CurrentUserResponse,
 ) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="approve")
+        client = resolve_accessible_client(conn, client_id, user, capability="approve")
         approval = client_hub_repo.get_approval(conn, client["organization_id"], approval_id)
         if not approval:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aprovação não encontrada.")
@@ -409,7 +413,7 @@ def decide_approval(
 
 def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, capability="manage_config")
+        client = resolve_accessible_client(conn, client_id, user, capability="manage_config")
         mapped_lists = client_hub_repo.list_clickup_mappings(conn, client["organization_id"])
         sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_lists)
         summary["deliverables"] = _upsert_clickup_tasks(conn, client["organization_id"], summary.get("tasks", []))
@@ -431,7 +435,7 @@ def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResp
 
 def list_leads(client_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial")
+        client = resolve_accessible_client(conn, client_id, user, "commercial")
         rows = client_hub_repo.list_leads(conn, client["organization_id"])
     return [LeadSummary(**row) for row in rows]
 
@@ -440,7 +444,7 @@ def create_lead(client_id: UUID, payload: LeadCreateRequest, user: CurrentUserRe
     lead_data = payload.model_dump()
     _require_non_empty(lead_data.get("name"), "Nome do lead é obrigatório.")
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         lead_id = client_hub_repo.create_lead(conn, client["organization_id"], lead_data)
         client_hub_repo.write_audit(
             conn,
@@ -460,7 +464,7 @@ def update_lead(
 ) -> list[LeadSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         if not client_hub_repo.update_lead(conn, client["organization_id"], lead_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
         client_hub_repo.write_audit(
@@ -475,7 +479,7 @@ def update_lead(
 
 def delete_lead(client_id: UUID, lead_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         if not client_hub_repo.delete_lead(conn, client["organization_id"], lead_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
         client_hub_repo.write_audit(
@@ -490,7 +494,7 @@ def delete_lead(client_id: UUID, lead_id: UUID, user: CurrentUserResponse) -> li
 
 def list_financial_records(client_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial")
+        client = resolve_accessible_client(conn, client_id, user, "commercial")
         rows = client_hub_repo.list_financial_records(conn, client["organization_id"])
     return [FinancialRecordSummary(**row) for row in rows]
 
@@ -503,7 +507,7 @@ def create_financial_record(
     record_data = payload.model_dump()
     _require_non_empty(record_data.get("title"), "Título financeiro é obrigatório.")
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         record_id = client_hub_repo.create_financial_record(conn, client["organization_id"], record_data)
         client_hub_repo.write_audit(
             conn,
@@ -523,7 +527,7 @@ def update_financial_record(
 ) -> list[FinancialRecordSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         if not client_hub_repo.update_financial_record(conn, client["organization_id"], record_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
         client_hub_repo.write_audit(
@@ -538,7 +542,7 @@ def update_financial_record(
 
 def delete_financial_record(client_id: UUID, record_id: UUID, user: CurrentUserResponse) -> list[FinancialRecordSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "commercial", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "commercial", "manage_work")
         if not client_hub_repo.delete_financial_record(conn, client["organization_id"], record_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro financeiro não encontrado.")
         client_hub_repo.write_audit(
@@ -553,7 +557,7 @@ def delete_financial_record(client_id: UUID, record_id: UUID, user: CurrentUserR
 
 def list_performance_metrics(client_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "analytics")
+        client = resolve_accessible_client(conn, client_id, user, "analytics")
         rows = client_hub_repo.list_performance_metrics(conn, client["organization_id"])
     return [PerformanceMetricSummary(**row) for row in rows]
 
@@ -565,7 +569,7 @@ def create_performance_metric(
 ) -> list[PerformanceMetricSummary]:
     metric_data = payload.model_dump()
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "analytics", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "analytics", "manage_work")
         metric_id = client_hub_repo.create_performance_metric(conn, client["organization_id"], metric_data)
         client_hub_repo.write_audit(
             conn,
@@ -585,7 +589,7 @@ def update_performance_metric(
 ) -> list[PerformanceMetricSummary]:
     updates = payload.model_dump(exclude_unset=True)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "analytics", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "analytics", "manage_work")
         if not client_hub_repo.update_performance_metric(conn, client["organization_id"], metric_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
         client_hub_repo.write_audit(
@@ -600,7 +604,7 @@ def update_performance_metric(
 
 def delete_performance_metric(client_id: UUID, metric_id: UUID, user: CurrentUserResponse) -> list[PerformanceMetricSummary]:
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user, "analytics", "manage_work")
+        client = resolve_accessible_client(conn, client_id, user, "analytics", "manage_work")
         if not client_hub_repo.delete_performance_metric(conn, client["organization_id"], metric_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Métrica não encontrada.")
         client_hub_repo.write_audit(
@@ -611,15 +615,6 @@ def delete_performance_metric(client_id: UUID, metric_id: UUID, user: CurrentUse
             {"client_id": str(client_id), "metric_id": str(metric_id)},
         )
     return list_performance_metrics(client_id, user)
-
-
-def _is_platform_admin(user: CurrentUserResponse) -> bool:
-    return any(org.slug == "eg" and org.role == Role.eg_admin for org in user.organizations)
-
-
-def _require_platform_admin(user: CurrentUserResponse) -> None:
-    if not _is_platform_admin(user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
 
 
 def _require_non_empty(value: str | None, detail: str) -> None:
@@ -671,29 +666,11 @@ def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
     return "planned"
 
 
-def _accessible_client(
-    conn,
-    client_id: UUID,
-    user: CurrentUserResponse,
-    module: str | None = None,
-    capability: str | None = None,
-):
-    is_admin = _is_platform_admin(user)
-    client = workspaces_repo.find_accessible_client(conn, client_id, is_admin, user.id)
-    if not client:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
-    if module:
-        require_client_module(client, user, module)
-    if capability:
-        require_workspace_capability(client, user, capability)
-    return client
-
-
 def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:
     with connect() as conn:
         return client_hub_repo.list_my_deliverables(
             conn,
             user.email,
-            _is_platform_admin(user),
+            is_platform_admin(user),
             user.id,
         )
