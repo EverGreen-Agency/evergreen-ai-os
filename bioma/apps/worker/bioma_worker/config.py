@@ -13,6 +13,11 @@ class WorkerSettings(BaseSettings):
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_request_timeout_seconds: float = 120
+    # QUEUE-001: o lease precisa ser maior que o job mais longo esperado
+    # (sync de 30 dias em 4 providers), senão o reaper reenfileira job vivo.
+    # O heartbeat entre providers dá folga; 15 min é a margem para o resto.
+    job_lease_seconds: int = 900
+    job_max_attempts: int = 3
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

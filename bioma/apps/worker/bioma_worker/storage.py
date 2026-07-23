@@ -36,11 +36,12 @@ def claim_next_sync(conn):
           limit 1
         )
         update sync_runs run
-        set status = 'running', error_code = null, error_message = null
+        set status = 'running', error_code = null, error_message = null,
+            heartbeat_at = now(), attempts = run.attempts + 1
         from candidate
         where run.id = candidate.id
         returning run.id, run.client_id, run.organization_id, run.provider,
-                  run.date_from, run.date_to, run.started_at
+                  run.date_from, run.date_to, run.started_at, run.attempts
         """
     ).fetchone()
 
@@ -57,14 +58,97 @@ def claim_next_ai_content(conn):
           limit 1
         )
         update ai_content_requests request
-        set status = 'running', started_at = now(), updated_at = now()
+        set status = 'running', started_at = now(), updated_at = now(),
+            heartbeat_at = now(), attempts = request.attempts + 1
         from next_request
         where request.id = next_request.id
         returning request.id, request.workspace_id, request.organization_id,
           request.requested_by, request.brief, request.channels, request.quantity,
-          request.tone, request.objective, request.methodology_refs
+          request.tone, request.objective, request.methodology_refs, request.attempts
         """
     ).fetchone()
+
+
+def heartbeat_sync(conn, sync_id: UUID) -> None:
+    """Renova o lease de um sync em andamento.
+
+    Chamado entre providers: uma janela de 30 dias em quatro providers passa
+    do lease default, e sem isso o reaper reenfileiraria um job que está vivo.
+    """
+    conn.execute(
+        "update sync_runs set heartbeat_at = now() where id = %s and status = 'running'",
+        (sync_id,),
+    )
+
+
+def reclaim_stalled_jobs(conn, lease_seconds: int, max_attempts: int) -> dict[str, int]:
+    """Devolve à fila (ou encerra como erro) jobs cujo lease expirou.
+
+    Um job perde o lease quando o worker morre sem completá-lo. Enquanto tiver
+    tentativa disponível ele volta para `queued`; ao estourar `max_attempts`
+    vira `error` com código próprio, para não reprocessar em loop um job que
+    derruba o worker toda vez.
+    """
+    requeued_syncs = conn.execute(
+        """
+        update sync_runs
+        set status = 'queued', heartbeat_at = null,
+            error_code = null, error_message = null
+        where status = 'running'
+          and heartbeat_at < now() - make_interval(secs => %s)
+          and attempts < %s
+        returning id
+        """,
+        (lease_seconds, max_attempts),
+    ).fetchall()
+
+    failed_syncs = conn.execute(
+        """
+        update sync_runs
+        set status = 'error', heartbeat_at = null, finished_at = now(),
+            error_code = 'JOB_STALLED',
+            error_message = 'Job excedeu o lease sem concluir e esgotou as tentativas.'
+        where status = 'running'
+          and heartbeat_at < now() - make_interval(secs => %s)
+          and attempts >= %s
+        returning id
+        """,
+        (lease_seconds, max_attempts),
+    ).fetchall()
+
+    requeued_ai = conn.execute(
+        """
+        update ai_content_requests
+        set status = 'queued', heartbeat_at = null, error_message = null,
+            updated_at = now()
+        where status = 'running'
+          and heartbeat_at < now() - make_interval(secs => %s)
+          and attempts < %s
+        returning id
+        """,
+        (lease_seconds, max_attempts),
+    ).fetchall()
+
+    failed_ai = conn.execute(
+        """
+        update ai_content_requests
+        set status = 'error', heartbeat_at = null, finished_at = now(),
+            updated_at = now(),
+            error_message = 'Job excedeu o lease sem concluir e esgotou as tentativas.'
+        where status = 'running'
+          and heartbeat_at < now() - make_interval(secs => %s)
+          and attempts >= %s
+        returning id
+        """,
+        (lease_seconds, max_attempts),
+    ).fetchall()
+
+    return {
+        "requeued_syncs": len(requeued_syncs),
+        "failed_syncs": len(failed_syncs),
+        "requeued_ai_content": len(requeued_ai),
+        "failed_ai_content": len(failed_ai),
+    }
 
 
 def complete_ai_content(conn, request: dict, result: dict) -> None:

@@ -7,6 +7,21 @@ from bioma_worker.ai_content import generate_content
 from bioma_worker import storage
 
 
+def reclaim_stalled_jobs() -> dict[str, int]:
+    """Passe do reaper (QUEUE-001), executado antes de consumir a fila.
+
+    O worker é um processo em lote, não um daemon: rodar aqui garante que todo
+    ciclo comece recuperando o que ficou preso, sem exigir agendamento próprio.
+    """
+    settings = get_settings()
+    with connect() as conn:
+        return storage.reclaim_stalled_jobs(
+            conn,
+            settings.job_lease_seconds,
+            settings.job_max_attempts,
+        )
+
+
 def run_next_job() -> dict[str, Any] | None:
     with connect() as conn:
         job_type = storage.next_job_type(conn)
@@ -61,6 +76,10 @@ def run_next_sync() -> dict[str, Any] | None:
     for connection in connections:
         provider = connection["provider"]
         result_key = f"{provider}:{connection['external_account_id']}"
+        # Renova o lease a cada provider: sem isto, um sync longo seria
+        # reenfileirado pelo reaper enquanto ainda está rodando.
+        with connect() as conn:
+            storage.heartbeat_sync(conn, sync_run["id"])
         try:
             _validate_credentials_reference(connection)
             with connect() as conn:
