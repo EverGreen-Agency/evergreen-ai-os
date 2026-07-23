@@ -409,6 +409,44 @@ export type ClientFileDownload = {
   expires_in: number;
 };
 
+export type WikiCategory = "comercial" | "rh" | "operacao" | "geral";
+
+export type WikiAttachment = {
+  id: string;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+};
+
+export type WikiDocumentSummary = {
+  id: string;
+  category: WikiCategory;
+  title: string;
+  updated_at: string;
+  attachment_count: number;
+};
+
+export type WikiDocumentDetail = {
+  id: string;
+  category: WikiCategory;
+  title: string;
+  content: string;
+  updated_at: string;
+  attachments: WikiAttachment[];
+};
+
+export type WikiDocumentPayload = {
+  category?: WikiCategory;
+  title?: string;
+  content?: string;
+};
+
+export type WikiAttachmentDownload = {
+  url: string;
+  file_name: string;
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -1223,4 +1261,23 @@ export const api = {
     }),
   deleteTask: (taskId: string) =>
     request<void>(`/tasks/${taskId}`, { method: "DELETE" }),
+
+  // Wiki EG (base de conhecimento interna; só EG admin)
+  wikiDocuments: () => request<WikiDocumentSummary[]>("/backoffice/wiki/documents"),
+  wikiDocument: (id: string) => request<WikiDocumentDetail>(`/backoffice/wiki/documents/${id}`),
+  createWikiDocument: (payload: WikiDocumentPayload) =>
+    request<WikiDocumentDetail>("/backoffice/wiki/documents", { method: "POST", body: JSON.stringify(payload) }),
+  updateWikiDocument: (id: string, payload: WikiDocumentPayload) =>
+    request<WikiDocumentDetail>(`/backoffice/wiki/documents/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  deleteWikiDocument: (id: string) =>
+    request<void>(`/backoffice/wiki/documents/${id}`, { method: "DELETE" }),
+  uploadWikiAttachment: (documentId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<WikiAttachment>(`/backoffice/wiki/documents/${documentId}/attachments`, { method: "POST", body: formData });
+  },
+  wikiAttachmentDownloadUrl: (attachmentId: string) =>
+    request<WikiAttachmentDownload>(`/backoffice/wiki/attachments/${attachmentId}/download`),
+  deleteWikiAttachment: (attachmentId: string) =>
+    request<void>(`/backoffice/wiki/attachments/${attachmentId}`, { method: "DELETE" }),
 };

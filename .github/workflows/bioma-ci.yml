@@ -91,6 +91,7 @@ jobs:
       - run: python bioma/apps/api/scripts/smoke_api.py
       - run: python bioma/apps/api/scripts/smoke_clickup.py
       - run: python bioma/apps/api/scripts/smoke_performance.py
+      - run: python bioma/apps/api/scripts/smoke_wiki.py
       - run: python bioma/apps/worker/scripts/smoke_worker.py
       # Os smokes mutáveis (queue/vault/reaper) exigem banco isolado com sufixo
       # _smoke. A CI nunca o provisionava, então esses passos falhavam. Cria,

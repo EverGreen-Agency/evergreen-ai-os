@@ -19,6 +19,7 @@ from bioma_api.routers import (
     projects,
     teams,
     vault,
+    wiki,
     workspaces,
     tasks,
 )
@@ -69,6 +70,7 @@ app.include_router(integrations.router)
 app.include_router(benchmark.admin_router)
 app.include_router(health.router)
 app.include_router(admin.router)
+app.include_router(wiki.router)
 
 
 @app.get("/")
