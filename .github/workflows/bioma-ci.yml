@@ -71,6 +71,8 @@ jobs:
       APP_ENV: local
       DATABASE_URL: postgresql://bioma:bioma@localhost:5432/bioma
       CORS_ORIGINS: http://localhost:5173
+      # Banco isolado para os smokes mutáveis (guarda de sufixo _smoke).
+      BIOMA_SMOKE_DATABASE_URL: postgresql://bioma:bioma@localhost:5432/bioma_smoke
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -90,4 +92,22 @@ jobs:
       - run: python bioma/apps/api/scripts/smoke_clickup.py
       - run: python bioma/apps/api/scripts/smoke_performance.py
       - run: python bioma/apps/worker/scripts/smoke_worker.py
+      # Os smokes mutáveis (queue/vault/reaper) exigem banco isolado com sufixo
+      # _smoke. A CI nunca o provisionava, então esses passos falhavam. Cria,
+      # migra e semeia o banco dedicado antes de rodá-los.
+      - name: Provisionar banco de smoke isolado
+        run: >-
+          python -c "import psycopg;
+          c = psycopg.connect('postgresql://bioma:bioma@localhost:5432/postgres', autocommit=True);
+          c.execute('drop database if exists bioma_smoke');
+          c.execute('create database bioma_smoke');
+          c.close()"
+      - name: Migrar e semear banco de smoke
+        env:
+          DATABASE_URL: postgresql://bioma:bioma@localhost:5432/bioma_smoke
+        run: |
+          python bioma/apps/api/scripts/migrate.py
+          python bioma/apps/api/scripts/seed_dev.py
       - run: python bioma/apps/worker/scripts/smoke_queue.py
+      - run: python bioma/apps/api/scripts/smoke_vault.py
+      - run: python bioma/apps/worker/scripts/smoke_reaper.py
