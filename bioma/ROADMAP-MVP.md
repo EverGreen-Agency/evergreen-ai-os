@@ -278,9 +278,9 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Feature-gating de módulos por organização com toggle no AdminDock; analytics/comercial bloqueados por default para cliente.
 - [x] Criar recuperação/rotação segura de senha (link de uso único 2h gerado pelo admin + troca de senha logado revogando sessões; `smoke_password.py`).
 - [x] Implementar rate limit de login em processo único.
-- [ ] Migrar rate limit para Redis/Postgres antes de múltiplas réplicas.
-- [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
-- [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
+- [x] Migrar rate limit para Postgres antes de múltiplas réplicas (migration 0026, `login_attempts` com chave `sha256(ip:email)`, purga no `cleanup.py`).
+- [x] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato (CONTRACT-001: `export_openapi.py` + `npm run types:api` + trava de compilação em `contract-conformance.ts`; CI falha se `openapi.json`/`api-schema.d.ts` divergirem).
+- [x] Criar retry/reaper para jobs que ficarem presos em `running` (QUEUE-001: migration 0025 com `heartbeat_at`/`attempts`, `reclaim_stalled_jobs` no início de cada ciclo do worker, lease de 900s e 3 tentativas).
 - [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
 - [x] Separar a Operação EG da Carteira sem remover seus módulos: `/operacao` e cada Hub reutilizam CRM, financeiro e métricas com contexto explícito.
 - [x] Criar navegador de workspaces pesquisável com recentes e atalho global, sem dropdown longo na Sidebar.
@@ -370,6 +370,25 @@ Para aderir ao escopo comercial de referência HM, também faltam:
 
 ## Status de testes
 
+Suíte unitária (nova em 2026-07-23, CONTRACT-001/qualidade): `apps/api/tests/`
+com **58 testes pytest sem banco** cobrindo a política de acesso compartilhada
+(`access.py`), as derivações de Performance (divisão por zero), o mapa de status
+ClickUp, as validações de deploy do `Settings` (cookie cross-site) e a chave do
+rate limit. Rode com `python -m pytest` em `apps/api`. Os `smoke_*.py` continuam
+sendo o teste de integração contra Postgres real; a suíte unitária cobre a borda
+que smoke não alcança de forma barata. A CI ganhou o job `api-unit`.
+
+Validações executadas em 2026-07-23 (blocos de hardening 1 e 2):
+
+- `python -m compileall bioma_api scripts` (API) e `bioma_worker scripts` (worker)
+- `python -m pytest` (58 passaram, sem banco)
+- `python scripts/export_openapi.py --check`
+- `npx tsc -b` e `npm run build` (web) — trava de conformidade de contrato ativa
+- **Pendente rodar com Postgres local** (Docker indisponível nesta máquina):
+  `migrate.py` (migrations 0025/0026), `smoke_api.py`, `smoke_performance.py`,
+  `smoke_worker.py`, `smoke_queue.py`. As migrations são só aditivas; validar
+  antes de publicar.
+
 Validações executadas na remediação de 2026-07-21:
 
 - `python -m compileall bioma/apps/api/bioma_api bioma/apps/api/scripts`
@@ -437,3 +456,4 @@ Formato:
 - 2026-07-18 - Codex - ver git log - Estratégia ClickUp/Kommo consolidada no ADR 0002 como integration-first e INT-CU-002 concluído com classificação Social/Growth/Tech e tradução configurável de status - migration, compile e smoke ClickUp mockado passaram - tokens, listas e conta Kommo reais continuam bloqueados até staging controlado.
 - 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
 - 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
+- 2026-07-23 - Claude Code (Opus 4.8) - ver git log - Hardening blocos 1 e 2: (1) deduplicação de acesso — `_is_platform_admin`/`_accessible_client` removidos de client_hub/files/performance/invites e colapsados em `access.resolve_accessible_client`, fonte única do isolamento multi-tenant; (2) QUEUE-001 reaper — migration 0025 (`heartbeat_at`/`attempts`), `reclaim_stalled_jobs` no início do ciclo do worker, heartbeat entre providers, lease 900s/3 tentativas; (3) rate limit em Postgres — migration 0026 (`login_attempts`, chave `sha256(ip:email)`), registro fora da transação do 401, purga no `cleanup.py`; (4) CONTRACT-001 — `export_openapi.py` gera `openapi.json` versionado, `npm run types:api` gera `api-schema.d.ts`, `contract-conformance.ts` trava drift em compile, CI valida os dois lados; (5) suíte pytest `apps/api/tests/` (58 testes sem banco) + job `api-unit` na CI. Placeholder de contrato removido - compileall API/worker, pytest 58/58, export_openapi --check, tsc -b e build web passaram; drift injetado/revertido para provar a trava - **pendente rodar migrations 0025/0026 e smokes com Postgres local (Docker indisponível na máquina)**.

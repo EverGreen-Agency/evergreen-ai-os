@@ -107,8 +107,10 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | SEC-003 | DONE | Backend | Rate limit de login em processo único | DPL-005 | teste de excesso |
 | SEC-004 | TODO | QA | Carga básica em leitura/login | DPL-006 | relatório p95/erro |
 | SEC-005 | TODO | Segurança | ZAP/Burp em staging autorizado | DPL-006 | relatório e correções P0/P1 |
-| CONTRACT-001 | TODO | Full-stack | Gerar tipos TS a partir do OpenAPI e eliminar drift manual | WEB-PERF-001 | CI detecta contrato divergente |
-| QUEUE-001 | TODO | Backend | Reaper/retry para job preso em `running` | DPL-005 | teste de worker interrompido |
+| SEC-003B | DONE | Backend | Migrar rate limit de login para Postgres (multi-réplica) | SEC-003 | migration 0026 + pytest da chave/janela |
+| CONTRACT-001 | DONE | Full-stack | Gerar tipos TS a partir do OpenAPI e eliminar drift manual | WEB-PERF-001 | `export_openapi.py --check` + trava `contract-conformance.ts` na CI |
+| QUEUE-001 | DONE | Backend | Reaper/retry para job preso em `running` | DPL-005 | migration 0025 + `reclaim_stalled_jobs` (lease/attempts); pendente smoke de worker interrompido com Postgres |
+| QUALITY-001 | DONE | Backend | Extrair helpers de acesso duplicados + suíte pytest de política/invariantes (auditoria 07-12, itens 11-12) | AUTHZ-WS-001 | `access.resolve_accessible_client` + `apps/api/tests` (58 testes) |
 | DB-001 | TODO | Backend/Operação | Medir conexões e decidir pool Postgres | SEC-004 | relatório de carga e limite |
 | OPS-001 | BLOCKED | Operação | Backup diário + teste de restore | DPL-005 | restore drill documentado |
 | QA-001 | BLOCKED | Humano/QA | Assinar desktop, DevTools e mobile | DPL-006 | checklist no roadmap |

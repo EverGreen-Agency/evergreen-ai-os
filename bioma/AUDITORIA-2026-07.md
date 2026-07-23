@@ -2,6 +2,17 @@
 
 Avaliação geral de código, segurança, negócio e próximos passos, feita por Claude Code (Sonnet 5) a pedido do Eduardo. Complementa `ROADMAP-MVP.md` (estado/backlog) e `DEPLOY.md` (runbook) — não os substitui.
 
+## Adendo de remediação — 2026-07-23
+
+Fechados desta rodada, dos "próximos passos" abaixo:
+
+- **item 6 (rate limit compartilhado):** migrado para Postgres (`login_attempts`, migration 0026), fora da memória do processo; agora sobrevive a restart e vale com múltiplas réplicas.
+- **item 11 (extrair helpers de acesso):** `_is_platform_admin`/`_accessible_client` foram removidos das quatro cópias (client_hub, files, performance, invites) e colapsados em `access.resolve_accessible_client` — a regra de acesso passa a ter uma fonte única.
+- **item 12 (suíte automatizada):** criada `apps/api/tests/` com 58 testes pytest sem banco, cobrindo a política de acesso, as derivações de Performance (divisão por zero, citada na seção 2), o mapa de status ClickUp e as validações de deploy do `Settings` (o cookie cross-site da seção 3). Job `api-unit` na CI.
+- **fora da lista mas relacionado:** QUEUE-001 (reaper de fila, migration 0025) e CONTRACT-001 (tipos TS gerados do OpenAPI com trava de drift) — ver `ROADMAP-MVP.md`.
+
+Segue aberto: migrations 0025/0026 e smokes ainda precisam rodar contra Postgres (Docker indisponível na máquina onde a remediação foi feita). Itens 7 (carga), 8 (LinkedIn), 9 (reconciliar ClickUp), 10 (assets), 13 (rollback de migration) permanecem.
+
 ## Adendo de produto e implementação — 2026-07-22
 
 A decisão ClickUp do adendo anterior foi superseded: a EG pretende encerrar o SaaS e o **Bioma passa a ser o system of record operacional**. A sincronização foi retirada das telas; o adapter fica somente para snapshot/reconciliação do legado antes de sua remoção.
