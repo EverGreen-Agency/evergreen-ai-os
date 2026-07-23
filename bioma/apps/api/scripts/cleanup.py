@@ -3,7 +3,8 @@
 Remove o que já não tem função e só acumula dado pessoal/técnico:
 - sessões expiradas ou revogadas há mais de 7 dias;
 - convites usados ou expirados há mais de 30 dias;
-- resets de senha usados ou expirados há mais de 30 dias.
+- resets de senha usados ou expirados há mais de 30 dias;
+- tentativas de login fora da janela do rate limit (SEC-003).
 
 Roda no boot da API (scripts/start.py) e pode ser executado manualmente:
     python scripts/cleanup.py
@@ -15,7 +16,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from bioma_api.config import get_settings  # noqa: E402
 from bioma_api.db import connect  # noqa: E402
+from bioma_api.repositories import rate_limit as rate_limit_repo  # noqa: E402
 
 
 def run_cleanup(conn) -> dict[str, int]:
@@ -43,7 +46,16 @@ def run_cleanup(conn) -> dict[str, int]:
         returning id
         """
     ).fetchall()
-    return {"sessions": len(sessions), "invites": len(invites), "password_resets": len(resets)}
+    # Guarda uma folga sobre a janela para não apagar tentativa ainda contável.
+    login_attempts = rate_limit_repo.purge_expired(
+        conn, get_settings().login_rate_limit_window_seconds * 2
+    )
+    return {
+        "sessions": len(sessions),
+        "invites": len(invites),
+        "password_resets": len(resets),
+        "login_attempts": login_attempts,
+    }
 
 
 def main() -> None:
