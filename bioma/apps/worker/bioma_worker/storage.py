@@ -167,6 +167,41 @@ def complete_ai_content(conn, request: dict, result: dict) -> None:
             request["id"],
         ),
     )
+    if result.get("generation_mode") == "live":
+        usage = result.get("usage") or {}
+        input_details = usage.get("input_tokens_details") or {}
+        conn.execute(
+            """
+            insert into ai_usage_events (
+              organization_id, workspace_id, user_id, provider, model, source,
+              external_event_id, input_units, output_units, cached_units, unit,
+              cost_cents, currency, metadata
+            )
+            values (%s, %s, %s, %s, %s, 'ai_content', %s, %s, %s, %s,
+              'tokens', null, 'USD', %s)
+            on conflict (organization_id, provider, external_event_id)
+              where external_event_id is not null
+            do update set metadata = ai_usage_events.metadata || excluded.metadata
+            """,
+            (
+                request["organization_id"],
+                request["workspace_id"],
+                request["requested_by"],
+                result["provider"],
+                result["model"],
+                result.get("response_id"),
+                usage.get("input_tokens"),
+                usage.get("output_tokens"),
+                input_details.get("cached_tokens"),
+                Jsonb(
+                    {
+                        "content_request_id": str(request["id"]),
+                        "usage": usage,
+                        "cost_status": "unknown_until_pricing_is_configured",
+                    }
+                ),
+            ),
+        )
     conn.execute(
         """
         insert into ai_runs (

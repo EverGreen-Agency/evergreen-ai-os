@@ -475,6 +475,898 @@
         "title": "AiContentRequestSummary",
         "type": "object"
       },
+      "AiCostTotal": {
+        "properties": {
+          "committed_monthly_cents": {
+            "title": "Committed Monthly Cents",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "measured_usage_cents": {
+            "title": "Measured Usage Cents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "currency",
+          "committed_monthly_cents",
+          "measured_usage_cents"
+        ],
+        "title": "AiCostTotal",
+        "type": "object"
+      },
+      "AiFinOpsDashboard": {
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "subscriptions": {
+            "items": {
+              "$ref": "#/components/schemas/AiSubscriptionSummary"
+            },
+            "title": "Subscriptions",
+            "type": "array"
+          },
+          "totals_by_currency": {
+            "items": {
+              "$ref": "#/components/schemas/AiCostTotal"
+            },
+            "title": "Totals By Currency",
+            "type": "array"
+          },
+          "usage_current_month": {
+            "items": {
+              "$ref": "#/components/schemas/AiUsageSummary"
+            },
+            "title": "Usage Current Month",
+            "type": "array"
+          }
+        },
+        "required": [
+          "subscriptions",
+          "totals_by_currency",
+          "usage_current_month",
+          "generated_at"
+        ],
+        "title": "AiFinOpsDashboard",
+        "type": "object"
+      },
+      "AiQuotaSnapshotCreate": {
+        "properties": {
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "source": {
+            "enum": [
+              "api",
+              "manual",
+              "configured",
+              "unavailable"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "total_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Units"
+          },
+          "unit": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          },
+          "used_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used Units"
+          }
+        },
+        "required": [
+          "unit",
+          "source"
+        ],
+        "title": "AiQuotaSnapshotCreate",
+        "type": "object"
+      },
+      "AiQuotaSnapshotSummary": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "measured_at": {
+            "format": "date-time",
+            "title": "Measured At",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "remaining_units": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Units"
+          },
+          "source": {
+            "enum": [
+              "api",
+              "manual",
+              "configured",
+              "unavailable"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "total_units": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Units"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "used_units": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used Units"
+          }
+        },
+        "required": [
+          "id",
+          "unit",
+          "source",
+          "measured_at"
+        ],
+        "title": "AiQuotaSnapshotSummary",
+        "type": "object"
+      },
+      "AiSubscriptionCreate": {
+        "properties": {
+          "amount_cents": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Amount Cents",
+            "type": "integer"
+          },
+          "billing_cycle": {
+            "default": "monthly",
+            "enum": [
+              "monthly",
+              "annual",
+              "custom"
+            ],
+            "title": "Billing Cycle",
+            "type": "string"
+          },
+          "billing_cycle_months": {
+            "default": 1,
+            "maximum": 120.0,
+            "minimum": 1.0,
+            "title": "Billing Cycle Months",
+            "type": "integer"
+          },
+          "billing_mode": {
+            "default": "subscription",
+            "enum": [
+              "subscription",
+              "api",
+              "hybrid"
+            ],
+            "title": "Billing Mode",
+            "type": "string"
+          },
+          "currency": {
+            "default": "BRL",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 3000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "owner_label": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Label"
+          },
+          "product_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Product Name",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "renews_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews At"
+          },
+          "seats": {
+            "default": 1,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Seats",
+            "type": "integer"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "paused",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "product_name"
+        ],
+        "title": "AiSubscriptionCreate",
+        "type": "object"
+      },
+      "AiSubscriptionSummary": {
+        "properties": {
+          "amount_cents": {
+            "title": "Amount Cents",
+            "type": "integer"
+          },
+          "billing_cycle": {
+            "enum": [
+              "monthly",
+              "annual",
+              "custom"
+            ],
+            "title": "Billing Cycle",
+            "type": "string"
+          },
+          "billing_cycle_months": {
+            "title": "Billing Cycle Months",
+            "type": "integer"
+          },
+          "billing_mode": {
+            "enum": [
+              "subscription",
+              "api",
+              "hybrid"
+            ],
+            "title": "Billing Mode",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "latest_quota": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiQuotaSnapshotSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "monthly_equivalent_cents": {
+            "title": "Monthly Equivalent Cents",
+            "type": "integer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "owner_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Label"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "renews_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews At"
+          },
+          "seats": {
+            "title": "Seats",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "product_name",
+          "billing_mode",
+          "billing_cycle",
+          "billing_cycle_months",
+          "amount_cents",
+          "monthly_equivalent_cents",
+          "currency",
+          "seats",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiSubscriptionSummary",
+        "type": "object"
+      },
+      "AiSubscriptionUpdate": {
+        "properties": {
+          "amount_cents": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Cents"
+          },
+          "billing_cycle": {
+            "anyOf": [
+              {
+                "enum": [
+                  "monthly",
+                  "annual",
+                  "custom"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Billing Cycle"
+          },
+          "billing_cycle_months": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Billing Cycle Months"
+          },
+          "billing_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "subscription",
+                  "api",
+                  "hybrid"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Billing Mode"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 3000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "owner_label": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Label"
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "renews_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews At"
+          },
+          "seats": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seats"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "paused",
+                  "cancelled"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "AiSubscriptionUpdate",
+        "type": "object"
+      },
+      "AiUsageEventCreate": {
+        "properties": {
+          "cached_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Units"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "currency": {
+            "default": "USD",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "type": "string"
+          },
+          "external_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Event Id"
+          },
+          "input_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Units"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "output_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Units"
+          },
+          "provider": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "source": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          },
+          "unit": {
+            "default": "tokens",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          },
+          "workflow_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Run Id"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "provider",
+          "source"
+        ],
+        "title": "AiUsageEventCreate",
+        "type": "object"
+      },
+      "AiUsageSummary": {
+        "properties": {
+          "cached_units": {
+            "title": "Cached Units",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "events": {
+            "title": "Events",
+            "type": "integer"
+          },
+          "input_units": {
+            "title": "Input Units",
+            "type": "integer"
+          },
+          "known_cost_cents": {
+            "title": "Known Cost Cents",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output_units": {
+            "title": "Output Units",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "unknown_cost_events": {
+            "title": "Unknown Cost Events",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "provider",
+          "source",
+          "events",
+          "input_units",
+          "output_units",
+          "cached_units",
+          "known_cost_cents",
+          "unknown_cost_events",
+          "currency"
+        ],
+        "title": "AiUsageSummary",
+        "type": "object"
+      },
       "ApprovalCreateRequest": {
         "properties": {
           "comment": {
@@ -8342,6 +9234,607 @@
         "title": "WikiDocumentUpdate",
         "type": "object"
       },
+      "WorkflowDefinitionSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "active",
+              "retired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDefinition"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "version",
+          "description",
+          "source_ref",
+          "input_schema",
+          "steps",
+          "id",
+          "status",
+          "created_at"
+        ],
+        "title": "WorkflowDefinitionSummary",
+        "type": "object"
+      },
+      "WorkflowRunCreate": {
+        "properties": {
+          "currency": {
+            "default": "BRL",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "type": "string"
+          },
+          "definition_id": {
+            "format": "uuid",
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "estimated_cost_cents": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Cents"
+          },
+          "idempotency_key": {
+            "maxLength": 160,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": true,
+            "title": "Input",
+            "type": "object"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "definition_id",
+          "idempotency_key"
+        ],
+        "title": "WorkflowRunCreate",
+        "type": "object"
+      },
+      "WorkflowRunSummary": {
+        "properties": {
+          "actual_cost_cents": {
+            "title": "Actual Cost Cents",
+            "type": "integer"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "current_step_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Step Key"
+          },
+          "definition_id": {
+            "format": "uuid",
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "definition_name": {
+            "title": "Definition Name",
+            "type": "string"
+          },
+          "definition_slug": {
+            "title": "Definition Slug",
+            "type": "string"
+          },
+          "definition_version": {
+            "title": "Definition Version",
+            "type": "integer"
+          },
+          "estimated_cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Cents"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": true,
+            "title": "Input",
+            "type": "object"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "pending_approval",
+              "ready",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepRunSummary"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "definition_id",
+          "definition_slug",
+          "definition_name",
+          "definition_version",
+          "status",
+          "idempotency_key",
+          "input",
+          "actual_cost_cents",
+          "currency",
+          "created_at",
+          "steps"
+        ],
+        "title": "WorkflowRunSummary",
+        "type": "object"
+      },
+      "WorkflowStepComplete": {
+        "properties": {
+          "cached_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Units"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "currency": {
+            "default": "USD",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "type": "string"
+          },
+          "external_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Event Id"
+          },
+          "input_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Units"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output": {
+            "additionalProperties": true,
+            "title": "Output",
+            "type": "object"
+          },
+          "output_units": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Units"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          }
+        },
+        "title": "WorkflowStepComplete",
+        "type": "object"
+      },
+      "WorkflowStepDefinition": {
+        "properties": {
+          "capability": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "interactive": {
+            "default": false,
+            "title": "Interactive",
+            "type": "boolean"
+          },
+          "key": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,79}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "description"
+        ],
+        "title": "WorkflowStepDefinition",
+        "type": "object"
+      },
+      "WorkflowStepRunSummary": {
+        "properties": {
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "interactive": {
+            "title": "Interactive",
+            "type": "boolean"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "waiting_approval",
+              "completed",
+              "failed",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "step_key": {
+            "title": "Step Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "step_key",
+          "position",
+          "name",
+          "interactive",
+          "status"
+        ],
+        "title": "WorkflowStepRunSummary",
+        "type": "object"
+      },
+      "WorkflowTemplateSummary": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDefinition"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "version",
+          "description",
+          "source_ref",
+          "input_schema",
+          "steps"
+        ],
+        "title": "WorkflowTemplateSummary",
+        "type": "object"
+      },
       "WorkspaceAssignmentSummary": {
         "properties": {
           "assignee_email": {
@@ -9376,6 +10869,480 @@
         "summary": "Confirm Reset",
         "tags": [
           "passwords"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/finops": {
+      "get": {
+        "operationId": "get_finops_backoffice_ai_operations_finops_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFinOpsDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Finops",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/subscriptions": {
+      "post": {
+        "operationId": "create_subscription_backoffice_ai_operations_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSubscriptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFinOpsDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Subscription",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/subscriptions/{subscription_id}": {
+      "patch": {
+        "operationId": "update_subscription_backoffice_ai_operations_subscriptions__subscription_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subscription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSubscriptionUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFinOpsDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Subscription",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/subscriptions/{subscription_id}/quota": {
+      "post": {
+        "operationId": "record_quota_backoffice_ai_operations_subscriptions__subscription_id__quota_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subscription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiQuotaSnapshotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFinOpsDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Quota",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/usage": {
+      "post": {
+        "operationId": "record_usage_backoffice_ai_operations_usage_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiUsageEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFinOpsDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Usage",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-definitions": {
+      "get": {
+        "operationId": "list_workflow_definitions_backoffice_ai_operations_workflow_definitions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowDefinitionSummary"
+                  },
+                  "title": "Response List Workflow Definitions Backoffice Ai Operations Workflow Definitions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Workflow Definitions",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-runs": {
+      "get": {
+        "operationId": "list_workflow_runs_backoffice_ai_operations_workflow_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowRunSummary"
+                  },
+                  "title": "Response List Workflow Runs Backoffice Ai Operations Workflow Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Workflow Runs",
+        "tags": [
+          "ai-operations"
+        ]
+      },
+      "post": {
+        "operationId": "create_workflow_run_backoffice_ai_operations_workflow_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowRunCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Workflow Run",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-runs/{run_id}/approve": {
+      "post": {
+        "operationId": "approve_workflow_run_backoffice_ai_operations_workflow_runs__run_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Workflow Run",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-runs/{run_id}/steps/{step_key}/complete": {
+      "post": {
+        "operationId": "complete_workflow_step_backoffice_ai_operations_workflow_runs__run_id__steps__step_key__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "step_key",
+            "required": true,
+            "schema": {
+              "title": "Step Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowStepComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Workflow Step",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-templates": {
+      "get": {
+        "operationId": "list_workflow_templates_backoffice_ai_operations_workflow_templates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowTemplateSummary"
+                  },
+                  "title": "Response List Workflow Templates Backoffice Ai Operations Workflow Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Workflow Templates",
+        "tags": [
+          "ai-operations"
+        ]
+      }
+    },
+    "/backoffice/ai-operations/workflow-templates/{slug}/install": {
+      "post": {
+        "operationId": "install_workflow_template_backoffice_ai_operations_workflow_templates__slug__install_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowDefinitionSummary"
+                  },
+                  "title": "Response Install Workflow Template Backoffice Ai Operations Workflow Templates  Slug  Install Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Install Workflow Template",
+        "tags": [
+          "ai-operations"
         ]
       }
     },
