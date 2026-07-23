@@ -231,6 +231,16 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 
 Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 
+### P1.4 - Operações e FinOps de IA
+
+- [x] Criar catálogo interno versionado para proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
+- [x] Persistir definições, execuções idempotentes, etapas ordenadas, custos e checkpoints HITL.
+- [x] Criar dashboard financeiro EG para assinaturas/API, equivalência mensal em centavos e renovação.
+- [x] Registrar cotas com origem explícita (`api`, `manual`, `configured`, `unavailable`) e nunca estimar saldo a partir de login/subscrição.
+- [x] Registrar automaticamente tokens do Estúdio IA no ledger; custo permanece desconhecido até existir preço confiável.
+- [ ] Conectar adapters de execução aos workflows; qualquer escrita externa continua bloqueada por HITL e idempotência.
+- [ ] Adicionar tabelas de preço versionadas por provedor/modelo e conversão cambial auditada.
+
 - [x] Portar tabelas diárias de Google Ads, GA4 e Search Console para o Postgres do Bioma.
 - [x] Portar snapshots e auditoria de Google Tag Manager.
 - [x] Unificar logs de sincronização em `sync_runs`.
@@ -460,3 +470,4 @@ Formato:
 - 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
 - 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
 - 2026-07-23 - Claude Code (Opus 4.8) - ver git log - Hardening blocos 1 e 2: (1) deduplicação de acesso — `_is_platform_admin`/`_accessible_client` removidos de client_hub/files/performance/invites e colapsados em `access.resolve_accessible_client`, fonte única do isolamento multi-tenant; (2) QUEUE-001 reaper — migration 0025 (`heartbeat_at`/`attempts`), `reclaim_stalled_jobs` no início do ciclo do worker, heartbeat entre providers, lease 900s/3 tentativas; (3) rate limit em Postgres — migration 0026 (`login_attempts`, chave `sha256(ip:email)`), registro fora da transação do 401, purga no `cleanup.py`; (4) CONTRACT-001 — `export_openapi.py` gera `openapi.json` versionado, `npm run types:api` gera `api-schema.d.ts`, `contract-conformance.ts` trava drift em compile, CI valida os dois lados; (5) suíte pytest `apps/api/tests/` (58 testes sem banco) + job `api-unit` na CI. Placeholder de contrato removido - compileall API/worker, pytest 58/58, export_openapi --check, tsc -b e build web passaram; drift injetado/revertido para provar a trava - migrations 0025/0026 aplicadas e suíte de smokes (api, performance, worker, queue, vault, reaper, invites, authz, tasks, password) executada contra Postgres local em localhost:5433, com banco isolado `bioma_smoke` para os mutáveis; todos passaram.
+- 2026-07-23 - Codex - ver git log - AI-OPS-001/FINOPS-AI-001: control plane interno com quatro workflows versionados (proposta, onboarding Bioma, LinkedIn e entrega Tech), execução idempotente e checkpoints HITL; dashboard EG de assinaturas, cotas com fonte, consumo por provedor/modelo e ledger automático do Estúdio IA - migration 0029 aplicada apenas em `bioma_aiops_smoke`, smoke completo passou e o banco temporário foi removido; compile API/worker, pytest completo, contrato OpenAPI/tipos, tsc, build web, npm audit (0 vulnerabilidades) e diff-check passaram.

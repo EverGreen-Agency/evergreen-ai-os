@@ -69,6 +69,8 @@ Preferências do navegador ficam em `workspace_favorites` e `workspace_saved_vie
 
 O Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
 
+`/backoffice/ai-operations` é exclusivo de EG admin e oferece FinOps de IA, catálogo/instalação de workflows, runs idempotentes, aprovação e conclusão ordenada de etapas. A migration `0029_ai_operations_finops.sql` não inclui seed. O smoke `scripts/smoke_ai_operations.py` valida assinatura, cota, ledger, idempotência e HITL apenas em banco `_smoke`/`_test`.
+
 O Bioma é o system of record da execução. O importador legado classifica listas ClickUp como `social`, `growth`, `tech` ou `general` e preserva IDs externos para reconciliação. Tarefas importadas continuam somente leitura para não reescrever o histórico; trabalho novo é nativo do Bioma.
 
 `smoke_clickup.py` valida o cliente ClickUp com `httpx.MockTransport`, sem chamar a API real.

@@ -81,6 +81,8 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | PROJECT-GH-001 | DONE | Full-stack | Ligar projetos Tech em leitura a repositório, issues, PRs e commits sem perder o Bioma como fonte canônica | PROJECT-001 | migration 0028 + adapter mockado sem rede + compile/OpenAPI + tsc/build |
 | PROJECT-GH-002 | TODO | Full-stack | Escrita GitHub idempotente e auditada com confirmação HITL | PROJECT-GH-001 | teste de replay, BOLA e confirmação explícita |
 | AI-METHOD-001 | TODO | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | fixtures + revisão humana + tsc/build |
+| AI-OPS-001 | DONE | Full-stack | Control plane interno com templates versionados, execução idempotente, etapas ordenadas e checkpoints HITL | AI-CONTENT-001 | pytest + smoke isolado + contrato + tsc/build |
+| FINOPS-AI-001 | DONE | Full-stack | Dashboard EG de assinaturas, custos, uso e cotas observadas de IA, sem inferir saldo indisponível | AI-OPS-001 | migration 0029 + smoke isolado + npm audit |
 
 ### Onda 2 — Integrações reais e migração legada
 

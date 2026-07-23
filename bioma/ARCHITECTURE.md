@@ -22,6 +22,10 @@ feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
 
 O domínio `ai_content` persiste ativações por workspace e não publica conteúdo automaticamente. A API apenas enfileira; o worker escolhe o job mais antigo entre Performance e IA, registra execução em `ai_runs` e produz saída estruturada. Sem credencial externa, o modo local é explicitamente `preview`; com `OPENAI_API_KEY`, o adapter usa a Responses API com JSON Schema estrito.
 
+O domínio interno `ai_operations` é o control plane dos fluxos da EG. Templates em código são instalados como definições versionadas; cada execução usa chave de idempotência, materializa etapas em ordem e volta a `pending_approval` nos checkpoints interativos. Completar uma etapa pode registrar uso/custo, mas o motor não executa escrita externa nem pula HITL. Os primeiros fluxos são proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
+
+FinOps de IA separa três fatos: `ai_provider_subscriptions` representa compromisso financeiro; `ai_usage_events` representa consumo observado; `ai_quota_snapshots` representa uma medição de capacidade com origem declarada. Valores financeiros usam centavos. Moedas não são somadas entre si e uma execução não aceita custo de etapa em moeda diferente. Autenticação em Codex, Claude ou AntiGravity não é tratada como API de quota: sem dado oficial/configurado, o saldo permanece desconhecido.
+
 ## Modelo de produto e tenancy
 
 O destino canônico é:

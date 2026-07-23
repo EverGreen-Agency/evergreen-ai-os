@@ -114,6 +114,15 @@ Railway lançou **Railway Buckets**: object storage S3-compatible nativo, isolad
 12. Suíte de testes automatizada (pytest no backend, ao menos testes de componente no frontend).
 13. Documentar procedimento de rollback de migration.
 
+## Adendo de implementação — 2026-07-23 (AI Ops e FinOps)
+
+- **AI-OPS-001:** migration 0029 e módulo `ai_operations` criam definições versionadas, runs idempotentes, etapas ordenadas e checkpoints HITL. Templates iniciais: proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
+- **FINOPS-AI-001:** custos internos foram separados em assinatura, consumo observado e snapshot de cota. Valores usam centavos; moedas permanecem separadas; origem de cota é obrigatória e saldo desconhecido não vira zero.
+- **Medição automática:** geração real do Estúdio IA grava tokens no ledger. Se não houver tabela de preço confiável, o evento fica marcado como custo desconhecido.
+- **Isolamento:** endpoints vivem em `/backoffice/ai-operations` e exigem EG admin. A tela só consulta FinOps na Operação EG.
+- **Validação:** todas as migrations e o smoke `smoke_ai_operations.py` passaram em `bioma_aiops_smoke`, removido depois; pytest completo, OpenAPI/tipos, `tsc -b`, build, compile API/worker, `npm audit --omit=dev` (0 vulnerabilidades) e `git diff --check` passaram.
+- **Ainda aberto:** adapters executores, tabela de preços por modelo, câmbio auditado e captura automática de quotas só podem ser ligados quando cada provedor oferecer uma fonte oficial/contratual confiável.
+
 ## Metodologia
 
 Revisão manual completa do código do backend (routers/services/repositories/schemas) e frontend (App, views, componentes, lib) já lidos integralmente durante o desenvolvimento desta sessão, cruzada com `ROADMAP-MVP.md`, `EXECUCAO-MVP.md`, `DEPLOY.md` e investigação ao vivo de Vercel (API + CLI) e GitHub Deployments API para Railway. Não rodei `/simplify` ou `/security-review` como skills automatizadas porque elas aplicam mudanças de código automaticamente no diff atual — preferi entregar primeiro a avaliação para vocês decidirem o que priorizar. Posso rodar qualquer uma das duas à parte se quiser um passe automatizado.

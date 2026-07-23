@@ -177,6 +177,12 @@ npm run build
 
 Os smokes de workspace, tarefas, projetos e cofre criam organizações/workspaces efêmeros próprios; não dependem do cliente HM presente no seed. O Bioma é o system of record da execução. O importador ClickUp fica temporariamente apenas para reconciliar o legado; itens importados preservam IDs externos e permanecem somente leitura até serem convertidos em registros nativos. Não há sync ClickUp na interface nem escrita externa.
 
+## Operações e custos de IA
+
+A Operação EG possui um control plane para instalar workflows versionados e solicitar execuções com idempotência, etapas ordenadas e aprovação humana. O dashboard Financeiro da EG também controla assinaturas/API, custos mensais equivalentes, cotas observadas e consumo por provedor/modelo. Cotas sem fonte oficial ou configuração explícita aparecem como desconhecidas; o produto não deduz saldo da sessão autenticada.
+
+O smoke `apps/api/scripts/smoke_ai_operations.py` recusa bancos que não terminem em `_smoke` ou `_test`.
+
 Projetos conectam contrato versionado, itens de escopo, fases, entregas e aceite. Em projetos Tech, proposta e especificação podem ser vinculadas por URL e o cliente acompanha atualizações de progresso, bloqueio, testes e release — inclusive quando um dia foi gasto somente depurando um problema. A área Acessos substitui planilhas: conta/plataforma, usuário, e-mail, senha, outra forma de acesso e link. E-mail, usuário, senha e outro método são cifrados antes do banco; listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` somente contra banco de teste isolado e migrado.
 
 Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes em leitura usando `GITHUB_API_TOKEN`; nenhuma escrita externa é executada por essa integração.

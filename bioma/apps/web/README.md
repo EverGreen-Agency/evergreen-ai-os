@@ -36,6 +36,8 @@ Administradores EG configuram times, membros já habilitados e distribuição de
 
 Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
+Na Operação EG, `/operacao/ia` instala e solicita workflows versionados; execuções ficam visíveis com etapas e checkpoints HITL. `/operacao/financeiro` inclui FinOps de IA: assinaturas, equivalência mensal, cotas com fonte declarada e consumo observado. Esses blocos não são consultados nem renderizados em hubs de cliente.
+
 Tarefas importadas do ClickUp aparecem apenas como legado somente leitura. Edição, subtarefas, dependências, recorrência e exclusão ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A sincronização ClickUp foi removida das superfícies do produto.
 
 O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, fases, entregas, conclusão e ritmo; em Tech também há links de proposta/especificação, atualizações de progresso, bloqueio, teste ou release e atividade GitHub em leitura (issues, PRs e commits). Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, com os campos operacionais da planilha (plataforma, conta, usuário, e-mail, senha, outro acesso e link) sem incluir segredo nas listagens.
