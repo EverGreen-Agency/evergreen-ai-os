@@ -80,6 +80,27 @@ def main() -> None:
     assert_status(admin.delete(f"/backoffice/wiki/documents/{document_id}"), 204, "excluir documento")
     assert_status(admin.get(f"/backoffice/wiki/documents/{document_id}"), 404, "documento removido")
 
+    # Importar manuais core do monorepo. No dev/CI o diretório existe; idempotente.
+    core = admin.post("/backoffice/wiki/import-core")
+    assert_status(core, 200, "importar manuais core")
+    core_body = core.json()
+    assert core_body["available"], "diretório de manuais core não encontrado no ambiente do smoke"
+    assert len(core_body["imported"]) + len(core_body["skipped"]) >= 3, "poucos manuais core detectados"
+
+    # Rodar de novo não deve importar nada (idempotência por título).
+    again = admin.post("/backoffice/wiki/import-core").json()
+    assert again["imported"] == [], f"segunda importação deveria ser vazia, veio {again['imported']}"
+
+    # Cliente comum não importa.
+    assert_status(client_user.post("/backoffice/wiki/import-core"), 403, "cliente bloqueado no import core")
+
+    # Self-clean: remove só o que esta rodada importou, pelo título.
+    imported_titles = set(core_body["imported"])
+    if imported_titles:
+        for row in admin.get("/backoffice/wiki/documents").json():
+            if row["title"] in imported_titles:
+                admin.delete(f"/backoffice/wiki/documents/{row['id']}")
+
     print("wiki smoke ok")
 
 

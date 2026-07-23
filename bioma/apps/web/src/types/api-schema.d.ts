@@ -502,6 +502,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/wiki/import-core": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Core Documents */
+        post: operations["import_core_documents_backoffice_wiki_import_core_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/benchmark/settings": {
         parameters: {
             query?: never;
@@ -5235,6 +5252,15 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** WikiImportResult */
+        WikiImportResult: {
+            /** Available */
+            available: boolean;
+            /** Imported */
+            imported: string[];
+            /** Skipped */
+            skipped: string[];
+        };
         /** WorkspaceAssignmentSummary */
         WorkspaceAssignmentSummary: {
             /** Assignee Email */
@@ -6374,6 +6400,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_core_documents_backoffice_wiki_import_core_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiImportResult"];
                 };
             };
         };

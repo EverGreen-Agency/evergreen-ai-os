@@ -6,6 +6,7 @@ tamanho, URL assinada de curta duração, limpeza no S3 antes do banco).
 """
 
 import re
+from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile, status
@@ -23,6 +24,7 @@ from bioma_api.schemas.wiki import (
     WikiDocumentDetail,
     WikiDocumentSummary,
     WikiDocumentUpdate,
+    WikiImportResult,
 )
 from bioma_api.services import storage
 from bioma_api.services.storage import StorageNotConfiguredError, StorageOperationError
@@ -41,6 +43,57 @@ def _tenant_id(conn, user: CurrentUserResponse) -> UUID:
 def _safe_filename(file_name: str) -> str:
     normalized = re.sub(r"[^A-Za-z0-9._-]+", "-", file_name).strip("-")
     return normalized or "arquivo"
+
+
+def _knowledge_dir() -> Path | None:
+    """Diretório dos manuais core no monorepo (`_opensquad/_memory/knowledge`).
+
+    Sobe a partir deste arquivo até achar `_opensquad/` (não depende do CWD).
+    Em produção (Railway), onde o monorepo não existe, retorna None e o import
+    responde `available=False` — é um recurso do ambiente de dev EG.
+    """
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "_opensquad" / "_memory" / "knowledge"
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
+def _categorize(name: str) -> str:
+    lower = name.lower()
+    if any(token in lower for token in ("comercial", "raio-x", "vendas")):
+        return "comercial"
+    if any(token in lower for token in ("_rh_", " rh ", "pessoas", "recrutamento")):
+        return "rh"
+    if "mestre" in lower:
+        return "geral"
+    return "operacao"
+
+
+def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
+    """Importa os manuais markdown de `_opensquad/_memory/knowledge` para o Wiki.
+
+    Idempotente por título: rodar de novo pula os que já existem. Só .md/.markdown
+    (binários como o Manual de Marca em PDF ficam de fora — viram anexo depois).
+    """
+    require_platform_admin(user)
+    directory = _knowledge_dir()
+    if directory is None:
+        return WikiImportResult(imported=[], skipped=[], available=False)
+
+    imported: list[str] = []
+    skipped: list[str] = []
+    with connect() as conn:
+        tenant_id = _tenant_id(conn, user)
+        for path in sorted(directory.glob("*.md")) + sorted(directory.glob("*.markdown")):
+            title = path.stem
+            if wiki_repo.title_exists(conn, tenant_id, title):
+                skipped.append(title)
+                continue
+            content = path.read_text(encoding="utf-8", errors="replace")
+            wiki_repo.create_document(conn, tenant_id, user.id, _categorize(path.name), title, content)
+            imported.append(title)
+    return WikiImportResult(imported=imported, skipped=skipped, available=True)
 
 
 def list_documents(user: CurrentUserResponse) -> list[WikiDocumentSummary]:

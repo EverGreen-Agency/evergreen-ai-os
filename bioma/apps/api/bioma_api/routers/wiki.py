@@ -13,6 +13,7 @@ from bioma_api.schemas.wiki import (
     WikiDocumentDetail,
     WikiDocumentSummary,
     WikiDocumentUpdate,
+    WikiImportResult,
 )
 from bioma_api.services import wiki as wiki_service
 
@@ -22,6 +23,11 @@ router = APIRouter(prefix="/backoffice/wiki", tags=["wiki"])
 @router.get("/documents", response_model=list[WikiDocumentSummary])
 def list_documents(user: CurrentUserResponse = Depends(current_user_from_request)):
     return wiki_service.list_documents(user)
+
+
+@router.post("/import-core", response_model=WikiImportResult)
+def import_core_documents(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return wiki_service.import_core_documents(user)
 
 
 @router.post("/documents", response_model=WikiDocumentDetail, status_code=status.HTTP_201_CREATED)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Plus, Upload, Save, Trash2, Paperclip, Download, X, FileText } from "lucide-react";
+import { BookOpen, Plus, Upload, Save, Trash2, Paperclip, Download, X, FileText, DownloadCloud } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -36,6 +36,7 @@ export function WikiEgView() {
   });
   const [busy, setBusy] = useState(false);
   const [attachmentNote, setAttachmentNote] = useState<string | null>(null);
+  const [coreNote, setCoreNote] = useState<string | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
   const attachInput = useRef<HTMLInputElement>(null);
 
@@ -72,6 +73,26 @@ export function WikiEgView() {
     setEditing(true);
     setAttachmentNote(null);
     setDraft({ title: "", category, content: "" });
+  };
+
+  const handleImportCore = async () => {
+    setBusy(true);
+    setCoreNote(null);
+    try {
+      const result = await api.importCoreWikiDocuments();
+      if (!result.available) {
+        setCoreNote("Os manuais core só estão disponíveis no ambiente de desenvolvimento EG (monorepo).");
+      } else if (result.imported.length === 0) {
+        setCoreNote(`Nada novo: ${result.skipped.length} manual(is) já estavam no Wiki.`);
+      } else {
+        setCoreNote(`Importados ${result.imported.length} manual(is): ${result.imported.join(", ")}.`);
+        await loadDocuments();
+      }
+    } catch (err) {
+      setCoreNote(err instanceof Error ? err.message : "Falha ao importar os manuais core.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleImport = async (file: File) => {
@@ -189,7 +210,10 @@ export function WikiEgView() {
                 </p>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="ghost-button" type="button" onClick={handleImportCore} disabled={busy} title="Importa os manuais core do monorepo (Documento-Mestre, Manuais Operacionais, Playbooks)">
+                <DownloadCloud size={16} /> Importar manuais core
+              </button>
               <button className="ghost-button" type="button" onClick={() => importInput.current?.click()} disabled={busy}>
                 <Upload size={16} /> Importar .md
               </button>
@@ -210,6 +234,7 @@ export function WikiEgView() {
             </div>
           </div>
           {error && <p style={{ color: "var(--danger, #e5484d)", marginBottom: 0 }}>{error}</p>}
+          {coreNote && <p style={{ color: "var(--text-muted)", marginBottom: 0, fontSize: "0.84rem" }}>{coreNote}</p>}
         </article>
 
         {loading && <EmptyState text="Carregando Wiki..." />}
