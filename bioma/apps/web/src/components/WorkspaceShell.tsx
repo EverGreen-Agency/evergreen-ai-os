@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export type WorkspaceShellItem = {
   id: string;
@@ -11,35 +10,22 @@ export type WorkspaceShellItem = {
   end?: boolean;
 };
 
+// A identidade do workspace e a troca de contexto vivem no Topbar
+// (WorkspaceNavigator). Esta barra mostra apenas os módulos do contexto atual,
+// para não duplicar o nome do workspace nem repetir um "voltar" que o próprio
+// navegador do Topbar já resolve.
 export function WorkspaceShell({
-  eyebrow,
   title,
-  icon: Icon,
-  backTo,
-  backLabel,
   items,
   children,
 }: {
-  eyebrow: string;
   title: string;
-  icon: LucideIcon;
-  backTo: string;
-  backLabel: string;
   items: WorkspaceShellItem[];
   children: ReactNode;
 }) {
-  const navigate = useNavigate();
-
   return (
     <section className="workspace-shell">
       <header className="workspace-context-bar">
-        <button className="icon-button" type="button" onClick={() => navigate(backTo)} aria-label={backLabel}>
-          <ArrowLeft size={18} />
-        </button>
-        <div className="workspace-context-title">
-          <span><Icon size={14} /> {eyebrow}</span>
-          <strong>{title}</strong>
-        </div>
         <nav className="workspace-context-nav" aria-label={`Módulos de ${title}`}>
           {items.map((item) => {
             const ItemIcon = item.icon;

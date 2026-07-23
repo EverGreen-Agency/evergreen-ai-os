@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BarChart3, BriefcaseBusiness, Users, WalletCards } from "lucide-react";
+import { BarChart3, Users, WalletCards } from "lucide-react";
 import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
@@ -59,14 +59,7 @@ export function AgencyWorkspaceView() {
   }));
 
   return (
-    <WorkspaceShell
-      eyebrow="Workspace da agência"
-      title={workspace.name}
-      icon={BriefcaseBusiness}
-      backTo="/"
-      backLabel="Voltar ao Cockpit"
-      items={items}
-    >
+    <WorkspaceShell title={workspace.name} items={items}>
       <Outlet context={{ workspace } satisfies AgencyWorkspaceOutletContext} />
     </WorkspaceShell>
   );
