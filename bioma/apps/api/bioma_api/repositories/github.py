@@ -38,6 +38,28 @@ def upsert_connection(conn, project_id: UUID, user_id: UUID, payload: dict[str, 
     ).fetchone()
 
 
+def find_deliverable_for_issue(conn, deliverable_id: UUID):
+    return conn.execute(
+        """
+        select id, title, project_id, github_issue_number, github_issue_url
+        from deliverables
+        where id = %s
+        """,
+        (deliverable_id,),
+    ).fetchone()
+
+
+def record_deliverable_issue(conn, deliverable_id: UUID, issue_number: int, issue_url: str) -> None:
+    conn.execute(
+        """
+        update deliverables
+        set github_issue_number = %s, github_issue_url = %s, updated_at = now()
+        where id = %s
+        """,
+        (issue_number, issue_url, deliverable_id),
+    )
+
+
 def write_audit(conn, actor_user_id: UUID, organization_id: UUID, event_type: str, metadata: dict[str, Any]):
     conn.execute(
         "insert into audit_logs (actor_user_id, organization_id, event_type, metadata) values (%s, %s, %s, %s)",

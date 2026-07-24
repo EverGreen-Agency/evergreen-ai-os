@@ -3426,6 +3426,60 @@
         "title": "GitHubConnectionSummary",
         "type": "object"
       },
+      "GitHubIssueCreateRequest": {
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "confirm": {
+            "description": "Confirmação explícita e obrigatória: cria uma issue real e pública no repositório GitHub.",
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "GitHubIssueCreateRequest",
+        "type": "object"
+      },
+      "GitHubIssueLinkSummary": {
+        "properties": {
+          "deliverable_id": {
+            "format": "uuid",
+            "title": "Deliverable Id",
+            "type": "string"
+          },
+          "issue_number": {
+            "title": "Issue Number",
+            "type": "integer"
+          },
+          "issue_url": {
+            "title": "Issue Url",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "deliverable_id",
+          "repository",
+          "issue_number",
+          "issue_url"
+        ],
+        "title": "GitHubIssueLinkSummary",
+        "type": "object"
+      },
       "GitHubIssueSummary": {
         "properties": {
           "labels": {
@@ -14589,6 +14643,59 @@
         "summary": "Readiness",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/integrations/github/deliverables/{deliverable_id}/issue": {
+      "post": {
+        "operationId": "create_github_issue_integrations_github_deliverables__deliverable_id__issue_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deliverable_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deliverable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubIssueCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubIssueLinkSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Github Issue",
+        "tags": [
+          "integrations"
         ]
       }
     },

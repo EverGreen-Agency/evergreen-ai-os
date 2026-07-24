@@ -65,3 +65,24 @@ class GitHubProjectActivity(BaseModel):
     issues: list[GitHubIssueSummary]
     pull_requests: list[GitHubPullRequestSummary]
     commits: list[GitHubCommitSummary]
+
+
+class GitHubIssueCreateRequest(BaseModel):
+    body: str | None = None
+    confirm: bool = Field(
+        description="Confirmação explícita e obrigatória: cria uma issue real e pública no repositório GitHub.",
+    )
+
+    @field_validator("confirm")
+    @classmethod
+    def must_confirm(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("Confirmação explícita obrigatória (confirm=true) para escrever no GitHub.")
+        return value
+
+
+class GitHubIssueLinkSummary(BaseModel):
+    deliverable_id: UUID
+    repository: str
+    issue_number: int
+    issue_url: str

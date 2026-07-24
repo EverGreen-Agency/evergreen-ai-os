@@ -7,6 +7,10 @@ class GitHubReadError(RuntimeError):
     pass
 
 
+class GitHubWriteError(RuntimeError):
+    pass
+
+
 class GitHubClient:
     def __init__(self, token: str, base_url: str = "https://api.github.com", http_client: httpx.Client | None = None):
         self._owns_client = http_client is None
@@ -35,6 +39,16 @@ class GitHubClient:
             "pull_requests": [self._pull(item) for item in pulls],
             "commits": [self._commit(item) for item in commits],
         }
+
+    def create_issue(self, owner: str, repository: str, title: str, body: str | None) -> dict:
+        path = f"/repos/{owner}/{repository}/issues"
+        try:
+            response = self._client.post(path, json={"title": title, "body": body or ""})
+            response.raise_for_status()
+            payload = response.json()
+        except (httpx.HTTPError, ValueError) as exc:
+            raise GitHubWriteError("Não foi possível criar a issue no GitHub.") from exc
+        return {"number": payload["number"], "url": payload["html_url"]}
 
     def _get(self, path: str, params: dict) -> list[dict]:
         try:

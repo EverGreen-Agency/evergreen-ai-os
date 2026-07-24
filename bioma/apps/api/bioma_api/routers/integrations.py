@@ -13,7 +13,13 @@ from bioma_api.access import require_platform_admin
 from bioma_api.auth import current_user_from_request
 from bioma_api.config import get_settings
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.github import GitHubConnectionInput, GitHubConnectionSummary, GitHubProjectActivity
+from bioma_api.schemas.github import (
+    GitHubConnectionInput,
+    GitHubConnectionSummary,
+    GitHubIssueCreateRequest,
+    GitHubIssueLinkSummary,
+    GitHubProjectActivity,
+)
 from bioma_api.services import github as github_service
 from bioma_api.services import kommo as kommo_service
 
@@ -100,3 +106,12 @@ def get_github_activity(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> GitHubProjectActivity:
     return github_service.get_activity(project_id, user, limit)
+
+
+@router.post("/github/deliverables/{deliverable_id}/issue", response_model=GitHubIssueLinkSummary)
+def create_github_issue(
+    deliverable_id: UUID,
+    payload: GitHubIssueCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> GitHubIssueLinkSummary:
+    return github_service.create_issue_from_deliverable(deliverable_id, payload, user)

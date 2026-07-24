@@ -1300,6 +1300,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/github/deliverables/{deliverable_id}/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Github Issue */
+        post: operations["create_github_issue_integrations_github_deliverables__deliverable_id__issue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/github/projects/{project_id}": {
         parameters: {
             query?: never;
@@ -3544,6 +3561,30 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** GitHubIssueCreateRequest */
+        GitHubIssueCreateRequest: {
+            /** Body */
+            body?: string | null;
+            /**
+             * Confirm
+             * @description Confirmação explícita e obrigatória: cria uma issue real e pública no repositório GitHub.
+             */
+            confirm: boolean;
+        };
+        /** GitHubIssueLinkSummary */
+        GitHubIssueLinkSummary: {
+            /**
+             * Deliverable Id
+             * Format: uuid
+             */
+            deliverable_id: string;
+            /** Issue Number */
+            issue_number: number;
+            /** Issue Url */
+            issue_url: string;
+            /** Repository */
+            repository: string;
         };
         /** GitHubIssueSummary */
         GitHubIssueSummary: {
@@ -8968,6 +9009,41 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    create_github_issue_integrations_github_deliverables__deliverable_id__issue_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deliverable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubIssueCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubIssueLinkSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
