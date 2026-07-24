@@ -447,6 +447,12 @@ export type WikiAttachmentDownload = {
   file_name: string;
 };
 
+export type WikiImportResult = {
+  imported: string[];
+  skipped: string[];
+  available: boolean;
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -1470,6 +1476,8 @@ export const api = {
 
   // Wiki EG (base de conhecimento interna; só EG admin)
   wikiDocuments: () => request<WikiDocumentSummary[]>("/backoffice/wiki/documents"),
+  importCoreWikiDocuments: () =>
+    request<WikiImportResult>("/backoffice/wiki/import-core", { method: "POST" }),
   wikiDocument: (id: string) => request<WikiDocumentDetail>(`/backoffice/wiki/documents/${id}`),
   createWikiDocument: (payload: WikiDocumentPayload) =>
     request<WikiDocumentDetail>("/backoffice/wiki/documents", { method: "POST", body: JSON.stringify(payload) }),

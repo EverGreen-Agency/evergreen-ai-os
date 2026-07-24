@@ -134,3 +134,11 @@ def delete_attachment(conn, tenant_id: UUID, attachment_id: UUID) -> str | None:
 
 def document_exists(conn, tenant_id: UUID, document_id: UUID) -> bool:
     return get_document(conn, tenant_id, document_id) is not None
+
+
+def title_exists(conn, tenant_id: UUID, title: str) -> bool:
+    row = conn.execute(
+        "select 1 from wiki_documents where tenant_organization_id = %s and lower(title) = lower(%s) limit 1",
+        (tenant_id, title),
+    ).fetchone()
+    return row is not None

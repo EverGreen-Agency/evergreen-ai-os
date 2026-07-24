@@ -9234,6 +9234,35 @@
         "title": "WikiDocumentUpdate",
         "type": "object"
       },
+      "WikiImportResult": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "imported": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Imported",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "imported",
+          "skipped",
+          "available"
+        ],
+        "title": "WikiImportResult",
+        "type": "object"
+      },
       "WorkflowDefinitionSummary": {
         "properties": {
           "created_at": {
@@ -12014,6 +12043,27 @@
           }
         },
         "summary": "Upload Attachment",
+        "tags": [
+          "wiki"
+        ]
+      }
+    },
+    "/backoffice/wiki/import-core": {
+      "post": {
+        "operationId": "import_core_documents_backoffice_wiki_import_core_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Import Core Documents",
         "tags": [
           "wiki"
         ]

@@ -47,3 +47,9 @@ class WikiDocumentUpdate(BaseModel):
 class WikiAttachmentDownload(BaseModel):
     url: str
     file_name: str
+
+
+class WikiImportResult(BaseModel):
+    imported: list[str]
+    skipped: list[str]
+    available: bool  # False quando o diretório de manuais não existe (produção)
