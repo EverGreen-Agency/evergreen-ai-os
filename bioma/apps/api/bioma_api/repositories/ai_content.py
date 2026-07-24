@@ -25,13 +25,14 @@ def create_request(
     user_id: UUID,
     payload: dict,
 ):
+    content_type = payload.get("content_type", "social_posts")
     return conn.execute(
         """
         insert into ai_content_requests (
-          workspace_id, organization_id, requested_by, brief, channels,
+          workspace_id, organization_id, requested_by, content_type, brief, channels,
           quantity, tone, objective, methodology_refs
         )
-        values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         returning id, workspace_id, content_type, status, brief, channels, quantity,
           tone, objective, methodology_refs, provider, model, generation_mode,
           output, error_message, created_at, finished_at
@@ -40,6 +41,7 @@ def create_request(
             workspace_id,
             organization_id,
             user_id,
+            content_type,
             payload["brief"],
             Jsonb(payload["channels"]),
             payload["quantity"],

@@ -10,6 +10,7 @@ from bioma_api.routers import (
     auth,
     benchmark,
     client_hub,
+    commercial,
     files,
     health,
     integrations,
@@ -23,6 +24,10 @@ from bioma_api.routers import (
     wiki,
     workspaces,
     tasks,
+    whatsapp,
+    squads,
+    brand_book,
+    editorial_calendar,
 )
 
 
@@ -53,6 +58,11 @@ app.include_router(invites.public_router)
 app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
 app.include_router(workspaces.router)
+app.include_router(commercial.router)
+app.include_router(whatsapp.router)
+app.include_router(squads.router)
+app.include_router(brand_book.router)
+app.include_router(editorial_calendar.router)
 app.include_router(tasks.router)
 app.include_router(teams.router)
 app.include_router(vault.router)

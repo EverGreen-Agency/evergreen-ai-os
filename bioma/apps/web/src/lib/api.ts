@@ -327,6 +327,153 @@ export type PerformanceOverview = {
   }>;
 };
 
+export type SocialDailyMetric = {
+  id: string;
+  workspace_id: string;
+  client_id: string | null;
+  date: string;
+  account_id: string | null;
+  account_name: string | null;
+  campaign_id: string;
+  campaign_name: string;
+  impressions: number;
+  clicks: number;
+  spend_cents: number;
+  conversions: number;
+  leads: number;
+  revenue_cents: number;
+  ctr: number;
+  cpc_cents: number;
+  cpa_cents: number;
+  roas: number;
+  created_at: string;
+};
+
+export type PerformanceAiSummaryInsight = {
+  channel: string;
+  title: string;
+  finding: string;
+  action_recommendation: string;
+  impact_level: "high" | "medium" | "low";
+};
+
+export type PerformanceAiSummaryResponse = {
+  workspace_id: string;
+  generated_at: string;
+  summary_text: string;
+  total_spend_cents: number;
+  total_leads: number;
+  overall_cpa_cents: number;
+  insights: PerformanceAiSummaryInsight[];
+};
+
+export type WhatsAppProviderType = "evolution" | "meta_cloud" | "zapi" | "custom";
+
+export type WhatsAppProviderConfigSummary = {
+  id: string;
+  workspace_id: string;
+  provider_type: WhatsAppProviderType;
+  api_url: string | null;
+  instance_name: string | null;
+  phone_number: string | null;
+  status: "active" | "inactive" | "error";
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WhatsAppMessageLogSummary = {
+  id: string;
+  workspace_id: string;
+  provider_type: WhatsAppProviderType;
+  to_number: string;
+  message_type: "text" | "template" | "media";
+  payload: Record<string, unknown>;
+  status: "queued" | "sent" | "delivered" | "read" | "failed";
+  error_message: string | null;
+  sent_at: string;
+};
+
+export type PilarType = "oferta" | "demanda" | "conversao";
+
+export type SquadDefinitionSummary = {
+  id: string;
+  workspace_id: string;
+  pilar: PilarType;
+  squad_slug: string;
+  squad_name: string;
+  description: string | null;
+  agents_config: Record<string, unknown>[];
+  pipeline_yaml: string | null;
+  status: "active" | "paused";
+  created_at: string;
+  updated_at: string;
+};
+
+export type SquadExecutionSummary = {
+  id: string;
+  workspace_id: string;
+  squad_id: string | null;
+  pilar: PilarType;
+  squad_name: string;
+  triggered_by: string;
+  status: "running" | "completed" | "failed";
+  input_data: Record<string, unknown>;
+  output_data: Record<string, unknown>;
+  token_usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  estimated_cost_cents: number;
+  execution_logs: Array<{
+    timestamp: string;
+    agent: string;
+    message: string;
+  }>;
+  started_at: string;
+  completed_at: string | null;
+};
+
+export type FinOpsSummaryResponse = {
+  workspace_id: string;
+  total_tokens: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_cost_cents: number;
+  total_executions: number;
+};
+
+export type BrandBookSummary = {
+  id: string;
+  workspace_id: string;
+  version: number;
+  tom_de_voz: string;
+  arquetipo: string;
+  posicionamento: string | null;
+  proposta_valor: string | null;
+  regras_copy: string[];
+  paleta_cores: string[];
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EditorialCalendarItemSummary = {
+  id: string;
+  workspace_id: string;
+  title: string;
+  content_type: "social_post" | "image_ad" | "video_script" | "article";
+  channel: "instagram" | "facebook" | "linkedin" | "youtube" | "tiktok" | "blog";
+  scheduled_at: string | null;
+  stage: "ideation" | "production" | "review" | "approved" | "scheduled" | "published";
+  post_text: string | null;
+  media_urls: string[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AdsCampaignSummary = {
   campaign_id: string;
   campaign_name: string;
@@ -1423,6 +1570,108 @@ export const api = {
     request<GscQuerySummary[]>(`/workspaces/${clientId}/performance/search-console/queries`),
   gtmSnapshots: (clientId: string) =>
     request<GtmSnapshotSummary[]>(`/workspaces/${clientId}/performance/gtm/snapshots`),
+  metaAdsDaily: (clientId: string) =>
+    request<SocialDailyMetric[]>(`/workspaces/${clientId}/performance/meta-ads/daily`),
+  linkedInAdsDaily: (clientId: string) =>
+    request<SocialDailyMetric[]>(`/workspaces/${clientId}/performance/linkedin-ads/daily`),
+  performanceAiSummary: (clientId: string) =>
+    request<PerformanceAiSummaryResponse>(`/workspaces/${clientId}/performance/ai-summary`),
+  whatsAppProviders: (workspaceId: string) =>
+    request<WhatsAppProviderConfigSummary[]>(`/workspaces/${workspaceId}/whatsapp/providers`),
+  saveWhatsAppProvider: (
+    workspaceId: string,
+    payload: {
+      provider_type: WhatsAppProviderType;
+      api_url?: string | null;
+      api_token?: string | null;
+      instance_name?: string | null;
+      phone_number?: string | null;
+      status?: "active" | "inactive" | "error";
+      metadata?: Record<string, unknown>;
+    }
+  ) =>
+    request<WhatsAppProviderConfigSummary>(`/workspaces/${workspaceId}/whatsapp/providers`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  sendWhatsAppMessage: (
+    workspaceId: string,
+    payload: {
+      provider_type: WhatsAppProviderType;
+      to_number: string;
+      message_text: string;
+      template_name?: string | null;
+      template_variables?: string[];
+    }
+  ) =>
+    request<WhatsAppMessageLogSummary>(`/workspaces/${workspaceId}/whatsapp/send`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  whatsAppLogs: (workspaceId: string) =>
+    request<WhatsAppMessageLogSummary[]>(`/workspaces/${workspaceId}/whatsapp/logs`),
+  squads: (workspaceId: string) =>
+    request<SquadDefinitionSummary[]>(`/workspaces/${workspaceId}/squads`),
+  runSquad: (
+    workspaceId: string,
+    payload: {
+      pilar: PilarType;
+      squad_slug: string;
+      squad_name: string;
+      input_data?: Record<string, unknown>;
+    }
+  ) =>
+    request<SquadExecutionSummary>(`/workspaces/${workspaceId}/squads/run`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  squadExecutions: (workspaceId: string) =>
+    request<SquadExecutionSummary[]>(`/workspaces/${workspaceId}/squads/executions`),
+  squadFinOps: (workspaceId: string) =>
+    request<FinOpsSummaryResponse>(`/workspaces/${workspaceId}/squads/finops`),
+  brandBook: (workspaceId: string) =>
+    request<BrandBookSummary>(`/workspaces/${workspaceId}/brand-book`),
+  saveBrandBook: (
+    workspaceId: string,
+    payload: {
+      tom_de_voz: string;
+      arquetipo: string;
+      posicionamento?: string | null;
+      proposta_valor?: string | null;
+      regras_copy?: string[];
+      paleta_cores?: string[];
+    }
+  ) =>
+    request<BrandBookSummary>(`/workspaces/${workspaceId}/brand-book`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  calendarItems: (workspaceId: string, stage?: string) =>
+    request<EditorialCalendarItemSummary[]>(
+      `/workspaces/${workspaceId}/calendar${stage ? `?stage=${stage}` : ""}`
+    ),
+  createCalendarItem: (
+    workspaceId: string,
+    payload: {
+      title: string;
+      content_type?: "social_post" | "image_ad" | "video_script" | "article";
+      channel?: "instagram" | "facebook" | "linkedin" | "youtube" | "tiktok" | "blog";
+      scheduled_at?: string | null;
+      stage?: "ideation" | "production" | "review" | "approved" | "scheduled" | "published";
+      post_text?: string | null;
+      media_urls?: string[];
+      metadata?: Record<string, unknown>;
+    }
+  ) =>
+    request<EditorialCalendarItemSummary>(`/workspaces/${workspaceId}/calendar`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateCalendarStage: (workspaceId: string, itemId: string, stage: string) =>
+    request<EditorialCalendarItemSummary>(
+      `/workspaces/${workspaceId}/calendar/${itemId}/stage?stage=${stage}`,
+      { method: "PATCH" }
+    ),
   createInvite: (clientId: string, email?: string | null) =>
     request<InviteCreated>(`/workspaces/${clientId}/invites`, {
       method: "POST",

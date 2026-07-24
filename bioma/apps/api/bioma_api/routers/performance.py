@@ -17,8 +17,12 @@ from bioma_api.schemas.performance import (
     PerformanceSyncRequest,
     PerformanceSyncRunSummary,
 )
+from bioma_api.schemas.performance_social import (
+    PerformanceAiSummaryResponse,
+    SocialDailyMetric,
+)
 from bioma_api.services import performance as performance_service
-
+from bioma_api.services import performance_social as perf_social_service
 
 router = APIRouter(prefix="/clients/{client_id}/performance", tags=["performance"])
 workspace_router = APIRouter(prefix="/workspaces/{client_id}/performance", tags=["workspace-performance"])
@@ -109,6 +113,33 @@ def list_gtm_snapshots(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> list[GtmSnapshotSummary]:
     return performance_service.list_gtm_snapshots(client_id, user, limit)
+
+
+@router.get("/meta-ads/daily", response_model=list[SocialDailyMetric])
+@workspace_router.get("/meta-ads/daily", response_model=list[SocialDailyMetric])
+def list_meta_ads_daily(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[SocialDailyMetric]:
+    return perf_social_service.list_meta_ads(client_id, user)
+
+
+@router.get("/linkedin-ads/daily", response_model=list[SocialDailyMetric])
+@workspace_router.get("/linkedin-ads/daily", response_model=list[SocialDailyMetric])
+def list_linkedin_ads_daily(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[SocialDailyMetric]:
+    return perf_social_service.list_linkedin_ads(client_id, user)
+
+
+@router.get("/ai-summary", response_model=PerformanceAiSummaryResponse)
+@workspace_router.get("/ai-summary", response_model=PerformanceAiSummaryResponse)
+def get_ai_summary(
+    client_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> PerformanceAiSummaryResponse:
+    return perf_social_service.generate_ai_summary(client_id, user)
 
 
 @router.post("/sync", response_model=PerformanceSyncRunSummary, status_code=status.HTTP_202_ACCEPTED)

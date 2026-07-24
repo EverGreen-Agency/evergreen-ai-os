@@ -4,6 +4,7 @@ import {
   BarChart3,
   Cloud,
   KeyRound,
+  MessageSquare,
   PenLine,
   Plus,
   RefreshCw,
@@ -26,10 +27,7 @@ import {
 import { formatDateTime } from "../lib/format";
 import type { PerformanceConnection, PerformanceProvider } from "../lib/api";
 import { Briefcase } from "lucide-react";
-
-// Tudo aqui é estado real: flags de ambiente vêm de /integrations/status e
-// conexões de /clients/{id}/performance/connections.
-// Meta/LinkedIn entram como novos providers no worker (roadmap), não como card fake.
+import { WhatsAppManager } from "./WhatsAppManager";
 
 const PROVIDER_META: Record<PerformanceProvider, {
   label: string;
@@ -246,7 +244,7 @@ export function IntegrationsTab({
               <Activity size={18} /> Conexões do cliente
             </h3>
             <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "4px 0 0 0" }}>
-              Fontes de dados mapeadas por cliente. Meta Ads e LinkedIn entram como novos provedores após o Google.
+              Fontes de dados e integrações ativas por cliente.
             </p>
           </div>
           {!clientId && <label className="form-grid" style={{ minWidth: 220 }}>
@@ -268,207 +266,212 @@ export function IntegrationsTab({
         {!selectedClient && <div className="empty-state compact">Selecione um cliente para gerenciar conexões.</div>}
 
         {selectedClient && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-            {/* Kommo CRM */}
-            <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <Briefcase size={20} color={kommoConfig?.configured ? "var(--accent)" : "var(--text-dim)"} />
-                  <h4 style={{ margin: 0, fontSize: 15 }}>Kommo CRM</h4>
-                </div>
-                {kommoConfig?.configured
-                  ? <span className="status-pill open">Configurado</span>
-                  : <span className="status-pill draft">Não configurado</span>}
-              </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {/* WhatsApp Multi-provider Section */}
+            <WhatsAppManager workspaceId={selectedClient.id} />
 
-              {loadingKommo && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
-
-              {!isEditingKommo && kommoConfig && (
-                <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
-                  {kommoConfig.configured ? (
-                    <>
-                      <div>Subdomínio: <strong>{kommoConfig.subdomain}</strong></div>
-                      <div style={{ color: "var(--text-muted)", marginTop: 8 }}>
-                        Credenciais salvas e seguras no banco de dados.
-                      </div>
-                    </>
-                  ) : (
-                    <div>O Kommo não está configurado para a organização deste cliente.</div>
-                  )}
-                </div>
-              )}
-
-              {isEditingKommo && (
-                <form className="form-grid" onSubmit={handleSaveKommo}>
-                  <label>
-                    Client ID (Integração)
-                    <input
-                      value={kommoClientId}
-                      onChange={(e) => setKommoClientId(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Client Secret
-                    <input
-                      value={kommoClientSecret}
-                      onChange={(e) => setKommoClientSecret(e.target.value)}
-                      type="password"
-                      required
-                    />
-                  </label>
-                  <label>
-                    Access Token (Longo prazo)
-                    <input
-                      value={kommoAccessToken}
-                      onChange={(e) => setKommoAccessToken(e.target.value)}
-                      type="password"
-                      required
-                    />
-                  </label>
-                  <label>
-                    Subdomínio do Kommo (sem .kommo.com)
-                    <input
-                      value={kommoSubdomain}
-                      onChange={(e) => setKommoSubdomain(e.target.value)}
-                      placeholder="exemplo-empresa"
-                      required
-                    />
-                  </label>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="primary-button" type="submit" disabled={setupKommo.isPending} style={{ flex: 1, padding: 8, fontSize: 13 }}>
-                      {setupKommo.isPending ? "Salvando..." : "Salvar"}
-                    </button>
-                    <button className="ghost-button" type="button" onClick={cancelEditKommo} style={{ padding: 8, fontSize: 13 }}>
-                      Cancelar
-                    </button>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+              {/* Kommo CRM */}
+              <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                    <Briefcase size={20} color={kommoConfig?.configured ? "var(--accent)" : "var(--text-dim)"} />
+                    <h4 style={{ margin: 0, fontSize: 15 }}>Kommo CRM</h4>
                   </div>
-                </form>
-              )}
-
-              {!isEditingKommo && !loadingKommo && (
-                <div style={{ marginTop: "auto", display: "flex", gap: 8 }}>
-                  <button className="mini-button" type="button" onClick={startEditKommo}>
-                    {kommoConfig?.configured ? <PenLine size={13} /> : <Plus size={13} />}
-                    {kommoConfig?.configured ? "Editar credenciais" : "Configurar"}
-                  </button>
+                  {kommoConfig?.configured
+                    ? <span className="status-pill open">Configurado</span>
+                    : <span className="status-pill draft">Não configurado</span>}
                 </div>
-              )}
-            </article>
 
-            {/* Google providers (performance_connections reais) */}
-            {PROVIDERS.map((provider) => {
-              const meta = PROVIDER_META[provider];
-              const Icon = meta.icon;
-              const connection = connectionFor(provider);
-              const isEditing = editingProvider === provider;
-              return (
-                <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <Icon size={20} color={connection?.status === "active" ? "var(--accent)" : "var(--text-dim)"} />
-                      <h4 style={{ margin: 0, fontSize: 15 }}>{meta.label}</h4>
-                    </div>
-                    <ConnectionStatusPill connection={connection} />
-                  </div>
+                {loadingKommo && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
 
-                  {loadingConnections && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
-
-                  {!isEditing && connection && (
-                    <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
-                      <div>{meta.accountLabel}: <strong>{connection.external_account_id}</strong></div>
-                      {connection.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{connection.external_parent_id}</strong></div>}
-                      {connection.display_name && <div>Nome: <strong>{connection.display_name}</strong></div>}
-                      <div>
-                        Último sync:{" "}
-                        <strong>{connection.last_synced_at ? formatDateTime(connection.last_synced_at) : "nunca"}</strong>
-                      </div>
-                      {connection.last_error_message && (
-                        <div style={{ color: "var(--danger-soft)" }}>Erro: {connection.last_error_message}</div>
-                      )}
-                      {!connection.credentials_configured && (
-                        <div style={{ color: "var(--amber-soft)" }}>
-                          Credencial Google (service account) ainda não configurada no worker.
+                {!isEditingKommo && kommoConfig && (
+                  <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
+                    {kommoConfig.configured ? (
+                      <>
+                        <div>Subdomínio: <strong>{kommoConfig.subdomain}</strong></div>
+                        <div style={{ color: "var(--text-muted)", marginTop: 8 }}>
+                          Credenciais salvas e seguras no banco de dados.
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </>
+                    ) : (
+                      <div>O Kommo não está configurado para a organização deste cliente.</div>
+                    )}
+                  </div>
+                )}
 
-                  {!isEditing && !connection && (
-                    <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
-                      Nenhuma conta {meta.label} mapeada para {selectedClient.name}.
+                {isEditingKommo && (
+                  <form className="form-grid" onSubmit={handleSaveKommo}>
+                    <label>
+                      Client ID (Integração)
+                      <input
+                        value={kommoClientId}
+                        onChange={(e) => setKommoClientId(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Client Secret
+                      <input
+                        value={kommoClientSecret}
+                        onChange={(e) => setKommoClientSecret(e.target.value)}
+                        type="password"
+                        required
+                      />
+                    </label>
+                    <label>
+                      Access Token (Longo prazo)
+                      <input
+                        value={kommoAccessToken}
+                        onChange={(e) => setKommoAccessToken(e.target.value)}
+                        type="password"
+                        required
+                      />
+                    </label>
+                    <label>
+                      Subdomínio do Kommo (sem .kommo.com)
+                      <input
+                        value={kommoSubdomain}
+                        onChange={(e) => setKommoSubdomain(e.target.value)}
+                        placeholder="exemplo-empresa"
+                        required
+                      />
+                    </label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button className="primary-button" type="submit" disabled={setupKommo.isPending} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                        {setupKommo.isPending ? "Salvando..." : "Salvar"}
+                      </button>
+                      <button className="ghost-button" type="button" onClick={cancelEditKommo} style={{ padding: 8, fontSize: 13 }}>
+                        Cancelar
+                      </button>
                     </div>
-                  )}
+                  </form>
+                )}
 
-                  {isEditing && (
-                    <form className="form-grid" onSubmit={handleSaveConnection}>
-                      <label>
-                        {meta.accountLabel}
-                        <input
-                          value={accountId}
-                          onChange={(event) => setAccountId(event.target.value)}
-                          placeholder={meta.accountPlaceholder}
-                          required
-                        />
-                      </label>
-                      {meta.parentLabel && (
+                {!isEditingKommo && !loadingKommo && (
+                  <div style={{ marginTop: "auto", display: "flex", gap: 8 }}>
+                    <button className="mini-button" type="button" onClick={startEditKommo}>
+                      {kommoConfig?.configured ? <PenLine size={13} /> : <Plus size={13} />}
+                      {kommoConfig?.configured ? "Editar credenciais" : "Configurar"}
+                    </button>
+                  </div>
+                )}
+              </article>
+
+              {/* Google providers (performance_connections reais) */}
+              {PROVIDERS.map((provider) => {
+                const meta = PROVIDER_META[provider];
+                const Icon = meta.icon;
+                const connection = connectionFor(provider);
+                const isEditing = editingProvider === provider;
+                return (
+                  <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                        <Icon size={20} color={connection?.status === "active" ? "var(--accent)" : "var(--text-dim)"} />
+                        <h4 style={{ margin: 0, fontSize: 15 }}>{meta.label}</h4>
+                      </div>
+                      <ConnectionStatusPill connection={connection} />
+                    </div>
+
+                    {loadingConnections && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
+
+                    {!isEditing && connection && (
+                      <div style={{ fontSize: 12, color: "var(--text-dim)", display: "grid", gap: 4 }}>
+                        <div>{meta.accountLabel}: <strong>{connection.external_account_id}</strong></div>
+                        {connection.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{connection.external_parent_id}</strong></div>}
+                        {connection.display_name && <div>Nome: <strong>{connection.display_name}</strong></div>}
+                        <div>
+                          Último sync:{" "}
+                          <strong>{connection.last_synced_at ? formatDateTime(connection.last_synced_at) : "nunca"}</strong>
+                        </div>
+                        {connection.last_error_message && (
+                          <div style={{ color: "var(--danger-soft)" }}>Erro: {connection.last_error_message}</div>
+                        )}
+                        {!connection.credentials_configured && (
+                          <div style={{ color: "var(--amber-soft)" }}>
+                            Credencial Google (service account) ainda não configurada no worker.
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!isEditing && !connection && (
+                      <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                        Nenhuma conta {meta.label} mapeada para {selectedClient.name}.
+                      </div>
+                    )}
+
+                    {isEditing && (
+                      <form className="form-grid" onSubmit={handleSaveConnection}>
                         <label>
-                          {meta.parentLabel}
+                          {meta.accountLabel}
                           <input
-                            value={parentId}
-                            onChange={(event) => setParentId(event.target.value)}
-                            placeholder={meta.parentPlaceholder}
+                            value={accountId}
+                            onChange={(event) => setAccountId(event.target.value)}
+                            placeholder={meta.accountPlaceholder}
+                            required
                           />
                         </label>
-                      )}
-                      <label>
-                        Nome de exibição (opcional)
-                        <input
-                          value={displayName}
-                          onChange={(event) => setDisplayName(event.target.value)}
-                          placeholder={`${meta.label} — ${selectedClient.name}`}
-                        />
-                      </label>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button className="primary-button" type="submit" disabled={savingConnection} style={{ flex: 1, padding: 8, fontSize: 13 }}>
-                          {savingConnection ? "Salvando..." : "Salvar conexão"}
-                        </button>
-                        <button className="ghost-button" type="button" onClick={cancelEdit} style={{ padding: 8, fontSize: 13 }}>
-                          Cancelar
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {!isEditing && (
-                    <div style={{ marginTop: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
-                        {connection ? <PenLine size={13} /> : <Plus size={13} />}
-                        {connection ? "Editar" : "Conectar"}
-                      </button>
-                      {connection && (
-                        <>
-                          <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
-                            {connection.status === "active" ? "Desativar" : "Reativar"}
+                        {meta.parentLabel && (
+                          <label>
+                            {meta.parentLabel}
+                            <input
+                              value={parentId}
+                              onChange={(event) => setParentId(event.target.value)}
+                              placeholder={meta.parentPlaceholder}
+                            />
+                          </label>
+                        )}
+                        <label>
+                          Nome de exibição (opcional)
+                          <input
+                            value={displayName}
+                            onChange={(event) => setDisplayName(event.target.value)}
+                            placeholder={`${meta.label} — ${selectedClient.name}`}
+                          />
+                        </label>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button className="primary-button" type="submit" disabled={savingConnection} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                            {savingConnection ? "Salvando..." : "Salvar conexão"}
                           </button>
-                          {connection.status === "active" && (
-                            <button
-                              className="mini-button approve"
-                              type="button"
-                              onClick={() => handleProviderSync(provider)}
-                              disabled={requestSync.isPending}
-                            >
-                              <RefreshCw size={13} />
-                              Sincronizar
+                          <button className="ghost-button" type="button" onClick={cancelEdit} style={{ padding: 8, fontSize: 13 }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {!isEditing && (
+                      <div style={{ marginTop: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
+                          {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                          {connection ? "Editar" : "Conectar"}
+                        </button>
+                        {connection && (
+                          <>
+                            <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
+                              {connection.status === "active" ? "Desativar" : "Reativar"}
                             </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+                            {connection.status === "active" && (
+                              <button
+                                className="mini-button approve"
+                                type="button"
+                                onClick={() => handleProviderSync(provider)}
+                                disabled={requestSync.isPending}
+                              >
+                                <RefreshCw size={13} />
+                                Sincronizar
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         )}
 

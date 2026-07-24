@@ -632,3 +632,189 @@ export function useCommercialPortal(workspaceId: string | null) {
     enabled: Boolean(workspaceId),
   });
 }
+
+// Social & Multichannel Performance Hooks
+export function useMetaAdsDaily(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["meta-ads-daily", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.metaAdsDaily(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useLinkedInAdsDaily(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["linkedin-ads-daily", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.linkedInAdsDaily(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function usePerformanceAiSummary(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["performance-ai-summary", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.performanceAiSummary(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+// WhatsApp Multi-provider Hooks
+export function useWhatsAppProviders(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["whatsapp-providers", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.whatsAppProviders(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useSaveWhatsAppProvider() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, payload }: { workspaceId: string; payload: Parameters<typeof api.saveWhatsAppProvider>[1] }) =>
+      api.saveWhatsAppProvider(workspaceId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-providers", variables.workspaceId] });
+    },
+  });
+}
+
+export function useSendWhatsAppMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, payload }: { workspaceId: string; payload: Parameters<typeof api.sendWhatsAppMessage>[1] }) =>
+      api.sendWhatsAppMessage(workspaceId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-logs", variables.workspaceId] });
+    },
+  });
+}
+
+export function useWhatsAppLogs(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["whatsapp-logs", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.whatsAppLogs(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+// Autonomous Squads & FinOps Hooks
+export function useSquads(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["squads", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.squads(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useRunSquad() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, payload }: { workspaceId: string; payload: Parameters<typeof api.runSquad>[1] }) =>
+      api.runSquad(workspaceId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["squad-executions", variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ["squad-finops", variables.workspaceId] });
+    },
+  });
+}
+
+export function useSquadExecutions(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["squad-executions", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.squadExecutions(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useSquadFinOps(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["squad-finops", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.squadFinOps(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+// Brand Book Hooks
+export function useBrandBook(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["brand-book", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.brandBook(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useSaveBrandBook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, payload }: { workspaceId: string; payload: Parameters<typeof api.saveBrandBook>[1] }) =>
+      api.saveBrandBook(workspaceId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["brand-book", variables.workspaceId] });
+    },
+  });
+}
+
+// Editorial Calendar Hooks
+export function useCalendarItems(workspaceId: string | null, stage?: string) {
+  return useQuery({
+    queryKey: ["calendar-items", workspaceId, stage],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.calendarItems(workspaceId, stage);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useCreateCalendarItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, payload }: { workspaceId: string; payload: Parameters<typeof api.createCalendarItem>[1] }) =>
+      api.createCalendarItem(workspaceId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["calendar-items", variables.workspaceId] });
+    },
+  });
+}
+
+export function useUpdateCalendarStage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, itemId, stage }: { workspaceId: string; itemId: string; stage: string }) =>
+      api.updateCalendarStage(workspaceId, itemId, stage),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["calendar-items", variables.workspaceId] });
+    },
+  });
+}
+
+
+
+

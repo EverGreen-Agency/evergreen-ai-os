@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
+import { useCurrentUser, useClients, useClientPortal, useMyDeliverables, useCommercialPortal } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
+import { RaioXScorePanel } from "../components/RaioXScorePanel";
+import { SquadsView } from "./SquadsView";
 
 export function CockpitView() {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ export function CockpitView() {
   const { data: clientsData } = useClients();
   const { data: portalData } = useClientPortal(selectedClientId);
   const { data: myDeliverablesData } = useMyDeliverables();
+  const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(selectedClientId);
 
   const isEgAdmin = user?.organizations.some(org => org.role === "eg_admin");
 
@@ -181,7 +184,6 @@ export function CockpitView() {
           )}
         </article>
 
-        {/* Informações Úteis do Projeto */}
         <article className="bento-card col-span-2">
           <div className="bento-header">
             <h3>Entregas Ativas</h3>
@@ -190,18 +192,23 @@ export function CockpitView() {
           <div className="bento-value">{activeDeliverables.length}</div>
           <div className="bento-footer">Tarefas sendo trabalhadas no momento pela equipe.</div>
         </article>
-
-        <article className="bento-card col-span-2">
-          <div className="bento-header">
-            <h3>Artefatos Entregues</h3>
-            <BookOpen size={16} />
-          </div>
-          <div className="bento-value">{portal?.artifacts.length ?? 0}</div>
-          <div className="bento-footer">Documentos, mapas e guias disponíveis no acervo.</div>
-        </article>
       </div>
 
-      <section className="content-grid">
+      {selectedClientId && (
+        <div style={{ marginTop: "1.5rem" }}>
+          <RaioXScorePanel
+            workspaceId={selectedClientId}
+            data={commercialData ?? null}
+            onUpdate={refetchCommercial}
+            canEdit={isEgAdmin}
+          />
+          <div style={{ marginTop: "24px" }}>
+            <SquadsView workspaceId={selectedClientId} />
+          </div>
+        </div>
+      )}
+
+      <section className="content-grid" style={{ marginTop: "1.5rem" }}>
         <article className="surface large">
           <div className="surface-header">
             <CalendarCheck size={18} />
