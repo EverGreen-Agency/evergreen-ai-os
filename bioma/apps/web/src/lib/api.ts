@@ -1993,12 +1993,29 @@ export const api = {
     request<OpportunitySummary>("/backoffice/proposals/opportunities/ingest", { method: "POST", body: JSON.stringify(payload) }),
   syncOpportunities: () =>
     request<{ status: string; scanned: number; new: number; skipped: number }>("/backoffice/proposals/opportunities/sync", { method: "POST" }),
+  listOpportunityPlatforms: () =>
+    request<OpportunityPlatformConfig[]>("/backoffice/proposals/platforms"),
+  updateOpportunityPlatform: (platformKey: string, payload: Partial<OpportunityPlatformConfig>) =>
+    request<OpportunityPlatformConfig>(`/backoffice/proposals/platforms/${platformKey}`, { method: "PUT", body: JSON.stringify(payload) }),
   generateProposalForOpportunity: (oppId: string) =>
     request<ProposalSummary>(`/backoffice/proposals/opportunities/${oppId}/generate`, { method: "POST" }),
   listProposals: () => request<ProposalSummary[]>("/backoffice/proposals"),
   updateProposal: (proposalId: string, payload: Partial<ProposalSummary>) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   getPublicProposal: (token: string) => request<PublicProposalResponse>(`/proposals/public/${token}`),
+};
+
+export type OpportunityPlatformConfig = {
+  id: string;
+  platform_key: string;
+  platform_name: string;
+  status: "active" | "paused" | "not_configured";
+  rss_url: string | null;
+  api_key_or_token: string | null;
+  monthly_cost_cents: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type OpportunitySummary = {

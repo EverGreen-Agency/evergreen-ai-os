@@ -3,6 +3,97 @@ from typing import Any
 from uuid import UUID
 from psycopg.rows import dict_row
 
+DEFAULT_PLATFORMS = [
+    {"platform_key": "freelancer_br", "platform_name": "Freelancer.com.br", "status": "active", "monthly_cost_cents": 0, "notes": "RSS Feed XML Nativo Gratuito"},
+    {"platform_key": "weworkremotely", "platform_name": "WeWorkRemotely", "status": "active", "monthly_cost_cents": 0, "notes": "Feed RSS Global de Vagas Remotas"},
+    {"platform_key": "99freela", "platform_name": "99freela", "status": "active", "monthly_cost_cents": 0, "notes": "Varredura Pública e Captura Manual por URL"},
+    {"platform_key": "workana", "platform_name": "Workana", "status": "paused", "monthly_cost_cents": 5990, "notes": "Subscrição Workana Pro / Token de Sessão"},
+    {"platform_key": "upwork", "platform_name": "UpWork", "status": "paused", "monthly_cost_cents": 11500, "notes": "Plano Freelancer Plus / API Key Developer"},
+    {"platform_key": "toptal", "platform_name": "Toptal & Ecossistema", "status": "not_configured", "monthly_cost_cents": 0, "notes": "Portal Privado / Ingestão por E-mail"},
+    {"platform_key": "contra", "platform_name": "Contra.com / Malt", "status": "active", "monthly_cost_cents": 0, "notes": "Ingestão por URL / Webhook"},
+    {"platform_key": "others", "platform_name": "Outras Plataformas", "status": "active", "monthly_cost_cents": 0, "notes": "Captura por Link / IA (Guru, Jobbers, etc)"},
+]
+
+def ensure_platform_configs_table(conn):
+    with conn.cursor() as cur:
+        cur.execute("""
+            create table if not exists opportunity_platform_configs (
+                id uuid primary key default gen_random_uuid(),
+                platform_key varchar(50) not null unique,
+                platform_name varchar(100) not null,
+                status varchar(20) not null default 'active',
+                rss_url text,
+                api_key_or_token text,
+                monthly_cost_cents bigint not null default 0,
+                notes text,
+                created_at timestamptz not null default now(),
+                updated_at timestamptz not null default now()
+            );
+        """)
+
+def list_platform_configs(conn) -> list[dict[str, Any]]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from opportunity_platform_configs order by created_at asc")
+        existing = {r["platform_key"]: dict(r) for r in cur.fetchall()}
+        
+        # Seed defaults if not inserted
+        for p in DEFAULT_PLATFORMS:
+            if p["platform_key"] not in existing:
+                cur.execute(
+                    """
+                    insert into opportunity_platform_configs (platform_key, platform_name, status, monthly_cost_cents, notes)
+                    values (%s, %s, %s, %s, %s)
+                    returning *
+                    """,
+                    (p["platform_key"], p["platform_name"], p["status"], p["monthly_cost_cents"], p["notes"]),
+                )
+                existing[p["platform_key"]] = dict(cur.fetchone())
+        return list(existing.values())
+
+def upsert_platform_config(conn, platform_key: str, data: dict[str, Any]) -> dict[str, Any]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            insert into opportunity_platform_configs (platform_key, platform_name, status, rss_url, api_key_or_token, monthly_cost_cents, notes)
+            values (%s, %s, %s, %s, %s, %s, %s)
+            on conflict (platform_key) do update set
+                status = excluded.status,
+                rss_url = excluded.rss_url,
+                api_key_or_token = excluded.api_key_or_token,
+                monthly_cost_cents = excluded.monthly_cost_cents,
+                notes = excluded.notes,
+                updated_at = now()
+            returning *
+            """,
+            (
+                platform_key,
+                data.get("platform_name", platform_key.capitalize()),
+                data.get("status", "active"),
+                data.get("rss_url"),
+                data.get("api_key_or_token"),
+                data.get("monthly_cost_cents", 0),
+                data.get("notes"),
+            ),
+        )
+        result = dict(cur.fetchone())
+
+        # Registra despesa financeira se custo mensal for informado
+        cost = data.get("monthly_cost_cents", 0)
+        if cost > 0:
+            p_name = result["platform_name"]
+            cur.execute(
+                """
+                insert into financial_records (title, amount_cents, kind, status, due_date, notes)
+                values (%s, %s, 'expense', 'paid', current_date, %s)
+                """,
+                (f"Assinatura Plataforma: {p_name}", cost, f"Despesa recorrente de prospecção em {p_name}"),
+            )
+
+        return result
+
+
 def list_opportunities(conn, status_filter: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
     query = """
         select id, source_platform, external_id, title, url, description, budget_text,

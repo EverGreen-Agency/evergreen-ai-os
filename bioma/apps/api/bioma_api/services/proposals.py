@@ -23,6 +23,17 @@ def list_opportunities(user: CurrentUserResponse, status_filter: str | None = No
     return [OpportunitySummary(**r) for r in rows]
 
 
+def list_platform_configs(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    with connect() as conn:
+        return proposals_repo.list_platform_configs(conn)
+
+
+def update_platform_config(platform_key: str, payload: dict[str, Any], user: CurrentUserResponse) -> dict[str, Any]:
+    with connect() as conn:
+        return proposals_repo.upsert_platform_config(conn, platform_key, payload)
+
+
+
 def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse | None = None) -> OpportunitySummary:
     with connect() as conn:
         existing = proposals_repo.find_existing_opportunity(conn, payload.url, payload.source_platform, payload.title)

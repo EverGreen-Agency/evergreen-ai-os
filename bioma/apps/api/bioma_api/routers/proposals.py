@@ -41,6 +41,23 @@ def sync_opportunities(
     return proposals_service.sync_opportunities_from_scrapers(user)
 
 
+@router.get("/platforms")
+def list_platforms(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_platform_configs(user)
+
+
+@router.put("/platforms/{platform_key}")
+def update_platform(
+    platform_key: str,
+    payload: dict,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.update_platform_config(platform_key, payload, user)
+
+
+
 
 @router.post("/opportunities/{opp_id}/generate", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
 def generate_proposal(
