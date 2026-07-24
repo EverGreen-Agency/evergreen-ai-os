@@ -10,6 +10,10 @@ class WorkerSettings(BaseSettings):
     google_ads_login_customer_id: str | None = None
     google_ads_api_version: str = "v21"
     google_request_timeout_seconds: float = 60
+    meta_ads_access_token: str | None = None
+    meta_ads_api_version: str = "v21.0"
+    linkedin_ads_access_token: str | None = None
+    linkedin_ads_api_version: str = "202504"
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_request_timeout_seconds: float = 120

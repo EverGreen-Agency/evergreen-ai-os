@@ -5,9 +5,9 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-PerformanceProvider = Literal["google_ads", "ga4", "search_console", "gtm"]
+PerformanceProvider = Literal["google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads"]
 PerformanceConnectionStatus = Literal["active", "inactive", "error"]
-PerformanceSyncProvider = Literal["google_ads", "ga4", "search_console", "gtm", "all"]
+PerformanceSyncProvider = Literal["google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads", "all"]
 PerformanceSeverity = Literal["info", "low", "medium", "high", "critical", "warning"]
 
 

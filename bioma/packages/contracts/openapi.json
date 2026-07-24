@@ -7057,7 +7057,9 @@
               "google_ads",
               "ga4",
               "search_console",
-              "gtm"
+              "gtm",
+              "meta_ads",
+              "linkedin_ads"
             ],
             "title": "Provider",
             "type": "string"
@@ -7172,7 +7174,9 @@
               "google_ads",
               "ga4",
               "search_console",
-              "gtm"
+              "gtm",
+              "meta_ads",
+              "linkedin_ads"
             ],
             "title": "Provider",
             "type": "string"
@@ -7687,6 +7691,8 @@
               "ga4",
               "search_console",
               "gtm",
+              "meta_ads",
+              "linkedin_ads",
               "all"
             ],
             "title": "Provider",
@@ -9844,7 +9850,9 @@
               "google_ads",
               "ga4",
               "search_console",
-              "gtm"
+              "gtm",
+              "meta_ads",
+              "linkedin_ads"
             ],
             "title": "Provider",
             "type": "string"

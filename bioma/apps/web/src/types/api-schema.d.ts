@@ -5570,7 +5570,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
             /**
              * Status
              * @default active
@@ -5617,7 +5617,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
             /**
              * Status
              * @enum {string}
@@ -5815,7 +5815,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "all";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "all";
         };
         /** PerformanceSyncRunSummary */
         PerformanceSyncRunSummary: {
@@ -6585,7 +6585,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
             /**
              * Status
              * @enum {string}

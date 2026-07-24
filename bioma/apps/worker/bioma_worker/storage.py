@@ -275,6 +275,23 @@ def enqueue_scheduled_syncs(conn, date_from: date, date_to: date) -> int:
     return len(rows)
 
 
+def resolve_workspace_id(conn, client_id: UUID) -> UUID:
+    """workspace_meta_ads_daily_metrics/workspace_linkedin_ads_daily_metrics são
+    chaveadas por workspace_id, diferente das tabelas Google (client_id direto)."""
+    row = conn.execute(
+        """
+        select w.id
+        from workspaces w
+        join clients c on c.organization_id = w.subject_organization_id
+        where c.id = %s
+        """,
+        (client_id,),
+    ).fetchone()
+    if not row:
+        raise RuntimeError(f"Workspace não encontrado para o client_id {client_id}.")
+    return row["id"]
+
+
 def list_connections(conn, client_id: UUID, provider: str):
     if provider == "all":
         return conn.execute(
@@ -373,7 +390,10 @@ def upsert_rows(
         sql.SQL(", ").join(map(sql.Identifier, conflict_columns)),
         sql.SQL(", ").join(assignments),
     )
-    conn.executemany(query, [tuple(row.get(column) for column in columns) for row in rows])
+    # psycopg3: executemany só existe em Cursor, não em Connection (diferente
+    # de conn.execute(), que é um atalho — este não tem equivalente).
+    with conn.cursor() as cur:
+        cur.executemany(query, [tuple(row.get(column) for column in columns) for row in rows])
     return len(rows)
 
 

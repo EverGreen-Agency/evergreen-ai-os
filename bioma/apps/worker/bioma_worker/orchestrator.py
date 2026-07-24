@@ -58,6 +58,7 @@ def run_next_ai_content() -> dict[str, Any] | None:
 
 def run_next_sync() -> dict[str, Any] | None:
     from bioma_worker.google_client import GoogleApiClient
+    import httpx
     with connect() as conn:
         sync_run = storage.claim_next_sync(conn)
     if not sync_run:
@@ -73,38 +74,40 @@ def run_next_sync() -> dict[str, Any] | None:
 
     results: dict[str, dict[str, Any]] = {}
     total_records = 0
-    for connection in connections:
-        provider = connection["provider"]
-        result_key = f"{provider}:{connection['external_account_id']}"
-        # Renova o lease a cada provider: sem isto, um sync longo seria
-        # reenfileirado pelo reaper enquanto ainda está rodando.
-        with connect() as conn:
-            storage.heartbeat_sync(conn, sync_run["id"])
-        try:
-            _validate_credentials_reference(connection)
+    with httpx.Client(timeout=settings.google_request_timeout_seconds) as generic_client:
+        for connection in connections:
+            provider = connection["provider"]
+            result_key = f"{provider}:{connection['external_account_id']}"
+            # Renova o lease a cada provider: sem isto, um sync longo seria
+            # reenfileirado pelo reaper enquanto ainda está rodando.
             with connect() as conn:
-                records = _sync_provider(
-                    conn,
-                    google_client,
-                    settings,
-                    sync_run["client_id"],
-                    connection,
-                    date_from,
-                    date_to,
-                )
-                storage.mark_connection_success(conn, connection["id"])
-            results[result_key] = {"provider": provider, "status": "ok", "records": records}
-            total_records += records
-        except Exception as exc:  # noqa: BLE001 - provider failures must be isolated
-            message = _safe_error(exc)
-            with connect() as conn:
-                storage.mark_connection_error(conn, connection["id"], message)
-            results[result_key] = {
-                "provider": provider,
-                "status": "error",
-                "records": 0,
-                "error": message,
-            }
+                storage.heartbeat_sync(conn, sync_run["id"])
+            try:
+                _validate_credentials_reference(connection)
+                with connect() as conn:
+                    records = _sync_provider(
+                        conn,
+                        google_client,
+                        generic_client,
+                        settings,
+                        sync_run["client_id"],
+                        connection,
+                        date_from,
+                        date_to,
+                    )
+                    storage.mark_connection_success(conn, connection["id"])
+                results[result_key] = {"provider": provider, "status": "ok", "records": records}
+                total_records += records
+            except Exception as exc:  # noqa: BLE001 - provider failures must be isolated
+                message = _safe_error(exc)
+                with connect() as conn:
+                    storage.mark_connection_error(conn, connection["id"], message)
+                results[result_key] = {
+                    "provider": provider,
+                    "status": "error",
+                    "records": 0,
+                    "error": message,
+                }
 
     success_count = sum(1 for result in results.values() if result["status"] == "ok")
     error_count = sum(1 for result in results.values() if result["status"] == "error")
@@ -143,31 +146,39 @@ def run_next_sync() -> dict[str, Any] | None:
 
 def _sync_provider(
     conn,
-    client,
+    google_client,
+    generic_client,
     settings,
     client_id,
     connection,
     date_from: date,
     date_to: date,
 ) -> int:
-    from bioma_worker.providers import ga4, google_ads, gtm, search_console
+    from bioma_worker.providers import ga4, google_ads, gtm, linkedin_ads, meta_ads, search_console
     provider = connection["provider"]
     if provider == "google_ads":
-        return google_ads.sync(conn, client, settings, client_id, connection, date_from, date_to)
+        return google_ads.sync(conn, google_client, settings, client_id, connection, date_from, date_to)
     if provider == "ga4":
-        return ga4.sync(conn, client, client_id, connection, date_from, date_to)
+        return ga4.sync(conn, google_client, client_id, connection, date_from, date_to)
     if provider == "search_console":
-        return search_console.sync(conn, client, client_id, connection, date_from, date_to)
+        return search_console.sync(conn, google_client, client_id, connection, date_from, date_to)
     if provider == "gtm":
-        return gtm.sync(conn, client, client_id, connection)
+        return gtm.sync(conn, google_client, client_id, connection)
+    if provider == "meta_ads":
+        return meta_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
+    if provider == "linkedin_ads":
+        return linkedin_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     raise RuntimeError(f"Provider não suportado: {provider}")
+
+
+_SUPPORTED_CREDENTIALS_REFS = ("env:GOOGLE_SERVICE_ACCOUNT_JSON", "env:META_ADS_ACCESS_TOKEN", "env:LINKEDIN_ADS_ACCESS_TOKEN")
 
 
 def _validate_credentials_reference(connection: dict[str, Any]) -> None:
     reference = connection.get("credentials_ref")
-    if reference and reference != "env:GOOGLE_SERVICE_ACCOUNT_JSON":
+    if reference and reference not in _SUPPORTED_CREDENTIALS_REFS:
         raise RuntimeError(
-            "credentials_ref não suportado neste ambiente; use env:GOOGLE_SERVICE_ACCOUNT_JSON ou integre um cofre."
+            f"credentials_ref não suportado neste ambiente; use um de {_SUPPORTED_CREDENTIALS_REFS} ou integre um cofre."
         )
 
 
