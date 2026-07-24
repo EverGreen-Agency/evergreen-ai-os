@@ -80,7 +80,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | PROJECT-TECH-001 | DONE | Full-stack | Fases ordenadas, entregas por fase, links de proposta/especificação e feed de progresso/bloqueio/teste/release para projetos Tech | PROJECT-001 | `smoke_projects.py` cobre visibilidade do cliente, conteúdo interno e fase cruzada |
 | PROJECT-GH-001 | DONE | Full-stack | Ligar projetos Tech em leitura a repositório, issues, PRs e commits sem perder o Bioma como fonte canônica | PROJECT-001 | migration 0028 + adapter mockado sem rede + compile/OpenAPI + tsc/build |
 | PROJECT-GH-002 | DONE | Full-stack | Escrita GitHub idempotente e auditada com confirmação HITL | PROJECT-GH-001 | `smoke_github_write.py` cobre replay, BOLA e confirmação explícita (`confirm` obrigatório) |
-| AI-METHOD-001 | TODO | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | fixtures + revisão humana + tsc/build |
+| AI-METHOD-001 | DONE | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | entregue via cluster Raio-X/brand book/IA multimodal (Onda 5); smokes isolados + pytest + tsc/build |
 | AI-OPS-001 | DONE | Full-stack | Control plane interno com templates versionados, execução idempotente, etapas ordenadas e checkpoints HITL | AI-CONTENT-001 | pytest + smoke isolado + contrato + tsc/build |
 | FINOPS-AI-001 | DONE | Full-stack | Dashboard EG de assinaturas, custos, uso e cotas observadas de IA, sem inferir saldo indisponível | AI-OPS-001 | migration 0029 + smoke isolado + npm audit |
 
@@ -128,6 +128,26 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | PRD-003 | BLOCKED | Operação | Infra e banco de produção isolados | PRD-001..002 | `/health/ready` |
 | PRD-004 | BLOCKED | Release | Deploy web/API/jobs | PRD-003 | smoke remoto |
 | PRD-005 | BLOCKED | QA/Produto | Liberação gradual e aceite | PRD-004 | checklist assinado |
+
+### Onda 5 — Mega-plataforma (módulos além do MVP HM)
+
+Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/mega-plataforma/`), construídos direto no Bioma em vez do greenfield Next.js/Supabase abandonado — o Bioma é o veículo da mega-plataforma, não um MVP à parte dela.
+
+| ID | Estado | Frente | Entrega | Dependência | Validação |
+|---|---|---|---|---|---|
+| MOD-COMERCIAL-001 | DONE | Full-stack | Raio-X: score 3 pilares (Oferta/Demanda/Conversão), diagnóstico e planos de ação de 90 dias | AUTHZ-WS-001 | `smoke_commercial.py`; gate de módulo `commercial` corrigido nesta consolidação |
+| MOD-CONTEUDO-002 | DONE | Full-stack/Worker | Estúdio IA: geração de imagem e roteiro de vídeo além de posts sociais | AI-CONTENT-001 | `smoke_ai_content.py` (preview + schema por tipo) |
+| MOD-BI-SOCIAL-001 | DOING | Backend/Worker | Leitura de Meta Ads e LinkedIn Ads + resumo de IA multicanal | WEB-PERF-002 | `smoke_performance_social.py`; **falta scheduler** — providers existem mas nada agenda a sincronização ainda |
+| MOD-COMUNICACAO-WPP-001 | DONE | Full-stack/Worker | Bridge WhatsApp multi-provider (Evolution/Meta Cloud/Z-API) com token cifrado em repouso | AUTHZ-WS-001 | `smoke_whatsapp_multiprovider.py` cobre cifra e decifra |
+| MOD-SQUADS-AUTONOMOS-001 | DONE | Full-stack/Worker | Agentes autônomos por pilar com execução real via LLM (Responses API + JSON schema) e FinOps por workspace | AI-CONTENT-001 | `smoke_autonomous_squads.py` cobre prévia honesta e execução live mockada |
+| MOD-MARCA-001 | DONE | Full-stack | Brand book versionado (tom de voz, arquétipo, posicionamento, regras de copy) | AUTHZ-WS-001 | `smoke_mcp_brand_calendar.py` |
+| MOD-CALENDARIO-001 | DONE | Full-stack | Calendário editorial nativo com estágios (ideação→publicado) | AUTHZ-WS-001 | `smoke_mcp_brand_calendar.py` |
+| MOD-MCP-001 | DONE | Backend | Servidor MCP stdio para orquestração externa (Fóton/Antigravity) com `service_token` + escopo fixo por workspace | MOD-SQUADS-AUTONOMOS-001 | `smoke_mcp_brand_calendar.py` cobre negação sem token e cross-workspace |
+| MOD-LOGISTICA-KITS-001 | DONE | Full-stack | Peças (fornecedor/custo/estoque), definições de kit por nível e envios por cliente (em_producao→enviado→entregue) | AUTHZ-WS-001 | migration 0038 + `smoke_kits.py` (BOLA, peça inexistente, custo total, ciclo de status) |
+| MOD-RH-001 | TODO | Full-stack | Rampagem 15/30/60/90 dias + carteira/performance de gestor (estende TEAM-001) | TEAM-001 | — |
+| MOD-SAAS-BILLING-001 | TODO | Full-stack | Stripe: planos, cupons, cotas, clientes legado, suspensão de acesso (retenção, nunca backdoor) | mod-multitenant (já herdado) | — |
+| MOD-CERTIFICACOES-001 | TODO | Full-stack | Gestão de certificações de funcionários/EG (Google, Meta, Salesforce, HubSpot) | TEAM-001 | — |
+| MOD-CONTRATOS-001 | TODO | Arquitetura/Full-stack | ADR: absorver Autentique vs manter externo (API) | PROJECT-001 | ADR aprovado |
 
 ## Template de handoff
 

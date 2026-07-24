@@ -15,6 +15,7 @@ from bioma_api.routers import (
     health,
     integrations,
     invites,
+    kits,
     oauth,
     passwords,
     performance,
@@ -83,6 +84,7 @@ app.include_router(benchmark.admin_router)
 app.include_router(health.router)
 app.include_router(admin.router)
 app.include_router(wiki.router)
+app.include_router(kits.router)
 
 
 @app.get("/")

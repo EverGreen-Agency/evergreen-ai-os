@@ -133,8 +133,8 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 
 - **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
 - **CRM:** o backend mínimo do funil solicitado no caso HM existe e a tela mínima já está integrada. Ele atende o MVP operacional, não pretende substituir um CRM completo. A direção futura preferida é uma **bridge Kommo** (espelho do funil por cliente, no padrão do ClickUp Bridge), pois a EG revende Kommo.
-- **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
-- **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
+- **Brand book:** ~~geração LLM, aprovação e versionamento adiados~~ — **decisão revertida em 2026-07-24**: o ClickUp foi aposentado (INT-CU-RETIRE-001) e a EG decidiu que o Bioma absorve o all-in-one de gestão de projetos, incluindo o que antes seria "entrega da HM". Módulo nativo versionado implementado (`MOD-MARCA-001`, ver `EXECUCAO-MVP.md` Onda 5).
+- **Calendário editorial/social:** ~~a produção de conteúdo permanece no ClickUp~~ — **decisão revertida em 2026-07-24** pelo mesmo motivo acima. Calendário editorial nativo implementado (`MOD-CALENDARIO-001`, estágios ideação→...→publicado), sem dependência do ClickUp.
 - **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
 - **Financeiro:** backend e tela mínima concluídos; integração com a fonte financeira real ainda pendente.
 - **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
@@ -211,9 +211,9 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Criar experiência específica de Briefing além do artefato textual.
 - [x] Criar Estúdio IA por workspace para gerar lotes de posts a partir de briefing, canais e referências metodológicas, sempre com revisão humana.
 - [x] Renderizar documentos estratégicos estruturados de forma genérica, incluindo brand book quando cadastrado.
-- [ ] Implementar geração, aprovação e versionamento específicos de Brand Book, caso retornem ao escopo.
+- [x] Implementar geração, aprovação e versionamento específicos de Brand Book (`MOD-MARCA-001`, 2026-07-24).
 - [x] Criar calendário editorial semanal navegável alimentado por entregas reais.
-- [ ] Criar visão mensal do calendário editorial.
+- [x] Criar calendário editorial nativo com estágios (`MOD-CALENDARIO-001`, 2026-07-24); visão mensal segue como melhoria futura de UI.
 - [x] Criar visão de Analytics honesta, sem fingir dados reais.
 - [x] Conectar Analytics principal aos endpoints reais de Performance.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
@@ -224,8 +224,8 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Aplicar migrations 0021/0022/0023 e executar `smoke_vault.py`/`smoke_projects.py` em Postgres local.
 - [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
 - [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
-- [ ] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa.
-- [ ] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente.
+- [x] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa (PROJECT-GH-002, 2026-07-24).
+- [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 
 ### P1.5 - Port do BIAds / Performance
 

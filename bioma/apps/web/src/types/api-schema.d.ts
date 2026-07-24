@@ -567,6 +567,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/logistics/kits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Kit Definitions */
+        get: operations["list_kit_definitions_backoffice_logistics_kits_get"];
+        put?: never;
+        /** Create Kit Definition */
+        post: operations["create_kit_definition_backoffice_logistics_kits_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/logistics/kits/{kit_definition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Kit Definition */
+        patch: operations["update_kit_definition_backoffice_logistics_kits__kit_definition_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/logistics/pieces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Pieces */
+        get: operations["list_pieces_backoffice_logistics_pieces_get"];
+        put?: never;
+        /** Create Piece */
+        post: operations["create_piece_backoffice_logistics_pieces_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/logistics/pieces/{piece_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Piece */
+        patch: operations["update_piece_backoffice_logistics_pieces__piece_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/logistics/shipments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Shipments */
+        get: operations["list_shipments_backoffice_logistics_shipments_get"];
+        put?: never;
+        /** Create Shipment */
+        post: operations["create_shipment_backoffice_logistics_shipments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/logistics/shipments/{shipment_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Shipment Status */
+        patch: operations["update_shipment_status_backoffice_logistics_shipments__shipment_id__status_patch"];
+        trace?: never;
+    };
     "/backoffice/squads": {
         parameters: {
             query?: never;
@@ -1095,6 +1200,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{client_id}/performance/ai-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ai Summary */
+        get: operations["get_ai_summary_clients__client_id__performance_ai_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{client_id}/performance/connections": {
         parameters: {
             query?: never;
@@ -1173,6 +1295,40 @@ export interface paths {
         };
         /** List Gtm Snapshots */
         get: operations["list_gtm_snapshots_clients__client_id__performance_gtm_snapshots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{client_id}/performance/linkedin-ads/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Linkedin Ads Daily */
+        get: operations["list_linkedin_ads_daily_clients__client_id__performance_linkedin_ads_daily_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{client_id}/performance/meta-ads/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Meta Ads Daily */
+        get: operations["list_meta_ads_daily_clients__client_id__performance_meta_ads_daily_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2086,6 +2242,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{client_id}/performance/ai-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ai Summary */
+        get: operations["get_ai_summary_workspaces__client_id__performance_ai_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{client_id}/performance/connections": {
         parameters: {
             query?: never;
@@ -2164,6 +2337,40 @@ export interface paths {
         };
         /** List Gtm Snapshots */
         get: operations["list_gtm_snapshots_workspaces__client_id__performance_gtm_snapshots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{client_id}/performance/linkedin-ads/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Linkedin Ads Daily */
+        get: operations["list_linkedin_ads_daily_workspaces__client_id__performance_linkedin_ads_daily_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{client_id}/performance/meta-ads/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Meta Ads Daily */
+        get: operations["list_meta_ads_daily_workspaces__client_id__performance_meta_ads_daily_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2259,6 +2466,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspace_id}/brand-book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Brand Book */
+        get: operations["get_brand_book_workspaces__workspace_id__brand_book_get"];
+        put?: never;
+        /** Upsert Brand Book */
+        post: operations["upsert_brand_book_workspaces__workspace_id__brand_book_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Items */
+        get: operations["list_items_workspaces__workspace_id__calendar_get"];
+        put?: never;
+        /** Create Item */
+        post: operations["create_item_workspaces__workspace_id__calendar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/calendar/{item_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Stage */
+        patch: operations["update_stage_workspaces__workspace_id__calendar__item_id__stage_patch"];
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/commercial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Commercial Portal */
+        get: operations["get_commercial_portal_workspaces__workspace_id__commercial_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/commercial/action-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Action Plan */
+        post: operations["create_action_plan_workspaces__workspace_id__commercial_action_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/commercial/action-plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Action Plan Status */
+        patch: operations["update_action_plan_status_workspaces__workspace_id__commercial_action_plans__plan_id__patch"];
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/commercial/diagnostic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer Diagnostic Question */
+        post: operations["answer_diagnostic_question_workspaces__workspace_id__commercial_diagnostic_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/favorite": {
         parameters: {
             query?: never;
@@ -2289,6 +2617,75 @@ export interface paths {
         put?: never;
         /** Create Project */
         post: operations["create_project_workspaces__workspace_id__projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/squads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Squads */
+        get: operations["list_squads_workspaces__workspace_id__squads_get"];
+        put?: never;
+        /** Upsert Squad */
+        post: operations["upsert_squad_workspaces__workspace_id__squads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/squads/executions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Executions */
+        get: operations["list_executions_workspaces__workspace_id__squads_executions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/squads/finops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Finops */
+        get: operations["get_finops_workspaces__workspace_id__squads_finops_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/squads/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Squad */
+        post: operations["run_squad_workspaces__workspace_id__squads_run_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2399,10 +2796,121 @@ export interface paths {
         patch: operations["set_status_workspaces__workspace_id__vault__credential_id__status_patch"];
         trace?: never;
     };
+    "/workspaces/{workspace_id}/whatsapp/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Logs */
+        get: operations["list_logs_workspaces__workspace_id__whatsapp_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/whatsapp/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Providers */
+        get: operations["list_providers_workspaces__workspace_id__whatsapp_providers_get"];
+        put?: never;
+        /** Upsert Provider */
+        post: operations["upsert_provider_workspaces__workspace_id__whatsapp_providers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/whatsapp/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Message */
+        post: operations["send_message_workspaces__workspace_id__whatsapp_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActionPlanCreateRequest */
+        ActionPlanCreateRequest: {
+            /**
+             * Pilar Gargalo
+             * @enum {string}
+             */
+            pilar_gargalo: "oferta" | "demanda" | "conversao";
+            /** Sprint Goals */
+            sprint_goals: string;
+            /** Sprint Title */
+            sprint_title: string;
+        };
+        /** ActionPlanStatusUpdateRequest */
+        ActionPlanStatusUpdateRequest: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "em_andamento" | "concluido" | "pausado";
+        };
+        /** ActionPlanSummary */
+        ActionPlanSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** End Date */
+            end_date?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pilar Gargalo
+             * @enum {string}
+             */
+            pilar_gargalo: "oferta" | "demanda" | "conversao";
+            /** Sprint Goals */
+            sprint_goals: string;
+            /** Sprint Title */
+            sprint_title: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "em_andamento" | "concluido" | "pausado";
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** AdsAccountSummary */
         AdsAccountSummary: {
             /**
@@ -2498,12 +3006,36 @@ export interface components {
             /** Impressions */
             impressions: number;
         };
+        /** AiContentImage */
+        AiContentImage: {
+            /** Aspect Ratio */
+            aspect_ratio: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
+            /** Preview Url */
+            preview_url?: string | null;
+            /** Prompt En */
+            prompt_en: string;
+            /** Provider */
+            provider: string;
+            /** Title */
+            title: string;
+            /** Visual Description */
+            visual_description: string;
+        };
         /** AiContentOutput */
         AiContentOutput: {
+            /** Images */
+            images?: components["schemas"]["AiContentImage"][];
             /** Posts */
-            posts: components["schemas"]["AiContentPost"][];
+            posts?: components["schemas"]["AiContentPost"][];
             /** Strategy Note */
             strategy_note: string;
+            /** Video Scripts */
+            video_scripts?: components["schemas"]["AiContentVideoScript"][];
         };
         /** AiContentPost */
         AiContentPost: {
@@ -2529,6 +3061,17 @@ export interface components {
             brief: string;
             /** Channels */
             channels: ("instagram" | "linkedin" | "facebook" | "tiktok" | "youtube")[];
+            /**
+             * Content Type
+             * @default social_posts
+             * @enum {string}
+             */
+            content_type: "social_posts" | "image_generation" | "video_scripts";
+            /**
+             * Image Provider
+             * @default dalle_3
+             */
+            image_provider: ("dalle_3" | "flux" | "higgsfield" | "midjourney_api" | "custom") | null;
             /** Methodology Refs */
             methodology_refs?: string[];
             /** Objective */
@@ -2549,9 +3092,9 @@ export interface components {
             channels: ("instagram" | "linkedin" | "facebook" | "tiktok" | "youtube")[];
             /**
              * Content Type
-             * @constant
+             * @enum {string}
              */
-            content_type: "social_posts";
+            content_type: "social_posts" | "image_generation" | "video_scripts";
             /**
              * Created At
              * Format: date-time
@@ -2591,6 +3134,30 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /** AiContentVideoScript */
+        AiContentVideoScript: {
+            /** Broll Notes */
+            broll_notes: string;
+            /** Camera Angle Notes */
+            camera_angle_notes?: string | null;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
+            /** Cta Final */
+            cta_final: string;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Format */
+            format: string;
+            /** Hook 0 3S */
+            hook_0_3s: string;
+            /** Script Body */
+            script_body: string;
+            /** Title */
+            title: string;
         };
         /** AiCostTotal */
         AiCostTotal: {
@@ -3082,6 +3649,60 @@ export interface components {
              */
             visibility: "internal" | "client";
         };
+        /** BrandBookPayload */
+        BrandBookPayload: {
+            /** Arquetipo */
+            arquetipo: string;
+            /** Paleta Cores */
+            paleta_cores?: string[];
+            /** Posicionamento */
+            posicionamento?: string | null;
+            /** Proposta Valor */
+            proposta_valor?: string | null;
+            /** Regras Copy */
+            regras_copy?: string[];
+            /** Tom De Voz */
+            tom_de_voz: string;
+        };
+        /** BrandBookSummary */
+        BrandBookSummary: {
+            /** Arquetipo */
+            arquetipo: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Paleta Cores */
+            paleta_cores: string[];
+            /** Posicionamento */
+            posicionamento?: string | null;
+            /** Proposta Valor */
+            proposta_valor?: string | null;
+            /** Regras Copy */
+            regras_copy: string[];
+            /** Status */
+            status: string;
+            /** Tom De Voz */
+            tom_de_voz: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** ClientCreateRequest */
         ClientCreateRequest: {
             /** Name */
@@ -3200,6 +3821,59 @@ export interface components {
             responsible_name?: string | null;
             /** Status */
             status?: ("onboarding" | "active" | "paused" | "archived") | null;
+        };
+        /** CommercialPortalResponse */
+        CommercialPortalResponse: {
+            /** Action Plans */
+            action_plans: components["schemas"]["ActionPlanSummary"][];
+            /** Answers */
+            answers: components["schemas"]["DiagnosticAnswerSummary"][];
+            scores: components["schemas"]["CommercialScoreSummary"];
+        };
+        /** CommercialScoreSummary */
+        CommercialScoreSummary: {
+            /** Conversao Level */
+            conversao_level: number;
+            /** Conversao Score */
+            conversao_score: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Demanda Level */
+            demanda_level: number;
+            /** Demanda Score */
+            demanda_score: number;
+            /**
+             * Gargalo Prioritario
+             * @enum {string}
+             */
+            gargalo_prioritario: "oferta" | "demanda" | "conversao";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Maturity Level
+             * @enum {string}
+             */
+            maturity_level: "semente" | "muda" | "arvore" | "floresta";
+            /** Oferta Level */
+            oferta_level: number;
+            /** Oferta Score */
+            oferta_score: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** ContractCreate */
         ContractCreate: {
@@ -3373,6 +4047,139 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** DiagnosticAnswerRequest */
+        DiagnosticAnswerRequest: {
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Question Key */
+            question_key: string;
+            /**
+             * Regua Level
+             * @enum {integer}
+             */
+            regua_level: 1 | 2;
+            /** Score Value */
+            score_value: number;
+        };
+        /** DiagnosticAnswerSummary */
+        DiagnosticAnswerSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Question Key */
+            question_key: string;
+            /** Regua Level */
+            regua_level: number;
+            /** Score Value */
+            score_value: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** EditorialCalendarItemPayload */
+        EditorialCalendarItemPayload: {
+            /**
+             * Channel
+             * @default instagram
+             * @enum {string}
+             */
+            channel: "instagram" | "facebook" | "linkedin" | "youtube" | "tiktok" | "blog";
+            /**
+             * Content Type
+             * @default social_post
+             * @enum {string}
+             */
+            content_type: "social_post" | "image_ad" | "video_script" | "article";
+            /** Media Urls */
+            media_urls?: string[];
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Post Text */
+            post_text?: string | null;
+            /** Scheduled At */
+            scheduled_at?: string | null;
+            /**
+             * Stage
+             * @default ideation
+             * @enum {string}
+             */
+            stage: "ideation" | "production" | "review" | "approved" | "scheduled" | "published";
+            /** Title */
+            title: string;
+        };
+        /** EditorialCalendarItemSummary */
+        EditorialCalendarItemSummary: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "instagram" | "facebook" | "linkedin" | "youtube" | "tiktok" | "blog";
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "social_post" | "image_ad" | "video_script" | "article";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Media Urls */
+            media_urls: string[];
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Post Text */
+            post_text?: string | null;
+            /** Scheduled At */
+            scheduled_at?: string | null;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "ideation" | "production" | "review" | "approved" | "scheduled" | "published";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** EngineeringDocData */
         EngineeringDocData: {
             /** Content */
@@ -3381,6 +4188,24 @@ export interface components {
             doc_type: string;
             /** Filename */
             filename?: string | null;
+        };
+        /** FinOpsSummaryResponse */
+        FinOpsSummaryResponse: {
+            /** Completion Tokens */
+            completion_tokens: number;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+            /** Total Cost Cents */
+            total_cost_cents: number;
+            /** Total Executions */
+            total_executions: number;
+            /** Total Tokens */
+            total_tokens: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** FinancialRecordCreateRequest */
         FinancialRecordCreateRequest: {
@@ -3865,6 +4690,229 @@ export interface components {
             /** Used At */
             used_at?: string | null;
         };
+        /** KitDefinitionCreateRequest */
+        KitDefinitionCreateRequest: {
+            /** Description */
+            description?: string | null;
+            /** Level */
+            level: string;
+            /** Name */
+            name: string;
+            /** Pieces */
+            pieces?: components["schemas"]["KitDefinitionPieceEntry"][];
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "discontinued";
+        };
+        /** KitDefinitionPieceEntry */
+        KitDefinitionPieceEntry: {
+            /**
+             * Piece Id
+             * Format: uuid
+             */
+            piece_id: string;
+            /** Quantity */
+            quantity: number;
+        };
+        /** KitDefinitionSummary */
+        KitDefinitionSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Level */
+            level: string;
+            /** Name */
+            name: string;
+            /** Pieces */
+            pieces?: components["schemas"]["KitDefinitionPieceEntry"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "discontinued";
+            /**
+             * Total Cost Cents
+             * @default 0
+             */
+            total_cost_cents: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** KitDefinitionUpdateRequest */
+        KitDefinitionUpdateRequest: {
+            /** Description */
+            description?: string | null;
+            /** Level */
+            level?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Pieces */
+            pieces?: components["schemas"]["KitDefinitionPieceEntry"][] | null;
+            /** Status */
+            status?: ("active" | "discontinued") | null;
+        };
+        /** KitPieceCreateRequest */
+        KitPieceCreateRequest: {
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "discontinued";
+            /**
+             * Stock Qty
+             * @default 0
+             */
+            stock_qty: number;
+            /** Supplier */
+            supplier?: string | null;
+            /**
+             * Unit Cost Cents
+             * @default 0
+             */
+            unit_cost_cents: number;
+        };
+        /** KitPieceSummary */
+        KitPieceSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "discontinued";
+            /** Stock Qty */
+            stock_qty: number;
+            /** Supplier */
+            supplier?: string | null;
+            /** Unit Cost Cents */
+            unit_cost_cents: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** KitPieceUpdateRequest */
+        KitPieceUpdateRequest: {
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Name */
+            name?: string | null;
+            /** Status */
+            status?: ("active" | "discontinued") | null;
+            /** Stock Qty */
+            stock_qty?: number | null;
+            /** Supplier */
+            supplier?: string | null;
+            /** Unit Cost Cents */
+            unit_cost_cents?: number | null;
+        };
+        /** KitShipmentCreateRequest */
+        KitShipmentCreateRequest: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /**
+             * Kit Definition Id
+             * Format: uuid
+             */
+            kit_definition_id: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** KitShipmentStatusUpdateRequest */
+        KitShipmentStatusUpdateRequest: {
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "em_producao" | "enviado" | "entregue" | "cancelado";
+        };
+        /** KitShipmentSummary */
+        KitShipmentSummary: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delivered At */
+            delivered_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kit Definition Id
+             * Format: uuid
+             */
+            kit_definition_id: string;
+            /** Kit Name */
+            kit_name: string;
+            /** Notes */
+            notes?: string | null;
+            /** Shipped At */
+            shipped_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "em_producao" | "enviado" | "entregue" | "cancelado";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** KommoConfigInput */
         KommoConfigInput: {
             /** Access Token */
@@ -4066,6 +5114,42 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+        };
+        /** PerformanceAiSummaryInsight */
+        PerformanceAiSummaryInsight: {
+            /** Action Recommendation */
+            action_recommendation: string;
+            /** Channel */
+            channel: string;
+            /** Finding */
+            finding: string;
+            /** Impact Level */
+            impact_level: string;
+            /** Title */
+            title: string;
+        };
+        /** PerformanceAiSummaryResponse */
+        PerformanceAiSummaryResponse: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Insights */
+            insights: components["schemas"]["PerformanceAiSummaryInsight"][];
+            /** Overall Cpa Cents */
+            overall_cpa_cents: number;
+            /** Summary Text */
+            summary_text: string;
+            /** Total Leads */
+            total_leads: number;
+            /** Total Spend Cents */
+            total_spend_cents: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** PerformanceConnectionCreateRequest */
         PerformanceConnectionCreateRequest: {
@@ -4856,6 +5940,22 @@ export interface components {
          * @enum {string}
          */
         Role: "eg_admin" | "client_user";
+        /** RunSquadPayload */
+        RunSquadPayload: {
+            /** Input Data */
+            input_data?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Squad Name */
+            squad_name: string;
+            /** Squad Slug */
+            squad_slug: string;
+        };
         /** ScopeItemCreate */
         ScopeItemCreate: {
             /** Acceptance Criteria */
@@ -4971,6 +6071,71 @@ export interface components {
             /** Unit */
             unit?: string | null;
         };
+        /** SocialDailyMetric */
+        SocialDailyMetric: {
+            /** Account Id */
+            account_id?: string | null;
+            /** Account Name */
+            account_name?: string | null;
+            /** Campaign Id */
+            campaign_id: string;
+            /** Campaign Name */
+            campaign_name: string;
+            /** Clicks */
+            clicks: number;
+            /** Client Id */
+            client_id?: string | null;
+            /** Conversions */
+            conversions: number;
+            /**
+             * Cpa Cents
+             * @default 0
+             */
+            cpa_cents: number;
+            /**
+             * Cpc Cents
+             * @default 0
+             */
+            cpc_cents: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Ctr
+             * @default 0
+             */
+            ctr: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Impressions */
+            impressions: number;
+            /** Leads */
+            leads: number;
+            /** Revenue Cents */
+            revenue_cents: number;
+            /**
+             * Roas
+             * @default 0
+             */
+            roas: number;
+            /** Spend Cents */
+            spend_cents: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** SourceFreshnessSummary */
         SourceFreshnessSummary: {
             /** Last Error At */
@@ -4989,6 +6154,131 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "inactive" | "error";
+        };
+        /** SquadDefinitionPayload */
+        SquadDefinitionPayload: {
+            /** Agents Config */
+            agents_config?: {
+                [key: string]: unknown;
+            }[];
+            /** Description */
+            description?: string | null;
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Pipeline Yaml */
+            pipeline_yaml?: string | null;
+            /** Squad Name */
+            squad_name: string;
+            /** Squad Slug */
+            squad_slug: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "paused";
+        };
+        /** SquadDefinitionSummary */
+        SquadDefinitionSummary: {
+            /** Agents Config */
+            agents_config?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Pipeline Yaml */
+            pipeline_yaml?: string | null;
+            /** Squad Name */
+            squad_name: string;
+            /** Squad Slug */
+            squad_slug: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "paused";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** SquadExecutionSummary */
+        SquadExecutionSummary: {
+            /** Completed At */
+            completed_at?: string | null;
+            /** Estimated Cost Cents */
+            estimated_cost_cents: number;
+            /** Execution Logs */
+            execution_logs: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Data */
+            input_data: {
+                [key: string]: unknown;
+            };
+            /** Output Data */
+            output_data: {
+                [key: string]: unknown;
+            };
+            /**
+             * Pilar
+             * @enum {string}
+             */
+            pilar: "oferta" | "demanda" | "conversao";
+            /** Squad Id */
+            squad_id?: string | null;
+            /** Squad Name */
+            squad_name: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed";
+            /** Token Usage */
+            token_usage: {
+                [key: string]: unknown;
+            };
+            /** Triggered By */
+            triggered_by: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** StackData */
         StackData: {
@@ -5602,6 +6892,132 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "expired" | "rotating" | "compromised" | "revoked";
+        };
+        /** WhatsAppMessageLogSummary */
+        WhatsAppMessageLogSummary: {
+            /** Error Message */
+            error_message?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Message Type
+             * @enum {string}
+             */
+            message_type: "text" | "template" | "media";
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /**
+             * Provider Type
+             * @enum {string}
+             */
+            provider_type: "evolution" | "meta_cloud" | "zapi" | "custom";
+            /**
+             * Sent At
+             * Format: date-time
+             */
+            sent_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "sent" | "delivered" | "read" | "failed";
+            /** To Number */
+            to_number: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** WhatsAppProviderConfigPayload */
+        WhatsAppProviderConfigPayload: {
+            /** Api Token */
+            api_token?: string | null;
+            /** Api Url */
+            api_url?: string | null;
+            /** Instance Name */
+            instance_name?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Phone Number */
+            phone_number?: string | null;
+            /**
+             * Provider Type
+             * @enum {string}
+             */
+            provider_type: "evolution" | "meta_cloud" | "zapi" | "custom";
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "inactive" | "error";
+        };
+        /** WhatsAppProviderConfigSummary */
+        WhatsAppProviderConfigSummary: {
+            /** Api Url */
+            api_url?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Instance Name */
+            instance_name?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Phone Number */
+            phone_number?: string | null;
+            /**
+             * Provider Type
+             * @enum {string}
+             */
+            provider_type: "evolution" | "meta_cloud" | "zapi" | "custom";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "inactive" | "error";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** WhatsAppSendMessagePayload */
+        WhatsAppSendMessagePayload: {
+            /** Message Text */
+            message_text: string;
+            /**
+             * Provider Type
+             * @enum {string}
+             */
+            provider_type: "evolution" | "meta_cloud" | "zapi" | "custom";
+            /** Template Name */
+            template_name?: string | null;
+            /** Template Variables */
+            template_variables?: string[];
+            /** To Number */
+            to_number: string;
         };
         /** WikiAttachmentDownload */
         WikiAttachmentDownload: {
@@ -7080,6 +8496,281 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kit_definitions_backoffice_logistics_kits_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitDefinitionSummary"][];
+                };
+            };
+        };
+    };
+    create_kit_definition_backoffice_logistics_kits_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitDefinitionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitDefinitionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_kit_definition_backoffice_logistics_kits__kit_definition_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kit_definition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitDefinitionUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitDefinitionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_pieces_backoffice_logistics_pieces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitPieceSummary"][];
+                };
+            };
+        };
+    };
+    create_piece_backoffice_logistics_pieces_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitPieceCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitPieceSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_piece_backoffice_logistics_pieces__piece_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                piece_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitPieceUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitPieceSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_shipments_backoffice_logistics_shipments_get: {
+        parameters: {
+            query?: {
+                client_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitShipmentSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_shipment_backoffice_logistics_shipments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitShipmentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitShipmentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_shipment_status_backoffice_logistics_shipments__shipment_id__status_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shipment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitShipmentStatusUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitShipmentSummary"];
                 };
             };
             /** @description Validation Error */
@@ -8591,6 +10282,37 @@ export interface operations {
             };
         };
     };
+    get_ai_summary_clients__client_id__performance_ai_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceAiSummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_connections_clients__client_id__performance_connections_get: {
         parameters: {
             query?: never;
@@ -8783,6 +10505,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GtmSnapshotSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_linkedin_ads_daily_clients__client_id__performance_linkedin_ads_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialDailyMetric"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_meta_ads_daily_clients__client_id__performance_meta_ads_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialDailyMetric"][];
                 };
             };
             /** @description Validation Error */
@@ -11159,6 +12943,37 @@ export interface operations {
             };
         };
     };
+    get_ai_summary_workspaces__client_id__performance_ai_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceAiSummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_connections_workspaces__client_id__performance_connections_get: {
         parameters: {
             query?: never;
@@ -11351,6 +13166,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GtmSnapshotSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_linkedin_ads_daily_workspaces__client_id__performance_linkedin_ads_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialDailyMetric"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_meta_ads_daily_workspaces__client_id__performance_meta_ads_daily_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialDailyMetric"][];
                 };
             };
             /** @description Validation Error */
@@ -11598,6 +13475,312 @@ export interface operations {
             };
         };
     };
+    get_brand_book_workspaces__workspace_id__brand_book_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandBookSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_brand_book_workspaces__workspace_id__brand_book_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandBookPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandBookSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_items_workspaces__workspace_id__calendar_get: {
+        parameters: {
+            query?: {
+                stage?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialCalendarItemSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_workspaces__workspace_id__calendar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditorialCalendarItemPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialCalendarItemSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_stage_workspaces__workspace_id__calendar__item_id__stage_patch: {
+        parameters: {
+            query: {
+                stage: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialCalendarItemSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_commercial_portal_workspaces__workspace_id__commercial_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPortalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_action_plan_workspaces__workspace_id__commercial_action_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionPlanCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPortalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_action_plan_status_workspaces__workspace_id__commercial_action_plans__plan_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionPlanStatusUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPortalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_diagnostic_question_workspaces__workspace_id__commercial_diagnostic_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiagnosticAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPortalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     favorite_workspace_workspaces__workspace_id__favorite_put: {
         parameters: {
             query?: never;
@@ -11713,6 +13896,171 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_squads_workspaces__workspace_id__squads_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SquadDefinitionSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_squad_workspaces__workspace_id__squads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SquadDefinitionPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SquadDefinitionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_executions_workspaces__workspace_id__squads_executions_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SquadExecutionSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_finops_workspaces__workspace_id__squads_finops_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinOpsSummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_squad_workspaces__workspace_id__squads_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunSquadPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SquadExecutionSummary"];
                 };
             };
             /** @description Validation Error */
@@ -11989,6 +14337,140 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VaultCredentialSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_logs_workspaces__workspace_id__whatsapp_logs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppMessageLogSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_providers_workspaces__workspace_id__whatsapp_providers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppProviderConfigSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_provider_workspaces__workspace_id__whatsapp_providers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhatsAppProviderConfigPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppProviderConfigSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_message_workspaces__workspace_id__whatsapp_send_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhatsAppSendMessagePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhatsAppMessageLogSummary"];
                 };
             };
             /** @description Validation Error */
