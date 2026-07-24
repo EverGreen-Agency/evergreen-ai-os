@@ -673,6 +673,103 @@ export type CommercialPortalResponse = {
   action_plans: ActionPlanSummary[];
 };
 
+// --- Kits & Logística ---
+export type KitPieceSummary = {
+  id: string;
+  name: string;
+  supplier?: string | null;
+  unit_cost_cents: number;
+  stock_qty: number;
+  status: "active" | "discontinued";
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type KitDefinitionSummary = {
+  id: string;
+  name: string;
+  level: string;
+  description?: string | null;
+  status: "active" | "discontinued";
+  pieces: Array<{ piece_id: string; quantity: number }>;
+  total_cost_cents: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type KitShipmentSummary = {
+  id: string;
+  kit_definition_id: string;
+  kit_name: string;
+  client_id: string;
+  client_name: string;
+  status: "em_producao" | "enviado" | "entregue" | "cancelado";
+  notes?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// --- RH & Rampagem ---
+export type MilestoneTemplateSummary = {
+  id: string;
+  day_offset: number;
+  title: string;
+  description?: string | null;
+  status: "active" | "archived";
+  created_at: string;
+  updated_at: string;
+};
+
+export type OnboardingPlanSummary = {
+  id: string;
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  hire_date: string;
+  milestones: Array<{
+    template_id?: string | null;
+    day_offset: number;
+    title: string;
+    status: "pending" | "done";
+    completed_at?: string | null;
+  }>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SatisfactionScoreSummary = {
+  id: string;
+  workspace_id: string;
+  score: number;
+  source: string;
+  notes?: string | null;
+  captured_at: string;
+};
+
+export type ManagerPortfolioWorkspace = {
+  workspace_id: string;
+  workspace_name: string;
+  client_name: string;
+  projects_total: number;
+  deliverables_total: number;
+  deliverables_done: number;
+  deliverables_blocked: number;
+  deliverables_overdue: number;
+  completion_percentage: number;
+  pace_status: "unknown" | "on_track" | "at_risk" | "off_track";
+  latest_satisfaction_score?: number | null;
+  latest_satisfaction_captured_at?: string | null;
+};
+
+export type ManagerPortfolioResponse = {
+  user_id: string;
+  user_name: string;
+  workspaces: ManagerPortfolioWorkspace[];
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -1850,4 +1947,42 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+
+  // --- Kits & Logística ---
+  listKitPieces: () => request<KitPieceSummary[]>("/backoffice/logistics/pieces"),
+  createKitPiece: (payload: Partial<KitPieceSummary>) =>
+    request<KitPieceSummary>("/backoffice/logistics/pieces", { method: "POST", body: JSON.stringify(payload) }),
+  listKitDefinitions: () => request<KitDefinitionSummary[]>("/backoffice/logistics/kits"),
+  createKitDefinition: (payload: Partial<KitDefinitionSummary>) =>
+    request<KitDefinitionSummary>("/backoffice/logistics/kits", { method: "POST", body: JSON.stringify(payload) }),
+  listKitShipments: () => request<KitShipmentSummary[]>("/backoffice/logistics/shipments"),
+  createKitShipment: (payload: { kit_definition_id: string; client_id: string; notes?: string }) =>
+    request<KitShipmentSummary>("/backoffice/logistics/shipments", { method: "POST", body: JSON.stringify(payload) }),
+  updateKitShipmentStatus: (shipmentId: string, status: string, notes?: string) =>
+    request<KitShipmentSummary>(`/backoffice/logistics/shipments/${shipmentId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, notes }),
+    }),
+
+  // --- RH & Rampagem ---
+  listRhOnboardingTemplates: () => request<MilestoneTemplateSummary[]>("/backoffice/rh/onboarding/templates"),
+  createRhOnboardingTemplate: (payload: Partial<MilestoneTemplateSummary>) =>
+    request<MilestoneTemplateSummary>("/backoffice/rh/onboarding/templates", { method: "POST", body: JSON.stringify(payload) }),
+  listRhOnboardingPlans: () => request<OnboardingPlanSummary[]>("/backoffice/rh/onboarding/plans"),
+  createRhOnboardingPlan: (payload: { user_id: string; hire_date: string }) =>
+    request<OnboardingPlanSummary>("/backoffice/rh/onboarding/plans", { method: "POST", body: JSON.stringify(payload) }),
+  toggleRhMilestone: (planId: string, dayOffset: number, status: "pending" | "done") =>
+    request<OnboardingPlanSummary>(`/backoffice/rh/onboarding/plans/${planId}/milestone`, {
+      method: "PATCH",
+      body: JSON.stringify({ day_offset: dayOffset, status }),
+    }),
+  getRhSatisfaction: (workspaceId: string) =>
+    request<SatisfactionScoreSummary[]>(`/backoffice/rh/workspaces/${workspaceId}/satisfaction`),
+  addRhSatisfaction: (workspaceId: string, payload: { score: number; source?: string; notes?: string }) =>
+    request<SatisfactionScoreSummary>(`/backoffice/rh/workspaces/${workspaceId}/satisfaction`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getRhManagerPortfolio: (managerUserId: string) =>
+    request<ManagerPortfolioResponse>(`/backoffice/rh/managers/${managerUserId}/portfolio`),
 };

@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Sparkles, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -14,7 +14,9 @@ export type ViewId =
   | "eg-office"
   | "eg-ideas"
   | "eg-tech"
-  | "eg-architecture";
+  | "eg-architecture"
+  | "eg-rh"
+  | "eg-kits";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
@@ -28,6 +30,8 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-ideas", label: "Banco de Ideias", icon: BookOpen },
   { id: "eg-tech", label: "Banco de Stack", icon: GitBranch },
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
+  { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
+  { id: "eg-kits", label: "Logística Kits", icon: Package },
 ];
 
 export const clientHubNavItems: Array<{
@@ -86,6 +90,8 @@ export const viewModule: Record<ViewId, ClientModule> = {
   "eg-ideas": "hub",
   "eg-tech": "hub",
   "eg-architecture": "hub",
+  "eg-rh": "hub",
+  "eg-kits": "hub",
 };
 
 export const moduleLabels: Record<ClientModule, string> = {
@@ -100,7 +106,7 @@ export const moduleLabels: Record<ClientModule, string> = {
 
 // Módulos que o EG admin pode ligar/desligar por cliente ("hub" é o núcleo,
 // sempre ativo — o backend força isso também).
-export const toggleableModules: ClientModule[] = ["files", "commercial", "analytics", "integrations", "engineering"];
+export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "analytics", "integrations"];
 
 export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
   if (isEgAdmin) {
