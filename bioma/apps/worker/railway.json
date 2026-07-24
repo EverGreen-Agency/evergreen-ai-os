@@ -5,7 +5,8 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python -m bioma_worker.cli --drain",
-    "restartPolicyType": "NEVER"
+    "startCommand": "python -m bioma_worker.cli",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   }
 }
