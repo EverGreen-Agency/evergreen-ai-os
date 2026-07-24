@@ -181,6 +181,12 @@ def list_proposals(conn, limit: int = 50) -> list[dict[str, Any]]:
 
 def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> dict[str, Any]:
     with conn.cursor(row_factory=dict_row) as cur:
+        valid_user_id = None
+        if user_id:
+            cur.execute("select id from users where id = %s", (user_id,))
+            if cur.fetchone():
+                valid_user_id = user_id
+
         cur.execute(
             """
             insert into commercial_proposals (
@@ -202,7 +208,7 @@ def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> 
                 data.get("pricing_cents", 0),
                 data.get("delivery_days", 15),
                 data.get("status", "draft"),
-                user_id,
+                valid_user_id,
             ),
         )
         return dict(cur.fetchone())

@@ -118,7 +118,7 @@ def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any
 def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -> ProposalSummary:
     with connect() as conn:
         opps = proposals_repo.list_opportunities(conn)
-        opp = next((o for o in opps if o["id"] == opp_id), None)
+        opp = next((o for o in opps if str(o["id"]) == str(opp_id)), None)
         if not opp:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Oportunidade não encontrada.")
 
