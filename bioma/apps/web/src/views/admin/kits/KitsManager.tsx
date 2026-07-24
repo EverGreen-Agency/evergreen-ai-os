@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Package, Truck, Layers, Plus } from "lucide-react";
+import { Package, Truck, Layers, Plus, CheckCircle2 } from "lucide-react";
 import {
   api,
   type KitDefinitionSummary,
@@ -8,17 +8,15 @@ import {
 } from "../../../lib/api";
 
 export function KitsManager() {
-  const [activeTab, setActiveTab] = useState<"shipments" | "definitions" | "pieces">("shipments");
+  const [activeTab, setActiveTab] = useState<"shipments" | "kits" | "pieces">("shipments");
   const [shipments, setShipments] = useState<KitShipmentSummary[]>([]);
-  const [definitions, setDefinitions] = useState<KitDefinitionSummary[]>([]);
+  const [kits, setKits] = useState<KitDefinitionSummary[]>([]);
   const [pieces, setPieces] = useState<KitPieceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Formulário nova peça
   const [pieceName, setPieceName] = useState("");
-  const [pieceCost, setPieceCost] = useState(0);
-  const [pieceStock, setPieceStock] = useState(0);
+  const [pieceCategory, setPieceCategory] = useState("");
 
   useEffect(() => {
     loadData();
@@ -28,16 +26,16 @@ export function KitsManager() {
     setLoading(true);
     setError("");
     try {
-      const [s, d, p] = await Promise.all([
+      const [s, k, p] = await Promise.all([
         api.listKitShipments(),
         api.listKitDefinitions(),
         api.listKitPieces(),
       ]);
       setShipments(s);
-      setDefinitions(d);
+      setKits(k);
       setPieces(p);
     } catch (err: any) {
-      setError(err.message || "Erro ao carregar dados de logística de kits.");
+      setError(err.message || "Erro ao carregar logística de kits.");
     } finally {
       setLoading(false);
     }
@@ -47,167 +45,186 @@ export function KitsManager() {
     e.preventDefault();
     if (!pieceName.trim()) return;
     try {
-      await api.createKitPiece({
-        name: pieceName,
-        unit_cost_cents: Math.round(pieceCost * 100),
-        stock_qty: Number(pieceStock),
-      });
+      await api.createKitPiece({ name: pieceName, category: pieceCategory || "general" });
       setPieceName("");
-      setPieceCost(0);
-      setPieceStock(0);
+      setPieceCategory("");
       loadData();
     } catch (err: any) {
-      alert("Erro ao criar peça de kit: " + err.message);
-    }
-  }
-
-  async function handleUpdateShipmentStatus(shipmentId: string, newStatus: string) {
-    try {
-      await api.updateKitShipmentStatus(shipmentId, newStatus);
-      loadData();
-    } catch (err: any) {
-      alert("Erro ao atualizar status do envio: " + err.message);
+      alert("Erro ao criar peça: " + err.message);
     }
   }
 
   return (
-    <div className="kits-manager-container p-6 space-y-6">
-      <header className="flex items-center justify-between border-b pb-4">
+    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto", color: "var(--text)" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Package className="w-7 h-7 text-amber-500" /> Logística & Envio de Kits (MOD-LOGISTICA-KITS-001)
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", margin: 0 }}>
+            <Package color="var(--brand-accent)" size={28} /> Logística & Envio de Kits (MOD-LOGISTICA-KITS-001)
           </h1>
-          <p className="text-sm text-gray-500">
+          <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
             Catálogo de peças, definição de kits corporativos e controle de envios para clientes/colaboradores.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab("shipments")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "shipments" ? "bg-amber-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Envios ({shipments.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("definitions")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "definitions" ? "bg-amber-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Kits Cadastrados ({definitions.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("pieces")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "pieces" ? "bg-amber-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Estoque de Peças ({pieces.length})
-          </button>
-        </div>
-      </header>
+      </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-lg">{error}</div>}
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "12px", borderBottom: "1px solid var(--border)", marginBottom: "24px" }}>
+        <button
+          onClick={() => setActiveTab("shipments")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "shipments" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "shipments" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Truck size={18} /> Envios ({shipments.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("kits")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "kits" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "kits" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Package size={18} /> Kits Cadastrados ({kits.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("pieces")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "pieces" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "pieces" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Layers size={18} /> Estoque de Peças ({pieces.length})
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ padding: "12px 16px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", color: "#ef4444", marginBottom: "20px" }}>
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Carregando dados de Kits...</div>
+        <div style={{ padding: "40px", textAlign: "center", color: "var(--text-dim)" }}>Carregando dados de logística...</div>
       ) : activeTab === "shipments" ? (
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {shipments.length === 0 ? (
-            <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed text-gray-500">
+            <div style={{ padding: "40px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", color: "var(--text-dim)" }}>
               Nenhum envio registrado no momento.
             </div>
           ) : (
-            <div className="divide-y border rounded-xl bg-white">
-              {shipments.map((s) => (
-                <div key={s.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-amber-600" /> {s.kit_name}
-                    </div>
-                    <div className="text-xs text-gray-500">Cliente / Destinatário: {s.client_name}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <select
-                      value={s.status}
-                      onChange={(e) => handleUpdateShipmentStatus(s.id, e.target.value)}
-                      className="px-3 py-1 border rounded-lg text-sm bg-gray-50 font-medium"
-                    >
-                      <option value="em_producao">Em Produção</option>
-                      <option value="enviado">Enviado</option>
-                      <option value="entregue">Entregue</option>
-                      <option value="cancelado">Cancelado</option>
-                    </select>
-                  </div>
+            shipments.map((s) => (
+              <div
+                key={s.id}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{s.kit_title}</h3>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Cliente ID: {s.client_id}</span>
                 </div>
-              ))}
-            </div>
+                <span style={{ fontSize: "0.8rem", background: "var(--bg-inset)", color: "var(--brand-accent)", padding: "4px 12px", borderRadius: "16px", fontWeight: 600 }}>
+                  Status: {s.status}
+                </span>
+              </div>
+            ))
           )}
         </div>
-      ) : activeTab === "definitions" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {definitions.map((def) => (
-            <div key={def.id} className="p-5 border rounded-xl bg-white shadow-sm space-y-2">
-              <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-amber-600" /> {def.name}
-                </h3>
-                <span className="text-xs px-2 py-1 bg-amber-50 text-amber-800 rounded font-medium">Nível: {def.level}</span>
-              </div>
-              <p className="text-sm text-gray-600">{def.description || "Sem descrição."}</p>
-              <div className="text-xs text-gray-500 pt-2 border-t">
-                Custo estimado: <strong>R$ {(def.total_cost_cents / 100).toFixed(2)}</strong> • Peças inclusas: {def.pieces.length}
-              </div>
+      ) : activeTab === "kits" ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+          {kits.length === 0 ? (
+            <div style={{ gridColumn: "1 / -1", padding: "40px", textAlign: "center", background: "var(--surface)", borderRadius: "12px", color: "var(--text-dim)" }}>
+              Nenhum kit cadastrado.
             </div>
-          ))}
+          ) : (
+            kits.map((k) => (
+              <div key={k.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+                <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 600 }}>{k.title}</h3>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-dim)" }}>{k.description || "Sem descrição."}</p>
+              </div>
+            ))
+          )}
         </div>
       ) : (
-        <div className="space-y-6">
-          <form onSubmit={handleCreatePiece} className="p-4 border rounded-xl bg-white space-y-3">
-            <h3 className="font-semibold text-md flex items-center gap-2">
-              <Plus className="w-4 h-4 text-amber-600" /> Cadastrar Nova Peça no Estoque
-            </h3>
-            <div className="flex gap-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {/* Formulário Nova Peça */}
+          <form
+            onSubmit={handleCreatePiece}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px",
+              padding: "20px",
+              display: "flex",
+              gap: "16px",
+              alignItems: "flex-end",
+            }}
+          >
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Nome do Item / Brinde</label>
               <input
                 type="text"
-                placeholder="Nome da peça (ex: Caderno Moleskine EG)"
                 value={pieceName}
                 onChange={(e) => setPieceName(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg"
+                placeholder="Ex: Caneca Térmica EG 500ml"
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
-              <input
-                type="number"
-                placeholder="Custo Un (R$)"
-                step="0.01"
-                value={pieceCost}
-                onChange={(e) => setPieceCost(Number(e.target.value))}
-                className="w-32 px-3 py-2 border rounded-lg"
-              />
-              <input
-                type="number"
-                placeholder="Estoque"
-                value={pieceStock}
-                onChange={(e) => setPieceStock(Number(e.target.value))}
-                className="w-28 px-3 py-2 border rounded-lg"
-              />
-              <button type="submit" className="px-5 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700">
-                Salvar Peça
-              </button>
             </div>
+            <div style={{ width: "200px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Categoria</label>
+              <input
+                type="text"
+                value={pieceCategory}
+                onChange={(e) => setPieceCategory(e.target.value)}
+                placeholder="Ex: Papelaria, Vestuário"
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+              />
+            </div>
+            <button className="primary-button" type="submit" style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Plus size={18} /> Adicionar Peça
+            </button>
           </form>
 
-          <div className="divide-y border rounded-xl bg-white">
+          {/* Lista de Peças */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
             {pieces.map((p) => (
-              <div key={p.id} className="p-4 flex items-center justify-between">
+              <div key={p.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Layers size={20} color="var(--brand-accent)" />
                 <div>
-                  <div className="font-semibold text-gray-900">{p.name}</div>
-                  <div className="text-xs text-gray-500">Fornecedor: {p.supplier || "N/A"}</div>
-                </div>
-                <div className="text-sm space-x-4">
-                  <span>Custo: <strong>R$ {(p.unit_cost_cents / 100).toFixed(2)}</strong></span>
-                  <span className="px-2.5 py-1 bg-gray-100 text-gray-800 rounded font-medium">Estoque: {p.stock_qty} un</span>
+                  <strong style={{ fontSize: "0.9rem", display: "block" }}>{p.name}</strong>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Categoria: {p.category}</span>
                 </div>
               </div>
             ))}

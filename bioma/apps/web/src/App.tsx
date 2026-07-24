@@ -106,7 +106,7 @@ export function App() {
   const deleteArtifact = useDeleteArtifact();
 
   const apiOnline = healthData?.status === "ok";
-  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  const isEgAdmin = user?.organizations.some((organization) => organization.role === "eg_admin") ?? false;
 
   useEffect(() => {
     if (
