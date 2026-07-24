@@ -66,9 +66,15 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
 
 
 def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any]:
-    from bioma_worker.scrapers.opportunities import fetch_rss_opportunities
+    from bioma_api.worker_bridge import _ensure_worker_in_path
+    _ensure_worker_in_path()
 
-    items = fetch_rss_opportunities()
+    try:
+        from bioma_worker.scrapers.opportunities import fetch_rss_opportunities
+        items = fetch_rss_opportunities()
+    except Exception as exc:
+        print(f"[Proposals Service] Erro ao executar scrapers: {exc}")
+        items = []
     new_count = 0
     skipped_count = 0
 

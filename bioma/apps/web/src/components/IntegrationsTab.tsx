@@ -501,6 +501,115 @@ export function IntegrationsTab({
           {syncFeedback && <div className="form-success" style={{ marginTop: 12 }}>{syncFeedback}</div>}
         </section>
       )}
+
+      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) --- */}
+      <section className="section-card" style={{ marginTop: 24 }}>
+        <header className="section-header">
+          <Briefcase size={20} color="var(--brand-accent)" />
+          <div>
+            <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
+            <p className="section-desc">
+              Status das integrações e varreduras automáticas de vagas para prospecção de projetos.
+            </p>
+          </div>
+        </header>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16, marginTop: 16 }}>
+          {[
+            {
+              name: "Freelancer.com.br",
+              type: "RSS Feed Nativo",
+              status: "open",
+              statusText: "Varredura RSS Ativa",
+              desc: "Varredura automática gratuita de projetos publicados no Brasil via RSS XML.",
+              requiresSub: false,
+            },
+            {
+              name: "WeWorkRemotely",
+              type: "RSS Feed Global",
+              status: "open",
+              statusText: "Varredura RSS Ativa",
+              desc: "Feed de vagas remotas de marketing, tecnologia e Growth ao redor do mundo.",
+              requiresSub: false,
+            },
+            {
+              name: "99freela",
+              type: "Scraper / Webhook",
+              status: "open",
+              statusText: "Ingestão & Captura",
+              desc: "Varredura web e captura instantânea por URL do projeto ou e-mail de alerta.",
+              requiresSub: false,
+            },
+            {
+              name: "Workana",
+              type: "Feed & Cookie Auth",
+              status: "paused",
+              statusText: "Subscrição / Login",
+              desc: "Projetos de freela da América Latina. Requer conta logada ou subscrição.",
+              requiresSub: true,
+            },
+            {
+              name: "UpWork",
+              type: "Developer API / RSS",
+              status: "paused",
+              statusText: "Requer API Key",
+              desc: "Projetos internacionais de alto valor. Conexão via OAuth / Feed de Busca da Conta.",
+              requiresSub: true,
+            },
+            {
+              name: "Toptal & Ecossistema",
+              type: "Portal Privado / Inbound",
+              status: "draft",
+              statusText: "Somente Convite / Subscrição",
+              desc: "Rede exclusiva de talentos. Ingestão realizada via webhook de e-mail ou link da vaga.",
+              requiresSub: true,
+            },
+            {
+              name: "Contra.com / Malt",
+              type: "Public Feed / Webhook",
+              status: "open",
+              statusText: "Ingestão por URL",
+              desc: "Plataformas modernas de freelancers e agências. Suporta envio por URL/Webhook.",
+              requiresSub: false,
+            },
+            {
+              name: "Outras (Guru, PeoplePerHour, Jobbers, etc)",
+              type: "Capturador IA / Ingestor",
+              status: "open",
+              statusText: "Captura por Link / IA",
+              desc: "Cole qualquer link de projeto de qualquer plataforma para a IA analisar o Fit imediatamente.",
+              requiresSub: false,
+            },
+          ].map((item, idx) => (
+            <article
+              key={idx}
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
+                padding: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>{item.name}</h4>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>{item.type}</span>
+                </div>
+                <span className={`status-pill ${item.status}`}>{item.statusText}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--text-dim)", flex: 1 }}>{item.desc}</p>
+              {item.requiresSub && (
+                <div style={{ fontSize: "0.75rem", color: "#f59e0b", background: "rgba(245, 158, 11, 0.1)", padding: "4px 8px", borderRadius: 4 }}>
+                  ⚠️ Exige assinatura/conta na plataforma
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
