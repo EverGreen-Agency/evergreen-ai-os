@@ -24,9 +24,7 @@ from bioma_api.repositories import commercial as commercial_repo
 from bioma_api.repositories import squads as squads_repo
 from bioma_api.repositories import whatsapp as wa_repo
 from bioma_api.crypto import decrypt_secret
-from bioma_worker.config import get_settings as get_worker_settings
-from bioma_worker.providers.whatsapp import get_whatsapp_provider
-from bioma_worker.squad_runner import execute_squad_pipeline
+from bioma_api.worker_bridge import execute_squad_pipeline_safe, get_whatsapp_provider_safe
 
 
 SERVICE_TOKEN = os.environ.get("MCP_SERVICE_TOKEN")

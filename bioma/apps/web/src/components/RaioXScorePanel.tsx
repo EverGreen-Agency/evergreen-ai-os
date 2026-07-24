@@ -76,7 +76,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
 
   const getAnswerValue = (pilar: CommercialPilar, reguaLevel: number, questionKey: string): number => {
     const found = answers.find(
-      (a) => a.pilar === pilar && a.regua_level === reguaLevel && a.question_key === questionKey
+      (a: DiagnosticAnswerSummary) => a.pilar === pilar && a.regua_level === reguaLevel && a.question_key === questionKey
     );
     return found ? found.score_value : 0;
   };

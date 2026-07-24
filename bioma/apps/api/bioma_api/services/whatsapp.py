@@ -4,11 +4,6 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-# Import factory from worker
-worker_path = Path(__file__).resolve().parent.parent.parent.parent / "worker"
-if str(worker_path) not in sys.path:
-    sys.path.insert(0, str(worker_path))
-
 from bioma_api.access import is_platform_admin, require_client_module, require_workspace_capability
 from bioma_api.crypto import decrypt_secret, encrypt_secret, require_encryption_configured
 from bioma_api.db import connect
@@ -22,7 +17,7 @@ from bioma_api.schemas.whatsapp import (
     WhatsAppProviderConfigSummary,
     WhatsAppSendMessagePayload,
 )
-from bioma_worker.providers.whatsapp import get_whatsapp_provider
+from bioma_api.worker_bridge import get_whatsapp_provider_safe
 
 
 def list_providers(workspace_id: UUID, user: CurrentUserResponse) -> list[WhatsAppProviderConfigSummary]:
@@ -70,7 +65,7 @@ def send_message(
         config_dict = dict(config_row) if config_row else {"provider_type": payload.provider_type}
         if config_dict.get("api_token"):
             config_dict["api_token"] = decrypt_secret(config_dict["api_token"])
-        provider = get_whatsapp_provider(payload.provider_type, config_dict)
+        provider = get_whatsapp_provider_safe(payload.provider_type, config_dict)
 
         if payload.template_name:
             res = provider.send_template_message(payload.to_number, payload.template_name, payload.template_variables)

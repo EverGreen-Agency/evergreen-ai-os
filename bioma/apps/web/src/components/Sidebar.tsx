@@ -128,7 +128,7 @@ export function Sidebar({
         <div className="nav-group">
           {!isCollapsed && (
             <div className="nav-group-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>PROJETOS</span>
+              <span>TAREFAS</span>
               <button 
                 type="button"
                 style={{

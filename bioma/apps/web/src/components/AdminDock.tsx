@@ -1,15 +1,13 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Building2, Plus, Save, FileText, CalendarCheck, Check, Copy, KeyRound, UserPlus, X, Settings, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Save, Settings, UserPlus, X } from "lucide-react";
 import { DockTitle } from "./shared";
-import { statusLabel, deliverableStatusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
+import { statusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCreateClient, useUpdateClient, useCreateInvite, useArchiveClient } from "../hooks/useBiomaApi";
+import { useUpdateClient, useCreateInvite } from "../hooks/useBiomaApi";
 import { api } from "../lib/api";
 import type { ClientModule, ClientStatus, ClientSummary } from "../lib/api";
 
 export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient: ClientSummary | null, isOpen: boolean, onClose: () => void }) {
-  const navigate = useNavigate();
   const {
     selectedClientId,
     actionBusy,
@@ -19,7 +17,6 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
 
   const updateClient = useUpdateClient();
   const createInvite = useCreateInvite();
-  const archiveClient = useArchiveClient();
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
@@ -31,7 +28,6 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
   const [resetError, setResetError] = useState("");
   const [resetBusy, setResetBusy] = useState(false);
 
-  // Pré-preenche o formulário de edição com o cliente selecionado.
   useEffect(() => {
     setInviteLink("");
     setInviteCopied(false);
@@ -140,11 +136,18 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 </select>
               </label>
               <label>
-                Responsável
-                <input
+                Responsável EG
+                <select
                   value={clientDraft.responsible_name ?? ""}
                   onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
-                />
+                >
+                  <option value="">— Selecione um responsável EG —</option>
+                  <option value="Eduardo EG">Eduardo EG (eduardo@evergreengrowth.com.br)</option>
+                  <option value="Henrique EG">Henrique EG (henrique@hmconexoes.com.br)</option>
+                  {clientDraft.responsible_name && !["Eduardo EG", "Henrique EG"].includes(clientDraft.responsible_name) && (
+                    <option value={clientDraft.responsible_name}>{clientDraft.responsible_name}</option>
+                  )}
+                </select>
               </label>
             </div>
 
@@ -172,7 +175,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
             </button>
           </form>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '8px 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '16px 0' }} />
 
           <div>
             <DockTitle icon={UserPlus} title="Convidar usuário do cliente" />
@@ -204,88 +207,10 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
               <div style={{ marginTop: "12px", background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "12px" }}>
                 <input readOnly value={inviteLink} style={{ flex: 1, padding: "8px", fontSize: "0.85rem", background: "transparent", border: "none", color: "var(--text)" }} />
                 <button type="button" onClick={handleCopyInvite} className="secondary-button" style={{ padding: "8px" }} title="Copiar link">
-                  {inviteCopied ? <Check size={16} color="var(--brand-accent)" /> : <Copy size={16} />}
+                  {inviteCopied ? "Copiado!" : "Copiar"}
                 </button>
               </div>
             )}
-          </div>
-
-          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '8px 0' }} />
-
-          <div>
-            <DockTitle icon={KeyRound} title="Redefinir senha de usuário" />
-            <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
-              Gera um link de uso único (expira em 2 horas) que encerra as sessões antigas do usuário. Envie por WhatsApp.
-            </p>
-            <div className="form-grid" style={{ display: "flex", gap: "12px", flexDirection: "column" }}>
-              <label>
-                E-mail do usuário
-                <input
-                  type="email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="pessoa@cliente.com.br"
-                />
-              </label>
-              <button
-                className="primary-button"
-                type="button"
-                onClick={handleCreateReset}
-                disabled={resetBusy || isBusy || !resetEmail.trim()}
-                style={{ alignSelf: 'flex-start' }}
-              >
-                <KeyRound size={16} />
-                Gerar link de redefinição
-              </button>
-              {resetError && <span className="form-error">{resetError}</span>}
-            </div>
-            {resetLink && (
-              <div style={{ marginTop: "12px", background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "12px" }}>
-                <input readOnly value={resetLink} style={{ flex: 1, padding: "8px", fontSize: "0.85rem", background: "transparent", border: "none", color: "var(--text)" }} />
-                <button type="button" onClick={handleCopyReset} className="secondary-button" style={{ padding: "8px" }} title="Copiar link">
-                  {resetCopied ? <Check size={16} color="var(--brand-accent)" /> : <Copy size={16} />}
-                </button>
-              </div>
-            )}
-          </div>
-
-          <hr style={{ border: 'none', borderTop: '1px solid rgba(239, 68, 68, 0.2)', margin: '20px 0' }} />
-
-          <div style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", borderRadius: "8px", padding: "16px" }}>
-            <DockTitle icon={Trash2} title="Arquivar cliente" />
-            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 4, marginBottom: "14px", lineHeight: 1.4 }}>
-              Arquivar remove <strong>{selectedClient.name}</strong> da operação ativa sem apagar histórico ou arquivos. O purge permanente exige uma ação administrativa separada e confirmação nominal.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm(`Arquivar o cliente "${selectedClient.name}"? O histórico será preservado.`)) {
-                  archiveClient.mutate(selectedClient.id, {
-                    onSuccess: () => {
-                      onClose();
-                      navigate("/clientes");
-                    }
-                  });
-                }
-              }}
-              disabled={archiveClient.isPending}
-              style={{
-                background: "#ef4444",
-                color: "#ffffff",
-                border: "none",
-                padding: "8px 16px",
-                borderRadius: "6px",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "0.85rem"
-              }}
-            >
-              <Trash2 size={16} />
-              {archiveClient.isPending ? "Arquivando..." : "Arquivar este cliente"}
-            </button>
           </div>
         </div>
       </div>

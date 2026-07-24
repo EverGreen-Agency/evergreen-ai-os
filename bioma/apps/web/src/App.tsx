@@ -47,6 +47,12 @@ const TechRadarView = lazy(() => import("./views/admin/tech-radar/TechRadar").th
 const ArchitectureView = lazy(() =>
   import("./views/admin/architecture/ArchitectureView").then((module) => ({ default: module.ArchitectureView })),
 );
+const RhManagerView = lazy(() =>
+  import("./views/admin/rh/RhManager").then((module) => ({ default: module.RhManager })),
+);
+const KitsManagerView = lazy(() =>
+  import("./views/admin/kits/KitsManager").then((module) => ({ default: module.KitsManager })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -328,6 +334,16 @@ export function App() {
           <Route path="/eg-architecture" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <ArchitectureView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-rh" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <RhManagerView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-kits" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <KitsManagerView />
             </Suspense>,
           )} />
 

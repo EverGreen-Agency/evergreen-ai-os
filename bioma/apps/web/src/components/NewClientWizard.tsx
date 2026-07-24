@@ -158,7 +158,11 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               </label>
               <label>
                 Responsável EG
-                <input value={responsible} onChange={(event) => setResponsible(event.target.value)} placeholder="Opcional" />
+                <select value={responsible} onChange={(event) => setResponsible(event.target.value)}>
+                  <option value="">— Selecione um responsável EG —</option>
+                  <option value="Eduardo EG">Eduardo EG (eduardo@evergreengrowth.com.br)</option>
+                  <option value="Henrique EG">Henrique EG (henrique@hmconexoes.com.br)</option>
+                </select>
               </label>
               <label>
                 Status inicial
