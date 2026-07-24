@@ -4,11 +4,6 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-# Add worker to sys.path
-worker_path = Path(__file__).resolve().parent.parent.parent.parent / "worker"
-if str(worker_path) not in sys.path:
-    sys.path.insert(0, str(worker_path))
-
 from bioma_api.access import is_platform_admin, require_client_module, require_workspace_capability
 from bioma_api.db import connect
 from bioma_api.repositories import client_hub as client_hub_repo
@@ -22,8 +17,7 @@ from bioma_api.schemas.squads import (
     SquadDefinitionSummary,
     SquadExecutionSummary,
 )
-from bioma_worker.config import get_settings as get_worker_settings
-from bioma_worker.squad_runner import execute_squad_pipeline
+from bioma_api.worker_bridge import execute_squad_pipeline_safe
 
 
 def list_squads(workspace_id: UUID, user: CurrentUserResponse) -> list[SquadDefinitionSummary]:
@@ -66,7 +60,12 @@ def run_squad(
         squad_id = squad_def["id"] if squad_def else None
 
         # Execute Autonomous Squad Pipeline via Worker Engine
-        result = execute_squad_pipeline(payload.pilar, payload.squad_name, payload.input_data, get_worker_settings())
+        result = execute_squad_pipeline_safe(
+            str(client["workspace_id"]),
+            squad_key=squad_def["squad_key"],
+            input_context=payload.input_data,
+            requested_by_user_id=str(user.id),
+        )
 
         execution_row = squads_repo.create_execution(
             conn,

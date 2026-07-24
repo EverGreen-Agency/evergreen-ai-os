@@ -217,6 +217,7 @@ function GoogleAdsTab({ clientId, freshness }: { clientId: string; freshness: Fr
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!clientId) return;
     setLoading(true);
     setError("");
     api
@@ -260,6 +261,7 @@ function Ga4Tab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!clientId) return;
     setLoading(true);
     setError("");
     api
@@ -303,6 +305,7 @@ function GscTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!clientId) return;
     setLoading(true);
     setError("");
     api
@@ -354,6 +357,7 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!clientId) return;
     setLoading(true);
     setError("");
     api
