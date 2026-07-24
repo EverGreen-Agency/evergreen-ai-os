@@ -9,6 +9,7 @@ from bioma_api.routers import (
     analytics,
     auth,
     benchmark,
+    certifications,
     client_hub,
     commercial,
     files,
@@ -87,6 +88,7 @@ app.include_router(admin.router)
 app.include_router(wiki.router)
 app.include_router(kits.router)
 app.include_router(rh.router)
+app.include_router(certifications.router)
 
 
 @app.get("/")

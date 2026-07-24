@@ -146,8 +146,9 @@ Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/me
 | MOD-LOGISTICA-KITS-001 | DONE | Full-stack | Peças (fornecedor/custo/estoque), definições de kit por nível e envios por cliente (em_producao→enviado→entregue) | AUTHZ-WS-001 | migration 0038 + `smoke_kits.py` (BOLA, peça inexistente, custo total, ciclo de status) |
 | MOD-RH-001 | DONE | Full-stack | Rampagem 15/30/60/90 dias (marcos configuráveis por tenant) + satisfação/NPS por workspace + carteira/performance de gestor agregando projetos e entregas já existentes | TEAM-001 | migration 0039 + `smoke_rh.py` (plano duplicado, marco inexistente, carteira própria vs alheia) |
 | MOD-SAAS-BILLING-001 | TODO | Full-stack | Stripe: planos, cupons, cotas, clientes legado, suspensão de acesso (retenção, nunca backdoor) | mod-multitenant (já herdado) | — |
-| MOD-CERTIFICACOES-001 | TODO | Full-stack | Gestão de certificações de funcionários/EG (Google, Meta, Salesforce, HubSpot) | TEAM-001 | — |
-| MOD-CONTRATOS-001 | TODO | Arquitetura/Full-stack | ADR: absorver Autentique vs manter externo (API) | PROJECT-001 | ADR aprovado |
+| MOD-CERTIFICACOES-001 | DONE | Full-stack | Certificações de funcionário e da própria EG (status active/expiring_soon/expired calculado, sem cron) | TEAM-001 | migration 0040 + `smoke_certifications.py` (autoatendimento vs. gate de terceiro, 3 status, certificação sem dono) |
+| MOD-CONTRATOS-001 | DONE | Arquitetura | ADR: Autentique permanece externo como adapter de assinatura; Bioma é fonte de verdade do contrato (campos já existiam em PROJECT-001) | PROJECT-001 | `docs/adr/0003-autentique-contratos.md` |
+| INT-AUT-001 | BLOCKED | Backend | Escrever/ler adapter Autentique real (criar documento, webhook de assinatura) | credencial/API key Autentique | comparação com documento assinado real |
 
 ## Template de handoff
 

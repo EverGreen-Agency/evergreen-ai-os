@@ -464,6 +464,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/certifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Certifications */
+        get: operations["list_certifications_backoffice_certifications_get"];
+        put?: never;
+        /** Create Certification */
+        post: operations["create_certification_backoffice_certifications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/certifications/{certification_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Certification */
+        delete: operations["delete_certification_backoffice_certifications__certification_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Certification */
+        patch: operations["update_certification_backoffice_certifications__certification_id__patch"];
+        trace?: never;
+    };
     "/backoffice/engineering": {
         parameters: {
             query?: never;
@@ -3807,6 +3843,92 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /** CertificationCreateRequest */
+        CertificationCreateRequest: {
+            /** Credential Id */
+            credential_id?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Issued At
+             * Format: date
+             */
+            issued_at: string;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * User Id
+             * @description Nulo = certificação da própria EG (ex.: Google Partner).
+             */
+            user_id?: string | null;
+            /** Verification Url */
+            verification_url?: string | null;
+        };
+        /** CertificationSummary */
+        CertificationSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Credential Id */
+            credential_id?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Holder Name */
+            holder_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Issued At
+             * Format: date
+             */
+            issued_at: string;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "expiring_soon" | "expired";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Id */
+            user_id?: string | null;
+            /** Verification Url */
+            verification_url?: string | null;
+        };
+        /** CertificationUpdateRequest */
+        CertificationUpdateRequest: {
+            /** Credential Id */
+            credential_id?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Issued At */
+            issued_at?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Provider */
+            provider?: string | null;
+            /** Verification Url */
+            verification_url?: string | null;
         };
         /** ClientCreateRequest */
         ClientCreateRequest: {
@@ -8615,6 +8737,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    list_certifications_backoffice_certifications_get: {
+        parameters: {
+            query?: {
+                user_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_certification_backoffice_certifications_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertificationCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_certification_backoffice_certifications__certification_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_certification_backoffice_certifications__certification_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertificationUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
