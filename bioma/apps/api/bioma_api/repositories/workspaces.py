@@ -195,6 +195,19 @@ def find_platform_tenant_id(conn, user_id: UUID) -> UUID | None:
     return row["id"] if row else None
 
 
+def find_eg_tenant_id(conn) -> UUID | None:
+    """Tenant EG, independente da associação do usuário chamador.
+
+    Diferente de `find_platform_tenant_id` (que exige `eg_admin` do próprio
+    usuário): usado por módulos onde `tenant_admin` também deve operar, e o
+    gate de permissão real é feito separadamente (ex. `_require_tenant_manager`).
+    """
+    row = conn.execute(
+        "select id from organizations where slug = 'eg' and type = 'eg' order by created_at asc limit 1",
+    ).fetchone()
+    return row["id"] if row else None
+
+
 def provision_agency_workspace(conn, organization_id: UUID, workspace_name: str) -> UUID:
     row = conn.execute(
         """

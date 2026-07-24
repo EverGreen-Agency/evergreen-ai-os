@@ -144,7 +144,7 @@ Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/me
 | MOD-CALENDARIO-001 | DONE | Full-stack | Calendário editorial nativo com estágios (ideação→publicado) | AUTHZ-WS-001 | `smoke_mcp_brand_calendar.py` |
 | MOD-MCP-001 | DONE | Backend | Servidor MCP stdio para orquestração externa (Fóton/Antigravity) com `service_token` + escopo fixo por workspace | MOD-SQUADS-AUTONOMOS-001 | `smoke_mcp_brand_calendar.py` cobre negação sem token e cross-workspace |
 | MOD-LOGISTICA-KITS-001 | DONE | Full-stack | Peças (fornecedor/custo/estoque), definições de kit por nível e envios por cliente (em_producao→enviado→entregue) | AUTHZ-WS-001 | migration 0038 + `smoke_kits.py` (BOLA, peça inexistente, custo total, ciclo de status) |
-| MOD-RH-001 | TODO | Full-stack | Rampagem 15/30/60/90 dias + carteira/performance de gestor (estende TEAM-001) | TEAM-001 | — |
+| MOD-RH-001 | DONE | Full-stack | Rampagem 15/30/60/90 dias (marcos configuráveis por tenant) + satisfação/NPS por workspace + carteira/performance de gestor agregando projetos e entregas já existentes | TEAM-001 | migration 0039 + `smoke_rh.py` (plano duplicado, marco inexistente, carteira própria vs alheia) |
 | MOD-SAAS-BILLING-001 | TODO | Full-stack | Stripe: planos, cupons, cotas, clientes legado, suspensão de acesso (retenção, nunca backdoor) | mod-multitenant (já herdado) | — |
 | MOD-CERTIFICACOES-001 | TODO | Full-stack | Gestão de certificações de funcionários/EG (Google, Meta, Salesforce, HubSpot) | TEAM-001 | — |
 | MOD-CONTRATOS-001 | TODO | Arquitetura/Full-stack | ADR: absorver Autentique vs manter externo (API) | PROJECT-001 | ADR aprovado |

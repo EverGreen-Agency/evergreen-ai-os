@@ -20,6 +20,7 @@ from bioma_api.routers import (
     passwords,
     performance,
     projects,
+    rh,
     teams,
     vault,
     wiki,
@@ -85,6 +86,7 @@ app.include_router(health.router)
 app.include_router(admin.router)
 app.include_router(wiki.router)
 app.include_router(kits.router)
+app.include_router(rh.router)
 
 
 @app.get("/")

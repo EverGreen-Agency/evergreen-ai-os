@@ -6070,6 +6070,424 @@
         "title": "LoginResponse",
         "type": "object"
       },
+      "ManagerPortfolioResponse": {
+        "properties": {
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          },
+          "user_name": {
+            "title": "User Name",
+            "type": "string"
+          },
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/ManagerPortfolioWorkspace"
+            },
+            "title": "Workspaces",
+            "type": "array"
+          }
+        },
+        "required": [
+          "user_id",
+          "user_name"
+        ],
+        "title": "ManagerPortfolioResponse",
+        "type": "object"
+      },
+      "ManagerPortfolioWorkspace": {
+        "properties": {
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "completion_percentage": {
+            "title": "Completion Percentage",
+            "type": "number"
+          },
+          "deliverables_blocked": {
+            "title": "Deliverables Blocked",
+            "type": "integer"
+          },
+          "deliverables_done": {
+            "title": "Deliverables Done",
+            "type": "integer"
+          },
+          "deliverables_overdue": {
+            "title": "Deliverables Overdue",
+            "type": "integer"
+          },
+          "deliverables_total": {
+            "title": "Deliverables Total",
+            "type": "integer"
+          },
+          "latest_satisfaction_captured_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Satisfaction Captured At"
+          },
+          "latest_satisfaction_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Satisfaction Score"
+          },
+          "pace_status": {
+            "enum": [
+              "unknown",
+              "on_track",
+              "at_risk",
+              "off_track"
+            ],
+            "title": "Pace Status",
+            "type": "string"
+          },
+          "projects_total": {
+            "title": "Projects Total",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "workspace_name": {
+            "title": "Workspace Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "workspace_name",
+          "client_name",
+          "projects_total",
+          "deliverables_total",
+          "deliverables_done",
+          "deliverables_overdue",
+          "deliverables_blocked",
+          "completion_percentage",
+          "pace_status"
+        ],
+        "title": "ManagerPortfolioWorkspace",
+        "type": "object"
+      },
+      "MilestoneCompletionRequest": {
+        "properties": {
+          "day_offset": {
+            "title": "Day Offset",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day_offset",
+          "status"
+        ],
+        "title": "MilestoneCompletionRequest",
+        "type": "object"
+      },
+      "MilestoneTemplateCreateRequest": {
+        "properties": {
+          "day_offset": {
+            "minimum": 0.0,
+            "title": "Day Offset",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day_offset",
+          "title"
+        ],
+        "title": "MilestoneTemplateCreateRequest",
+        "type": "object"
+      },
+      "MilestoneTemplateSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "day_offset": {
+            "title": "Day Offset",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "day_offset",
+          "title",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MilestoneTemplateSummary",
+        "type": "object"
+      },
+      "MilestoneTemplateUpdateRequest": {
+        "properties": {
+          "day_offset": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Offset"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "archived"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "MilestoneTemplateUpdateRequest",
+        "type": "object"
+      },
+      "OnboardingMilestoneEntry": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "day_offset": {
+            "title": "Day Offset",
+            "type": "integer"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "done"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day_offset",
+          "title"
+        ],
+        "title": "OnboardingMilestoneEntry",
+        "type": "object"
+      },
+      "OnboardingPlanCreateRequest": {
+        "properties": {
+          "hire_date": {
+            "format": "date",
+            "title": "Hire Date",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "hire_date"
+        ],
+        "title": "OnboardingPlanCreateRequest",
+        "type": "object"
+      },
+      "OnboardingPlanSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hire_date": {
+            "format": "date",
+            "title": "Hire Date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/OnboardingMilestoneEntry"
+            },
+            "title": "Milestones",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "user_email": {
+            "title": "User Email",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          },
+          "user_name": {
+            "title": "User Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "user_email",
+          "user_name",
+          "hire_date",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OnboardingPlanSummary",
+        "type": "object"
+      },
       "OrganizationSummary": {
         "properties": {
           "enabled_modules": {
@@ -8521,6 +8939,86 @@
           "squad_name"
         ],
         "title": "RunSquadPayload",
+        "type": "object"
+      },
+      "SatisfactionScoreCreateRequest": {
+        "properties": {
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "score": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "source": {
+            "default": "manual",
+            "maxLength": 100,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "SatisfactionScoreCreateRequest",
+        "type": "object"
+      },
+      "SatisfactionScoreSummary": {
+        "properties": {
+          "captured_at": {
+            "format": "date-time",
+            "title": "Captured At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "score",
+          "source",
+          "captured_at"
+        ],
+        "title": "SatisfactionScoreSummary",
         "type": "object"
       },
       "ScopeItemCreate": {
@@ -14295,6 +14793,381 @@
         "summary": "Update Shipment Status",
         "tags": [
           "logistics"
+        ]
+      }
+    },
+    "/backoffice/rh/managers/{manager_user_id}/portfolio": {
+      "get": {
+        "operationId": "manager_portfolio_backoffice_rh_managers__manager_user_id__portfolio_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "manager_user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Manager User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerPortfolioResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Manager Portfolio",
+        "tags": [
+          "rh"
+        ]
+      }
+    },
+    "/backoffice/rh/onboarding/plans": {
+      "get": {
+        "operationId": "list_onboarding_plans_backoffice_rh_onboarding_plans_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OnboardingPlanSummary"
+                  },
+                  "title": "Response List Onboarding Plans Backoffice Rh Onboarding Plans Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Onboarding Plans",
+        "tags": [
+          "rh"
+        ]
+      },
+      "post": {
+        "operationId": "create_onboarding_plan_backoffice_rh_onboarding_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingPlanCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingPlanSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Onboarding Plan",
+        "tags": [
+          "rh"
+        ]
+      }
+    },
+    "/backoffice/rh/onboarding/plans/{plan_id}/milestone": {
+      "patch": {
+        "operationId": "update_milestone_status_backoffice_rh_onboarding_plans__plan_id__milestone_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingPlanSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Milestone Status",
+        "tags": [
+          "rh"
+        ]
+      }
+    },
+    "/backoffice/rh/onboarding/templates": {
+      "get": {
+        "operationId": "list_milestone_templates_backoffice_rh_onboarding_templates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MilestoneTemplateSummary"
+                  },
+                  "title": "Response List Milestone Templates Backoffice Rh Onboarding Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Milestone Templates",
+        "tags": [
+          "rh"
+        ]
+      },
+      "post": {
+        "operationId": "create_milestone_template_backoffice_rh_onboarding_templates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneTemplateCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneTemplateSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Milestone Template",
+        "tags": [
+          "rh"
+        ]
+      }
+    },
+    "/backoffice/rh/onboarding/templates/{template_id}": {
+      "patch": {
+        "operationId": "update_milestone_template_backoffice_rh_onboarding_templates__template_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Template Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneTemplateUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneTemplateSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Milestone Template",
+        "tags": [
+          "rh"
+        ]
+      }
+    },
+    "/backoffice/rh/workspaces/{workspace_id}/satisfaction": {
+      "get": {
+        "operationId": "list_satisfaction_scores_backoffice_rh_workspaces__workspace_id__satisfaction_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SatisfactionScoreSummary"
+                  },
+                  "title": "Response List Satisfaction Scores Backoffice Rh Workspaces  Workspace Id  Satisfaction Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Satisfaction Scores",
+        "tags": [
+          "rh"
+        ]
+      },
+      "post": {
+        "operationId": "create_satisfaction_score_backoffice_rh_workspaces__workspace_id__satisfaction_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SatisfactionScoreCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SatisfactionScoreSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Satisfaction Score",
+        "tags": [
+          "rh"
         ]
       }
     },

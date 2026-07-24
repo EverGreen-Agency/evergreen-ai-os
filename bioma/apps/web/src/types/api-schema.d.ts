@@ -672,6 +672,111 @@ export interface paths {
         patch: operations["update_shipment_status_backoffice_logistics_shipments__shipment_id__status_patch"];
         trace?: never;
     };
+    "/backoffice/rh/managers/{manager_user_id}/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manager Portfolio */
+        get: operations["manager_portfolio_backoffice_rh_managers__manager_user_id__portfolio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/rh/onboarding/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Onboarding Plans */
+        get: operations["list_onboarding_plans_backoffice_rh_onboarding_plans_get"];
+        put?: never;
+        /** Create Onboarding Plan */
+        post: operations["create_onboarding_plan_backoffice_rh_onboarding_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/rh/onboarding/plans/{plan_id}/milestone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Milestone Status */
+        patch: operations["update_milestone_status_backoffice_rh_onboarding_plans__plan_id__milestone_patch"];
+        trace?: never;
+    };
+    "/backoffice/rh/onboarding/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Milestone Templates */
+        get: operations["list_milestone_templates_backoffice_rh_onboarding_templates_get"];
+        put?: never;
+        /** Create Milestone Template */
+        post: operations["create_milestone_template_backoffice_rh_onboarding_templates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/rh/onboarding/templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Milestone Template */
+        patch: operations["update_milestone_template_backoffice_rh_onboarding_templates__template_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/rh/workspaces/{workspace_id}/satisfaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Satisfaction Scores */
+        get: operations["list_satisfaction_scores_backoffice_rh_workspaces__workspace_id__satisfaction_get"];
+        put?: never;
+        /** Create Satisfaction Score */
+        post: operations["create_satisfaction_score_backoffice_rh_workspaces__workspace_id__satisfaction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/squads": {
         parameters: {
             query?: never;
@@ -5046,6 +5151,180 @@ export interface components {
             expires_at: string;
             user: components["schemas"]["CurrentUserResponse"];
         };
+        /** ManagerPortfolioResponse */
+        ManagerPortfolioResponse: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** User Name */
+            user_name: string;
+            /** Workspaces */
+            workspaces?: components["schemas"]["ManagerPortfolioWorkspace"][];
+        };
+        /** ManagerPortfolioWorkspace */
+        ManagerPortfolioWorkspace: {
+            /** Client Name */
+            client_name: string;
+            /** Completion Percentage */
+            completion_percentage: number;
+            /** Deliverables Blocked */
+            deliverables_blocked: number;
+            /** Deliverables Done */
+            deliverables_done: number;
+            /** Deliverables Overdue */
+            deliverables_overdue: number;
+            /** Deliverables Total */
+            deliverables_total: number;
+            /** Latest Satisfaction Captured At */
+            latest_satisfaction_captured_at?: string | null;
+            /** Latest Satisfaction Score */
+            latest_satisfaction_score?: number | null;
+            /**
+             * Pace Status
+             * @enum {string}
+             */
+            pace_status: "unknown" | "on_track" | "at_risk" | "off_track";
+            /** Projects Total */
+            projects_total: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Workspace Name */
+            workspace_name: string;
+        };
+        /** MilestoneCompletionRequest */
+        MilestoneCompletionRequest: {
+            /** Day Offset */
+            day_offset: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "done";
+        };
+        /** MilestoneTemplateCreateRequest */
+        MilestoneTemplateCreateRequest: {
+            /** Day Offset */
+            day_offset: number;
+            /** Description */
+            description?: string | null;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "archived";
+            /** Title */
+            title: string;
+        };
+        /** MilestoneTemplateSummary */
+        MilestoneTemplateSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Day Offset */
+            day_offset: number;
+            /** Description */
+            description?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "archived";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** MilestoneTemplateUpdateRequest */
+        MilestoneTemplateUpdateRequest: {
+            /** Day Offset */
+            day_offset?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Status */
+            status?: ("active" | "archived") | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** OnboardingMilestoneEntry */
+        OnboardingMilestoneEntry: {
+            /** Completed At */
+            completed_at?: string | null;
+            /** Day Offset */
+            day_offset: number;
+            /**
+             * Status
+             * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "done";
+            /** Template Id */
+            template_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** OnboardingPlanCreateRequest */
+        OnboardingPlanCreateRequest: {
+            /**
+             * Hire Date
+             * Format: date
+             */
+            hire_date: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** OnboardingPlanSummary */
+        OnboardingPlanSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Hire Date
+             * Format: date
+             */
+            hire_date: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Milestones */
+            milestones?: components["schemas"]["OnboardingMilestoneEntry"][];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Email */
+            user_email: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** User Name */
+            user_name: string;
+        };
         /** OrganizationSummary */
         OrganizationSummary: {
             /** Enabled Modules */
@@ -5955,6 +6234,42 @@ export interface components {
             squad_name: string;
             /** Squad Slug */
             squad_slug: string;
+        };
+        /** SatisfactionScoreCreateRequest */
+        SatisfactionScoreCreateRequest: {
+            /** Notes */
+            notes?: string | null;
+            /** Score */
+            score: number;
+            /**
+             * Source
+             * @default manual
+             */
+            source: string;
+        };
+        /** SatisfactionScoreSummary */
+        SatisfactionScoreSummary: {
+            /**
+             * Captured At
+             * Format: date-time
+             */
+            captured_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Notes */
+            notes?: string | null;
+            /** Score */
+            score: number;
+            /** Source */
+            source: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** ScopeItemCreate */
         ScopeItemCreate: {
@@ -8771,6 +9086,279 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KitShipmentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    manager_portfolio_backoffice_rh_managers__manager_user_id__portfolio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                manager_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerPortfolioResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_onboarding_plans_backoffice_rh_onboarding_plans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingPlanSummary"][];
+                };
+            };
+        };
+    };
+    create_onboarding_plan_backoffice_rh_onboarding_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingPlanCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingPlanSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_milestone_status_backoffice_rh_onboarding_plans__plan_id__milestone_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneCompletionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingPlanSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_milestone_templates_backoffice_rh_onboarding_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MilestoneTemplateSummary"][];
+                };
+            };
+        };
+    };
+    create_milestone_template_backoffice_rh_onboarding_templates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneTemplateCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MilestoneTemplateSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_milestone_template_backoffice_rh_onboarding_templates__template_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneTemplateUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MilestoneTemplateSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_satisfaction_scores_backoffice_rh_workspaces__workspace_id__satisfaction_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SatisfactionScoreSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_satisfaction_score_backoffice_rh_workspaces__workspace_id__satisfaction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SatisfactionScoreCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SatisfactionScoreSummary"];
                 };
             };
             /** @description Validation Error */
