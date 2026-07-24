@@ -29,7 +29,67 @@ def ensure_platform_configs_table(conn):
                 created_at timestamptz not null default now(),
                 updated_at timestamptz not null default now()
             );
+            create table if not exists freelancer_profiles (
+                id uuid primary key default gen_random_uuid(),
+                platform_key varchar(50) not null,
+                profile_url text not null unique,
+                profile_name varchar(255),
+                headline text,
+                bio text,
+                skills jsonb default '[]'::jsonb,
+                portfolio_items jsonb default '[]'::jsonb,
+                audit_score integer default 0,
+                audit_analysis jsonb default '{}'::jsonb,
+                last_audited_at timestamptz,
+                created_at timestamptz not null default now(),
+                updated_at timestamptz not null default now()
+            );
         """)
+
+def list_freelancer_profiles(conn) -> list[dict[str, Any]]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from freelancer_profiles order by updated_at desc")
+        return list(cur.fetchall())
+
+def upsert_freelancer_profile(conn, data: dict[str, Any]) -> dict[str, Any]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            insert into freelancer_profiles (
+                platform_key, profile_url, profile_name, headline, bio,
+                audit_score, audit_analysis, last_audited_at
+            ) values (%s, %s, %s, %s, %s, %s, %s, now())
+            on conflict (profile_url) do update set
+                platform_key = excluded.platform_key,
+                profile_name = excluded.profile_name,
+                headline = excluded.headline,
+                bio = excluded.bio,
+                audit_score = excluded.audit_score,
+                audit_analysis = excluded.audit_analysis,
+                last_audited_at = now(),
+                updated_at = now()
+            returning *
+            """,
+            (
+                data.get("platform_key", "other"),
+                data["profile_url"],
+                data.get("profile_name", "Perfil Freelancer"),
+                data.get("headline"),
+                data.get("bio"),
+                data.get("audit_score", 0),
+                json.dumps(data.get("audit_analysis", {})),
+            ),
+        )
+        return dict(cur.fetchone())
+
+def delete_freelancer_profile(conn, profile_id: UUID) -> bool:
+    ensure_platform_configs_table(conn)
+    with conn.cursor() as cur:
+        cur.execute("delete from freelancer_profiles where id = %s", (profile_id,))
+        return cur.rowcount > 0
+
 
 def list_platform_configs(conn) -> list[dict[str, Any]]:
     ensure_platform_configs_table(conn)

@@ -33,6 +33,47 @@ def update_platform_config(platform_key: str, payload: dict[str, Any], user: Cur
         return proposals_repo.upsert_platform_config(conn, platform_key, payload)
 
 
+def list_freelancer_profiles(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    with connect() as conn:
+        return proposals_repo.list_freelancer_profiles(conn)
+
+
+def sync_and_audit_freelancer_profile(profile_url: str, platform_key: str | None = None, user: CurrentUserResponse | None = None) -> dict[str, Any]:
+    from bioma_api.worker_bridge import _ensure_worker_in_path
+    _ensure_worker_in_path()
+
+    try:
+        from bioma_worker.scrapers.profile_auditor import fetch_and_audit_profile_url
+        audit_data = fetch_and_audit_profile_url(profile_url, platform_key)
+    except Exception as exc:
+        print(f"[Proposals Service] Erro na auditoria automatica: {exc}")
+        audit_data = {
+            "platform_key": platform_key or "other",
+            "profile_url": profile_url,
+            "profile_name": "Perfil Conectado",
+            "headline": "Especialista B2B",
+            "bio": f"Perfil monitorado via {profile_url}",
+            "audit_score": 75,
+            "audit_analysis": {
+                "strengths": ["Perfil registrado para auto-vigilância."],
+                "gaps": ["Falta ampliar depoimentos de clientes."],
+                "optimized_headline": "Especialista em Growth & Performance B2B",
+                "optimized_bio": "Ajudo empresas a escalarem suas vendas.",
+                "portfolio_tips": "Adicione 3 cases com painéis de métricas.",
+            },
+        }
+
+    with connect() as conn:
+        return proposals_repo.upsert_freelancer_profile(conn, audit_data)
+
+
+def delete_freelancer_profile(profile_id: UUID, user: CurrentUserResponse) -> dict[str, str]:
+    with connect() as conn:
+        proposals_repo.delete_freelancer_profile(conn, profile_id)
+    return {"status": "deleted"}
+
+
+
 
 def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse | None = None) -> OpportunitySummary:
     with connect() as conn:

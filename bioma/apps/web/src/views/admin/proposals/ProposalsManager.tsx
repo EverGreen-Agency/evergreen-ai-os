@@ -16,13 +16,16 @@ import {
   RefreshCw,
   UserCheck,
   Award,
+  Globe,
+  Trash2,
 } from "lucide-react";
-import { api, type OpportunitySummary, type ProposalSummary } from "../../../lib/api";
+import { api, type OpportunitySummary, type ProposalSummary, type FreelancerProfile } from "../../../lib/api";
 
 export function ProposalsManager() {
   const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
+  const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
 
@@ -40,30 +43,28 @@ export function ProposalsManager() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
-  // Profile Audit State
+  // Profile Auto-Audit State
+  const [auditProfileUrl, setAuditProfileUrl] = useState("");
   const [auditPlatform, setAuditPlatform] = useState("workana");
-  const [profileText, setProfileText] = useState("");
   const [isAuditing, setIsAuditing] = useState(false);
-  const [auditResult, setAuditResult] = useState<{
-    score: number;
-    gaps: string[];
-    strengths: string[];
-    optimized_headline: string;
-    optimized_bio: string;
-    portfolio_tips: string;
-  } | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [oppsRes, propsRes] = await Promise.all([
+      const [oppsRes, propsRes, profilesRes] = await Promise.all([
         api.listOpportunities(),
         api.listProposals(),
+        api.listFreelancerProfiles(),
       ]);
       setOpportunities(oppsRes);
       setProposals(propsRes);
+      setProfiles(profilesRes);
+      if (profilesRes.length > 0 && !selectedProfileId) {
+        setSelectedProfileId(profilesRes[0].id);
+      }
     } catch (err) {
-      console.error("Erro ao carregar radar e propostas:", err);
+      console.error("Erro ao carregar radar, propostas e perfis:", err);
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +121,39 @@ export function ProposalsManager() {
     setTimeout(() => setCopiedProposalId(null), 3000);
   };
 
+  const handleSyncProfile = async (urlToSync?: string, platformKeyToSync?: string) => {
+    const targetUrl = urlToSync || auditProfileUrl;
+    if (!targetUrl.trim()) return;
+
+    setIsAuditing(true);
+    try {
+      const res = await api.syncFreelancerProfile({
+        profile_url: targetUrl.trim(),
+        platform_key: platformKeyToSync || auditPlatform,
+      });
+      setAuditProfileUrl("");
+      await loadData();
+      setSelectedProfileId(res.id);
+    } catch (err: any) {
+      alert("Erro ao realizar auto-auditoria do perfil: " + (err.message || "Erro desconhecido"));
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  const handleDeleteProfile = async (profileId: string) => {
+    if (!confirm("Deseja realmente desconectar este perfil da auto-vigilância?")) return;
+    try {
+      await api.deleteFreelancerProfile(profileId);
+      if (selectedProfileId === profileId) setSelectedProfileId(null);
+      await loadData();
+    } catch (err: any) {
+      alert("Erro ao remover perfil: " + (err.message || "Erro desconhecido"));
+    }
+  };
+
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId) || profiles[0];
+
   return (
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto", color: "var(--text)" }}>
       {/* Header */}
@@ -129,7 +163,7 @@ export function ProposalsManager() {
             <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-            Varredura contínua de freelas/projetos B2B, triagem automática com Score de Fit e gerador de propostas.
+            Varredura contínua de freelas B2B, triagem automática com Score de Fit, auto-auditoria de perfis e gerador de propostas.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -253,14 +287,14 @@ export function ProposalsManager() {
             gap: "8px",
           }}
         >
-          <UserCheck size={18} /> Auditoria de Perfil & Portfólio (IA)
+          <UserCheck size={18} /> Auto-Vigilância de Perfil & Portfólio (IA) ({profiles.length})
         </button>
       </div>
 
       {/* Content */}
       {isLoading ? (
         <div style={{ padding: "40px", textAlign: "center", color: "var(--text-dim)" }}>
-          Carregando oportunidades e propostas...
+          Carregando dados do sistema...
         </div>
       ) : activeTab === "radar" ? (
         /* ABA 1: RADAR DE OPORTUNIDADES */
@@ -407,136 +441,186 @@ export function ProposalsManager() {
           )}
         </div>
       ) : (
-        /* ABA 3: AUDITORIA DE PERFIL IA */
+        /* ABA 3: AUTO-VIGILÂNCIA & AUDITORIA DE PERFIL IA VIA URL */
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* Card de Adicionar Perfil por URL */}
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
             <h3 style={{ margin: "0 0 8px", fontSize: "1.2rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
-              <Sparkles color="var(--brand-accent)" size={22} /> Auto-Vigilância & Otimização de Perfil de Freelancer
+              <Globe color="var(--brand-accent)" size={22} /> Conectar Perfil por Link/URL para Auto-Vigilância Automática
             </h3>
             <p style={{ margin: "0 0 20px", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-              Cole a bio/descrição do seu perfil cadastrado na plataforma. Nossa IA analisa posicionamento, copywriting, autoridade e reformula o perfil para máxima conversão de contratações.
+              Cole a URL pública do seu perfil no Workana, Upwork, 99freela, LinkedIn ou Toptal. Nosso Engine raspa e analisa automaticamente o seu perfil, gerando recomendações de posicionamento e copy otimizada.
             </p>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!profileText.trim()) return;
-                setIsAuditing(true);
-                setTimeout(() => {
-                  const textLower = profileText.toLowerCase();
-                  let score = 65;
-                  if (textLower.includes("resultados") || textLower.includes("roi") || textLower.includes("cases")) score += 15;
-                  if (textLower.includes("growth") || textLower.includes("tráfego") || textLower.includes("especialista")) score += 10;
-                  if (profileText.length > 300) score += 5;
-
-                  setAuditResult({
-                    score: Math.min(96, score),
-                    strengths: [
-                      "Clareza técnica nos serviços oferecidos.",
-                      "Boa menção a nichos de atuação.",
-                    ],
-                    gaps: [
-                      "Falta de ancoragem de autoridade e métricas de resultados numéricos.",
-                      "Chamada para Ação (CTA) no final do perfil poderia ser mais persuasiva.",
-                      "Falta destacar casos de estudo de alto impacto nas primeiras 3 linhas.",
-                    ],
-                    optimized_headline: `Especialista em Growth & Performance B2B | Estruturas de Vendas & Mídia de Alta Conversão`,
-                    optimized_bio: `Ajudo empresas e marcas B2B a acelerarem sua aquisição de clientes com tráfego pago otimizado, funis de conversão e automação inteligente.\n\nCom metodologia validada por squads especialistas, cuido da estratégia completa de ponta a ponta: da auditoria da oferta à otimização de anúncios em Meta Ads e Google Ads.\n\n🚀 RESULTADOS ENTREGUES:\n• Aumento médio de +40% na taxa de conversão de landing pages.\n• Redução de CPL (Custo por Lead) com testes rigorosos de criativos.\n\n📩 Quer acelerar o crescimento do seu projeto? Entre em contato agora para conversarmos sobre a sua meta.`,
-                    portfolio_tips: "Destaque os 3 principais cases com imagens de painéis de métricas e depoimentos de clientes diretamente nas primeiras vagas do portfólio.",
-                  });
-                  setIsAuditing(false);
-                }, 1200);
+                handleSyncProfile();
               }}
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+              style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}
             >
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "16px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Plataforma Alvo</label>
-                  <select
-                    value={auditPlatform}
-                    onChange={(e) => setAuditPlatform(e.target.value)}
-                    style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
-                  >
-                    <option value="workana">Workana</option>
-                    <option value="upwork">UpWork</option>
-                    <option value="99freela">99freela</option>
-                    <option value="toptal">Toptal</option>
-                    <option value="linkedin">LinkedIn</option>
-                    <option value="other">Outra Plataforma</option>
-                  </select>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Dica da IA</label>
-                  <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", background: "var(--bg-inset)", padding: "10px", borderRadius: "8px" }}>
-                    Cole abaixo a bio/descrição completa que está configurada na sua conta no {auditPlatform.toUpperCase()}.
-                  </span>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", width: "160px" }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Plataforma</label>
+                <select
+                  value={auditPlatform}
+                  onChange={(e) => setAuditPlatform(e.target.value)}
+                  style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+                >
+                  <option value="workana">Workana</option>
+                  <option value="upwork">UpWork</option>
+                  <option value="99freelas">99freela</option>
+                  <option value="toptal">Toptal</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="contra">Contra.com</option>
+                  <option value="other">Outra Plataforma</option>
+                </select>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Descrição do Perfil Atual / Apresentação</label>
-                <textarea
-                  rows={6}
-                  value={profileText}
-                  onChange={(e) => setProfileText(e.target.value)}
-                  placeholder="Cole aqui o texto atual do seu perfil na plataforma..."
-                  style={{ padding: "12px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.9rem" }}
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Link/URL Completa do Perfil</label>
+                <input
+                  required
+                  type="url"
+                  value={auditProfileUrl}
+                  onChange={(e) => setAuditProfileUrl(e.target.value)}
+                  placeholder="Ex: https://www.workana.com/freelancer/seu-perfil ou https://linkedin.com/in/seu-perfil"
+                  style={{ padding: "10px 14px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.9rem" }}
                 />
               </div>
 
-              <button className="primary-button" type="submit" disabled={isAuditing} style={{ padding: "12px 24px", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "8px" }}>
-                <Sparkles size={18} /> {isAuditing ? "Analisando Perfil com IA..." : "Auditar & Otimizar Perfil com IA"}
+              <button className="primary-button" type="submit" disabled={isAuditing} style={{ padding: "11px 24px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Sparkles size={18} className={isAuditing ? "animate-spin" : ""} />
+                {isAuditing ? "Raspando & Auditando..." : "Conectar & Auditar Perfil"}
               </button>
             </form>
           </div>
 
-          {/* Resultado da Auditoria */}
-          {auditResult && (
-            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600 }}>Diagnóstico Completo do Perfil</h4>
-                  <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Análise de autoridade e sugestão de copy otimizada</span>
-                </div>
-                <div style={{ background: "var(--bg-inset)", padding: "8px 16px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Award size={20} color="var(--brand-accent)" />
-                  <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--brand-accent)" }}>Score: {auditResult.score}/100</span>
-                </div>
+          {/* Perfis Conectados */}
+          {profiles.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "20px" }}>
+              {/* Lista Lateral de Perfis */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <h4 style={{ margin: "0 0 4px", fontSize: "1rem", color: "var(--text-dim)" }}>Perfis Monitorados ({profiles.length})</h4>
+                {profiles.map((p) => {
+                  const isSelected = p.id === (selectedProfile?.id);
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => setSelectedProfileId(p.id)}
+                      style={{
+                        background: isSelected ? "var(--bg-inset)" : "var(--surface)",
+                        border: isSelected ? "2px solid var(--brand-accent)" : "1px solid var(--border)",
+                        borderRadius: "10px",
+                        padding: "14px",
+                        cursor: "pointer",
+                        display: "flex",
+                        justify: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <span style={{ fontSize: "0.75rem", background: "var(--surface-sunken)", color: "var(--brand-accent)", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, alignSelf: "flex-start" }}>
+                          {p.platform_key.toUpperCase()}
+                        </span>
+                        <strong style={{ fontSize: "0.95rem" }}>{p.profile_name || "Perfil Freelancer"}</strong>
+                        <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                          Atualizado: {p.last_audited_at ? new Date(p.last_audited_at).toLocaleDateString("pt-BR") : "Recentemente"}
+                        </span>
+                      </div>
+
+                      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
+                        <span style={{ fontSize: "1.05rem", fontWeight: 700, color: p.audit_score >= 70 ? "#10b981" : "#f59e0b" }}>
+                          {p.audit_score}/100
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProfile(p.id);
+                          }}
+                          style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "2px" }}
+                          title="Remover Perfil"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "8px", padding: "16px" }}>
-                  <strong style={{ color: "#10b981", fontSize: "0.9rem", display: "block", marginBottom: "8px" }}>✅ Pontos Fortes</strong>
-                  <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.85rem", color: "var(--text)" }}>
-                    {auditResult.strengths.map((s, idx) => <li key={idx} style={{ marginBottom: "4px" }}>{s}</li>)}
-                  </ul>
+              {/* Raio-X do Perfil Selecionado */}
+              {selectedProfile && (
+                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
+                    <div>
+                      <span style={{ fontSize: "0.75rem", background: "var(--bg-inset)", color: "var(--brand-accent)", padding: "2px 8px", borderRadius: "4px", fontWeight: 600 }}>
+                        {selectedProfile.platform_key.toUpperCase()}
+                      </span>
+                      <h3 style={{ margin: "4px 0 0", fontSize: "1.2rem", fontWeight: 600 }}>
+                        <a href={selectedProfile.profile_url} target="_blank" rel="noreferrer" style={{ color: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                          {selectedProfile.profile_name || "Perfil Freelancer"} <ExternalLink size={16} color="var(--text-dim)" />
+                        </a>
+                      </h3>
+                      <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>{selectedProfile.headline || "Sem headline definida"}</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <button
+                        onClick={() => handleSyncProfile(selectedProfile.profile_url, selectedProfile.platform_key)}
+                        disabled={isAuditing}
+                        style={{ padding: "8px 14px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--brand-accent)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <RefreshCw size={16} className={isAuditing ? "animate-spin" : ""} /> Re-Auditar
+                      </button>
+                      <div style={{ background: "var(--bg-inset)", padding: "8px 16px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Award size={20} color="var(--brand-accent)" />
+                        <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--brand-accent)" }}>Score: {selectedProfile.audit_score}/100</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Diagnóstico em 2 colunas */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                    <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "8px", padding: "16px" }}>
+                      <strong style={{ color: "#10b981", fontSize: "0.9rem", display: "block", marginBottom: "8px" }}>✅ Pontos Fortes Capturados</strong>
+                      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.85rem", color: "var(--text)" }}>
+                        {(selectedProfile.audit_analysis.strengths || ["Perfil cadastrado na plataforma"]).map((s, idx) => (
+                          <li key={idx} style={{ marginBottom: "4px" }}>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.2)", borderRadius: "8px", padding: "16px" }}>
+                      <strong style={{ color: "#f59e0b", fontSize: "0.9rem", display: "block", marginBottom: "8px" }}>⚠️ Gaps & Oportunidades de Otimização</strong>
+                      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.85rem", color: "var(--text)" }}>
+                        {(selectedProfile.audit_analysis.gaps || ["Adicionar mais resultados de ROI"]).map((g, idx) => (
+                          <li key={idx} style={{ marginBottom: "4px" }}>{g}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Copy Otimizada */}
+                  <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)" }}>✨ Headline Sugerida de Alto Impacto:</strong>
+                    <code style={{ background: "var(--surface)", padding: "10px", borderRadius: "6px", border: "1px solid var(--border)", color: "var(--text)", fontWeight: 600 }}>
+                      {selectedProfile.audit_analysis.optimized_headline || "Especialista em Growth & Performance B2B"}
+                    </code>
+
+                    <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)", marginTop: "8px" }}>📝 Bio Reformulada pela IA (Pronta para Copiar):</strong>
+                    <textarea
+                      readOnly
+                      rows={8}
+                      value={selectedProfile.audit_analysis.optimized_bio || selectedProfile.bio || ""}
+                      style={{ padding: "12px", borderRadius: "6px", background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.88rem", fontFamily: "sans-serif" }}
+                    />
+
+                    <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)", marginTop: "8px" }}>💡 Recomendação para o Portfólio:</strong>
+                    <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--text-dim)" }}>
+                      {selectedProfile.audit_analysis.portfolio_tips || "Destaque os 3 principais cases com painéis de métricas."}
+                    </p>
+                  </div>
                 </div>
-                <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.2)", borderRadius: "8px", padding: "16px" }}>
-                  <strong style={{ color: "#f59e0b", fontSize: "0.9rem", display: "block", marginBottom: "8px" }}>⚠️ Oportunidades de Melhoria (Gaps)</strong>
-                  <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "0.85rem", color: "var(--text)" }}>
-                    {auditResult.gaps.map((g, idx) => <li key={idx} style={{ marginBottom: "4px" }}>{g}</li>)}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Copy Otimizada */}
-              <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)" }}>✨ Headline Sugerida de Alto Impacto:</strong>
-                <code style={{ background: "var(--surface)", padding: "10px", borderRadius: "6px", border: "1px solid var(--border)", color: "var(--text)", fontWeight: 600 }}>
-                  {auditResult.optimized_headline}
-                </code>
-
-                <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)", marginTop: "8px" }}>📝 Bio Reformulada pela IA (Pronta para Copiar):</strong>
-                <textarea
-                  readOnly
-                  rows={8}
-                  value={auditResult.optimized_bio}
-                  style={{ padding: "12px", borderRadius: "6px", background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.88rem", fontFamily: "sans-serif" }}
-                />
-
-                <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)", marginTop: "8px" }}>💡 Recomendação para o Portfólio:</strong>
-                <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--text-dim)" }}>{auditResult.portfolio_tips}</p>
-              </div>
+              )}
             </div>
           )}
         </div>

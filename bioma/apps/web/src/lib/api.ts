@@ -2003,6 +2003,11 @@ export const api = {
   updateProposal: (proposalId: string, payload: Partial<ProposalSummary>) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   getPublicProposal: (token: string) => request<PublicProposalResponse>(`/proposals/public/${token}`),
+  listFreelancerProfiles: () => request<FreelancerProfile[]>("/backoffice/proposals/profiles"),
+  syncFreelancerProfile: (payload: { profile_url: string; platform_key?: string }) =>
+    request<FreelancerProfile>("/backoffice/proposals/profiles/sync", { method: "POST", body: JSON.stringify(payload) }),
+  deleteFreelancerProfile: (profileId: string) =>
+    request<{ status: string }>(`/backoffice/proposals/profiles/${profileId}`, { method: "DELETE" }),
 };
 
 export type OpportunityPlatformConfig = {
@@ -2065,5 +2070,26 @@ export type PublicProposalResponse = {
   delivery_days: number;
   created_at: string;
 };
+
+export type FreelancerProfile = {
+  id: string;
+  platform_key: string;
+  profile_url: string;
+  profile_name: string | null;
+  headline: string | null;
+  bio: string | null;
+  audit_score: number;
+  audit_analysis: {
+    strengths?: string[];
+    gaps?: string[];
+    optimized_headline?: string;
+    optimized_bio?: string;
+    portfolio_tips?: string;
+  };
+  last_audited_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 
 

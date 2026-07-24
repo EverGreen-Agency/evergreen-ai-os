@@ -57,6 +57,34 @@ def update_platform(
     return proposals_service.update_platform_config(platform_key, payload, user)
 
 
+@router.get("/profiles")
+def list_freelancer_profiles(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_freelancer_profiles(user)
+
+
+@router.post("/profiles/sync")
+def sync_freelancer_profile(
+    payload: dict,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    url = payload.get("profile_url")
+    if not url:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="profile_url é obrigatório.")
+    platform_key = payload.get("platform_key")
+    return proposals_service.sync_and_audit_freelancer_profile(url, platform_key, user)
+
+
+@router.delete("/profiles/{profile_id}")
+def delete_freelancer_profile(
+    profile_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.delete_freelancer_profile(profile_id, user)
+
+
+
 
 
 @router.post("/opportunities/{opp_id}/generate", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
