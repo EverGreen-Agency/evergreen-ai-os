@@ -20,6 +20,17 @@ def list_opportunities(conn, status_filter: str | None = None, limit: int = 50) 
         cur.execute(query, params)
         return list(cur.fetchall())
 
+def find_existing_opportunity(conn, url: str | None, source_platform: str, title: str) -> dict[str, Any] | None:
+    with conn.cursor(row_factory=dict_row) as cur:
+        if url and url.strip():
+            cur.execute("select * from opportunity_radar where url = %s limit 1", (url.strip(),))
+            row = cur.fetchone()
+            if row:
+                return dict(row)
+        cur.execute("select * from opportunity_radar where source_platform = %s and title = %s limit 1", (source_platform, title))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
 def create_opportunity(conn, data: dict[str, Any]) -> dict[str, Any]:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(

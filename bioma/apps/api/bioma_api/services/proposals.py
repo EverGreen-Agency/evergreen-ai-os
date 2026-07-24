@@ -25,6 +25,10 @@ def list_opportunities(user: CurrentUserResponse, status_filter: str | None = No
 
 def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse | None = None) -> OpportunitySummary:
     with connect() as conn:
+        existing = proposals_repo.find_existing_opportunity(conn, payload.url, payload.source_platform, payload.title)
+        if existing:
+            return OpportunitySummary(**existing)
+
         # Calculate initial Fit Score
         title_lower = payload.title.lower()
         desc_lower = (payload.description or "").lower()
@@ -59,6 +63,39 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
             _notify_high_fit_opportunity(opp)
 
     return OpportunitySummary(**opp)
+
+
+def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any]:
+    from bioma_worker.scrapers.opportunities import fetch_rss_opportunities
+
+    items = fetch_rss_opportunities()
+    new_count = 0
+    skipped_count = 0
+
+    with connect() as conn:
+        for item in items:
+            existing = proposals_repo.find_existing_opportunity(conn, item.get("url"), item["source_platform"], item["title"])
+            if existing:
+                skipped_count += 1
+            else:
+                payload = OpportunityIngestPayload(
+                    source_platform=item["source_platform"],
+                    title=item["title"],
+                    url=item.get("url"),
+                    description=item.get("description"),
+                    budget_text=item.get("budget_text"),
+                    raw_payload=item.get("raw_payload", {}),
+                )
+                ingest_opportunity(payload, user)
+                new_count += 1
+
+    return {
+        "status": "ok",
+        "scanned": len(items),
+        "new": new_count,
+        "skipped": skipped_count,
+    }
+
 
 
 def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -> ProposalSummary:

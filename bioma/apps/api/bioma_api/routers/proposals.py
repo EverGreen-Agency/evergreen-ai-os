@@ -34,6 +34,14 @@ def ingest_opportunity(
     return proposals_service.ingest_opportunity(payload, user)
 
 
+@router.post("/opportunities/sync")
+def sync_opportunities(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.sync_opportunities_from_scrapers(user)
+
+
+
 @router.post("/opportunities/{opp_id}/generate", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
 def generate_proposal(
     opp_id: UUID,

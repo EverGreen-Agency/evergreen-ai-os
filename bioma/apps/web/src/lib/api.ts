@@ -1991,6 +1991,8 @@ export const api = {
     request<OpportunitySummary[]>(`/backoffice/proposals/opportunities${status ? `?status=${status}` : ""}`),
   ingestOpportunity: (payload: { source_platform: string; title: string; url?: string; description?: string; budget_text?: string }) =>
     request<OpportunitySummary>("/backoffice/proposals/opportunities/ingest", { method: "POST", body: JSON.stringify(payload) }),
+  syncOpportunities: () =>
+    request<{ status: string; scanned: number; new: number; skipped: number }>("/backoffice/proposals/opportunities/sync", { method: "POST" }),
   generateProposalForOpportunity: (oppId: string) =>
     request<ProposalSummary>(`/backoffice/proposals/opportunities/${oppId}/generate`, { method: "POST" }),
   listProposals: () => request<ProposalSummary[]>("/backoffice/proposals"),

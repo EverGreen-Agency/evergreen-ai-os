@@ -13,6 +13,7 @@ import {
   Clock,
   Send,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import { api, type OpportunitySummary, type ProposalSummary } from "../../../lib/api";
 
@@ -31,9 +32,11 @@ export function ProposalsManager() {
   const [budgetText, setBudgetText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Generating proposal state
+  // Generating proposal & Sync state
   const [generatingOppId, setGeneratingOppId] = useState<string | null>(null);
   const [copiedProposalId, setCopiedProposalId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -113,14 +116,55 @@ export function ProposalsManager() {
             Varredura contínua de freelas/projetos B2B, triagem automática com Score de Fit e gerador de propostas.
           </p>
         </div>
-        <button
-          className="primary-button"
-          onClick={() => setIsIngestModalOpen(true)}
-          style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 16px" }}
-        >
-          <Plus size={18} /> Capturar Vaga Manualmente
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={async () => {
+              setIsSyncing(true);
+              setSyncFeedback(null);
+              try {
+                const res = await api.syncOpportunities();
+                setSyncFeedback(`Varredura concluída! ${res.scanned} projetos verificados (${res.new} novos adicionados, ${res.skipped} duplicados ignorados).`);
+                await loadData();
+              } catch (err: any) {
+                alert("Erro ao realizar varredura: " + (err.message || "Erro desconhecido"));
+              } finally {
+                setIsSyncing(false);
+              }
+            }}
+            disabled={isSyncing}
+            style={{
+              padding: "10px 18px",
+              borderRadius: "8px",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              color: "var(--brand-accent)",
+              fontWeight: 600,
+              cursor: isSyncing ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              opacity: isSyncing ? 0.7 : 1,
+            }}
+          >
+            <RefreshCw size={18} className={isSyncing ? "animate-spin" : ""} />
+            {isSyncing ? "Varrendo Plataformas..." : "Varrer Plataformas Agora"}
+          </button>
+
+          <button
+            className="primary-button"
+            onClick={() => setIsIngestModalOpen(true)}
+            style={{ padding: "10px 18px", display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            <Plus size={18} /> Capturar Vaga Manualmente
+          </button>
+        </div>
       </div>
+
+      {syncFeedback && (
+        <div style={{ padding: "12px 16px", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "8px", color: "#10b981", marginBottom: "16px", fontSize: "0.9rem" }}>
+          {syncFeedback}
+        </div>
+      )}
 
       {/* Alerta de Status do Worker */}
       <div
