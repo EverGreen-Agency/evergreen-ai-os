@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 
-from bioma_api.dependencies import get_current_user
+from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
     OpportunityCreatePayload,
@@ -21,7 +21,7 @@ public_router = APIRouter(prefix="/proposals", tags=["public-proposals"])
 @router.get("/opportunities", response_model=list[OpportunitySummary])
 def list_opportunities(
     status: str | None = Query(None),
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.list_opportunities(user, status_filter=status)
 
@@ -29,7 +29,7 @@ def list_opportunities(
 @router.post("/opportunities/ingest", response_model=OpportunitySummary, status_code=status.HTTP_201_CREATED)
 def ingest_opportunity(
     payload: OpportunityIngestPayload,
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.ingest_opportunity(payload, user)
 
@@ -37,14 +37,14 @@ def ingest_opportunity(
 @router.post("/opportunities/{opp_id}/generate", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
 def generate_proposal(
     opp_id: UUID,
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.generate_proposal_for_opportunity(opp_id, user)
 
 
 @router.get("", response_model=list[ProposalSummary])
 def list_proposals(
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.list_proposals(user)
 
@@ -52,7 +52,7 @@ def list_proposals(
 @router.post("", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
 def create_proposal(
     payload: ProposalCreatePayload,
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.create_proposal(payload, user)
 
@@ -61,7 +61,7 @@ def create_proposal(
 def update_proposal(
     proposal_id: UUID,
     payload: ProposalUpdatePayload,
-    user: CurrentUserResponse = Depends(get_current_user),
+    user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.update_proposal(proposal_id, payload, user)
 
