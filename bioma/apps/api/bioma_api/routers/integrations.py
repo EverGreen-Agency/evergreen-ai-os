@@ -21,7 +21,6 @@ router = APIRouter(prefix="/integrations", tags=["integrations"])
 
 
 class IntegrationsStatusResponse(BaseModel):
-    clickup_token_configured: bool
     github_token_configured: bool
     storage_configured: bool
     google_oauth_configured: bool
@@ -33,7 +32,6 @@ def get_status(user: CurrentUserResponse = Depends(current_user_from_request)) -
     require_platform_admin(user)
     settings = get_settings()
     return IntegrationsStatusResponse(
-        clickup_token_configured=bool(settings.clickup_api_token),
         github_token_configured=bool(settings.github_api_token),
         storage_configured=settings.storage_configured,
         google_oauth_configured=settings.google_oauth_configured,

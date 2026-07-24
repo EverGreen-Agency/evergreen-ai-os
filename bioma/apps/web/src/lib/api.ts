@@ -135,10 +135,32 @@ export type AiContentPost = {
   cta: string;
 };
 
+export type AiContentImage = {
+  title: string;
+  channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
+  aspect_ratio: string;
+  visual_description: string;
+  prompt_en: string;
+  provider: string;
+  preview_url: string | null;
+};
+
+export type AiContentVideoScript = {
+  title: string;
+  channel: "instagram" | "linkedin" | "facebook" | "tiktok" | "youtube";
+  format: string;
+  duration_seconds: number;
+  hook_0_3s: string;
+  script_body: string;
+  cta_final: string;
+  broll_notes: string;
+  camera_angle_notes?: string | null;
+};
+
 export type AiContentRequest = {
   id: string;
   workspace_id: string;
-  content_type: "social_posts";
+  content_type: "social_posts" | "image_generation" | "video_scripts";
   status: "queued" | "running" | "ready" | "error" | "cancelled";
   brief: string;
   channels: AiContentPost["channel"][];
@@ -149,7 +171,12 @@ export type AiContentRequest = {
   provider: string | null;
   model: string | null;
   generation_mode: "live" | "preview" | null;
-  output: { strategy_note: string; posts: AiContentPost[] } | null;
+  output: {
+    strategy_note: string;
+    posts?: AiContentPost[];
+    images?: AiContentImage[];
+    video_scripts?: AiContentVideoScript[];
+  } | null;
   error_message: string | null;
   created_at: string;
   finished_at: string | null;
@@ -453,6 +480,54 @@ export type WikiImportResult = {
   available: boolean;
 };
 
+export type CommercialPilar = "oferta" | "demanda" | "conversao";
+export type CommercialMaturityLevel = "semente" | "muda" | "arvore" | "floresta";
+export type CommercialPlanStatus = "em_andamento" | "concluido" | "pausado";
+
+export type CommercialScoreSummary = {
+  id: string;
+  workspace_id: string;
+  oferta_score: number;
+  demanda_score: number;
+  conversao_score: number;
+  oferta_level: number;
+  demanda_level: number;
+  conversao_level: number;
+  gargalo_prioritario: CommercialPilar;
+  maturity_level: CommercialMaturityLevel;
+  updated_at: string;
+  created_at: string;
+};
+
+export type DiagnosticAnswerSummary = {
+  id: string;
+  workspace_id: string;
+  pilar: CommercialPilar;
+  regua_level: 1 | 2;
+  question_key: string;
+  score_value: number;
+  notes: string | null;
+  updated_at: string;
+};
+
+export type ActionPlanSummary = {
+  id: string;
+  workspace_id: string;
+  pilar_gargalo: CommercialPilar;
+  sprint_title: string;
+  sprint_goals: string;
+  status: CommercialPlanStatus;
+  start_date: string;
+  end_date: string | null;
+  created_at: string;
+};
+
+export type CommercialPortalResponse = {
+  scores: CommercialScoreSummary;
+  answers: DiagnosticAnswerSummary[];
+  action_plans: ActionPlanSummary[];
+};
+
 export type SyncRunSummary = {
   id: string;
   source: string;
@@ -582,7 +657,6 @@ export type PerformanceSyncRun = {
 };
 
 export type IntegrationsStatus = {
-  clickup_token_configured: boolean;
   github_token_configured: boolean;
   storage_configured: boolean;
   google_oauth_configured: boolean;
@@ -1158,12 +1232,14 @@ export const api = {
   createAiContentRequest: (
     workspaceId: string,
     payload: {
+      content_type?: "social_posts" | "image_generation" | "video_scripts";
       brief: string;
       channels: AiContentPost["channel"][];
       quantity: number;
       tone?: string | null;
       objective?: string | null;
       methodology_refs?: string[];
+      image_provider?: "dalle_3" | "flux" | "higgsfield" | "custom";
     },
   ) => request<AiContentRequest>(`/workspaces/${workspaceId}/ai/content`, {
     method: "POST",
@@ -1265,10 +1341,6 @@ export const api = {
     request<ClientPortal>(`/workspaces/${clientId}/approvals/${approvalId}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
-    }),
-  syncClickUp: (clientId: string) =>
-    request<ClientPortal>(`/workspaces/${clientId}/sync/clickup`, {
-      method: "POST",
     }),
   archiveClient: (clientId: string) =>
     request<void>(`/clients/${clientId}`, {
@@ -1494,4 +1566,43 @@ export const api = {
     request<WikiAttachmentDownload>(`/backoffice/wiki/attachments/${attachmentId}/download`),
   deleteWikiAttachment: (attachmentId: string) =>
     request<void>(`/backoffice/wiki/attachments/${attachmentId}`, { method: "DELETE" }),
+
+  // Commercial Raio-X (3 Pilares: Oferta, Demanda, Conversao)
+  commercialPortal: (workspaceId: string) =>
+    request<CommercialPortalResponse>(`/workspaces/${workspaceId}/commercial`),
+  answerDiagnosticQuestion: (
+    workspaceId: string,
+    payload: {
+      pilar: CommercialPilar;
+      regua_level: 1 | 2;
+      question_key: string;
+      score_value: number;
+      notes?: string | null;
+    }
+  ) =>
+    request<CommercialPortalResponse>(`/workspaces/${workspaceId}/commercial/diagnostic`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  createActionPlan: (
+    workspaceId: string,
+    payload: {
+      pilar_gargalo: CommercialPilar;
+      sprint_title: string;
+      sprint_goals: string;
+    }
+  ) =>
+    request<CommercialPortalResponse>(`/workspaces/${workspaceId}/commercial/action-plans`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateActionPlanStatus: (
+    workspaceId: string,
+    planId: string,
+    status: CommercialPlanStatus
+  ) =>
+    request<CommercialPortalResponse>(`/workspaces/${workspaceId}/commercial/action-plans/${planId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
 };

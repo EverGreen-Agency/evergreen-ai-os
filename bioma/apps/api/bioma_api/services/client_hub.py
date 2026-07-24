@@ -9,7 +9,6 @@ from bioma_api.access import (
     resolve_accessible_client,
 )
 from bioma_api.db import connect
-from bioma_api.integrations.clickup import sync_clickup_folder
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -411,28 +410,6 @@ def decide_approval(
     return get_client_portal(client_id, user)
 
 
-def sync_clickup(client_id: UUID, user: CurrentUserResponse) -> ClientPortalResponse:
-    with connect() as conn:
-        client = resolve_accessible_client(conn, client_id, user, capability="manage_config")
-        mapped_lists = client_hub_repo.list_clickup_mappings(conn, client["organization_id"])
-        sync_status, summary = sync_clickup_folder(client["clickup_folder_id"], mapped_lists)
-        summary["deliverables"] = _upsert_clickup_tasks(conn, client["organization_id"], summary.get("tasks", []))
-        summary["write_policy"] = {
-            "clickup": "hitl_required",
-            "bioma": "local_upsert_from_clickup_read",
-        }
-        client_hub_repo.record_sync_run(conn, client["organization_id"], sync_status, summary)
-        client_hub_repo.write_audit(
-            conn,
-            user.id,
-            client["organization_id"],
-            "clickup.sync_requested",
-            {"client_id": str(client_id), "status": sync_status},
-        )
-
-    return get_client_portal(client_id, user)
-
-
 def list_leads(client_id: UUID, user: CurrentUserResponse) -> list[LeadSummary]:
     with connect() as conn:
         client = resolve_accessible_client(conn, client_id, user, "commercial")
@@ -620,50 +597,6 @@ def delete_performance_metric(client_id: UUID, metric_id: UUID, user: CurrentUse
 def _require_non_empty(value: str | None, detail: str) -> None:
     if not value or not value.strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
-
-
-def _upsert_clickup_tasks(conn, organization_id: UUID, tasks: list[dict]) -> dict[str, int]:
-    created = 0
-    updated = 0
-    skipped = 0
-
-    for task in tasks:
-        task_id = task.get("id")
-        title = task.get("name")
-        if not task_id or not title:
-            skipped += 1
-            continue
-
-        result = client_hub_repo.upsert_clickup_deliverable(
-            conn,
-            organization_id,
-            task_id,
-            title,
-            task.get("bioma_status") or _clickup_status_to_deliverable_status(task.get("status")),
-            task.get("due_at"),
-            task.get("assignee_emails", []),
-        )
-        if result == "created":
-            created += 1
-        elif result == "updated":
-            updated += 1
-        else:
-            skipped += 1
-
-    return {"created": created, "updated": updated, "skipped": skipped}
-
-
-def _clickup_status_to_deliverable_status(status_name: str | None) -> str:
-    value = (status_name or "").lower()
-    if any(token in value for token in ("done", "complete", "conclu", "closed", "finalizado")):
-        return "done"
-    if any(token in value for token in ("block", "bloque", "impedido")):
-        return "blocked"
-    if any(token in value for token in ("approval", "aprova", "review", "valid")):
-        return "waiting_approval"
-    if any(token in value for token in ("progress", "andamento", "doing", "execu")):
-        return "in_progress"
-    return "planned"
 
 
 def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:

@@ -167,15 +167,6 @@ export function useDecideApproval() {
   });
 }
 
-export function useSyncClickUp() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (clientId: string) => api.syncClickUp(clientId),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["portal", data.client.id], data);
-    },
-  });
-}
 
 export function useArchiveClient() {
   const queryClient = useQueryClient();
@@ -580,7 +571,7 @@ export function useCreateTaskList() {
   return useMutation({
     mutationFn: ({ workspaceId, name, type }: { workspaceId: string; name: string; type: TaskListType }) => 
       api.createTaskList(workspaceId, name, type),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["task-lists", variables.workspaceId] });
     },
   });
@@ -602,7 +593,7 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) => 
       api.createTask(listId, payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", variables.listId] });
     },
   });
@@ -627,5 +618,17 @@ export function useDeleteTask() {
     onSuccess: (listId) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", listId] });
     },
+  });
+}
+
+// Commercial Raio-X Hook
+export function useCommercialPortal(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["commercial-portal", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.commercialPortal(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
   });
 }

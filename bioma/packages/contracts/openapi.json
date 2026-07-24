@@ -3925,10 +3925,6 @@
             "title": "App Env",
             "type": "string"
           },
-          "clickup_token_configured": {
-            "title": "Clickup Token Configured",
-            "type": "boolean"
-          },
           "github_token_configured": {
             "title": "Github Token Configured",
             "type": "boolean"
@@ -3943,7 +3939,6 @@
           }
         },
         "required": [
-          "clickup_token_configured",
           "github_token_configured",
           "storage_configured",
           "google_oauth_configured",
@@ -14518,49 +14513,6 @@
         ]
       }
     },
-    "/clients/{client_id}/sync/clickup": {
-      "post": {
-        "operationId": "sync_clickup_clients__client_id__sync_clickup_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "client_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Client Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClientPortalResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Sync Clickup",
-        "tags": [
-          "client-hub"
-        ]
-      }
-    },
     "/contracts/{contract_id}": {
       "patch": {
         "operationId": "update_contract_contracts__contract_id__patch",
@@ -18518,49 +18470,6 @@
         "summary": "Request Sync",
         "tags": [
           "workspace-performance"
-        ]
-      }
-    },
-    "/workspaces/{client_id}/sync/clickup": {
-      "post": {
-        "operationId": "sync_clickup_workspaces__client_id__sync_clickup_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "client_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Client Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClientPortalResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Sync Clickup",
-        "tags": [
-          "workspace-client-hub"
         ]
       }
     },

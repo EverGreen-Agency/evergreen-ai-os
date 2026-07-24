@@ -1,7 +1,7 @@
 # ADR 0002 — Bioma como motor operacional e integrações externas por adapters
 
-- Status: aceito; decisão anterior superseded
-- Data: 2026-07-18 (revisado em 2026-07-22)
+- Status: aceito; decisão anterior superseded; remoção do adapter ClickUp concluída
+- Data: 2026-07-18 (revisado em 2026-07-22; adapter removido em 2026-07-24)
 
 ## Contexto
 
@@ -52,10 +52,12 @@ Se implementado, o adapter deve usar webhooks/HTTP com assinatura ou autenticaç
 - credenciais ficam no cofre cifrado e nunca em planilha, código, fixture ou histórico Git;
 - uma integração só pode ser chamada de bidirecional após escrita externa real, idempotente, auditada e confirmada pelo fluxo HITL definido.
 
-## Próxima remoção controlada do ClickUp
+## Remoção controlada do ClickUp — concluída em 2026-07-24 (INT-CU-RETIRE-001)
 
-1. reconciliar projetos/tarefas importados e criar vínculos locais de projeto/escopo;
-2. gerar relatório de itens sem correspondência e resolver duplicidades;
-3. exportar snapshot final independente da assinatura do ClickUp;
-4. remover endpoint, configuração e adapter de importação;
-5. em migration posterior, retirar colunas/tabelas legadas quando não houver mais consumidores.
+A auditoria de reconciliação encontrou dado real, não apenas seed: 48 deliverables importados via `POST /sync/clickup` (2 syncs reais em 2026-07-21) para **kontes-express** (43), **hm-conexoes** (3, demo) e **univet-safety** (2) — nenhum ainda ligado ao motor nativo de projetos, que não tinha nenhum projeto criado.
+
+1. ✅ reconciliados: um projeto nativo "Legado ClickUp (pré-migração)" (`project_type=general`, `status=archived`, `client_visible=false`) criado por organização e os 48 deliverables ligados via `project_id`;
+2. ✅ relatório de reconciliação confirmou zero órfãos (`bioma/apps/api/scripts/reconcile_clickup.py`);
+3. ✅ snapshot final exportado em `bioma/docs/clickup-legacy-reconciliation-2026-07-24.json`;
+4. ✅ endpoint (`/clients|workspaces/{id}/sync/clickup`), config (`clickup_api_token`/`clickup_api_base_url`/`clickup_task_page_limit`), adapter (`bioma_api/integrations/clickup.py`) e scripts de importação/smoke ClickUp removidos;
+5. pendente: colunas `deliverables.clickup_task_id`/`clients.clickup_folder_id` e a tabela `clickup_mappings` seguem no schema para rastreabilidade histórica; retirar em migration futura só quando não houver mais consumidores de leitura (badges "importado do legado" no front).

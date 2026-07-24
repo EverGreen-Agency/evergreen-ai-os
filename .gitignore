@@ -74,3 +74,9 @@ sites-ref-eg/
 # Bancos locais acidentais (o Bioma usa Postgres; sqlite aqui é sempre lixo)
 bioma/apps/api/*.db
 bioma/apps/api/*.sqlite
+
+# Bundle dos arquivos versionados que o review em nuvem gera (21 MB por snapshot)
+.tracked-build-*
+
+# Exports de sessão dos copilots
+cc-exports/

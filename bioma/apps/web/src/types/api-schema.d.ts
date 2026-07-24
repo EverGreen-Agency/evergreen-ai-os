@@ -1232,23 +1232,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/clients/{client_id}/sync/clickup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Sync Clickup */
-        post: operations["sync_clickup_clients__client_id__sync_clickup_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/contracts/{contract_id}": {
         parameters: {
             query?: never;
@@ -2200,23 +2183,6 @@ export interface paths {
         put?: never;
         /** Request Sync */
         post: operations["request_sync_workspaces__client_id__performance_sync_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/workspaces/{client_id}/sync/clickup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Sync Clickup */
-        post: operations["sync_clickup_workspaces__client_id__sync_clickup_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3779,8 +3745,6 @@ export interface components {
         IntegrationsStatusResponse: {
             /** App Env */
             app_env: string;
-            /** Clickup Token Configured */
-            clickup_token_configured: boolean;
             /** Github Token Configured */
             github_token_configured: boolean;
             /** Google Oauth Configured */
@@ -8908,37 +8872,6 @@ export interface operations {
             };
         };
     };
-    sync_clickup_clients__client_id__sync_clickup_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                client_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClientPortalResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     update_contract_contracts__contract_id__patch: {
         parameters: {
             query?: never;
@@ -11426,37 +11359,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PerformanceSyncRunSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    sync_clickup_workspaces__client_id__sync_clickup_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                client_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClientPortalResponse"];
                 };
             };
             /** @description Validation Error */

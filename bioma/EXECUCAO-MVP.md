@@ -91,7 +91,7 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | INT-CU-001 | DONE | Backend/Operação | Importador ClickUp env-only, tenant-scoped, transacional por pasta e idempotente por external ID | DPL-005 | importador compilado + smoke mockado |
 | INT-CU-002 | DONE | Backend | Mapear status Social/Growth/Tech por lista | INT-CU-001 | fixture local; lista real segue bloqueada por credencial |
 | INT-CU-003 | DONE | Produto/Full-stack | Superseded em 2026-07-22: Bioma passa a ser fonte de verdade; manter somente rastreabilidade do legado | PROJECT-001 | ADR 0002 revisado + UI sem sync |
-| INT-CU-RETIRE-001 | TODO | Dados/Backend | Reconciliar import, gerar snapshot final e remover endpoint/config/adapter ClickUp | PROJECT-001 | relatório sem órfãos + smokes nativos |
+| INT-CU-RETIRE-001 | DONE | Dados/Backend | Reconciliar import, gerar snapshot final e remover endpoint/config/adapter ClickUp | PROJECT-001 | relatório sem órfãos (`bioma/docs/clickup-legacy-reconciliation-2026-07-24.json`) + `pytest`/`tsc`/compile verdes |
 | INT-SF-001 | BLOCKED | Arquitetura/Parcerias | Definir contrato SleekFlow como adapter omnichannel | proposta de parceria + documentação/API oficial | ADR de eventos, auth, LGPD e limites aprovado |
 | INT-G-001 | BLOCKED | Backend/Operação | Validar Google Ads real | DPL-005 | comparação por campanha/data |
 | INT-G-002 | BLOCKED | Backend/Operação | Validar GA4 real | DPL-005 | comparação aquisição/eventos |

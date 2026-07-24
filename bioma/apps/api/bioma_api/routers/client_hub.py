@@ -174,15 +174,6 @@ def decide_approval(
     return client_hub_service.decide_approval(client_id, approval_id, payload, user)
 
 
-@router.post("/{client_id}/sync/clickup", response_model=ClientPortalResponse)
-@workspace_router.post("/{client_id}/sync/clickup", response_model=ClientPortalResponse)
-def sync_clickup(
-    client_id: UUID,
-    user: CurrentUserResponse = Depends(current_user_from_request),
-) -> ClientPortalResponse:
-    return client_hub_service.sync_clickup(client_id, user)
-
-
 @router.get("/{client_id}/leads", response_model=list[LeadSummary])
 @workspace_router.get("/{client_id}/leads", response_model=list[LeadSummary])
 def list_leads(

@@ -120,21 +120,6 @@ def list_sync_runs(conn, organization_id: UUID):
     ).fetchall()
 
 
-def list_clickup_mappings(conn, organization_id: UUID) -> list[dict]:
-    rows = conn.execute(
-        """
-        select distinct on (clickup_list_id)
-          clickup_list_id as id, operation, status_mapping
-        from clickup_mappings
-        where organization_id = %s
-          and clickup_list_id is not null
-        order by clickup_list_id, created_at
-        """,
-        (organization_id,),
-    ).fetchall()
-    return [dict(row) for row in rows]
-
-
 def list_audit_logs(conn, organization_id: UUID):
     return conn.execute(
         """
@@ -272,48 +257,6 @@ def create_deliverable(
     ).fetchone()["id"]
 
 
-def upsert_clickup_deliverable(
-    conn,
-    organization_id: UUID,
-    clickup_task_id: str,
-    title: str,
-    status: str,
-    due_at: str | None,
-    assignee_emails: list[str],
-) -> str:
-    import json
-    assignee_json = json.dumps(assignee_emails)
-
-    existing = conn.execute(
-        """
-        select id
-        from deliverables
-        where organization_id = %s and clickup_task_id = %s
-        """,
-        (organization_id, clickup_task_id),
-    ).fetchone()
-    if existing:
-        conn.execute(
-            """
-            update deliverables
-            set title = %s, status = %s, due_at = %s, assignee_emails = %s, updated_at = now()
-            where id = %s
-            """,
-            (title, status, due_at, assignee_json, existing["id"]),
-        )
-        return "updated"
-
-    conn.execute(
-        """
-        insert into deliverables (organization_id, title, status, due_at, clickup_task_id, assignee_emails)
-        values (%s, %s, %s, %s, %s, %s)
-        """,
-        (organization_id, title, status, due_at, clickup_task_id, assignee_json),
-    )
-
-    return "created"
-
-
 def update_deliverable(conn, organization_id: UUID, deliverable_id: UUID, updates: dict[str, Any]) -> bool:
     if not updates:
         return True
@@ -409,16 +352,6 @@ def update_waiting_deliverable_status(conn, deliverable_id: UUID, status: str) -
         where id = %s and status = 'waiting_approval'
         """,
         (status, deliverable_id),
-    )
-
-
-def record_sync_run(conn, organization_id: UUID, status: str, summary: dict[str, Any]) -> None:
-    conn.execute(
-        """
-        insert into sync_runs (source, organization_id, status, summary, finished_at)
-        values ('clickup', %s, %s, %s, now())
-        """,
-        (organization_id, status, Jsonb(summary)),
     )
 
 
