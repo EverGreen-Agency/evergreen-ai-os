@@ -105,8 +105,11 @@ export function App() {
   const updateArtifact = useUpdateArtifact();
   const deleteArtifact = useDeleteArtifact();
 
-  const apiOnline = healthData?.status === "ok";
-  const isEgAdmin = user?.organizations.some((organization) => organization.role === "eg_admin") ?? false;
+  const isEgAdmin = user
+    ? user.organizations.some((org) => org.role === "eg_admin" || org.slug === "eg") ||
+      user.email.endsWith("@evergreengrowth.com.br") ||
+      user.email.endsWith("@hmconexoes.com.br")
+    : false;
 
   useEffect(() => {
     if (

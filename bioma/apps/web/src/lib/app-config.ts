@@ -17,7 +17,7 @@ export type ViewId =
   | "eg-architecture"
   | "eg-rh"
   | "eg-kits"
-  | "eg-proposals";
+  | "eg-propostas";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
@@ -33,7 +33,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
   { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
   { id: "eg-kits", label: "Logística Kits", icon: Package },
-  { id: "eg-proposals", label: "Radar & Propostas IA", icon: Target },
+  { id: "eg-propostas", label: "Radar & Propostas IA", icon: Target },
 ];
 
 export const clientHubNavItems: Array<{
@@ -94,7 +94,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
   "eg-architecture": "hub",
   "eg-rh": "hub",
   "eg-kits": "hub",
-  "eg-proposals": "hub",
+  "eg-propostas": "hub",
 };
 
 export const moduleLabels: Record<ClientModule, string> = {
