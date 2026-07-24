@@ -53,6 +53,9 @@ const RhManagerView = lazy(() =>
 const KitsManagerView = lazy(() =>
   import("./views/admin/kits/KitsManager").then((module) => ({ default: module.KitsManager })),
 );
+const ProposalsManagerView = lazy(() =>
+  import("./views/admin/proposals/ProposalsManager").then((module) => ({ default: module.ProposalsManager })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -344,6 +347,11 @@ export function App() {
           <Route path="/eg-kits" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <KitsManagerView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-propostas" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ProposalsManagerView />
             </Suspense>,
           )} />
 
