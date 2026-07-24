@@ -6,14 +6,15 @@ Este documento é a mesa de controle do MVP do Bioma. Ele existe para coordenar 
 
 A EverGreen/EG é a dona da plataforma Bioma e é quem está construindo, operando e codando este produto.
 
-HM Conexões Poderosas foi um lead/cliente potencial que pediu uma entrega específica descrita na proposta e na reunião. O caso HM é referência de escopo e UX para o primeiro Client Hub, mas a plataforma não pertence à HM e não deve ser pensada como produto nichado para ela.
+HM Conexões Poderosas foi um lead/cliente potencial cuja proposta descreve uma plataforma interna de agência para operar a própria carteira de clientes. O MVP atual ainda representa HM provisoriamente como um cliente externo para validar autenticação, isolamento e módulos do Hub, mas essa simplificação não é a hierarquia final do produto. A plataforma não pertence à HM e não deve ser pensada como produto nichado para ela.
 
 Leitura correta:
 
 - EG: boutique, dona da operação, dona da plataforma e usuária interna principal.
-- Bioma: plataforma operacional da EG para cockpit interno, Client Hub e integrações.
-- HM: lead/caso de uso inicial para validar uma entrega comercial concreta.
-- Clientes futuros: devem entrar no mesmo modelo, com branding e dados próprios.
+- Bioma: plataforma operacional que evolui de uso interno EG para operação de clientes e depois white-label/SaaS.
+- HM: lead/caso de uso inicial de uma agência operando clientes; no MVP técnico ainda é uma organização externa simplificada.
+- Agências futuras: tenants com workspace interno, marca, equipe e clientes próprios.
+- Clientes futuros: workspaces operacionais pertencentes a uma agência, com branding e dados isolados.
 
 ## Fontes obrigatórias
 
@@ -33,7 +34,7 @@ Documentos operacionais:
 
 ## Estado atual
 
-Data de referência: 2026-07-10.
+Data de referência: 2026-07-21.
 
 O MVP técnico local está testável e operável. O MVP comercial baseado na proposta HM ainda não está concluído nem publicado em staging.
 
@@ -51,7 +52,7 @@ Funcional hoje:
 - Aprovar/reprovar pendência pelo front.
 - EG admin consegue solicitar aprovação de uma entrega pelo front; o cliente decide no próprio hub.
 - Cliente enxerga apenas o próprio hub no seed.
-- ClickUp Bridge em modo manual/dry-run.
+- ClickUp Bridge manual e unidirecional: ClickUp → projeção local somente leitura.
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
 - Área documentada para assets em `apps/web/public/assets/`.
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
@@ -59,17 +60,22 @@ Funcional hoje:
 - Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
 - CRM/funil e financeiro com backend e telas mínimas integradas no frontend.
 - Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
+- Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`, reutilizando os mesmos módulos dos hubs sem misturar dados.
+- Navegador de workspaces pesquisável no Topbar, com recentes e atalho `Ctrl/⌘ K`; a carteira completa permanece em página própria.
+- Identidade de workspace persistente em `workspaces`, com backfill/provisionamento transacional e descoberta autenticada por `GET /workspaces`; módulos ainda usam adapters `client_id` onde necessário.
 - Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
 - Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
+- Tarefas nativas do Bioma com CRUD, subtarefas, dependências e recorrência idempotente, protegidas por workspace e capability.
+- Times, atribuições e papéis `platform_admin`, `tenant_admin`, `workspace_manager`, `operator`, `approver`, `viewer` e adapter legado `client_user`.
+- Remoção cotidiana de cliente por archive; purge físico separado, confirmado, auditado e com limpeza S3.
 
 Ainda demo/dry-run:
 
 - Dados iniciais HM vêm de seed, mas já podem ser editados pelo front.
-- ClickUp ainda não sincroniza tarefas reais sem token e mapeamento real.
+- ClickUp real exige token efêmero no ambiente, tenant/team explícitos e mapeamento controlado; nenhum segredo é versionado.
 - Briefing, brand book e calendário existem como artefatos editáveis, não como módulos ricos completos.
 - Analytics não deve exibir números reais enquanto não houver fonte real conectada.
 - Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
-- Permissões ainda são simples: `eg_admin` e `client_user`.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
 - Analytics consome endpoints reais de Performance, mas ainda pode exibir dados de seed enquanto não houver sync real.
 - LinkedIn orgânico e LinkedIn Ads, centrais no caso HM, ainda não foram integrados.
@@ -103,37 +109,23 @@ Arquivos sensíveis que não devem ser editados por duas IAs ao mesmo tempo:
 
 Divisão recomendada:
 
-- Backend/API: FastAPI, migrations, auth, permissões, ClickUp, testes API.
+- Backend/API: FastAPI, migrations, auth, permissões, motor nativo de trabalho, adapters e testes API.
 - Frontend/UI: componentes, responsividade, assets, UX, estados vazios.
 - Produto/QA: comparação com proposta HM, bugs, critérios de pronto, gaps.
 - Docs/Coordenação: manter este roadmap, README, specs e handoff.
 
-## ClickUp - direção operacional
+## Motor operacional nativo — decisão 2026-07-22
 
-A integração deve respeitar os manuais operacionais da EG.
+O Bioma substitui o ClickUp como fonte de verdade da execução. A estrutura importada e os manuais operacionais servem de referência, mas o produto passa a possuir `workspace → projeto → contrato versionado → escopo → entregas/tarefas → aceite`.
 
-Estrutura de referência:
-
-- Workspace: operação EG.
-- Cada cliente deve ter pasta própria.
-- Social Media e Growth/Projetos devem ser listas separadas quando aplicável.
-- Tech & Software deve seguir SDLC com status de engenharia.
-- O cliente deve ter visão por portal único, não uma coleção de links soltos.
-
-MVP do ClickUp Bridge:
-
-1. Mapear cliente Bioma para pasta/listas ClickUp.
-2. Ler tarefas por lista.
-3. Normalizar status para entregáveis/aprovações no Bioma.
-4. Registrar `sync_runs`.
-5. Permitir ação manual EG primeiro.
-6. Só depois permitir escrita bidirecional com HITL.
-
-Não fazer ainda:
-
-- Escrita automática sem confirmação humana.
-- Criar estrutura de cliente no ClickUp sem revisão EG.
-- Misturar Social, Growth e Tech em uma lista única.
+- Social, Growth, Tech e projetos gerais compartilham o núcleo, com templates e status configuráveis por projeto;
+- projetos Social podem exigir aprovação da ideia antes da gravação ou somente aprovação final, conforme o cliente;
+- projetos Tech possuem fases, documentos de proposta/especificação e atualizações honestas visíveis ao cliente; o adapter GitHub para issues/PRs continua separado, mantendo contrato, contexto e acompanhamento canônicos no Bioma;
+- itens de escopo registram quantidade, unidade, cadência e critério de aceite;
+- conclusão de entrega não presume aceite do cliente;
+- progresso/ritmo consideram concluídas, atrasadas e bloqueadas;
+- ClickUp fica temporariamente apenas como importador legado, sem UI de sync e sem nova credencial;
+- não existe integração bidirecional ClickUp.
 
 ## Decisões de escopo - 2026-07-10
 
@@ -141,12 +133,53 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 
 - **Auth/perfis:** manter apenas `eg_admin` e `client_user` por enquanto; sem perfil "social media".
 - **CRM:** o backend mínimo do funil solicitado no caso HM existe e a tela mínima já está integrada. Ele atende o MVP operacional, não pretende substituir um CRM completo. A direção futura preferida é uma **bridge Kommo** (espelho do funil por cliente, no padrão do ClickUp Bridge), pois a EG revende Kommo.
-- **Brand book:** geração LLM, aprovação e versionamento **adiados** — brand book é uma entrega da HM, não módulo da metodologia EG. A UI trata todo documento estratégico de forma genérica (grid de seções), sem hardcodar o tipo. Entra na discussão da mega-plataforma sobre o quanto hardcodar.
-- **Calendário editorial/social:** a produção de conteúdo **permanece no ClickUp** (Social Media Engine, 1 task = 1 post, esteira IDEAÇÃO→...→PUBLICADO, conforme Manual Social). O Bioma **espelha** via bridge; ele é a evolução do "Client Portal/Link Único" dos manuais. Próxima evolução: mapear os status da Social Media Engine no sync.
+- **Brand book:** ~~geração LLM, aprovação e versionamento adiados~~ — **decisão revertida em 2026-07-24**: o ClickUp foi aposentado (INT-CU-RETIRE-001) e a EG decidiu que o Bioma absorve o all-in-one de gestão de projetos, incluindo o que antes seria "entrega da HM". Módulo nativo versionado implementado (`MOD-MARCA-001`, ver `EXECUCAO-MVP.md` Onda 5).
+- **Calendário editorial/social:** ~~a produção de conteúdo permanece no ClickUp~~ — **decisão revertida em 2026-07-24** pelo mesmo motivo acima. Calendário editorial nativo implementado (`MOD-CALENDARIO-001`, estágios ideação→...→publicado), sem dependência do ClickUp.
 - **Dashboards/BI:** **port completo do BIAds** para a stack do Bioma (ver `bioma/PLANO-PORT-BIADS.md`). Google (Ads/GA4/GSC/GTM) primeiro; **Meta e LinkedIn depois**.
 - **Financeiro:** backend e tela mínima concluídos; integração com a fonte financeira real ainda pendente.
 - **LinkedIn:** orgânico e Ads precisam ser incorporados antes de afirmar aderência integral à proposta HM.
 - Notion: depois.
+
+As decisões sobre ClickUp, calendário e rigidez dos fluxos acima foram superseded pela decisão de 2026-07-22 e pelo ADR 0002 revisado.
+
+## Decisões de produto — 2026-07-22
+
+- **Fonte de verdade operacional:** Bioma, não ClickUp.
+- **ClickUp:** cancelar a dependência paga após snapshot/reconciliação; adapter permanece somente durante a migração controlada.
+- **Contratos/escopo:** primeira classe por projeto, com vigência, versão, quantidade/cadência e aceite separados da conclusão.
+- **Acompanhamento Tech:** fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release. Um dia de depuração sem entrega é publicado como atualização honesta, não como avanço fictício.
+- **GitHub:** projetos Tech podem mapear `owner/repository` e consultar issues, PRs e commits em modo leitura. O Bioma ainda não cria nem altera itens externos; escrita exigirá idempotência, auditoria e confirmação humana (HITL).
+- **Cofre de acessos:** substituir planilhas; segredos cifrados, listagem sem valores, revelação auditada e RBAC.
+- **SleekFlow:** descoberta de parceria; possível adapter omnichannel, sem compromisso de implementação antes do contrato oficial de API/dados.
+- **Kommo/CRM:** manter adapter onde fizer sentido e evoluir CRM nativo pelo uso real.
+- **IA aplicada:** priorizar Estúdio IA, geração de posts, imagens, brand book versionado, metodologia e score visível ao cliente.
+- **Deploy e validação humana:** postergados por decisão do produto; continuar apenas validações locais essenciais durante o desenvolvimento.
+
+## Decisões de escopo - 2026-07-14
+
+Decisões do Eduardo (rodada de brainstorm com Claude; contexto: deploy em produção via integração Git da Vercel + Railway, dev local):
+
+- **Multi-tenant:** v1 fica flat (EG → clientes), mas preparada para hierarquia white-label: adicionar `parent_organization_id` nullable em `organizations` e não hardcodar `eg` em código novo. Hierarquia completa (agência → clientes dela) fica para quando houver demanda real.
+- **Cliente piloto:** dar acesso a 1 cliente real em 2–4 semanas. Isso torna AUTH-001, LGPD-001 e assets finais P0 imediato.
+- **AUTH-001 (convite):** mecânica escolhida = link de convite copiável com token expirável de uso único; EG admin envia por WhatsApp; usuário define a própria senha. Provedor de e-mail pluga depois no mesmo token.
+- **Escopo do piloto:** cliente vê Hub + Conteúdo + Arquivos. Analytics fica oculto até haver sync Google real do próprio cliente — primeiro uso prático do feature-gating.
+- **Feature-gating:** criar agora a noção de módulos habilitados por organização (campo/JSON no banco + checagem no backend). Stripe/billing só depois.
+- **LGPD:** Eduardo decidiu LGPD-001 completo ANTES do acesso do piloto (não o mínimo viável). O checklist precisa começar imediatamente, em paralelo ao código, para não virar gargalo das 2–4 semanas.
+- **Domínio de produção:** `bioma.evergreenmkt.com.br` (web) + `api.bioma.evergreenmkt.com.br` (API), `SESSION_COOKIE_DOMAIN=.bioma.evergreenmkt.com.br`, SameSite=Lax.
+- **Storage:** fonte de verdade dos arquivos = bucket S3-compatible (Railway Buckets agora; código FILE-001 já é agnóstico via env `STORAGE_S3_*`). Cloudinary não entra como storage primário; se o módulo de social media precisar de transformação de imagem, entra camada na frente do bucket (imgproxy self-hosted ou Cloudinary fetch mode) — alinhado à visão mega-plataforma de infra própria.
+- **Tailwind:** removido (tinha sido instalado sem ativação). Design system continua nos tokens CSS de `styles.css`; Tailwind só volta como decisão deliberada de redesign.
+
+## Decisões de arquitetura de produto - 2026-07-18
+
+Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e white-label:
+
+- **Hierarquia canônica:** `Bioma Platform → Tenant/Agência → Workspaces`; workspace pode ser `agency_internal` ou `client`.
+- **EG tem dois papéis:** dona/control plane do produto e agência usuária do próprio sistema. A Operação EG não pertence à Carteira de Clientes.
+- **Mesmos motores, escopos distintos:** CRM, financeiro, métricas e demais módulos devem ser reutilizados por contexto explícito, sem duplicar código nem compartilhar dados.
+- **Navegação em escala:** o Topbar mostra somente o contexto atual e abre navegador pesquisável; a Sidebar não contém uma lista longa de clientes. “Minha carteira”, times, favoritos e visões salvas entram quando houver atribuições reais.
+- **Rotas com profundidade fixa:** módulos operacionais vivem no workspace corrente; a URL não deve materializar toda a árvore plataforma/agência/cliente.
+- **Ponte temporária:** `EverGreen Internal` pode fornecer o `client_id` legado para a organização EG, mas nunca aparece na carteira, nunca é fallback e não pode ser removido antes da migração de Performance/endpoints.
+- **White-label:** `parent_organization_id` é apenas preparo inicial, não implementação concluída de tenancy, equipes ou autorização hierárquica.
 
 ## Próximos passos priorizados
 
@@ -176,18 +209,37 @@ Decisões do Eduardo nesta rodada (contexto: HM é referência de escopo, não p
 
 - [ ] Aplicar logos/assets finais da EG e, quando houver autorização, da HM; os SVGs atuais são placeholders.
 - [x] Criar experiência específica de Briefing além do artefato textual.
+- [x] Criar Estúdio IA por workspace para gerar lotes de posts a partir de briefing, canais e referências metodológicas, sempre com revisão humana.
 - [x] Renderizar documentos estratégicos estruturados de forma genérica, incluindo brand book quando cadastrado.
-- [ ] Implementar geração, aprovação e versionamento específicos de Brand Book, caso retornem ao escopo.
+- [x] Implementar geração, aprovação e versionamento específicos de Brand Book (`MOD-MARCA-001`, 2026-07-24).
 - [x] Criar calendário editorial semanal navegável alimentado por entregas reais.
-- [ ] Criar visão mensal do calendário editorial.
+- [x] Criar calendário editorial nativo com estágios (`MOD-CALENDARIO-001`, 2026-07-24); visão mensal segue como melhoria futura de UI.
 - [x] Criar visão de Analytics honesta, sem fingir dados reais.
 - [x] Conectar Analytics principal aos endpoints reais de Performance.
 - [x] Refinar UI para ficar mais próxima da proposta visual HM sem abandonar branding EG.
 - [ ] Concluir QA visual assinado e ajustes finais de responsividade com assets definitivos.
+- [x] Criar primeira área de Projetos e Contratos no Hub, com contrato, escopo, entregas e indicador de ritmo.
+- [x] Criar primeira área de Acessos com cofre cifrado, depósito pelo cliente, RBAC e auditoria de revelação/cópia.
+- [x] Cobrir o formato mínimo operacional de acessos: plataforma, conta, usuário, e-mail, senha, outro método e link, sem segredos em listagens.
+- [x] Aplicar migrations 0021/0022/0023 e executar `smoke_vault.py`/`smoke_projects.py` em Postgres local.
+- [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
+- [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
+- [x] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa (PROJECT-GH-002, 2026-07-24).
+- [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 
 ### P1.5 - Port do BIAds / Performance
 
 Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
+
+### P1.4 - Operações e FinOps de IA
+
+- [x] Criar catálogo interno versionado para proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
+- [x] Persistir definições, execuções idempotentes, etapas ordenadas, custos e checkpoints HITL.
+- [x] Criar dashboard financeiro EG para assinaturas/API, equivalência mensal em centavos e renovação.
+- [x] Registrar cotas com origem explícita (`api`, `manual`, `configured`, `unavailable`) e nunca estimar saldo a partir de login/subscrição.
+- [x] Registrar automaticamente tokens do Estúdio IA no ledger; custo permanece desconhecido até existir preço confiável.
+- [ ] Conectar adapters de execução aos workflows; qualquer escrita externa continua bloqueada por HITL e idempotência.
+- [ ] Adicionar tabelas de preço versionadas por provedor/modelo e conversão cambial auditada.
 
 - [x] Portar tabelas diárias de Google Ads, GA4 e Search Console para o Postgres do Bioma.
 - [x] Portar snapshots e auditoria de Google Tag Manager.
@@ -206,21 +258,25 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [x] Criar páginas profundas de Performance: Ads, GA4, GSC e GTM.
 - [ ] Portar/conectar LinkedIn orgânico e LinkedIn Ads conforme o escopo de referência HM.
 
-### P2 - ClickUp real
+### P2 - Encerramento controlado do ClickUp
 
-- [ ] Configurar `CLICKUP_API_TOKEN`.
-- [ ] Cadastrar mapeamento real de pasta/listas.
-- [x] Implementar leitura real de tarefas quando `CLICKUP_API_TOKEN` e pasta/listas estiverem configurados.
-- [x] Suportar leitura por `clickup_mappings` quando houver mapeamento de lista.
-- [x] Fazer upsert local de entregáveis por `clickup_task_id`.
-- [x] Registrar erros de sync no histórico retornado pelo portal.
-- [x] Definir política de escrita: sempre HITL no MVP.
-- [ ] Mapear status por lista: Social, Growth e Tech com regras configuráveis por operação.
+- [x] Implementar importador tenant-scoped e idempotente para preservar dados legados.
+- [x] Remover sincronização ClickUp das superfícies operacionais do frontend.
+- [x] Revisar ADR 0002 e fixar o Bioma como fonte de verdade operacional.
+- [ ] Reconciliar listas/tarefas importadas com projetos e itens de escopo nativos.
+- [ ] Gerar snapshot final e relatório de itens sem correspondência.
+- [ ] Remover endpoint/configuração/adapter ClickUp após a reconciliação.
+- [ ] Remover colunas e tabelas legadas em migration posterior, somente após confirmar ausência de consumidores.
 
 ### P3 - Segurança e qualidade
 
 - [x] Smoke test de autorização entre `eg_admin` e `client_user`.
 - [x] Smoke test básico de BOLA/IDOR para outro cliente.
+- [x] Matriz de autorização de tarefas para EG admin, operator, viewer e client_user, incluindo cliente A contra cliente B.
+- [x] Validar assignee, owner e dependencies no mesmo tenant/workspace e rejeitar ciclos.
+- [x] Tornar recorrência idempotente e cobrir CRUD/subtarefas/dependências no `smoke_tasks.py`.
+- [x] Tornar smokes de API/workspace/tarefas independentes do cliente HM no banco compartilhado.
+- [x] Substituir delete físico cotidiano de cliente por archive e purge confirmado com auditoria/limpeza S3.
 - [x] Teste de CORS local.
 - [x] Teste de sessão revogada.
 - [x] Teste de sessão expirada.
@@ -229,13 +285,24 @@ Spec e histórico de decisão em `bioma/PLANO-PORT-BIADS.md`.
 - [ ] Burp/ZAP ou pentest automatizado.
 - [ ] Checklist LGPD antes de qualquer dado real sensível.
 - [x] Dividir o bundle principal do frontend; Clientes, Conteúdo, Integrações e Engenharia agora são lazy-load, reduzindo o chunk inicial para aproximadamente 227 kB antes de gzip (era 243 kB).
-- [ ] Criar convite/provisionamento de usuário cliente sem seed.
-- [ ] Criar recuperação/rotação segura de senha.
+- [x] Criar convite/provisionamento de usuário cliente sem seed (link copiável de uso único; `smoke_invites.py`).
+- [x] Feature-gating de módulos por organização com toggle no AdminDock; analytics/comercial bloqueados por default para cliente.
+- [x] Criar recuperação/rotação segura de senha (link de uso único 2h gerado pelo admin + troca de senha logado revogando sessões; `smoke_password.py`).
 - [x] Implementar rate limit de login em processo único.
-- [ ] Migrar rate limit para Redis/Postgres antes de múltiplas réplicas.
-- [ ] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato.
-- [ ] Criar retry/reaper para jobs que ficarem presos em `running`.
+- [x] Migrar rate limit para Postgres antes de múltiplas réplicas (migration 0026, `login_attempts` com chave `sha256(ip:email)`, purga no `cleanup.py`).
+- [x] Gerar tipos do frontend a partir do OpenAPI para impedir drift de contrato (CONTRACT-001: `export_openapi.py` + `npm run types:api` + trava de compilação em `contract-conformance.ts`; CI falha se `openapi.json`/`api-schema.d.ts` divergirem).
+- [x] Criar retry/reaper para jobs que ficarem presos em `running` (QUEUE-001: migration 0025 com `heartbeat_at`/`attempts`, `reclaim_stalled_jobs` no início de cada ciclo do worker, lease de 900s e 3 tentativas).
 - [ ] Medir conexões e decidir pool Postgres antes de aumentar carga.
+- [x] Separar a Operação EG da Carteira sem remover seus módulos: `/operacao` e cada Hub reutilizam CRM, financeiro e métricas com contexto explícito.
+- [x] Criar navegador de workspaces pesquisável com recentes e atalho global, sem dropdown longo na Sidebar.
+- [x] Aplicar feature gate das rotas filhas ao cliente atual, em vez de unir módulos de todas as organizações do usuário.
+- [x] Especificar em ADR a hierarquia `Platform → Tenant/Agência → Workspaces`, inclusive limites de white-label e billing.
+- [x] Persistir a identidade de workspace, provisionar junto com novos clientes e alimentar o navegador por endpoint autenticado.
+- [x] Criar times, memberships e atribuições de workspace para “Minha carteira” e carteiras por gestor/time.
+- [x] Separar `platform_admin`, `tenant_admin` e papéis operacionais antes de liberar white-label.
+- [x] Migrar endpoints e tabelas de Performance de `client_id` para `workspace_id`, com adapter e dual-read/write durante a transição.
+- [ ] Migrar/remover com segurança o registro técnico legado `EverGreen Internal` somente após eliminar todas as dependências e FKs em cascata.
+- [x] Adicionar favoritos e visões salvas ao navegador depois do modelo de times/atribuições.
 
 ### P4 - Staging
 
@@ -291,7 +358,7 @@ O MVP v0 pode ser considerado funcional localmente quando:
 - EG admin consegue entrar, ver clientes, criar/editar cliente, criar/editar entregáveis e artefatos.
 - Cliente consegue entrar e ver apenas o próprio hub.
 - Aprovações funcionam ponta a ponta.
-- ClickUp dry-run registra sync de forma visível.
+- ClickUp registra import/sync de forma visível sem escrita externa.
 - A UI funciona em desktop e largura reduzida sem quebrar layout.
 - Não há dados fake apresentados como se fossem reais.
 - Há smoke test básico de API e build frontend passando.
@@ -314,21 +381,43 @@ Para aderir ao escopo comercial de referência HM, também faltam:
 
 ## Status de testes
 
-Testes rodados nesta rodada:
+Suíte unitária (nova em 2026-07-23, CONTRACT-001/qualidade): `apps/api/tests/`
+com **58 testes pytest sem banco** cobrindo a política de acesso compartilhada
+(`access.py`), as derivações de Performance (divisão por zero), o mapa de status
+ClickUp, as validações de deploy do `Settings` (cookie cross-site) e a chave do
+rate limit. Rode com `python -m pytest` em `apps/api`. Os `smoke_*.py` continuam
+sendo o teste de integração contra Postgres real; a suíte unitária cobre a borda
+que smoke não alcança de forma barata. A CI ganhou o job `api-unit`.
+
+Validações executadas em 2026-07-23 (blocos de hardening 1 e 2):
+
+- `python -m compileall bioma_api scripts` (API) e `bioma_worker scripts` (worker)
+- `python -m pytest` (58 passaram, sem banco)
+- `python scripts/export_openapi.py --check`
+- `npx tsc -b` e `npm run build` (web) — trava de conformidade de contrato ativa
+- **Migrations 0025/0026 aplicadas e smokes executados contra Postgres local
+  (localhost:5433)**: `migrate.py`, `seed_dev.py`, `smoke_api.py`,
+  `smoke_performance.py`, `smoke_worker.py`, `smoke_queue.py`, `smoke_vault.py`,
+  `smoke_reaper.py` (novo), `smoke_invites.py`, `smoke_workspace_authz.py`,
+  `smoke_tasks.py`, `smoke_password.py` — todos passaram. Os smokes mutáveis
+  rodaram em banco isolado `bioma_smoke` provisionado à parte.
+
+Validações executadas na remediação de 2026-07-21:
 
 - `python -m compileall bioma/apps/api/bioma_api bioma/apps/api/scripts`
+- `python -m compileall bioma/apps/worker/bioma_worker bioma/apps/worker/scripts`
 - `python scripts/migrate.py`
-- `python scripts/seed_dev.py`
 - `python scripts/smoke_api.py`
 - `python scripts/smoke_clickup.py`
-- `python scripts/smoke_performance.py`
-- `python apps/worker/scripts/smoke_worker.py`
-- `python apps/worker/scripts/smoke_queue.py`
-- `docker compose -f infra/docker-compose.yml --profile worker config --quiet`
-- `docker compose -f infra/docker-compose.yml --profile worker build worker`
-- `docker compose -f infra/docker-compose.yml --profile worker run --rm worker`
+- `python scripts/smoke_workspace_authz.py`
+- `python scripts/smoke_workspace_navigation.py`
+- `python scripts/smoke_tasks.py`
 - `npx tsc -b`
 - `npm.cmd run build`
+- `npm.cmd audit --omit=dev` — 0 vulnerabilidades
+- `git diff --check`
+- build web a partir de `git archive HEAD`, reutilizando somente as dependências instaladas
+- `graphify update .`
 
 Os testes atuais são funcionais e smoke tests de desenvolvimento. Eles não substituem auditoria de segurança, pentest, teste de carga ou revisão LGPD.
 
@@ -363,4 +452,22 @@ Formato:
 - 2026-07-11 - Codex - ver git log - Railway API start trocado para `python scripts/start.py` e GitHub Action Vercel passou a fazer build local + `vercel deploy dist` para evitar erro de output `dist` no fluxo prebuilt - compile/smokes API, build web e smokes worker executados - pendente redeploy Railway/Vercel e smoke remoto.
 - 2026-07-11 - Claude Code (Sonnet 5) - CLAIM WEB-PERF-002 - Páginas profundas de Performance (Google Ads, GA4, Search Console, GTM) como abas dentro de Analytics, consumindo os endpoints reais já existentes do backend (`api.ts`: `ga4Acquisition`, `gscQueries`, `gtmSnapshots`), com estados de carregamento/vazio/erro e banner de freshness por provedor quando a fonte não tem sync real - `npx tsc -b`, `npm run build` (chunk principal mantém ~243 kB, `AnalyticsView` isolado em chunk lazy) - pendente QA visual das novas abas e validação com credenciais Google reais.
 - 2026-07-11 - Claude Code (Sonnet 5) - CLAIM WEB-BUNDLE-001 - Lazy-load das views Clientes, Conteúdo, Integrações e Engenharia em `App.tsx` (mesmo padrão `React.lazy`/`Suspense` já usado em Analytics/Comercial), reduzindo o chunk principal de ~243 kB para ~227 kB antes de gzip - `npx tsc -b`, `npm run build` - pendente nenhuma; próxima folga de bundle viria de dividir o chunk pesado do `AnalyticsView` (recharts).
+- 2026-07-17 - Claude Code (Fable 5) - CLAIM AUTH-003 + revisão Gemini - Google como vínculo deslinkável (decisão: social login nunca cria conta nem prende a conta; usuário logado vincula/desvincula em Configurações; "Entrar com Google" só para vínculo existente; migration 0007 `identities`, OIDC code flow + userinfo, state cookie), jobs de limpeza LGPD no boot (sessões 7d, convites/resets 30d), aviso de privacidade público `/privacidade` linkado nas telas de login/convite/reset. Revisão do trabalho do Gemini: mantida a UI (Sidebar/Settings/admin views), corrigidos admin_legacy sem auth + path traversal + corruptor de metadados + pyyaml ausente do requirements, Phaser tirado do bundle inicial (1,77 MB→333 kB via lazy), LoginView honesta (Apple removido, "100% Seguro"→"LGPD", esqueci-senha via WhatsApp) e 4 variáveis CSS usadas sem definição (aliases criados) - compileall, migrate, cleanup, smoke_oauth (novo), smoke_api/invites/password, tsc, build - pendente credenciais Google reais no ambiente (Cloud Console) e rate limit dos endpoints públicos de token.
+- 2026-07-15 - Claude Code (Fable 5) - CLAIM AUTH-002 - Reset de senha por link copiável de uso único (2h, gerado pelo EG admin no AdminDock, página pública `/redefinir/:token`, e-mail mascarado na validação, confirmação revoga todas as sessões antigas e abre sessão nova) + troca de senha logado (modal na topbar, exige senha atual, revoga demais sessões) - migration 0006, compileall, smoke_password (novo), smoke_api, smoke_invites, tsc, build web - pendente aviso de privacidade nas telas públicas e rate limit nos endpoints públicos de token antes de escalar.
+- 2026-07-15 - Claude Code (Fable 5) - CLAIM AUTH-001 + GATE-001 - Convite de usuário cliente por link copiável de uso único (token hasheado, expira em 7 dias, aceite público cria usuário+sessão, página `/convite/:token`, painel no AdminDock) e feature-gating por organização (`enabled_modules` jsonb + `parent_organization_id` na migration 0005, gates de analytics/commercial/files no backend, nav e rotas filtradas no frontend, toggles no AdminDock); fix da regressão do form de edição de cliente que perdeu o pré-preenchimento na migração p/ zustand; release-please com bump automático de `version.ts` via extra-files; proxy Vite revertido p/ 8000; rascunho `LGPD-001.md` criado - compileall, migrate, seed, smokes API/invites/performance/files (MinIO real)/ClickUp, tsc, build web - pendente LGPD-001 assinado, AUTH-002 (reset de senha) e aviso de privacidade na tela de convite.
 - 2026-07-12 - Claude Code (Sonnet 5) - CLAIM FILE-001 - Upload/storage de documentos com visibilidade por cliente: migration `client_files`, router/service/repository `files` seguindo o padrão de `performance`/`client_hub` (EG admin sobe/exclui, `client_user` só lê arquivos `visibility=client`), cliente S3-compatible (`services/storage.py`, boto3, endpoint configurável para funcionar com R2/B2/MinIO/AWS), limite de tamanho configurável (`STORAGE_MAX_UPLOAD_MB`), download via URL assinada com expiração curta, painel `FilesPanel` no front dentro de Conteúdo, perfil `storage` (MinIO) no `docker-compose.yml` para dev local sem depender de credencial de nuvem - compile backend, `scripts/smoke_files.py` (upload/list/autorização/limite de tamanho/download real via URL assinada/exclusão) rodado de ponta a ponta contra MinIO local, smokes API/ClickUp/Performance sem regressão, `npx tsc -b`, `npm run build`, fluxo completo testado manualmente no navegador (upload, download do conteúdo real, exclusão) - pendente credenciais de bucket real (R2/B2/S3) em staging/produção; AUTH-002 (rotação de senha) e AUTH-001 (convite sem seed) seguem TODO.
+- 2026-07-16 - Antigravity - (local) - Refinamento da UI/UX: Sidebar e Topbar extraídos do App.tsx, estética premium glassmorphic aplicada via styles.css (inspirado na HM, mas preservando tokens EG), responsividade mobile da sidebar ajustada (slide-in menu) e LoginView alinhado estruturalmente com as referências visuais - pendente QA visual (manual) assinado e staging.
+- 2026-07-17 - Antigravity - (local) - Ajustes visuais em configuracoes: ocultacao de badge em abas irrelevantes, implementacao de crop em foto de perfil com react-easy-crop, integracao do avatar na sidebar esquerda e refinamento do botao Google connect nas configuracoes - build web validado - pendente staging.
+- 2026-07-18 - Codex - ver git log - Concluída a migração das telas Engenharia, Arquitetura e Escritório de `/api` para o cliente central `/backoffice`, eliminando respostas HTML interpretadas como JSON e adicionando contratos tipados/erro visível - `npx.cmd tsc -b`, `npm.cmd run build` - pendente QA visual humano e decisão de produto sobre separar a operação interna EG da carteira de clientes externos.
+- 2026-07-18 - Codex - ver git log - Separada a Operação EG da Carteira no frontend; CRM, financeiro, métricas, documentos e integrações agora operam somente sob `/clientes/:clientId/...`, com rotas globais fechadas e `EverGreen Internal` oculto do Hub - `npx.cmd tsc -b`, `npm.cmd run build` - pendente migração backend do registro técnico legado e QA visual humano.
+- 2026-07-18 - Codex - ver git log - Corrigida a separação anterior: restaurada a Operação EG como workspace próprio em paralelo aos hubs, criado navegador pesquisável com recentes e documentado o modelo `Platform → Tenant/Agência → Workspaces` - `npx.cmd tsc -b`, `npm.cmd run build` - pendentes migração `client_id`→`workspace_id`, times/atribuições, favoritos e QA visual humano.
+- 2026-07-18 - Codex - ver git log - Entregue a primeira etapa persistente de workspaces: ADR aceito, migration/backfill e provisionamento transacional, `GET /workspaces`, navegador alimentado pelo contexto autorizado, invariantes de tenant/slug e resolvedor ativo compartilhado por Client Hub, Files, Performance e Kommo - migration/seed, `compileall`, smoke API (membership, convite e archive), smoke Performance, smoke da fila, `npx.cmd tsc -b` e `npm.cmd run build` passaram - pendentes adapters dos demais domínios, migração canônica de Performance, RBAC/times e QA visual humano.
+- 2026-07-18 - Codex - ver git log - DATA-WS-001B concluído: rotas canônicas `/workspaces/{id}` com adapter legado, frontend operando por `workspace.id`, Performance backfilled com UUID canônico, `gtm_workspace_id` desambiguado e dual-write protegido por trigger - migrations, `compileall`, smoke API, smoke Performance, smoke da fila e `npx.cmd tsc -b` passaram - ponte `EverGreen Internal` ainda necessária até remover as FKs/client adapters restantes.
+- 2026-07-18 - Codex - ver git log - AUTHZ-WS-001 concluído e TEAM-001 iniciado: papéis de tenant/workspace, times, membros e atribuições de carteira persistidos; resolução central de acesso aplicada ao Client Hub, Files, Performance e Kommo - migration, `compileall`, smoke de matriz RBAC, smoke API e smoke Performance passaram - pendente gestão visual de times e favoritos/visões da carteira.
+- 2026-07-18 - Codex - ver git log - WEB-NAV-002 concluído: favoritos persistentes, filtro “Minha carteira” derivado de assignments e visões salvas por usuário integrados ao navegador premium de workspaces - migration, smoke de navegação e `npx.cmd tsc -b` passaram - pendente QA visual humano em desktop/mobile.
+- 2026-07-18 - Codex - ver git log - AI-CONTENT-001 concluído: Estúdio IA no Hub do Cliente, fila Postgres compartilhada sem starvation, auditoria em `ai_runs`, prévia local honesta e adapter OpenAI Responses API com Structured Outputs - migration, compile API/worker, smoke preview + provider mock e `npx.cmd tsc -b` passaram - geração externa real depende de `OPENAI_API_KEY` no worker e QA humano.
+- 2026-07-18 - Codex - ver git log - Estratégia ClickUp/Kommo consolidada no ADR 0002 como integration-first e INT-CU-002 concluído com classificação Social/Growth/Tech e tradução configurável de status - migration, compile e smoke ClickUp mockado passaram - tokens, listas e conta Kommo reais continuam bloqueados até staging controlado.
+- 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
+- 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
+- 2026-07-23 - Claude Code (Opus 4.8) - ver git log - Hardening blocos 1 e 2: (1) deduplicação de acesso — `_is_platform_admin`/`_accessible_client` removidos de client_hub/files/performance/invites e colapsados em `access.resolve_accessible_client`, fonte única do isolamento multi-tenant; (2) QUEUE-001 reaper — migration 0025 (`heartbeat_at`/`attempts`), `reclaim_stalled_jobs` no início do ciclo do worker, heartbeat entre providers, lease 900s/3 tentativas; (3) rate limit em Postgres — migration 0026 (`login_attempts`, chave `sha256(ip:email)`), registro fora da transação do 401, purga no `cleanup.py`; (4) CONTRACT-001 — `export_openapi.py` gera `openapi.json` versionado, `npm run types:api` gera `api-schema.d.ts`, `contract-conformance.ts` trava drift em compile, CI valida os dois lados; (5) suíte pytest `apps/api/tests/` (58 testes sem banco) + job `api-unit` na CI. Placeholder de contrato removido - compileall API/worker, pytest 58/58, export_openapi --check, tsc -b e build web passaram; drift injetado/revertido para provar a trava - migrations 0025/0026 aplicadas e suíte de smokes (api, performance, worker, queue, vault, reaper, invites, authz, tasks, password) executada contra Postgres local em localhost:5433, com banco isolado `bioma_smoke` para os mutáveis; todos passaram.
+- 2026-07-23 - Codex - ver git log - AI-OPS-001/FINOPS-AI-001: control plane interno com quatro workflows versionados (proposta, onboarding Bioma, LinkedIn e entrega Tech), execução idempotente e checkpoints HITL; dashboard EG de assinaturas, cotas com fonte, consumo por provedor/modelo e ledger automático do Estúdio IA - migration 0029 aplicada apenas em `bioma_aiops_smoke`, smoke completo passou e o banco temporário foi removido; compile API/worker, pytest completo, contrato OpenAPI/tipos, tsc, build web, npm audit (0 vulnerabilidades) e diff-check passaram.

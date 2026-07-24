@@ -1,4 +1,3 @@
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -8,44 +7,17 @@ from bioma_api.config import get_settings
 from bioma_api.db import connect
 from bioma_api.schemas.auth import CurrentUserResponse, LoginRequest, LoginResponse
 from bioma_api.security import hash_session_token, new_session_token, verify_password
+from bioma_api.services import rate_limit
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-_failed_login_attempts: dict[str, list[datetime]] = defaultdict(list)
-
-
-def _rate_limit_key(request: Request, email: str) -> str:
-    host = request.client.host if request.client else "unknown"
-    return f"{host}:{email}"
-
-
-def _assert_login_allowed(request: Request, email: str) -> None:
-    settings = get_settings()
-    now = datetime.now(timezone.utc)
-    window_start = now - timedelta(seconds=settings.login_rate_limit_window_seconds)
-    key = _rate_limit_key(request, email)
-    attempts = [attempt for attempt in _failed_login_attempts[key] if attempt > window_start]
-    _failed_login_attempts[key] = attempts
-    if len(attempts) >= settings.login_rate_limit_attempts:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Muitas tentativas de login. Aguarde e tente novamente.",
-        )
-
-
-def _record_failed_login(request: Request, email: str) -> None:
-    _failed_login_attempts[_rate_limit_key(request, email)].append(datetime.now(timezone.utc))
-
-
-def _clear_failed_login(request: Request, email: str) -> None:
-    _failed_login_attempts.pop(_rate_limit_key(request, email), None)
 
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, request: Request, response: Response) -> LoginResponse:
     settings = get_settings()
     email = payload.email.lower()
-    _assert_login_allowed(request, email)
+    recent_failures = rate_limit.assert_login_allowed(request, email)
 
     with connect() as conn:
         user = conn.execute(
@@ -57,15 +29,21 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
             (email,),
         ).fetchone()
 
-        if not user or not verify_password(payload.password, user["password_hash"]):
-            _record_failed_login(request, email)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="E-mail ou senha inválidos.",
-            )
+        credentials_ok = bool(user) and verify_password(payload.password, user["password_hash"])
 
-        _clear_failed_login(request, email)
+    # Fora do `with`: o bloco acima faz rollback ao propagar a exceção, e o
+    # registro da tentativa precisa sobreviver ao 401 para o limite contar.
+    if not credentials_ok:
+        rate_limit.record_failed_login(request, email)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="E-mail ou senha inválidos.",
+        )
 
+    if recent_failures:
+        rate_limit.clear_failed_login(request, email)
+
+    with connect() as conn:
         token = new_session_token()
         token_hash = hash_session_token(token)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.session_ttl_hours)

@@ -1,0 +1,375 @@
+from collections.abc import Iterable
+from uuid import UUID
+
+
+TASK_COLUMNS = """
+  id, list_id, title, description, status, group_status, priority,
+  assignee_id, owner_id, due_date, recurrence, external_source, external_id,
+  created_at, updated_at
+"""
+
+
+def find_workspace_context(conn, workspace_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select w.id as workspace_id, w.tenant_organization_id, w.subject_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
+        from workspaces w
+        where w.id = %s
+          and w.status = 'active'
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        """,
+        (is_admin, user_id, workspace_id, is_admin, user_id),
+    ).fetchone()
+
+
+def find_list_context(conn, list_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select l.id as list_id, l.workspace_id, w.tenant_organization_id, w.subject_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
+        from eg_task_lists l
+        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        where l.id = %s
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        """,
+        (is_admin, user_id, list_id, is_admin, user_id),
+    ).fetchone()
+
+
+def find_task_context(conn, task_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select t.id as task_id, t.group_status, t.external_source, t.list_id, l.workspace_id,
+          w.tenant_organization_id, w.subject_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
+        from eg_tasks t
+        join eg_task_lists l on l.id = t.list_id
+        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        where t.id = %s
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        """,
+        (is_admin, user_id, task_id, is_admin, user_id),
+    ).fetchone()
+
+
+def find_subtask_context(conn, subtask_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select s.id as subtask_id, s.task_id, t.external_source, l.workspace_id,
+          w.tenant_organization_id, w.subject_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
+        from eg_task_subtasks s
+        join eg_tasks t on t.id = s.task_id
+        join eg_task_lists l on l.id = t.list_id
+        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        where s.id = %s
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        """,
+        (is_admin, user_id, subtask_id, is_admin, user_id),
+    ).fetchone()
+
+
+def list_task_lists(conn, workspace_id: UUID):
+    return conn.execute(
+        """
+        select id, workspace_id, name, type, created_at, updated_at
+        from eg_task_lists
+        where workspace_id = %s
+        order by created_at, id
+        """,
+        (workspace_id,),
+    ).fetchall()
+
+
+def create_task_list(conn, workspace_id: UUID, name: str, list_type: str):
+    return conn.execute(
+        """
+        insert into eg_task_lists (workspace_id, name, type)
+        values (%s, %s, %s)
+        returning id, workspace_id, name, type, created_at, updated_at
+        """,
+        (workspace_id, name, list_type),
+    ).fetchone()
+
+
+def list_tasks(conn, list_id: UUID):
+    rows = conn.execute(
+        f"""
+        select {TASK_COLUMNS}
+        from eg_tasks
+        where list_id = %s
+        order by created_at desc, id
+        """,
+        (list_id,),
+    ).fetchall()
+    return hydrate_tasks(conn, rows)
+
+
+def get_task(conn, task_id: UUID):
+    row = conn.execute(
+        f"select {TASK_COLUMNS} from eg_tasks where id = %s",
+        (task_id,),
+    ).fetchone()
+    if not row:
+        return None
+    return hydrate_tasks(conn, [row])[0]
+
+
+def hydrate_tasks(conn, rows: Iterable):
+    task_rows = [dict(row) for row in rows]
+    if not task_rows:
+        return []
+    task_ids = [row["id"] for row in task_rows]
+    custom_fields: dict[UUID, list[dict]] = {}
+    for row in conn.execute(
+        "select id, task_id, field_name, field_value from eg_task_custom_fields where task_id = any(%s)",
+        (task_ids,),
+    ).fetchall():
+        custom_fields.setdefault(row["task_id"], []).append(dict(row))
+    dependencies: dict[UUID, list[dict]] = {}
+    for row in conn.execute(
+        "select id, task_id, depends_on_task_id, type from eg_task_dependencies where task_id = any(%s)",
+        (task_ids,),
+    ).fetchall():
+        dependencies.setdefault(row["task_id"], []).append(dict(row))
+    subtasks: dict[UUID, list[dict]] = {}
+    for row in conn.execute(
+        """
+        select id, task_id, title, is_completed, created_at, updated_at
+        from eg_task_subtasks where task_id = any(%s)
+        order by created_at, id
+        """,
+        (task_ids,),
+    ).fetchall():
+        subtasks.setdefault(row["task_id"], []).append(dict(row))
+    for task in task_rows:
+        task_id = task["id"]
+        task["custom_fields"] = custom_fields.get(task_id, [])
+        task["dependencies"] = dependencies.get(task_id, [])
+        task["subtasks"] = subtasks.get(task_id, [])
+    return task_rows
+
+
+def user_can_belong_to_workspace(conn, workspace_id: UUID, user_id: UUID) -> bool:
+    row = conn.execute(
+        """
+        select exists (
+          select 1
+          from workspaces w
+          join users u on u.id = %s and u.is_active = true
+          where w.id = %s
+            and w.status = 'active'
+            and (
+              workspace_access_role(w.id, u.id) is not null
+              or exists (
+                select 1 from memberships m
+                join organizations o on o.id = m.organization_id
+                where m.user_id = u.id
+                  and m.role = 'eg_admin'
+                  and o.id = w.tenant_organization_id
+              )
+            )
+        ) as allowed
+        """,
+        (user_id, workspace_id),
+    ).fetchone()
+    return bool(row and row["allowed"])
+
+
+def task_ids_in_workspace(conn, workspace_id: UUID, task_ids: list[UUID]) -> set[UUID]:
+    if not task_ids:
+        return set()
+    rows = conn.execute(
+        """
+        select t.id
+        from eg_tasks t
+        join eg_task_lists l on l.id = t.list_id
+        where l.workspace_id = %s and t.id = any(%s)
+        """,
+        (workspace_id, task_ids),
+    ).fetchall()
+    return {row["id"] for row in rows}
+
+
+def dependency_would_cycle(conn, task_id: UUID, depends_on_task_id: UUID) -> bool:
+    row = conn.execute(
+        """
+        with recursive dependency_chain(id) as (
+          select %s::uuid
+          union
+          select d.depends_on_task_id
+          from eg_task_dependencies d
+          join dependency_chain chain on chain.id = d.task_id
+        )
+        select exists(select 1 from dependency_chain where id = %s) as cycle
+        """,
+        (depends_on_task_id, task_id),
+    ).fetchone()
+    return bool(row and row["cycle"])
+
+
+def create_task(conn, list_id: UUID, values: dict):
+    return conn.execute(
+        f"""
+        insert into eg_tasks (
+          list_id, title, description, status, group_status, priority,
+          assignee_id, owner_id, due_date, recurrence
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        returning {TASK_COLUMNS}
+        """,
+        (
+            list_id,
+            values["title"],
+            values.get("description"),
+            values["status"],
+            values["group_status"],
+            values.get("priority"),
+            values.get("assignee_id"),
+            values.get("owner_id"),
+            values.get("due_date"),
+            values.get("recurrence") or "none",
+        ),
+    ).fetchone()
+
+
+def update_task(conn, task_id: UUID, updates: dict):
+    allowed = {
+        "title", "description", "status", "group_status", "priority",
+        "assignee_id", "owner_id", "due_date", "recurrence",
+    }
+    selected = [(field, value) for field, value in updates.items() if field in allowed]
+    if not selected:
+        return conn.execute(f"select {TASK_COLUMNS} from eg_tasks where id = %s", (task_id,)).fetchone()
+    assignments = ", ".join(f"{field} = %s" for field, _ in selected)
+    params = [value for _, value in selected] + [task_id]
+    return conn.execute(
+        f"""
+        update eg_tasks set {assignments}, updated_at = now()
+        where id = %s
+        returning {TASK_COLUMNS}
+        """,
+        params,
+    ).fetchone()
+
+
+def replace_custom_fields(conn, task_id: UUID, fields: list[dict]) -> None:
+    conn.execute("delete from eg_task_custom_fields where task_id = %s", (task_id,))
+    for field in fields:
+        conn.execute(
+            "insert into eg_task_custom_fields (task_id, field_name, field_value) values (%s, %s, %s)",
+            (task_id, field["field_name"], field["field_value"]),
+        )
+
+
+def replace_dependencies(conn, task_id: UUID, dependencies: list[dict]) -> None:
+    conn.execute("delete from eg_task_dependencies where task_id = %s", (task_id,))
+    for dependency in dependencies:
+        conn.execute(
+            """
+            insert into eg_task_dependencies (task_id, depends_on_task_id, type)
+            values (%s, %s, %s)
+            """,
+            (task_id, dependency["depends_on_task_id"], dependency.get("type") or "waiting_on"),
+        )
+
+
+def replace_subtasks(conn, task_id: UUID, subtasks: list[dict]) -> None:
+    existing = {
+        row["id"]
+        for row in conn.execute("select id from eg_task_subtasks where task_id = %s", (task_id,)).fetchall()
+    }
+    supplied = {subtask["id"] for subtask in subtasks if subtask.get("id") is not None}
+    if not supplied.issubset(existing):
+        raise ValueError("invalid_subtask")
+    if supplied:
+        conn.execute(
+            "delete from eg_task_subtasks where task_id = %s and not (id = any(%s))",
+            (task_id, list(supplied)),
+        )
+    else:
+        conn.execute("delete from eg_task_subtasks where task_id = %s", (task_id,))
+    for subtask in subtasks:
+        if subtask.get("id") is not None:
+            conn.execute(
+                """
+                update eg_task_subtasks
+                set title = %s, is_completed = %s, updated_at = now()
+                where id = %s and task_id = %s
+                """,
+                (subtask["title"], subtask.get("is_completed", False), subtask["id"], task_id),
+            )
+        else:
+            conn.execute(
+                "insert into eg_task_subtasks (task_id, title, is_completed) values (%s, %s, %s)",
+                (task_id, subtask["title"], subtask.get("is_completed", False)),
+            )
+
+
+def create_recurring_successor(conn, task: dict):
+    return conn.execute(
+        """
+        insert into eg_tasks (
+          list_id, title, description, status, group_status, priority,
+          assignee_id, owner_id, due_date, recurrence, recurrence_source_task_id
+        ) values (%s, %s, %s, 'pending', 'NOT_STARTED', %s, %s, %s, %s, %s, %s)
+        on conflict (recurrence_source_task_id) where recurrence_source_task_id is not null do nothing
+        returning id
+        """,
+        (
+            task["list_id"], task["title"], task.get("description"), task.get("priority"),
+            task.get("assignee_id"), task.get("owner_id"), task.get("next_due_date"),
+            task["recurrence"], task["id"],
+        ),
+    ).fetchone()
+
+
+def copy_recurring_children(conn, source_task_id: UUID, target_task_id: UUID) -> None:
+    conn.execute(
+        """
+        insert into eg_task_custom_fields (task_id, field_name, field_value)
+        select %s, field_name, field_value from eg_task_custom_fields where task_id = %s
+        """,
+        (target_task_id, source_task_id),
+    )
+    conn.execute(
+        """
+        insert into eg_task_subtasks (task_id, title, is_completed)
+        select %s, title, false from eg_task_subtasks where task_id = %s
+        """,
+        (target_task_id, source_task_id),
+    )
+
+
+def delete_task(conn, task_id: UUID) -> bool:
+    return conn.execute("delete from eg_tasks where id = %s returning id", (task_id,)).fetchone() is not None
+
+
+def add_subtask(conn, task_id: UUID, title: str):
+    return conn.execute(
+        """
+        insert into eg_task_subtasks (task_id, title, is_completed)
+        values (%s, %s, false)
+        returning id, task_id, title, is_completed, created_at, updated_at
+        """,
+        (task_id, title),
+    ).fetchone()
+
+
+def toggle_subtask(conn, subtask_id: UUID):
+    return conn.execute(
+        """
+        update eg_task_subtasks
+        set is_completed = not is_completed, updated_at = now()
+        where id = %s
+        returning id, task_id, title, is_completed, created_at, updated_at
+        """,
+        (subtask_id,),
+    ).fetchone()
+
+
+def delete_subtask(conn, subtask_id: UUID) -> bool:
+    return conn.execute(
+        "delete from eg_task_subtasks where id = %s returning id",
+        (subtask_id,),
+    ).fetchone() is not None

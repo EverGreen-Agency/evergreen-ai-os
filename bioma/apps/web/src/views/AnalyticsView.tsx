@@ -2,9 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BarChart3,
+  Bot,
+  Briefcase,
+  Globe,
   LineChart,
   RefreshCw,
   Search,
+  Share2,
   Sparkles,
   Tags,
   Target,
@@ -15,13 +19,19 @@ import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
 import {
   api,
   type AdsCampaignSummary,
-  type ClientSummary,
   type Ga4AcquisitionSummary,
   type GscQuerySummary,
   type GtmSnapshotSummary,
   type PerformanceOverview,
   type PerformanceProvider,
 } from "../lib/api";
+import {
+  useClients,
+  useKommoAnalytics,
+  useLinkedInAdsDaily,
+  useMetaAdsDaily,
+  usePerformanceAiSummary,
+} from "../hooks/useBiomaApi";
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("pt-BR").format(Math.round(value));
@@ -29,6 +39,10 @@ function formatNumber(value: number) {
 
 function formatMoneyMicros(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value / 1_000_000);
+}
+
+function formatMoneyCents(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value / 100);
 }
 
 function formatPercent(value: number) {
@@ -41,14 +55,21 @@ function providerLabel(provider: string) {
     ga4: "GA4",
     search_console: "Search Console",
     gtm: "GTM",
+    kommo: "Kommo CRM",
+    meta_ads: "Meta Ads",
+    linkedin_ads: "LinkedIn Ads",
   }[provider] ?? provider;
 }
 
-type PerformanceTab = "overview" | "google_ads" | "ga4" | "search_console" | "gtm";
+type PerformanceTab = "overview" | "ai_summary" | "kommo" | "google_ads" | "meta_ads" | "linkedin_ads" | "ga4" | "search_console" | "gtm";
 
 const performanceTabs: Array<{ id: PerformanceTab; label: string; icon: typeof BarChart3 }> = [
   { id: "overview", label: "Visão geral", icon: LineChart },
+  { id: "ai_summary", label: "IA Insight Multicanal", icon: Bot },
+  { id: "kommo", label: "Kommo CRM", icon: Briefcase },
   { id: "google_ads", label: "Google Ads", icon: BarChart3 },
+  { id: "meta_ads", label: "Meta Ads", icon: Share2 },
+  { id: "linkedin_ads", label: "LinkedIn Ads", icon: Globe },
   { id: "ga4", label: "GA4", icon: TrendingUp },
   { id: "search_console", label: "Search Console", icon: Search },
   { id: "gtm", label: "GTM", icon: Tags },
@@ -62,9 +83,130 @@ function FreshnessBanner({ freshness }: { freshness: FreshnessEntry | null }) {
     <div className="demo-banner" role="status">
       <AlertTriangle size={18} />
       <span>
-        Ainda sem sincronização real desta fonte para este cliente. Os números exibidos podem vir do seed de
-        demonstração até o primeiro sync com credenciais reais.
+        Ainda sem sincronização real desta fonte para este cliente. Os números exibidos vêm da simulação
+        do Bioma até a conexão no painel de Integrações.
       </span>
+    </div>
+  );
+}
+
+function AiSummaryTab({ clientId }: { clientId: string }) {
+  const { data: summary, isLoading, error } = usePerformanceAiSummary(clientId);
+
+  if (isLoading) return <EmptyState compact text="Sintetizando inteligência de mídia paga..." />;
+  if (error) return <div className="notice error">{error.message}</div>;
+  if (!summary) return <EmptyState compact text="Nenhuma análise gerada ainda." />;
+
+  return (
+    <div className="performance-tab-panel">
+      <article className="surface" style={{ background: "linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.08) 100%)" }}>
+        <SectionHeader eyebrow="Visão Estratégica EG" title="Resumo Consolidado de IA" icon={Bot} />
+        <p style={{ fontSize: "15px", lineHeight: "1.6", color: "var(--text-main)", margin: "16px 0" }}>
+          {summary.summary_text}
+        </p>
+
+        <div className="metrics analytics-metrics" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+          <article className="metric-card analytics-card">
+            <span>Investimento Multicanal</span>
+            <strong>{formatMoneyCents(summary.total_spend_cents)}</strong>
+            <small>Meta Ads + LinkedIn Ads + Google</small>
+          </article>
+          <article className="metric-card analytics-card">
+            <span>Total de Leads</span>
+            <strong>{formatNumber(summary.total_leads)}</strong>
+            <small>Oportunidades geradas</small>
+          </article>
+          <article className="metric-card analytics-card">
+            <span>CPA Geral Consolidado</span>
+            <strong>{formatMoneyCents(summary.overall_cpa_cents)}</strong>
+            <small>Custo por aquisição</small>
+          </article>
+        </div>
+
+        <h4 style={{ marginTop: "24px", marginBottom: "12px" }}>Insights de Impacto Comercial</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {summary.insights.map((insight, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: "var(--bg-card)",
+                borderLeft: `4px solid ${insight.impact_level === "high" ? "var(--brand-accent)" : "var(--accent)"}`,
+                padding: "16px",
+                borderRadius: "6px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <strong style={{ fontSize: "14px" }}>{insight.title}</strong>
+                <span className="demo-badge">{insight.channel.replace("_", " ").toUpperCase()}</span>
+              </div>
+              <p style={{ margin: "4px 0", color: "var(--text-muted)", fontSize: "13px" }}>{insight.finding}</p>
+              <p style={{ margin: "6px 0 0 0", color: "var(--brand-accent)", fontWeight: 500, fontSize: "13px" }}>
+                💡 <strong>Ação Recomendada:</strong> {insight.action_recommendation}
+              </p>
+            </div>
+          ))}
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function MetaAdsTab({ clientId }: { clientId: string }) {
+  const { data: metrics, isLoading, error } = useMetaAdsDaily(clientId);
+
+  if (isLoading) return <EmptyState compact text="Carregando métricas de Meta Ads..." />;
+  if (error) return <div className="notice error">{error.message}</div>;
+
+  return (
+    <div className="performance-tab-panel">
+      <article className="surface">
+        <SectionHeader eyebrow="Meta Ads (Instagram / Facebook)" title="Desempenho Diário" icon={Share2} />
+        {!metrics || metrics.length === 0 ? (
+          <EmptyState compact text="Nenhum dado de Meta Ads encontrado para este workspace." />
+        ) : (
+          <div className="table-list">
+            {metrics.map((row) => (
+              <div className="table-row" key={row.id}>
+                <strong>{row.campaign_name}</strong>
+                <span>{row.date} · {formatNumber(row.impressions)} imp.</span>
+                <span>{formatNumber(row.clicks)} cliques (CTR {row.ctr}%)</span>
+                <span>{formatMoneyCents(row.spend_cents)} investidos</span>
+                <span>{row.leads} leads · CPA R$ {(row.cpa_cents / 100).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
+function LinkedInAdsTab({ clientId }: { clientId: string }) {
+  const { data: metrics, isLoading, error } = useLinkedInAdsDaily(clientId);
+
+  if (isLoading) return <EmptyState compact text="Carregando métricas de LinkedIn Ads..." />;
+  if (error) return <div className="notice error">{error.message}</div>;
+
+  return (
+    <div className="performance-tab-panel">
+      <article className="surface">
+        <SectionHeader eyebrow="LinkedIn Ads (B2B Lead Gen)" title="Desempenho Diário" icon={Globe} />
+        {!metrics || metrics.length === 0 ? (
+          <EmptyState compact text="Nenhum dado de LinkedIn Ads encontrado para este workspace." />
+        ) : (
+          <div className="table-list">
+            {metrics.map((row) => (
+              <div className="table-row" key={row.id}>
+                <strong>{row.campaign_name}</strong>
+                <span>{row.date} · {formatNumber(row.impressions)} imp.</span>
+                <span>{formatNumber(row.clicks)} cliques (CTR {row.ctr}%)</span>
+                <span>{formatMoneyCents(row.spend_cents)} investidos</span>
+                <span>{row.leads} leads qualificados · CPA R$ {(row.cpa_cents / 100).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </article>
     </div>
   );
 }
@@ -237,7 +379,7 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
               <div className="gtm-snapshot" key={snapshot.id}>
                 <div className="table-row">
                   <strong>{snapshot.account_id}/{snapshot.container_id}</strong>
-                  <span>workspace {snapshot.workspace_id ?? "live"}</span>
+                  <span>GTM workspace {snapshot.gtm_workspace_id ?? "live"}</span>
                   <span>{snapshot.tags_count} tags</span>
                   <span>{snapshot.triggers_count} triggers · {snapshot.variables_count} variáveis</span>
                   <span>{new Date(snapshot.collected_at).toLocaleString("pt-BR")}</span>
@@ -266,13 +408,87 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
   );
 }
 
-export function AnalyticsView({
-  selectedClientId,
-  selectedClient,
-}: {
-  selectedClientId: string | null;
-  selectedClient: ClientSummary | null;
-}) {
+function KommoTab({ organizationId }: { organizationId: string }) {
+  const { data: analytics, isLoading, error } = useKommoAnalytics(organizationId);
+
+  return (
+    <div className="performance-tab-panel">
+      {error && <div className="notice error">{error.message || "Não foi possível carregar os dados do Kommo."}</div>}
+      
+      <article className="surface">
+        <SectionHeader eyebrow="Kommo CRM" title="Métricas de Pipeline" icon={Briefcase} />
+        
+        {isLoading ? (
+          <EmptyState compact text="Carregando dados do Kommo..." />
+        ) : !analytics || analytics.pipelines.length === 0 ? (
+          <EmptyState compact text="Nenhum dado do Kommo sincronizado para esta organização." />
+        ) : (
+          <div className="analytics-grid" style={{ marginTop: 24, gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+            {analytics.pipelines.map((pipeline) => (
+              <article key={pipeline.pipeline_id} className="surface" style={{ padding: '20px', background: 'var(--bg-panel)', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h4 style={{ margin: 0, fontSize: 16 }}>{pipeline.pipeline_name}</h4>
+                  <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+                    {new Date(pipeline.snapshot_date).toLocaleDateString("pt-BR")}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Total de Leads</div>
+                    <div style={{ fontSize: 20, fontWeight: 600 }}>{formatNumber(pipeline.total_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Valor Total</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-main)' }}>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pipeline.total_value)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Ganhos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--brand-accent)' }}>{formatNumber(pipeline.won_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Valor Ganho</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--brand-accent)' }}>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pipeline.won_value)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Perdidos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--danger-soft)' }}>{formatNumber(pipeline.lost_leads)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Leads Ativos</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--accent)' }}>{formatNumber(pipeline.active_leads)}</div>
+                  </div>
+                </div>
+                
+                <div style={{ 
+                  height: 6, 
+                  background: 'var(--bg-element)', 
+                  borderRadius: 3, 
+                  display: 'flex', 
+                  overflow: 'hidden' 
+                }}>
+                  {pipeline.total_leads > 0 && (
+                    <>
+                      <div style={{ width: `${(pipeline.won_leads / pipeline.total_leads) * 100}%`, background: 'var(--brand-accent)' }} title="Ganhos" />
+                      <div style={{ width: `${(pipeline.active_leads / pipeline.total_leads) * 100}%`, background: 'var(--accent)' }} title="Ativos" />
+                      <div style={{ width: `${(pipeline.lost_leads / pipeline.total_leads) * 100}%`, background: 'var(--danger-soft)' }} title="Perdidos" />
+                    </>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
+export function AnalyticsView({ clientId, workspaceName }: { clientId: string; workspaceName?: string }) {
+  const { data: clientsData } = useClients();
+  const clients = clientsData ?? [];
+  const selectedClient = clients.find((client) => client.id === clientId) ?? null;
+  const effectiveClientId = selectedClient?.id ?? "";
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -281,10 +497,10 @@ export function AnalyticsView({
 
   useEffect(() => {
     setTab("overview");
-  }, [selectedClientId]);
+  }, [effectiveClientId]);
 
   useEffect(() => {
-    if (!selectedClientId) {
+    if (!effectiveClientId) {
       setOverview(null);
       setCampaigns([]);
       return;
@@ -292,14 +508,14 @@ export function AnalyticsView({
 
     setLoading(true);
     setError("");
-    Promise.all([api.performanceOverview(selectedClientId), api.adsCampaigns(selectedClientId)])
+    Promise.all([api.performanceOverview(effectiveClientId), api.adsCampaigns(effectiveClientId)])
       .then(([nextOverview, nextCampaigns]) => {
         setOverview(nextOverview);
         setCampaigns(nextCampaigns);
       })
       .catch((err: Error) => setError(err.message || "Não foi possível carregar Performance."))
       .finally(() => setLoading(false));
-  }, [selectedClientId]);
+  }, [effectiveClientId]);
 
   const trend = useMemo<TrendPoint[]>(
     () => overview?.daily.map((point) => ({ label: point.date.slice(5), value: point.impressions })) ?? [],
@@ -310,10 +526,6 @@ export function AnalyticsView({
 
   function freshnessOf(provider: PerformanceProvider): FreshnessEntry | null {
     return overview?.freshness.find((source) => source.provider === provider) ?? null;
-  }
-
-  if (!selectedClientId || !selectedClient) {
-    return <EmptyState text="Selecione um cliente para ver Analytics." />;
   }
 
   if (loading) {
@@ -328,7 +540,7 @@ export function AnalyticsView({
 
       <div className="analytics-header">
         <div>
-          <h2>Performance de {selectedClient.name}</h2>
+          <h2>Performance de {workspaceName ?? selectedClient?.name ?? "cliente"}</h2>
           <p>
             {overview
               ? `${overview.period_start} até ${overview.period_end}`
@@ -369,7 +581,7 @@ export function AnalyticsView({
               <AlertTriangle size={18} />
               <span>
                 Performance está conectada ao backend do Bioma, mas ainda sem credenciais reais validadas. Os números
-                podem vir do seed de demonstração até o primeiro sync Google/ClickUp controlado.
+                podem vir do seed de demonstração até o primeiro sync Google/Meta/LinkedIn controlado.
               </span>
             </div>
           )}
@@ -447,10 +659,14 @@ export function AnalyticsView({
         </>
       )}
 
-      {tab === "google_ads" && <GoogleAdsTab clientId={selectedClientId} freshness={freshnessOf("google_ads")} />}
-      {tab === "ga4" && <Ga4Tab clientId={selectedClientId} freshness={freshnessOf("ga4")} />}
-      {tab === "search_console" && <GscTab clientId={selectedClientId} freshness={freshnessOf("search_console")} />}
-      {tab === "gtm" && <GtmTab clientId={selectedClientId} freshness={freshnessOf("gtm")} />}
+      {tab === "ai_summary" && <AiSummaryTab clientId={effectiveClientId} />}
+      {tab === "google_ads" && <GoogleAdsTab clientId={effectiveClientId} freshness={freshnessOf("google_ads")} />}
+      {tab === "meta_ads" && <MetaAdsTab clientId={effectiveClientId} />}
+      {tab === "linkedin_ads" && <LinkedInAdsTab clientId={effectiveClientId} />}
+      {tab === "ga4" && <Ga4Tab clientId={effectiveClientId} freshness={freshnessOf("ga4")} />}
+      {tab === "search_console" && <GscTab clientId={effectiveClientId} freshness={freshnessOf("search_console")} />}
+      {tab === "gtm" && <GtmTab clientId={effectiveClientId} freshness={freshnessOf("gtm")} />}
+      {tab === "kommo" && selectedClient?.organization_id && <KommoTab organizationId={selectedClient.organization_id} />}
     </section>
   );
 }

@@ -4,8 +4,8 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
+from bioma_api.access import resolve_accessible_client
 from bioma_api.db import connect
-from bioma_api.domain.models import Role
 from bioma_api.repositories import performance as performance_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.performance import (
@@ -28,8 +28,8 @@ from bioma_api.schemas.performance import (
 
 def list_connections(client_id: UUID, user: CurrentUserResponse) -> list[PerformanceConnectionSummary]:
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        rows = performance_repo.list_connections(conn, client_id)
+        client = _accessible_client(conn, client_id, user)
+        rows = performance_repo.list_connections(conn, client["id"])
     return [PerformanceConnectionSummary(**row) for row in rows]
 
 
@@ -38,14 +38,13 @@ def create_connection(
     payload: PerformanceConnectionCreateRequest,
     user: CurrentUserResponse,
 ) -> list[PerformanceConnectionSummary]:
-    _require_platform_admin(user)
     connection_data = payload.model_dump()
     if not connection_data["external_account_id"].strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ID externo é obrigatório.")
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
-        performance_repo.create_connection(conn, client_id, client["organization_id"], connection_data)
+        client = _accessible_client(conn, client_id, user, "manage_config")
+        performance_repo.create_connection(conn, client["id"], client["organization_id"], connection_data)
 
     return list_connections(client_id, user)
 
@@ -56,14 +55,13 @@ def update_connection(
     payload: PerformanceConnectionUpdateRequest,
     user: CurrentUserResponse,
 ) -> list[PerformanceConnectionSummary]:
-    _require_platform_admin(user)
     updates = payload.model_dump(exclude_unset=True)
     if "external_account_id" in updates and not updates["external_account_id"].strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ID externo é obrigatório.")
 
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        if not performance_repo.update_connection(conn, client_id, connection_id, updates):
+        client = _accessible_client(conn, client_id, user, "manage_config")
+        if not performance_repo.update_connection(conn, client["id"], connection_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conexão de performance não encontrada.")
 
     return list_connections(client_id, user)
@@ -77,14 +75,16 @@ def get_overview(
 ) -> PerformanceOverviewResponse:
     period_start, period_end = _period_or_default(date_from, date_to)
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        ads_row = performance_repo.get_ads_account_summary(conn, client_id, period_start, period_end)
-        daily_rows = performance_repo.list_ads_daily(conn, client_id, period_start, period_end)
-        freshness = performance_repo.list_freshness(conn, client_id)
-        insights = performance_repo.list_insights(conn, client_id, period_start, period_end)
+        client = _accessible_client(conn, client_id, user)
+        resolved_client_id = client["id"]
+        ads_row = performance_repo.get_ads_account_summary(conn, resolved_client_id, period_start, period_end)
+        daily_rows = performance_repo.list_ads_daily(conn, resolved_client_id, period_start, period_end)
+        freshness = performance_repo.list_freshness(conn, resolved_client_id)
+        insights = performance_repo.list_insights(conn, resolved_client_id, period_start, period_end)
 
     return PerformanceOverviewResponse(
-        client_id=client_id,
+        workspace_id=client["workspace_id"],
+        client_id=resolved_client_id,
         period_start=period_start,
         period_end=period_end,
         freshness=[SourceFreshnessSummary(**row) for row in freshness],
@@ -104,8 +104,8 @@ def list_ads_campaigns(
     period_start, period_end = _period_or_default(date_from, date_to)
     bounded_limit = min(max(limit, 1), 200)
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        rows = performance_repo.list_ads_campaigns(conn, client_id, period_start, period_end, bounded_limit)
+        client = _accessible_client(conn, client_id, user)
+        rows = performance_repo.list_ads_campaigns(conn, client["id"], period_start, period_end, bounded_limit)
     return [AdsCampaignSummary(**_derive_ads_metrics(row)) for row in rows]
 
 
@@ -119,8 +119,8 @@ def list_ga4_acquisition(
     period_start, period_end = _period_or_default(date_from, date_to)
     bounded_limit = min(max(limit, 1), 200)
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        rows = performance_repo.list_ga4_acquisition(conn, client_id, period_start, period_end, bounded_limit)
+        client = _accessible_client(conn, client_id, user)
+        rows = performance_repo.list_ga4_acquisition(conn, client["id"], period_start, period_end, bounded_limit)
     return [Ga4AcquisitionSummary(**row) for row in rows]
 
 
@@ -134,8 +134,8 @@ def list_gsc_queries(
     period_start, period_end = _period_or_default(date_from, date_to)
     bounded_limit = min(max(limit, 1), 200)
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        rows = performance_repo.list_gsc_queries(conn, client_id, period_start, period_end, bounded_limit)
+        client = _accessible_client(conn, client_id, user)
+        rows = performance_repo.list_gsc_queries(conn, client["id"], period_start, period_end, bounded_limit)
     return [GscQuerySummary(**row) for row in rows]
 
 
@@ -146,9 +146,10 @@ def list_gtm_snapshots(
 ) -> list[GtmSnapshotSummary]:
     bounded_limit = min(max(limit, 1), 50)
     with connect() as conn:
-        _accessible_client(conn, client_id, user)
-        snapshots = performance_repo.list_gtm_snapshots(conn, client_id, bounded_limit)
-        findings = performance_repo.list_tracking_findings(conn, client_id, [row["id"] for row in snapshots])
+        client = _accessible_client(conn, client_id, user)
+        resolved_client_id = client["id"]
+        snapshots = performance_repo.list_gtm_snapshots(conn, resolved_client_id, bounded_limit)
+        findings = performance_repo.list_tracking_findings(conn, resolved_client_id, [row["id"] for row in snapshots])
 
     findings_by_snapshot: dict[UUID, list[TrackingFindingSummary]] = {}
     for row in findings:
@@ -169,11 +170,11 @@ def request_sync(
     payload: PerformanceSyncRequest,
     user: CurrentUserResponse,
 ) -> PerformanceSyncRunSummary:
-    _require_platform_admin(user)
     period_start, period_end = _period_or_default(payload.date_from, payload.date_to)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
-        active_connections = performance_repo.count_active_connections(conn, client_id, payload.provider)
+        client = _accessible_client(conn, client_id, user, "manage_config")
+        resolved_client_id = client["id"]
+        active_connections = performance_repo.count_active_connections(conn, resolved_client_id, payload.provider)
         if active_connections == 0:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -192,7 +193,7 @@ def request_sync(
         row = performance_repo.record_sync_request(
             conn,
             client["organization_id"],
-            client_id,
+            resolved_client_id,
             payload.provider,
             summary,
             period_start,
@@ -251,17 +252,6 @@ def _as_float(value) -> float:
     return float(value or 0)
 
 
-def _is_platform_admin(user: CurrentUserResponse) -> bool:
-    return any(org.slug == "eg" and org.role == Role.eg_admin for org in user.organizations)
-
-
-def _require_platform_admin(user: CurrentUserResponse) -> None:
-    if not _is_platform_admin(user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
-
-
-def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
-    client = performance_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
-    if not client:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
-    return client
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, capability: str | None = None):
+    # Todo o módulo de Performance fica atrás do gate "analytics" para client_user.
+    return resolve_accessible_client(conn, client_id, user, module="analytics", capability=capability)

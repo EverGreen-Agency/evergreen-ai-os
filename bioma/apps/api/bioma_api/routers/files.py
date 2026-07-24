@@ -9,9 +9,11 @@ from bioma_api.services import files as files_service
 
 
 router = APIRouter(prefix="/clients/{client_id}/files", tags=["files"])
+workspace_router = APIRouter(prefix="/workspaces/{client_id}/files", tags=["workspace-files"])
 
 
 @router.get("", response_model=list[ClientFileSummary])
+@workspace_router.get("", response_model=list[ClientFileSummary])
 def list_files(
     client_id: UUID,
     user: CurrentUserResponse = Depends(current_user_from_request),
@@ -20,6 +22,7 @@ def list_files(
 
 
 @router.post("", response_model=list[ClientFileSummary], status_code=status.HTTP_201_CREATED)
+@workspace_router.post("", response_model=list[ClientFileSummary], status_code=status.HTTP_201_CREATED)
 def upload_file(
     client_id: UUID,
     file: UploadFile = File(...),
@@ -30,6 +33,7 @@ def upload_file(
 
 
 @router.get("/{file_id}/download", response_model=ClientFileDownloadResponse)
+@workspace_router.get("/{file_id}/download", response_model=ClientFileDownloadResponse)
 def download_file(
     client_id: UUID,
     file_id: UUID,
@@ -39,6 +43,7 @@ def download_file(
 
 
 @router.delete("/{file_id}", response_model=list[ClientFileSummary])
+@workspace_router.delete("/{file_id}", response_model=list[ClientFileSummary])
 def delete_file(
     client_id: UUID,
     file_id: UUID,

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import json
 
 from bioma_worker.db import connect
-from bioma_worker.orchestrator import run_next_sync
+from bioma_worker.orchestrator import reclaim_stalled_jobs, run_next_job
 from bioma_worker.storage import enqueue_scheduled_syncs
 
 
@@ -12,7 +12,19 @@ def main() -> None:
     parser.add_argument("--drain", action="store_true", help="Processa a fila até ficar vazia")
     parser.add_argument("--enqueue-all", action="store_true", help="Enfileira clientes ativos antes de processar")
     parser.add_argument("--days", type=int, default=3, help="Janela incremental para --enqueue-all")
+    parser.add_argument(
+        "--skip-reaper",
+        action="store_true",
+        help="Não recupera jobs presos em running antes de processar (diagnóstico)",
+    )
     args = parser.parse_args()
+
+    # Antes de enfileirar: um sync preso em `running` bloqueia o
+    # reenfileiramento daquele cliente em `enqueue_scheduled_syncs`.
+    if not args.skip_reaper:
+        reclaimed = reclaim_stalled_jobs()
+        if any(reclaimed.values()):
+            print(json.dumps({"reaper": reclaimed}))
 
     if args.enqueue_all:
         date_to = date.today()
@@ -23,7 +35,7 @@ def main() -> None:
 
     processed = 0
     while True:
-        result = run_next_sync()
+        result = run_next_job()
         if result is None:
             if processed == 0:
                 print(json.dumps({"status": "idle"}))

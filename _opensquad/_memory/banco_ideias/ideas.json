@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-07-09",
+  "updated_at": "2026-07-17",
   "note": "Source of truth for the EG Idea Bank. The Curador (squad eg_banco_ideias) reads and writes this file. Keys/enums are in English; idea titles/descriptions stay in PT. Schema v1.1 fields: part_of (umbrella idea id — composition), readiness (free text: external gates to start), clickup (bool). 2026-07-07: capturadas ~25 demandas da parte 1+2 (mobile, jurídico, cofre-senhas, créditos-IA, co-pilot vendas, revenda, workspace, decisões [bpo/nome/reseller], jogo→Fóton, etc.). 2a varredura 2026-07-07: +7 gaps (escada-oferta-tech, desvincular-opensquad, modulo-investimentos, banco-skills-produto, squad-ativacao-por-cliente, niveis-score-expandido, squad-recrutamento). 2026-07-09: reset enxuto do Bioma MVP v0; bioma-legacy preservado como referência, não como arquitetura vigente; claims de produção no bioma/ antigo devem ser tratados como legado até validação nova.",
   "stages": [
     "capture",

@@ -1,4 +1,5 @@
 from pathlib import Path
+import atexit
 import sys
 from uuid import uuid4
 
@@ -13,10 +14,11 @@ from bioma_api.config import Settings, get_settings
 from bioma_api.db import connect
 from bioma_api.main import app
 from bioma_api.security import hash_session_token
+from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
-CLIENT_EMAIL = "henrique@hmconexoes.com.br"
+CLIENT_EMAIL = "smoke-api-client@bioma.example.com"
 DEV_PASSWORD = "senha-dev-123"
 
 
@@ -62,6 +64,15 @@ def main() -> None:
     else:
         raise AssertionError("configuração de produção insegura deveria ser rejeitada")
 
+    smoke_workspace = create_smoke_workspace("API")
+    smoke_client_user_id = upsert_smoke_user(CLIENT_EMAIL, "API Client Smoke", DEV_PASSWORD)
+    grant_client_user(smoke_workspace, smoke_client_user_id)
+
+    def cleanup_initial_workspace() -> None:
+        cleanup_smoke_data([smoke_workspace.organization_id], [CLIENT_EMAIL])
+
+    atexit.register(cleanup_initial_workspace)
+
     admin = TestClient(app)
     guest = TestClient(app)
     client_user = TestClient(app)
@@ -79,6 +90,7 @@ def main() -> None:
     assert_status(guest.get("/health"), 200, "health")
     assert_status(guest.get("/health/ready"), 200, "readiness")
     assert_status(guest.get("/auth/me"), 401, "missing session")
+    assert_status(guest.get("/workspaces"), 401, "workspace discovery requires session")
     for _ in range(5):
         assert_status(
             guest.post("/auth/login", json={"email": "rate-limit@example.com", "password": "wrong"}),
@@ -105,11 +117,119 @@ def main() -> None:
     assert_status(clients_response, 200, "admin list clients")
     clients = clients_response.json()
     assert clients, "seed precisa criar ao menos um cliente"
-    hm_client_id = clients[0]["id"]
+    hm_client = next(row for row in clients if row["id"] == str(smoke_workspace.client_id))
+    hm_client_id = hm_client["id"]
+    hm_organization_id = hm_client["organization_id"]
+
+    admin_workspaces_response = admin.get("/workspaces")
+    assert_status(admin_workspaces_response, 200, "admin list workspaces")
+    admin_workspaces = admin_workspaces_response.json()
+    internal_workspace = next(row for row in admin_workspaces if row["kind"] == "agency_internal")
+    assert internal_workspace["client_id"] is None, "operação EG não pode ser uma conta cliente"
+    assert internal_workspace["organization_id"] == internal_workspace["tenant_organization_id"]
+    assert internal_workspace["slug"] == internal_workspace["organization_slug"]
+    internal_bridge_client_id = internal_workspace["legacy_client_id"]
+    assert internal_bridge_client_id, "adapter legado da operação EG precisa estar provisionado"
+    assert_status(
+        admin.post(f"/clients/{internal_bridge_client_id}/invites", json={}),
+        404,
+        "workspace interno não aceita convite de cliente",
+    )
+    assert_status(admin.get(f"/clients/{internal_bridge_client_id}/files"), 200, "admin opera files interno")
+    assert_status(admin.get(f"/clients/{internal_bridge_client_id}/performance"), 200, "admin opera performance interno")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/leads"), 200, "admin opera CRM interno canônico")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/finance"), 200, "admin opera financeiro interno canônico")
+    assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/performance"), 200, "admin opera Performance interno canônico")
+    assert_status(
+        admin.get(f"/integrations/{internal_workspace['organization_id']}/kommo"),
+        200,
+        "admin opera Kommo interno",
+    )
+    hm_workspace = next(row for row in admin_workspaces if row["id"] == str(smoke_workspace.workspace_id))
+    assert hm_workspace["kind"] == "client"
+    assert hm_workspace["client_id"] == hm_client_id
+    legacy_portal = admin.get(f"/clients/{hm_client_id}")
+    canonical_portal = admin.get(f"/workspaces/{hm_workspace['id']}")
+    adapter_portal = admin.get(f"/workspaces/{hm_client_id}")
+    assert_status(legacy_portal, 200, "legacy client route remains compatible")
+    assert_status(canonical_portal, 200, "canonical workspace portal")
+    assert_status(adapter_portal, 200, "workspace route accepts legacy client adapter")
+    assert canonical_portal.json()["client"]["id"] == legacy_portal.json()["client"]["id"]
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/files"), 200, "canonical workspace files")
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/performance"), 200, "canonical workspace performance")
+    assert_status(admin.get(f"/workspaces/{hm_workspace['id']}/invites"), 200, "canonical workspace invites")
+    stable_workspace = next(
+        row for row in admin.get("/workspaces").json() if row["id"] == str(smoke_workspace.workspace_id)
+    )
+    assert stable_workspace["id"] == hm_workspace["id"], "workspace precisa ter identidade estável"
 
     client_clients = client_user.get("/clients")
     assert_status(client_clients, 200, "client list clients")
     assert len(client_clients.json()) == 1, "cliente deve enxergar apenas a própria organização no seed"
+    client_workspaces_response = client_user.get("/workspaces")
+    assert_status(client_workspaces_response, 200, "client list workspaces")
+    client_workspaces = client_workspaces_response.json()
+    assert len(client_workspaces) == 1, "cliente deve enxergar somente o próprio workspace"
+    assert client_workspaces[0]["organization_slug"] == smoke_workspace.slug
+    assert all(row["kind"] != "agency_internal" for row in client_workspaces)
+    assert_status(
+        client_user.get(f"/workspaces/{hm_workspace['id']}"),
+        200,
+        "client accesses canonical own workspace",
+    )
+
+    # Mesmo uma membership legada indevida na organização EG não pode
+    # transformar a operação interna em workspace/cliente acessível.
+    with connect() as conn:
+        client_user_id = conn.execute(
+            "select id from users where lower(email) = lower(%s)",
+            (CLIENT_EMAIL,),
+        ).fetchone()["id"]
+        existing_internal_membership = conn.execute(
+            "select role from memberships where user_id = %s and organization_id = %s",
+            (client_user_id, internal_workspace["organization_id"]),
+        ).fetchone()
+        if not existing_internal_membership:
+            conn.execute(
+                "insert into memberships (user_id, organization_id, role) values (%s, %s, 'client_user')",
+                (client_user_id, internal_workspace["organization_id"]),
+            )
+    try:
+        guarded_workspaces = client_user.get("/workspaces")
+        assert_status(guarded_workspaces, 200, "membership interna não vaza workspace")
+        assert all(row["kind"] != "agency_internal" for row in guarded_workspaces.json())
+        assert_status(
+            client_user.get(f"/clients/{internal_bridge_client_id}"),
+            404,
+            "membership interna não vaza adapter cliente",
+        )
+        assert_status(
+            client_user.get(f"/workspaces/{internal_workspace['id']}"),
+            404,
+            "membership interna não vaza rota canônica",
+        )
+        assert_status(
+            client_user.get(f"/clients/{internal_bridge_client_id}/files"),
+            404,
+            "membership interna não vaza files",
+        )
+        assert_status(
+            client_user.get(f"/clients/{internal_bridge_client_id}/performance"),
+            404,
+            "membership interna não vaza performance",
+        )
+        assert_status(
+            client_user.get(f"/integrations/{internal_workspace['organization_id']}/kommo"),
+            404,
+            "membership interna não vaza Kommo",
+        )
+    finally:
+        if not existing_internal_membership:
+            with connect() as conn:
+                conn.execute(
+                    "delete from memberships where user_id = %s and organization_id = %s",
+                    (client_user_id, internal_workspace["organization_id"]),
+                )
 
     blocked_sync = client_user.post(f"/clients/{hm_client_id}/sync/clickup")
     assert_status(blocked_sync, 403, "client cannot sync clickup")
@@ -155,6 +275,7 @@ def main() -> None:
         json={
             "name": f"Smoke Cliente {suffix}",
             "organization_name": f"Smoke Organização {suffix}",
+            "organization_slug": "internal",
             "status": "onboarding",
             "responsible_name": "Eduardo EG",
             "clickup_folder_id": f"smoke-folder-{suffix}",
@@ -165,8 +286,84 @@ def main() -> None:
     created_client_id = created_body["client"]["id"]
     created_org_id = created_body["client"]["organization_id"]
 
+    provisioned_workspaces = admin.get("/workspaces")
+    assert_status(provisioned_workspaces, 200, "workspace provisioned with client")
+    created_workspace = next(
+        row for row in provisioned_workspaces.json() if row["organization_id"] == created_org_id
+    )
+    assert created_workspace["client_id"] == created_client_id
+    assert created_workspace["tenant_organization_id"] == internal_workspace["tenant_organization_id"]
+
     hidden = client_user.get(f"/clients/{created_client_id}")
     assert_status(hidden, 404, "client cannot read another client")
+    assert_status(
+        client_user.get(f"/workspaces/{created_workspace['id']}"),
+        404,
+        "client cannot read another canonical workspace",
+    )
+
+    with connect() as conn:
+        own_assigned_id = conn.execute(
+            """
+            insert into deliverables (organization_id, title, assignee_emails)
+            values (%s, %s, jsonb_build_array(%s::text))
+            returning id
+            """,
+            (hm_organization_id, f"Assigned HM {suffix}", CLIENT_EMAIL),
+        ).fetchone()["id"]
+        foreign_assigned_id = conn.execute(
+            """
+            insert into deliverables (organization_id, title, assignee_emails)
+            values (%s, %s, jsonb_build_array(%s::text))
+            returning id
+            """,
+            (created_org_id, f"Assigned Foreign {suffix}", CLIENT_EMAIL),
+        ).fetchone()["id"]
+
+    with connect() as conn:
+        conn.execute(
+            "update workspaces set status = 'archived', updated_at = now() where subject_organization_id = %s",
+            (hm_organization_id,),
+        )
+    try:
+        archived_workspaces = client_user.get("/workspaces")
+        assert_status(archived_workspaces, 200, "archived workspace discovery")
+        assert archived_workspaces.json() == [], "workspace arquivado deve sair da descoberta do cliente"
+        assert_status(
+            client_user.get(f"/clients/{hm_client_id}"),
+            404,
+            "workspace arquivado revoga adapter cliente",
+        )
+        assert_status(
+            client_user.get(f"/clients/{hm_client_id}/files"),
+            404,
+            "workspace arquivado revoga files",
+        )
+        assert_status(
+            client_user.get(f"/clients/{hm_client_id}/performance"),
+            404,
+            "workspace arquivado revoga performance",
+        )
+        assert_status(
+            client_user.get(f"/integrations/{hm_organization_id}/kommo"),
+            404,
+            "workspace arquivado revoga Kommo",
+        )
+        archived_deliverables = client_user.get("/clients/deliverables/me")
+        assert_status(archived_deliverables, 200, "archived workspace assigned deliverables")
+        assert str(own_assigned_id) not in {row["id"] for row in archived_deliverables.json()}
+    finally:
+        with connect() as conn:
+            conn.execute(
+                "update workspaces set status = 'active', updated_at = now() where subject_organization_id = %s",
+                (hm_organization_id,),
+            )
+
+    my_deliverables = client_user.get("/clients/deliverables/me")
+    assert_status(my_deliverables, 200, "assigned deliverables respect workspace access")
+    visible_assigned_ids = {row["id"] for row in my_deliverables.json()}
+    assert str(own_assigned_id) in visible_assigned_ids
+    assert str(foreign_assigned_id) not in visible_assigned_ids
 
     updated = admin.patch(
         f"/clients/{created_client_id}",
@@ -260,7 +457,49 @@ def main() -> None:
     assert_status(sync, 200, "admin sync clickup dry-run")
 
     with connect() as conn:
-        conn.execute("delete from organizations where id = %s", (created_org_id,))
+        conn.execute("delete from deliverables where id = %s", (own_assigned_id,))
+
+    archived = admin.delete(f"/clients/{created_client_id}")
+    assert_status(archived, 204, "archive client")
+    assert archived.content == b"", "archive deve responder 204 sem corpo"
+    assert_status(admin.get(f"/clients/{created_client_id}"), 404, "archived client is inaccessible")
+    assert_status(
+        admin.get(f"/workspaces/{created_workspace['id']}"),
+        404,
+        "archived workspace is inaccessible",
+    )
+
+    invalid_purge = admin.post(
+        f"/clients/{created_client_id}/purge",
+        json={"confirmation": "nome incorreto"},
+    )
+    assert_status(invalid_purge, 422, "purge requires exact client name")
+
+    purged = admin.post(
+        f"/clients/{created_client_id}/purge",
+        json={"confirmation": f"Smoke Cliente {suffix}"},
+    )
+    assert_status(purged, 204, "purge archived client")
+    assert purged.content == b"", "purge deve responder 204 sem corpo"
+    assert_status(admin.get(f"/clients/{created_client_id}"), 404, "purged client is absent")
+
+    with connect() as conn:
+        purge_audit = conn.execute(
+            """
+            select organization_id, metadata
+            from audit_logs
+            where event_type = 'client.purged'
+              and metadata ->> 'client_id' = %s
+            order by created_at desc
+            limit 1
+            """,
+            (str(created_client_id),),
+        ).fetchone()
+    assert purge_audit is not None, "purge precisa preservar evento de auditoria"
+    assert purge_audit["organization_id"] is None, "auditoria preservada não deve reter FK removida"
+
+    cleanup_initial_workspace()
+    atexit.unregister(cleanup_initial_workspace)
 
     print("smoke ok")
 

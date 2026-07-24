@@ -22,7 +22,7 @@ class ClientSummary(BaseModel):
     name: str
     status: ClientStatus
     responsible_name: str | None = None
-    clickup_folder_id: str | None = None
+    enabled_modules: list[str] = []
     deliverables_total: int
     approvals_pending: int
     artifacts_client: int
@@ -43,8 +43,13 @@ class DeliverableSummary(BaseModel):
     title: str
     status: DeliverableStatus
     due_at: datetime | None = None
-    clickup_task_id: str | None = None
+    assignee_emails: list[str] = []
     updated_at: datetime
+
+
+class GlobalDeliverableSummary(DeliverableSummary):
+    client_id: UUID
+    client_name: str
 
 
 class ApprovalSummary(BaseModel):
@@ -89,7 +94,6 @@ class ClientCreateRequest(BaseModel):
     organization_slug: str | None = None
     status: ClientStatus = "onboarding"
     responsible_name: str | None = None
-    clickup_folder_id: str | None = None
 
 
 class ClientUpdateRequest(BaseModel):
@@ -97,7 +101,11 @@ class ClientUpdateRequest(BaseModel):
     organization_name: str | None = None
     status: ClientStatus | None = None
     responsible_name: str | None = None
-    clickup_folder_id: str | None = None
+    enabled_modules: list[str] | None = None
+
+
+class ClientPurgeRequest(BaseModel):
+    confirmation: str
 
 
 class ArtifactCreateRequest(BaseModel):
@@ -120,14 +128,12 @@ class DeliverableCreateRequest(BaseModel):
     title: str
     status: DeliverableStatus = "planned"
     due_at: datetime | None = None
-    clickup_task_id: str | None = None
 
 
 class DeliverableUpdateRequest(BaseModel):
     title: str | None = None
     status: DeliverableStatus | None = None
     due_at: datetime | None = None
-    clickup_task_id: str | None = None
 
 
 class ApprovalCreateRequest(BaseModel):

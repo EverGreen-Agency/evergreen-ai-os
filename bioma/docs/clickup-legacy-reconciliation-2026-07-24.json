@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-07-24T11:37:45.505060+00:00",
+  "total_imported": 48,
+  "total_reconciled": 48,
+  "total_orphan": 0,
+  "ready_to_retire_adapter": true,
+  "per_organization": [
+    {
+      "org_slug": "hm-conexoes",
+      "org_name": "HM Conexões Poderosas",
+      "total_imported": 3,
+      "reconciled": 3,
+      "orphan": 0
+    },
+    {
+      "org_slug": "kontes-express",
+      "org_name": "Kontes Express",
+      "total_imported": 43,
+      "reconciled": 43,
+      "orphan": 0
+    },
+    {
+      "org_slug": "univet-safety",
+      "org_name": "Univet Safety",
+      "total_imported": 2,
+      "reconciled": 2,
+      "orphan": 0
+    }
+  ],
+  "orphans": []
+}

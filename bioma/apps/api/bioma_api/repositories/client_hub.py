@@ -12,14 +12,14 @@ def list_clients(conn, is_admin: bool, user_id: UUID):
     ).fetchall()
 
 
-def create_organization(conn, name: str, slug: str) -> UUID:
+def create_organization(conn, name: str, slug: str, tenant_organization_id: UUID) -> UUID:
     return conn.execute(
         """
-        insert into organizations (name, slug, type)
-        values (%s, %s, 'client')
+        insert into organizations (name, slug, type, parent_organization_id)
+        values (%s, %s, 'client', %s)
         returning id
         """,
-        (name, slug),
+        (name, slug, tenant_organization_id),
     ).fetchone()["id"]
 
 
@@ -29,32 +29,20 @@ def create_client(
     name: str,
     status: str,
     responsible_name: str | None,
-    clickup_folder_id: str | None,
 ) -> UUID:
     return conn.execute(
         """
-        insert into clients (organization_id, name, status, responsible_name, clickup_folder_id)
-        values (%s, %s, %s, %s, %s)
+        insert into clients (organization_id, name, status, responsible_name)
+        values (%s, %s, %s, %s)
         returning id
         """,
-        (organization_id, name, status, responsible_name, clickup_folder_id),
+        (organization_id, name, status, responsible_name),
     ).fetchone()["id"]
 
 
 def get_client_summary(conn, client_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         _client_summary_sql(f"and c.id = %s {_client_access_filter()}"),
-        (client_id, is_admin, user_id),
-    ).fetchone()
-
-
-def find_accessible_client(conn, client_id: UUID, is_admin: bool, user_id: UUID):
-    return conn.execute(
-        """
-        select c.id, c.organization_id, c.clickup_folder_id
-        from clients c
-        where c.id = %s
-        """ + _client_access_filter(),
         (client_id, is_admin, user_id),
     ).fetchone()
 
@@ -76,7 +64,7 @@ def list_artifacts(conn, organization_id: UUID, is_admin: bool):
 def list_deliverables(conn, organization_id: UUID):
     return conn.execute(
         """
-        select id, title, status, due_at, clickup_task_id, updated_at
+        select id, title, status, due_at, assignee_emails, updated_at
         from deliverables
         where organization_id = %s
         order by
@@ -131,20 +119,6 @@ def list_sync_runs(conn, organization_id: UUID):
     ).fetchall()
 
 
-def list_clickup_list_ids(conn, organization_id: UUID) -> list[str]:
-    rows = conn.execute(
-        """
-        select distinct clickup_list_id
-        from clickup_mappings
-        where organization_id = %s
-          and clickup_list_id is not null
-        order by clickup_list_id
-        """,
-        (organization_id,),
-    ).fetchall()
-    return [row["clickup_list_id"] for row in rows]
-
-
 def list_audit_logs(conn, organization_id: UUID):
     return conn.execute(
         """
@@ -170,10 +144,56 @@ def update_client(conn, client_id: UUID, updates: dict[str, Any]) -> None:
     )
 
 
+def find_client_for_lifecycle(conn, client_id: UUID):
+    return conn.execute(
+        """
+        select c.id, c.name, c.status, c.organization_id,
+          w.id as workspace_id, w.tenant_organization_id, w.status as workspace_status
+        from clients c
+        join workspaces w on w.subject_organization_id = c.organization_id and w.kind = 'client'
+        where c.id = %s
+        for update of c, w
+        """,
+        (client_id,),
+    ).fetchone()
+
+
+def archive_client(conn, client_id: UUID, workspace_id: UUID) -> None:
+    conn.execute(
+        "update clients set status = 'archived', updated_at = now() where id = %s",
+        (client_id,),
+    )
+    conn.execute(
+        "update workspaces set status = 'archived', updated_at = now() where id = %s",
+        (workspace_id,),
+    )
+
+
+def list_client_storage_keys(conn, organization_id: UUID) -> list[str]:
+    return [
+        row["storage_key"]
+        for row in conn.execute(
+            "select storage_key from client_files where organization_id = %s order by id",
+            (organization_id,),
+        ).fetchall()
+    ]
+
+
+def purge_client_organization(conn, organization_id: UUID) -> None:
+    conn.execute("delete from organizations where id = %s", (organization_id,))
+
+
 def update_organization_name(conn, organization_id: UUID, name: str) -> None:
     conn.execute(
         "update organizations set name = %s, updated_at = now() where id = %s",
         (name, organization_id),
+    )
+
+
+def update_organization_modules(conn, organization_id: UUID, modules: list[str]) -> None:
+    conn.execute(
+        "update organizations set enabled_modules = %s, updated_at = now() where id = %s",
+        (Jsonb(modules), organization_id),
     )
 
 
@@ -224,53 +244,15 @@ def create_deliverable(
     title: str,
     status: str,
     due_at,
-    clickup_task_id: str | None,
 ) -> UUID:
     return conn.execute(
         """
-        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
-        values (%s, %s, %s, %s, %s)
+        insert into deliverables (organization_id, title, status, due_at)
+        values (%s, %s, %s, %s)
         returning id
         """,
-        (organization_id, title, status, due_at, clickup_task_id),
+        (organization_id, title, status, due_at),
     ).fetchone()["id"]
-
-
-def upsert_clickup_deliverable(
-    conn,
-    organization_id: UUID,
-    clickup_task_id: str,
-    title: str,
-    status: str,
-    due_at: str | None,
-) -> str:
-    existing = conn.execute(
-        """
-        select id
-        from deliverables
-        where organization_id = %s and clickup_task_id = %s
-        """,
-        (organization_id, clickup_task_id),
-    ).fetchone()
-    if existing:
-        conn.execute(
-            """
-            update deliverables
-            set title = %s, status = %s, due_at = %s, updated_at = now()
-            where id = %s
-            """,
-            (title, status, due_at, existing["id"]),
-        )
-        return "updated"
-
-    conn.execute(
-        """
-        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
-        values (%s, %s, %s, %s, %s)
-        """,
-        (organization_id, title, status, due_at, clickup_task_id),
-    )
-    return "created"
 
 
 def update_deliverable(conn, organization_id: UUID, deliverable_id: UUID, updates: dict[str, Any]) -> bool:
@@ -368,16 +350,6 @@ def update_waiting_deliverable_status(conn, deliverable_id: UUID, status: str) -
         where id = %s and status = 'waiting_approval'
         """,
         (status, deliverable_id),
-    )
-
-
-def record_sync_run(conn, organization_id: UUID, status: str, summary: dict[str, Any]) -> None:
-    conn.execute(
-        """
-        insert into sync_runs (source, organization_id, status, summary, finished_at)
-        values ('clickup', %s, %s, %s, now())
-        """,
-        (organization_id, status, Jsonb(summary)),
     )
 
 
@@ -591,9 +563,17 @@ def _slugify(value: str) -> str:
 
 def _client_access_filter() -> str:
     return """
-      and (%s or c.organization_id in (
-        select organization_id from memberships where user_id = %s
-      ))
+      and (
+        %s
+        or exists (
+          select 1
+          from workspaces w
+          where w.subject_organization_id = c.organization_id
+            and w.kind = 'client'
+            and w.status = 'active'
+            and workspace_access_role(w.id, %s) is not null
+        )
+      )
     """
 
 
@@ -607,7 +587,7 @@ def _client_summary_sql(extra_where: str = "") -> str:
           c.name,
           c.status,
           c.responsible_name,
-          c.clickup_folder_id,
+          o.enabled_modules,
           count(distinct d.id)::int as deliverables_total,
           count(distinct a.id) filter (where a.status = 'pending')::int as approvals_pending,
           count(distinct ar.id) filter (where ar.visibility = 'client')::int as artifacts_client
@@ -621,3 +601,30 @@ def _client_summary_sql(extra_where: str = "") -> str:
         group by c.id, o.id
         order by c.created_at desc
     """
+
+def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select
+            d.id, d.title, d.status, d.due_at, d.assignee_emails, d.updated_at,
+            c.id as client_id, c.name as client_name
+        from deliverables d
+        join organizations o on o.id = d.organization_id
+        join clients c on c.organization_id = o.id
+        where d.assignee_emails ? %s
+          and (
+            %s
+            or exists (
+              select 1
+              from workspaces w
+              where w.subject_organization_id = d.organization_id
+                and w.kind = 'client'
+                and w.status = 'active'
+                and workspace_access_role(w.id, %s) is not null
+            )
+          )
+        order by d.due_at nulls last, d.updated_at desc
+        limit 50
+        """,
+        (user_email, is_admin, user_id),
+    ).fetchall()

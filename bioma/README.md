@@ -1,6 +1,19 @@
 # Bioma MVP v0
 
-Bioma é a plataforma operacional da EverGreen. Este repositório interno começa pelo MVP mínimo: cockpit interno EG, Client Hub, ClickUp Bridge, auth simples, Postgres e ambientes separados.
+Bioma é a plataforma operacional da EverGreen. O MVP ativo reúne cockpit interno EG, Client Hub, motor nativo de projetos/tarefas, contratos e escopo, cofre de acessos, auth, Postgres e adapters externos.
+
+## Modelo de produto
+
+O Bioma evolui em três camadas: primeiro organiza a operação interna da EG, depois permite operar e atender clientes diretamente e, por fim, torna a mesma base disponível para outras agências em white-label/SaaS.
+
+```text
+Bioma Platform (control plane da dona do produto)
+└── Tenant / Agência (EG ou futura agência white-label)
+    ├── Workspace interno da agência
+    └── Workspaces de clientes
+```
+
+O MVP já possui identidade persistente em `workspaces` e descoberta autenticada por `GET /workspaces`. `organizations` continua como contêiner físico dos dados e `clients` como fachada comercial/ponte das rotas ainda baseadas em `client_id`. A interface diferencia o workspace interno da EG dos hubs, mas equipes, atribuições e papéis white-label completos ainda não estão implementados. `bioma-legacy/` não é fonte da arquitetura ativa.
 
 ## Estrutura
 
@@ -73,6 +86,7 @@ python -m venv .venv
 pip install -r requirements.txt
 python scripts/migrate.py
 python scripts/seed_dev.py
+python scripts/create_eg_client.py  # ponte temporária da Operação EG
 uvicorn bioma_api.main:app --reload
 ```
 
@@ -139,6 +153,9 @@ python scripts/migrate.py
 python scripts/seed_dev.py
 python scripts/smoke_api.py
 python scripts/smoke_clickup.py
+python scripts/smoke_workspace_authz.py
+python scripts/smoke_workspace_navigation.py
+python scripts/smoke_tasks.py
 python scripts/smoke_performance.py
 python scripts/smoke_files.py  # exige STORAGE_S3_* configurado (ver seção Storage acima)
 ```
@@ -158,9 +175,23 @@ cd apps/web
 npm run build
 ```
 
+Os smokes de workspace, tarefas, projetos e cofre criam organizações/workspaces efêmeros próprios; não dependem do cliente HM presente no seed. O Bioma é o system of record da execução. O importador ClickUp fica temporariamente apenas para reconciliar o legado; itens importados preservam IDs externos e permanecem somente leitura até serem convertidos em registros nativos. Não há sync ClickUp na interface nem escrita externa.
+
+## Operações e custos de IA
+
+A Operação EG possui um control plane para instalar workflows versionados e solicitar execuções com idempotência, etapas ordenadas e aprovação humana. O dashboard Financeiro da EG também controla assinaturas/API, custos mensais equivalentes, cotas observadas e consumo por provedor/modelo. Cotas sem fonte oficial ou configuração explícita aparecem como desconhecidas; o produto não deduz saldo da sessão autenticada.
+
+O smoke `apps/api/scripts/smoke_ai_operations.py` recusa bancos que não terminem em `_smoke` ou `_test`.
+
+Projetos conectam contrato versionado, itens de escopo, fases, entregas e aceite. Em projetos Tech, proposta e especificação podem ser vinculadas por URL e o cliente acompanha atualizações de progresso, bloqueio, testes e release — inclusive quando um dia foi gasto somente depurando um problema. A área Acessos substitui planilhas: conta/plataforma, usuário, e-mail, senha, outra forma de acesso e link. E-mail, usuário, senha e outro método são cifrados antes do banco; listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` somente contra banco de teste isolado e migrado.
+
+Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes em leitura usando `GITHUB_API_TOKEN`; nenhuma escrita externa é executada por essa integração.
+
+Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
+
 ## Comunicação Web/API
 
-O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, aprovações, entregáveis, artefatos, sync de ClickUp e auditoria são comandos explícitos.
+O MVP usa REST com contratos tipados no frontend (`apps/web/src/lib/api.ts`) e FastAPI no backend. Isso foi escolhido porque o produto ainda é mais operacional do que exploratório: login, projetos, contratos, escopo, aprovações, cofre, artefatos, adapters e auditoria são comandos explícitos.
 
 GraphQL pode entrar depois como BFF ou camada de consulta se surgirem telas com múltiplas visões altamente customizáveis, overfetching real ou muitos consumidores externos. A decisão atual preserva essa opção porque o frontend não chama `fetch` direto espalhado pela aplicação; ele passa por um cliente HTTP isolado.
 

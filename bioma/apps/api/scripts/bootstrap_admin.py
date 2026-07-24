@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT))
 
 from bioma_api.db import connect  # noqa: E402
 from bioma_api.security import hash_password  # noqa: E402
+from bioma_api.repositories import workspaces as workspaces_repo  # noqa: E402
 
 
 def required_env(name: str) -> str:
@@ -47,6 +48,7 @@ def main() -> None:
             returning id
             """
         ).fetchone()
+        workspaces_repo.provision_agency_workspace(conn, organization["id"], "Operação EG")
 
         user = conn.execute(
             "select id from users where lower(email) = %s",

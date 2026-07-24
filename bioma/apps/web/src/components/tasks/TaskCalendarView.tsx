@@ -1,0 +1,143 @@
+import { useState } from "react";
+import { useTasksInList } from "../../hooks/useBiomaApi";
+import { EmptyState } from "../shared";
+import { TaskDrawer } from "./TaskDrawer";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+type TaskCalendarViewProps = {
+  listId: string;
+};
+
+export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
+  const { data: tasks, isLoading } = useTasksInList(listId);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  if (isLoading) {
+    return <EmptyState text="Carregando tarefas..." />;
+  }
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const monthNames = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Agrupar tarefas por dia
+  const tasksByDay: Record<number, typeof tasks> = {};
+  tasks?.forEach(task => {
+    if (task.due_date) {
+      const d = new Date(task.due_date);
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        const day = d.getDate();
+        if (!tasksByDay[day]) tasksByDay[day] = [];
+        tasksByDay[day]?.push(task);
+      }
+    }
+  });
+
+  const calendarCells = [];
+  // Celulas vazias antes do primeiro dia
+  for (let i = 0; i < startingDayOfWeek; i++) {
+    calendarCells.push(null);
+  }
+  // Dias do mês
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarCells.push(day);
+  }
+
+  return (
+    <>
+      <div className="surface" style={{ borderRadius: 8, padding: 16, border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Header de navegação do calendário */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
+            {monthNames[month]} {year}
+          </h2>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="icon-button" type="button" onClick={prevMonth}><ChevronLeft size={18} /></button>
+            <button className="secondary-button" type="button" onClick={() => setCurrentDate(new Date())} style={{ padding: "4px 12px", fontSize: 12 }}>Hoje</button>
+            <button className="icon-button" type="button" onClick={nextMonth}><ChevronRight size={18} /></button>
+          </div>
+        </div>
+
+        {/* Grade de dias da semana */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--border-color)", borderRadius: 6, overflow: "hidden" }}>
+          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(day => (
+            <div key={day} style={{ background: "var(--surface-sunken)", padding: "8px", textAlign: "center", fontWeight: 600, fontSize: 12, color: "var(--text-dim)" }}>
+              {day}
+            </div>
+          ))}
+
+          {calendarCells.map((day, idx) => {
+            if (day === null) {
+              return <div key={`empty-${idx}`} style={{ background: "var(--surface-color)", minHeight: 100 }} />;
+            }
+
+            const dayTasks = tasksByDay[day] || [];
+            const isToday = day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
+
+            return (
+              <div 
+                key={`day-${day}`}
+                style={{ 
+                  background: "var(--surface-color)", 
+                  minHeight: 100, 
+                  padding: 6,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--primary-color)" : "var(--text-dim)", alignSelf: "flex-end" }}>
+                  {day}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", maxHeight: 80 }}>
+                  {dayTasks.map(task => (
+                    <div 
+                      key={task.id} 
+                      onClick={() => setSelectedTaskId(task.id)}
+                      style={{ 
+                        fontSize: 11, 
+                        padding: "3px 6px", 
+                        borderRadius: 4, 
+                        background: task.group_status === "DONE" ? "var(--surface-sunken)" : "var(--primary-color)", 
+                        color: task.group_status === "DONE" ? "var(--text-dim)" : "white",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                      title={task.title}
+                    >
+                      {task.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {selectedTaskId && (
+        <TaskDrawer 
+          listId={listId} 
+          taskId={selectedTaskId} 
+          onClose={() => setSelectedTaskId(null)} 
+        />
+      )}
+    </>
+  );
+}

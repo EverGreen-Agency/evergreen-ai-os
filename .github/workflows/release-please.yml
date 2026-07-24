@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      # Config em release-please-config.json (raiz): versiona o pacote
+      # bioma/apps/web e atualiza src/lib/version.ts via extra-files
+      # (linha anotada com x-release-please-version).
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

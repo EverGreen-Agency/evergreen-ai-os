@@ -3,9 +3,9 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile, status
 
+from bioma_api.access import is_platform_admin, resolve_accessible_client
 from bioma_api.config import get_settings
 from bioma_api.db import connect
-from bioma_api.domain.models import Role
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import files as files_repo
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -17,7 +17,7 @@ from bioma_api.services.storage import StorageNotConfiguredError, StorageOperati
 def list_files(client_id: UUID, user: CurrentUserResponse) -> list[ClientFileSummary]:
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        rows = files_repo.list_files(conn, client["organization_id"], _is_platform_admin(user))
+        rows = files_repo.list_files(conn, client["organization_id"], is_platform_admin(user))
     return [ClientFileSummary(**row) for row in rows]
 
 
@@ -27,7 +27,6 @@ def upload_file(
     visibility: ClientFileVisibility,
     user: CurrentUserResponse,
 ) -> list[ClientFileSummary]:
-    _require_platform_admin(user)
     settings = get_settings()
 
     file_name = (upload.filename or "arquivo").strip()
@@ -48,7 +47,7 @@ def upload_file(
     content_type = upload.content_type or "application/octet-stream"
 
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_work")
         storage_key = f"clients/{client['organization_id']}/{uuid4()}-{_safe_filename(file_name)}"
 
         try:
@@ -80,7 +79,7 @@ def upload_file(
 
 
 def request_download(client_id: UUID, file_id: UUID, user: CurrentUserResponse) -> ClientFileDownloadResponse:
-    is_admin = _is_platform_admin(user)
+    is_admin = is_platform_admin(user)
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
         row = files_repo.get_file(conn, client["organization_id"], file_id)
@@ -100,9 +99,8 @@ def request_download(client_id: UUID, file_id: UUID, user: CurrentUserResponse) 
 
 
 def delete_file(client_id: UUID, file_id: UUID, user: CurrentUserResponse) -> list[ClientFileSummary]:
-    _require_platform_admin(user)
     with connect() as conn:
-        client = _accessible_client(conn, client_id, user)
+        client = _accessible_client(conn, client_id, user, "manage_work")
         row = files_repo.get_file(conn, client["organization_id"], file_id)
         if not row:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Arquivo não encontrado.")
@@ -131,17 +129,6 @@ def _safe_filename(file_name: str) -> str:
     return normalized or "arquivo"
 
 
-def _is_platform_admin(user: CurrentUserResponse) -> bool:
-    return any(org.slug == "eg" and org.role == Role.eg_admin for org in user.organizations)
-
-
-def _require_platform_admin(user: CurrentUserResponse) -> None:
-    if not _is_platform_admin(user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode executar esta ação.")
-
-
-def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse):
-    client = files_repo.find_accessible_client(conn, client_id, _is_platform_admin(user), user.id)
-    if not client:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
-    return client
+def _accessible_client(conn, client_id: UUID, user: CurrentUserResponse, capability: str | None = None):
+    # Todo o módulo de arquivos fica atrás do gate "files" para client_user.
+    return resolve_accessible_client(conn, client_id, user, module="files", capability=capability)

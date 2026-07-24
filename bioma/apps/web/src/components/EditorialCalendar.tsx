@@ -77,7 +77,6 @@ export function EditorialCalendar({ deliverables }: { deliverables: DeliverableS
                   <div className={`calendar-item ${deliverable.status}`} key={deliverable.id}>
                     <span className="item-type">{deliverableStatusLabel[deliverable.status]}</span>
                     <p>{deliverable.title}</p>
-                    <small>{deliverable.clickup_task_id ?? "sem ClickUp"}</small>
                   </div>
                 ))}
               </div>
