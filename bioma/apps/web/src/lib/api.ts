@@ -2047,3 +2047,40 @@ export type PublicProposalResponse = {
   created_at: string;
 };
 
+export type KitPieceSummary = {
+  id: string;
+  name: string;
+  supplier: string | null;
+  unit_cost_cents: number;
+  stock_qty: number;
+  status: "active" | "discontinued";
+  created_at: string;
+  updated_at: string;
+};
+
+export type KitDefinitionSummary = {
+  id: string;
+  name: string;
+  level: string;
+  description: string | null;
+  status: "active" | "discontinued";
+  total_cost_cents: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type KitShipmentSummary = {
+  id: string;
+  kit_definition_id: string;
+  kit_name: string;
+  client_id: string;
+  client_name: string;
+  status: "em_producao" | "enviado" | "entregue" | "cancelado";
+  notes: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+

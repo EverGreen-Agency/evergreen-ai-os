@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Package, Truck, Layers, Plus, CheckCircle2 } from "lucide-react";
+import { Package, Truck, Layers, Plus } from "lucide-react";
 import {
   api,
   type KitDefinitionSummary,
@@ -16,7 +16,7 @@ export function KitsManager() {
   const [error, setError] = useState("");
 
   const [pieceName, setPieceName] = useState("");
-  const [pieceCategory, setPieceCategory] = useState("");
+  const [pieceSupplier, setPieceSupplier] = useState("");
 
   useEffect(() => {
     loadData();
@@ -45,9 +45,9 @@ export function KitsManager() {
     e.preventDefault();
     if (!pieceName.trim()) return;
     try {
-      await api.createKitPiece({ name: pieceName, category: pieceCategory || "general" });
+      await api.createKitPiece({ name: pieceName, supplier: pieceSupplier || undefined });
       setPieceName("");
-      setPieceCategory("");
+      setPieceSupplier("");
       loadData();
     } catch (err: any) {
       alert("Erro ao criar peça: " + err.message);
@@ -152,8 +152,8 @@ export function KitsManager() {
                 }}
               >
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{s.kit_title}</h3>
-                  <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Cliente ID: {s.client_id}</span>
+                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{s.kit_name}</h3>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Cliente: {s.client_name}</span>
                 </div>
                 <span style={{ fontSize: "0.8rem", background: "var(--bg-inset)", color: "var(--brand-accent)", padding: "4px 12px", borderRadius: "16px", fontWeight: 600 }}>
                   Status: {s.status}
@@ -171,8 +171,9 @@ export function KitsManager() {
           ) : (
             kits.map((k) => (
               <div key={k.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 600 }}>{k.title}</h3>
+                <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 600 }}>{k.name}</h3>
                 <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-dim)" }}>{k.description || "Sem descrição."}</p>
+                <span style={{ fontSize: "0.75rem", color: "var(--brand-accent)", display: "block", marginTop: "8px" }}>Nível: {k.level}</span>
               </div>
             ))
           )}
@@ -203,12 +204,12 @@ export function KitsManager() {
               />
             </div>
             <div style={{ width: "200px", display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Categoria</label>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Fornecedor</label>
               <input
                 type="text"
-                value={pieceCategory}
-                onChange={(e) => setPieceCategory(e.target.value)}
-                placeholder="Ex: Papelaria, Vestuário"
+                value={pieceSupplier}
+                onChange={(e) => setPieceSupplier(e.target.value)}
+                placeholder="Ex: Gráfica Express"
                 style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
             </div>
@@ -224,7 +225,9 @@ export function KitsManager() {
                 <Layers size={20} color="var(--brand-accent)" />
                 <div>
                   <strong style={{ fontSize: "0.9rem", display: "block" }}>{p.name}</strong>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Categoria: {p.category}</span>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
+                    Estoque: {p.stock_qty} • Fornecedor: {p.supplier || "N/I"}
+                  </span>
                 </div>
               </div>
             ))}
