@@ -3067,8 +3067,6 @@ export interface components {
         };
         /** ClientCreateRequest */
         ClientCreateRequest: {
-            /** Clickup Folder Id */
-            clickup_folder_id?: string | null;
             /** Name */
             name: string;
             /** Organization Name */
@@ -3142,8 +3140,6 @@ export interface components {
             approvals_pending: number;
             /** Artifacts Client */
             artifacts_client: number;
-            /** Clickup Folder Id */
-            clickup_folder_id?: string | null;
             /** Deliverables Total */
             deliverables_total: number;
             /**
@@ -3177,8 +3173,6 @@ export interface components {
         };
         /** ClientUpdateRequest */
         ClientUpdateRequest: {
-            /** Clickup Folder Id */
-            clickup_folder_id?: string | null;
             /** Enabled Modules */
             enabled_modules?: string[] | null;
             /** Name */
@@ -3315,8 +3309,6 @@ export interface components {
         };
         /** DeliverableCreateRequest */
         DeliverableCreateRequest: {
-            /** Clickup Task Id */
-            clickup_task_id?: string | null;
             /** Due At */
             due_at?: string | null;
             /**
@@ -3335,8 +3327,6 @@ export interface components {
              * @default []
              */
             assignee_emails: string[];
-            /** Clickup Task Id */
-            clickup_task_id?: string | null;
             /** Due At */
             due_at?: string | null;
             /**
@@ -3359,8 +3349,6 @@ export interface components {
         };
         /** DeliverableUpdateRequest */
         DeliverableUpdateRequest: {
-            /** Clickup Task Id */
-            clickup_task_id?: string | null;
             /** Due At */
             due_at?: string | null;
             /** Status */
@@ -3627,8 +3615,6 @@ export interface components {
              * @default []
              */
             assignee_emails: string[];
-            /** Clickup Task Id */
-            clickup_task_id?: string | null;
             /**
              * Client Id
              * Format: uuid

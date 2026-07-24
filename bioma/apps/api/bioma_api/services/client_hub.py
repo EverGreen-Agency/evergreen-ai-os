@@ -70,7 +70,6 @@ def create_client(payload: ClientCreateRequest, user: CurrentUserResponse) -> Cl
             client_name,
             payload.status,
             payload.responsible_name,
-            payload.clickup_folder_id,
         )
         workspaces_repo.provision_client_workspace(
             conn,
@@ -177,7 +176,7 @@ def update_client(client_id: UUID, payload: ClientUpdateRequest, user: CurrentUs
     with connect() as conn:
         client = resolve_accessible_client(conn, client_id, user, capability="manage_config")
         resolved_client_id = client["id"]
-        client_updates = {key: updates[key] for key in ("name", "status", "responsible_name", "clickup_folder_id") if key in updates}
+        client_updates = {key: updates[key] for key in ("name", "status", "responsible_name") if key in updates}
         client_hub_repo.update_client(conn, resolved_client_id, client_updates)
         if "name" in client_updates:
             workspaces_repo.update_client_workspace_name(
@@ -281,7 +280,6 @@ def create_deliverable(client_id: UUID, payload: DeliverableCreateRequest, user:
             payload.title,
             payload.status,
             payload.due_at,
-            payload.clickup_task_id,
         )
         client_hub_repo.write_audit(
             conn,

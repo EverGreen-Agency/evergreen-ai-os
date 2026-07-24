@@ -143,7 +143,6 @@ export const emptyClientDraft: ClientPayload = {
   organization_name: "",
   status: "onboarding",
   responsible_name: "",
-  clickup_folder_id: "",
 };
 
 export const emptyArtifactDraft: ArtifactPayload = {
@@ -158,7 +157,6 @@ export const emptyDeliverableDraft: DeliverablePayload = {
   title: "",
   status: "planned",
   due_at: "",
-  clickup_task_id: "",
 };
 
 export function currentViewFromHash(): ViewId {

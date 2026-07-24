@@ -1939,17 +1939,6 @@
       },
       "ClientCreateRequest": {
         "properties": {
-          "clickup_folder_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Folder Id"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2154,17 +2143,6 @@
             "title": "Artifacts Client",
             "type": "integer"
           },
-          "clickup_folder_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Folder Id"
-          },
           "deliverables_total": {
             "title": "Deliverables Total",
             "type": "integer"
@@ -2237,17 +2215,6 @@
       },
       "ClientUpdateRequest": {
         "properties": {
-          "clickup_folder_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Folder Id"
-          },
           "enabled_modules": {
             "anyOf": [
               {
@@ -2746,17 +2713,6 @@
       },
       "DeliverableCreateRequest": {
         "properties": {
-          "clickup_task_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Task Id"
-          },
           "due_at": {
             "anyOf": [
               {
@@ -2801,17 +2757,6 @@
             },
             "title": "Assignee Emails",
             "type": "array"
-          },
-          "clickup_task_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Task Id"
           },
           "due_at": {
             "anyOf": [
@@ -2862,17 +2807,6 @@
       },
       "DeliverableUpdateRequest": {
         "properties": {
-          "clickup_task_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Task Id"
-          },
           "due_at": {
             "anyOf": [
               {
@@ -3646,17 +3580,6 @@
             },
             "title": "Assignee Emails",
             "type": "array"
-          },
-          "clickup_task_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clickup Task Id"
           },
           "client_id": {
             "format": "uuid",

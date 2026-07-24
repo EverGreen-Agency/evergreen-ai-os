@@ -16,7 +16,6 @@ def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID
           c.id,
           c.name,
           c.organization_id,
-          c.clickup_folder_id,
           o.name as organization_name,
           o.enabled_modules,
           w.id as workspace_id,

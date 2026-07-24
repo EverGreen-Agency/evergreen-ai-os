@@ -15,7 +15,6 @@ export interface Client {
   purchased_services: string[];
   oferta?: { nivel?: string };
   main_contacts?: ClientContact[];
-  clickup?: { provisionado?: boolean; portal_url?: string };
   kommo?: { ativo?: boolean };
   engenharia?: { tem_projeto?: boolean };
   datas?: { entrada?: string; renovacao?: string };

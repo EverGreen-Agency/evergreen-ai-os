@@ -29,15 +29,14 @@ def create_client(
     name: str,
     status: str,
     responsible_name: str | None,
-    clickup_folder_id: str | None,
 ) -> UUID:
     return conn.execute(
         """
-        insert into clients (organization_id, name, status, responsible_name, clickup_folder_id)
-        values (%s, %s, %s, %s, %s)
+        insert into clients (organization_id, name, status, responsible_name)
+        values (%s, %s, %s, %s)
         returning id
         """,
-        (organization_id, name, status, responsible_name, clickup_folder_id),
+        (organization_id, name, status, responsible_name),
     ).fetchone()["id"]
 
 
@@ -65,7 +64,7 @@ def list_artifacts(conn, organization_id: UUID, is_admin: bool):
 def list_deliverables(conn, organization_id: UUID):
     return conn.execute(
         """
-        select id, title, status, due_at, clickup_task_id, assignee_emails, updated_at
+        select id, title, status, due_at, assignee_emails, updated_at
         from deliverables
         where organization_id = %s
         order by
@@ -245,15 +244,14 @@ def create_deliverable(
     title: str,
     status: str,
     due_at,
-    clickup_task_id: str | None,
 ) -> UUID:
     return conn.execute(
         """
-        insert into deliverables (organization_id, title, status, due_at, clickup_task_id)
-        values (%s, %s, %s, %s, %s)
+        insert into deliverables (organization_id, title, status, due_at)
+        values (%s, %s, %s, %s)
         returning id
         """,
-        (organization_id, title, status, due_at, clickup_task_id),
+        (organization_id, title, status, due_at),
     ).fetchone()["id"]
 
 
@@ -589,7 +587,6 @@ def _client_summary_sql(extra_where: str = "") -> str:
           c.name,
           c.status,
           c.responsible_name,
-          c.clickup_folder_id,
           o.enabled_modules,
           count(distinct d.id)::int as deliverables_total,
           count(distinct a.id) filter (where a.status = 'pending')::int as approvals_pending,
@@ -608,8 +605,8 @@ def _client_summary_sql(extra_where: str = "") -> str:
 def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
-        select 
-            d.id, d.title, d.status, d.due_at, d.clickup_task_id, d.assignee_emails, d.updated_at, 
+        select
+            d.id, d.title, d.status, d.due_at, d.assignee_emails, d.updated_at,
             c.id as client_id, c.name as client_name
         from deliverables d
         join organizations o on o.id = d.organization_id

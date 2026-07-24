@@ -33,7 +33,6 @@ export type ClientSummary = {
   name: string;
   status: ClientStatus;
   responsible_name: string | null;
-  clickup_folder_id: string | null;
   enabled_modules: ClientModule[];
   deliverables_total: number;
   approvals_pending: number;
@@ -199,7 +198,6 @@ export type DeliverableSummary = {
   title: string;
   status: DeliverableStatus;
   due_at: string | null;
-  clickup_task_id: string | null;
   assignee_emails: string[];
   updated_at: string;
 };
@@ -560,7 +558,6 @@ export type ClientPayload = {
   organization_slug?: string;
   status?: ClientStatus;
   responsible_name?: string | null;
-  clickup_folder_id?: string | null;
   enabled_modules?: ClientModule[];
 };
 
@@ -833,7 +830,6 @@ export type DeliverablePayload = {
   title: string;
   status: DeliverableStatus;
   due_at?: string | null;
-  clickup_task_id?: string | null;
 };
 
 export type EngineeringModuleMaturity = {

@@ -6,7 +6,6 @@ export function normalizeClientPayload(payload: ClientPayload): ClientPayload {
     name: payload.name.trim(),
     organization_name: normalizeOptional(payload.organization_name) ?? payload.name.trim(),
     responsible_name: normalizeOptional(payload.responsible_name),
-    clickup_folder_id: normalizeOptional(payload.clickup_folder_id),
   };
 }
 
@@ -25,7 +24,6 @@ export function normalizeDeliverablePayload(payload: DeliverablePayload): Delive
     ...payload,
     title: payload.title.trim(),
     due_at: normalizeOptional(payload.due_at),
-    clickup_task_id: normalizeOptional(payload.clickup_task_id),
   };
 }
 
@@ -62,17 +60,6 @@ export function artifactKindLabel(kind: string) {
   return labels[kind] ?? kind;
 }
 
-export function clickUpSummary(folderId: string | null, status: string | undefined) {
-  if (!folderId) return "ClickUp sem mapeamento";
-  if (!status) return "ClickUp mapeado";
-  const labels: Record<string, string> = {
-    ok: "ClickUp sincronizado",
-    partial: "ClickUp parcial",
-    error: "ClickUp com erro",
-  };
-  return labels[status] ?? "ClickUp mapeado";
-}
-
 export function auditLabel(eventType: string) {
   const labels: Record<string, string> = {
     "auth.login": "Login",
@@ -85,7 +72,6 @@ export function auditLabel(eventType: string) {
     "deliverable.updated": "Entrega atualizada",
     "deliverable.deleted": "Entrega excluída",
     "approval.decided": "Aprovação decidida",
-    "clickup.sync_requested": "Sync ClickUp solicitado",
   };
   return labels[eventType] ?? eventType;
 }
