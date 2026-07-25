@@ -94,6 +94,17 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
                 score += 8
                 analysis_points.append(f"Palavra-chave identificada: {kw}")
 
+        # Detect technology gaps against EG inventory
+        inventory_skills = [s["skill_name"].lower() for s in proposals_repo.list_tech_skills(conn) if s["status"] == "available"]
+        known_tech_keywords = ["hubspot", "marketo", "salesforce", "magento", "shopify", "webflow", "activecampaign", "klaviyo", "pipedrive"]
+        
+        detected_gaps = []
+        for tech in known_tech_keywords:
+            if tech in full_text and tech not in inventory_skills:
+                detected_gaps.append(tech.capitalize())
+                score -= 10
+                analysis_points.append(f"⚠️ Gap de Tecnologia Identificado: Requer {tech.capitalize()}")
+
         fit_score = min(98, max(20, score))
         fit_analysis = " | ".join(analysis_points) if analysis_points else "Alinhamento geral verificado."
 
@@ -108,13 +119,18 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
             "status": "qualified" if fit_score >= 70 else "new",
             "raw_payload": payload.raw_payload,
         }
-        opp = proposals_repo.create_opportunity(conn, data)
 
-        # Se Fit Score for alto (>= 75), envia notificação ativa de WhatsApp
+        created = proposals_repo.create_opportunity(conn, data)
+        opp_id = UUID(created["id"]) if isinstance(created["id"], str) else created["id"]
+
+        # Save detected skill gaps into repository
+        for missing in detected_gaps:
+            proposals_repo.create_skill_gap(conn, opp_id, missing, payload.title, payload.url)
+
         if fit_score >= 75:
-            _notify_high_fit_opportunity(opp)
+            _notify_high_fit_opportunity(created)
 
-    return OpportunitySummary(**opp)
+        return OpportunitySummary(**created)
 
 
 def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any]:
@@ -177,6 +193,8 @@ def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -
         )
 
         title = opp["title"]
+        matched_cases = proposals_repo.find_matching_cases_for_opportunity(conn, title, opp.get("description"))
+
         proposal_payload = {
             "opportunity_id": str(opp_id),
             "client_name": f"Projeto: {title[:40]}",
@@ -190,6 +208,7 @@ def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -
                 {"item": "Implementação da Estrutura de Conversão & Rastreamento", "pilar": "Conversão", "prazo_dias": 7},
                 {"item": "Otimização de Campanhas e Automação de Leads", "pilar": "Demanda", "prazo_dias": 5},
             ],
+            "attached_cases": matched_cases,
             "pricing_cents": 450000, # R$ 4.500,00 padrão
             "delivery_days": 15,
             "status": "draft",
@@ -225,6 +244,22 @@ def get_public_proposal(public_token: str) -> PublicProposalResponse:
         if not row:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta comercial não encontrada ou expirada.")
     return PublicProposalResponse(**row)
+
+
+def list_tech_skills(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    with connect() as conn:
+        return proposals_repo.list_tech_skills(conn)
+
+
+def list_skill_gaps(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    with connect() as conn:
+        return proposals_repo.list_skill_gaps(conn)
+
+
+def resolve_skill_gap(gap_id: UUID, user: CurrentUserResponse) -> dict[str, Any]:
+    with connect() as conn:
+        return proposals_repo.resolve_skill_gap(conn, gap_id)
+
 
 
 def _notify_high_fit_opportunity(opp: dict[str, Any]):

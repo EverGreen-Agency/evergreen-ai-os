@@ -44,7 +44,108 @@ def ensure_platform_configs_table(conn):
                 created_at timestamptz not null default now(),
                 updated_at timestamptz not null default now()
             );
+            create table if not exists tech_skill_inventory (
+                id uuid primary key default gen_random_uuid(),
+                skill_name varchar(100) not null unique,
+                category varchar(50) not null default 'general',
+                status varchar(20) not null default 'available',
+                case_count integer not null default 1,
+                notes text,
+                created_at timestamptz not null default now(),
+                updated_at timestamptz not null default now()
+            );
+            create table if not exists opportunity_skill_gaps (
+                id uuid primary key default gen_random_uuid(),
+                opportunity_id uuid references opportunity_radar(id) on delete cascade,
+                missing_skill varchar(100) not null,
+                impact_level varchar(20) not null default 'high',
+                opportunity_title text not null,
+                opportunity_url text,
+                status varchar(20) not null default 'open',
+                created_at timestamptz not null default now()
+            );
+            alter table commercial_proposals add column if not exists attached_cases jsonb default '[]'::jsonb;
+            alter table commercial_proposals add column if not exists win_loss_feedback text;
         """)
+
+def list_tech_skills(conn) -> list[dict[str, Any]]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from tech_skill_inventory order by case_count desc, skill_name asc")
+        return list(cur.fetchall())
+
+def upsert_tech_skill(conn, skill_name: str, category: str = "general", notes: str | None = None) -> dict[str, Any]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            insert into tech_skill_inventory (skill_name, category, status, case_count, notes)
+            values (%s, %s, 'available', 1, %s)
+            on conflict (skill_name) do update set
+                category = excluded.category,
+                status = 'available',
+                notes = coalesce(excluded.notes, tech_skill_inventory.notes),
+                updated_at = now()
+            returning *
+            """,
+            (skill_name, category, notes),
+        )
+        return dict(cur.fetchone())
+
+def list_skill_gaps(conn, status_val: str = "open") -> list[dict[str, Any]]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from opportunity_skill_gaps where status = %s order by created_at desc", (status_val,))
+        return list(cur.fetchall())
+
+def create_skill_gap(conn, opp_id: UUID | None, missing_skill: str, opp_title: str, opp_url: str | None = None) -> dict[str, Any]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            insert into opportunity_skill_gaps (opportunity_id, missing_skill, opportunity_title, opportunity_url)
+            values (%s, %s, %s, %s)
+            returning *
+            """,
+            (opp_id, missing_skill, opp_title, opp_url),
+        )
+        return dict(cur.fetchone())
+
+def resolve_skill_gap(conn, gap_id: UUID) -> dict[str, Any]:
+    ensure_platform_configs_table(conn)
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("update opportunity_skill_gaps set status = 'resolved' where id = %s returning *", (gap_id,))
+        row = cur.fetchone()
+        if row:
+            upsert_tech_skill(conn, row["missing_skill"], category="general", notes=f"Adicionado via resolução do gap em '{row['opportunity_title']}'")
+            return dict(row)
+        return {}
+
+def find_matching_cases_for_opportunity(conn, opp_title: str, opp_description: str | None) -> list[dict[str, Any]]:
+    ensure_platform_configs_table(conn)
+    skills = list_tech_skills(conn)
+    matched_cases = []
+    text_search = (opp_title + " " + (opp_description or "")).lower()
+
+    for skill in skills:
+        if skill["status"] == "available" and skill["skill_name"].lower() in text_search:
+            matched_cases.append({
+                "case_title": f"Projeto de Sucesso com {skill['skill_name']}",
+                "description": skill.get("notes") or f"Case validado de implementação de {skill['skill_name']} para clientes B2B.",
+                "skill": skill["skill_name"],
+                "results_highlight": "+40% de conversão e redução de CPL",
+            })
+
+    if not matched_cases:
+        matched_cases.append({
+            "case_title": "Case Geral de Growth & Tração B2B EverGreen",
+            "description": "Estrutura completa de aquisição de clientes com tráfego pago, funil de vendas e automação de atendimento.",
+            "skill": "Growth B2B",
+            "results_highlight": "Arquitetura escalável de vendas e captação de leads",
+        })
+
+    return matched_cases[:3]
+
 
 def list_freelancer_profiles(conn) -> list[dict[str, Any]]:
     ensure_platform_configs_table(conn)

@@ -84,6 +84,29 @@ def delete_freelancer_profile(
     return proposals_service.delete_freelancer_profile(profile_id, user)
 
 
+@router.get("/skills")
+def list_skills(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_tech_skills(user)
+
+
+@router.get("/gaps")
+def list_gaps(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_skill_gaps(user)
+
+
+@router.post("/gaps/{gap_id}/resolve")
+def resolve_gap(
+    gap_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.resolve_skill_gap(gap_id, user)
+
+
+
 
 
 

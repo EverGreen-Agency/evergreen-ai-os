@@ -18,14 +18,27 @@ import {
   Award,
   Globe,
   Trash2,
+  FolderCheck,
+  AlertTriangle,
+  BookOpen,
+  Layers,
 } from "lucide-react";
-import { api, type OpportunitySummary, type ProposalSummary, type FreelancerProfile } from "../../../lib/api";
+import {
+  api,
+  type OpportunitySummary,
+  type ProposalSummary,
+  type FreelancerProfile,
+  type TechSkill,
+  type OpportunitySkillGap,
+} from "../../../lib/api";
 
 export function ProposalsManager() {
-  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit">("radar");
+  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit" | "skills_gaps">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
   const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
+  const [skills, setSkills] = useState<TechSkill[]>([]);
+  const [gaps, setGaps] = useState<OpportunitySkillGap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
 
@@ -52,19 +65,23 @@ export function ProposalsManager() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [oppsRes, propsRes, profilesRes] = await Promise.all([
+      const [oppsRes, propsRes, profilesRes, skillsRes, gapsRes] = await Promise.all([
         api.listOpportunities(),
         api.listProposals(),
         api.listFreelancerProfiles(),
+        api.listTechSkills(),
+        api.listSkillGaps(),
       ]);
       setOpportunities(oppsRes);
       setProposals(propsRes);
       setProfiles(profilesRes);
+      setSkills(skillsRes);
+      setGaps(gapsRes);
       if (profilesRes.length > 0 && !selectedProfileId) {
         setSelectedProfileId(profilesRes[0].id);
       }
     } catch (err) {
-      console.error("Erro ao carregar radar, propostas e perfis:", err);
+      console.error("Erro ao carregar dados de propostas e gaps:", err);
     } finally {
       setIsLoading(false);
     }
@@ -152,6 +169,15 @@ export function ProposalsManager() {
     }
   };
 
+  const handleResolveGap = async (gapId: string) => {
+    try {
+      await api.resolveSkillGap(gapId);
+      await loadData();
+    } catch (err: any) {
+      alert("Erro ao incorporar competência: " + (err.message || "Erro desconhecido"));
+    }
+  };
+
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) || profiles[0];
 
   return (
@@ -163,7 +189,7 @@ export function ProposalsManager() {
             <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-            Varredura contínua de freelas B2B, triagem automática com Score de Fit, auto-auditoria de perfis e gerador de propostas.
+            Varredura contínua de freelas B2B, injeção de cases reais, auditoria por URL e inventário de gaps tecnológicos.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -287,7 +313,24 @@ export function ProposalsManager() {
             gap: "8px",
           }}
         >
-          <UserCheck size={18} /> Auto-Vigilância de Perfil & Portfólio (IA) ({profiles.length})
+          <UserCheck size={18} /> Auto-Vigilância de Perfil ({profiles.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("skills_gaps")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "skills_gaps" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "skills_gaps" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <AlertTriangle size={18} color={gaps.length > 0 ? "#f59e0b" : "inherit"} /> Inventário de Gaps & Competências ({gaps.length})
         </button>
       </div>
 
@@ -422,7 +465,7 @@ export function ProposalsManager() {
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-dim)" }}>{prop.executive_summary}</p>
 
                 {/* Pilares da EG */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "8px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "4px" }}>
                   <div style={{ background: "var(--surface-sunken)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <strong style={{ fontSize: "0.8rem", color: "var(--brand-accent)", display: "block", marginBottom: "4px" }}>Pilar 1: Oferta</strong>
                     <span style={{ fontSize: "0.8rem" }}>{prop.scope_offer || "Estratégia e posicionamento de valor."}</span>
@@ -436,11 +479,27 @@ export function ProposalsManager() {
                     <span style={{ fontSize: "0.8rem" }}>{prop.scope_demand || "Escala de tráfego e prospecção."}</span>
                   </div>
                 </div>
+
+                {/* Cases Injetados Automaticamente */}
+                {prop.attached_cases && prop.attached_cases.length > 0 && (
+                  <div style={{ background: "rgba(16, 185, 129, 0.05)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "8px", padding: "12px", marginTop: "4px" }}>
+                    <strong style={{ fontSize: "0.85rem", color: "#10b981", display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                      <FolderCheck size={16} /> Cases & Provas Sociais Injetados na Proposta:
+                    </strong>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {prop.attached_cases.map((c, idx) => (
+                        <div key={idx} style={{ fontSize: "0.82rem", background: "var(--surface)", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border)" }}>
+                          <strong style={{ color: "var(--text)" }}>{c.case_title} ({c.skill})</strong>: {c.description} — <em style={{ color: "#10b981" }}>{c.results_highlight}</em>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
-      ) : (
+      ) : activeTab === "profile_audit" ? (
         /* ABA 3: AUTO-VIGILÂNCIA & AUDITORIA DE PERFIL IA VIA URL */
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {/* Card de Adicionar Perfil por URL */}
@@ -623,6 +682,97 @@ export function ProposalsManager() {
               )}
             </div>
           )}
+        </div>
+      ) : (
+        /* ABA 4: INVENTÁRIO DE GAPS & COMPETÊNCIAS */
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* Gaps de Tecnologia Exigidos pelas Vagas */}
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: "1.2rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertTriangle color="#f59e0b" size={22} /> Gaps Tecnológicos Identificados no Mercado
+            </h3>
+            <p style={{ margin: "0 0 20px", color: "var(--text-dim)", fontSize: "0.9rem" }}>
+              Tecnologias e ferramentas exigidas em vagas de alto valor que a EG ainda não possui inventariadas. Incorporar essas competências aumenta o Score de Fit de novas oportunidades!
+            </p>
+
+            {gaps.length === 0 ? (
+              <div style={{ padding: "24px", textAlign: "center", background: "var(--bg-inset)", borderRadius: "8px", color: "#10b981", fontSize: "0.9rem" }}>
+                ✅ Nenhum gap de tecnologia pendente! Todas as ferramentas exigidas no mercado já constam no inventário da EG.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {gaps.map((gap) => (
+                  <div
+                    key={gap.id}
+                    style={{
+                      background: "rgba(245, 158, 11, 0.06)",
+                      border: "1px solid rgba(245, 158, 11, 0.25)",
+                      borderRadius: "10px",
+                      padding: "16px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "#000", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                        GAP: {gap.missing_skill.toUpperCase()}
+                      </span>
+                      <h4 style={{ margin: "6px 0 2px", fontSize: "1rem", fontWeight: 600 }}>{gap.opportunity_title}</h4>
+                      <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
+                        Identificado em: {new Date(gap.created_at).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+
+                    <button
+                      className="primary-button"
+                      onClick={() => handleResolveGap(gap.id)}
+                      style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}
+                    >
+                      <Plus size={16} /> Incorporar Skill ao Portfólio EG
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Competências & Cases Inventariados */}
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: "1.2rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+              <Layers color="var(--brand-accent)" size={22} /> Inventário de Competências & Ferramentas da EG ({skills.length})
+            </h3>
+            <p style={{ margin: "0 0 20px", color: "var(--text-dim)", fontSize: "0.9rem" }}>
+              Ferramentas e frameworks disponíveis no arsenal da EverGreen para inclusão automática em propostas comerciais.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+              {skills.map((s) => (
+                <div
+                  key={s.id}
+                  style={{
+                    background: "var(--surface-sunken)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <strong style={{ fontSize: "1rem", color: "var(--brand-accent)" }}>{s.skill_name}</strong>
+                    <span style={{ fontSize: "0.72rem", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", padding: "2px 6px", borderRadius: "4px", fontWeight: 600 }}>
+                      {s.case_count} Case(s) Validados
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: "0.83rem", color: "var(--text-dim)" }}>
+                    {s.notes || "Ferramenta integrada ao repertório estratégico da EG."}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

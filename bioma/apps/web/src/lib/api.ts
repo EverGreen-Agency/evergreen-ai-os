@@ -2008,6 +2008,10 @@ export const api = {
     request<FreelancerProfile>("/backoffice/proposals/profiles/sync", { method: "POST", body: JSON.stringify(payload) }),
   deleteFreelancerProfile: (profileId: string) =>
     request<{ status: string }>(`/backoffice/proposals/profiles/${profileId}`, { method: "DELETE" }),
+  listTechSkills: () => request<TechSkill[]>("/backoffice/proposals/skills"),
+  listSkillGaps: () => request<OpportunitySkillGap[]>("/backoffice/proposals/gaps"),
+  resolveSkillGap: (gapId: string) =>
+    request<OpportunitySkillGap>(`/backoffice/proposals/gaps/${gapId}/resolve`, { method: "POST" }),
 };
 
 export type OpportunityPlatformConfig = {
@@ -2049,6 +2053,7 @@ export type ProposalSummary = {
   scope_conversion: string | null;
   scope_demand: string | null;
   scope_items: Array<{ item: string; pilar?: string; prazo_dias?: number }>;
+  attached_cases?: Array<{ case_title: string; description: string; skill: string; results_highlight: string }>;
   pricing_cents: number;
   delivery_days: number;
   status: "draft" | "approved" | "sent" | "won" | "lost";
@@ -2090,6 +2095,29 @@ export type FreelancerProfile = {
   created_at: string;
   updated_at: string;
 };
+
+export type TechSkill = {
+  id: string;
+  skill_name: string;
+  category: string;
+  status: "available" | "wanted" | "in_progress";
+  case_count: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OpportunitySkillGap = {
+  id: string;
+  opportunity_id: string | null;
+  missing_skill: string;
+  impact_level: "high" | "medium" | "low";
+  opportunity_title: string;
+  opportunity_url: string | null;
+  status: "open" | "resolved" | "ignored";
+  created_at: string;
+};
+
 
 
 
