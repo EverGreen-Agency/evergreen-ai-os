@@ -406,6 +406,10 @@ def get_proposal_by_public_token(conn, public_token: str) -> dict[str, Any] | No
 
 def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
     proposals = list_proposals(conn, limit=500)
+    configs = list_platform_configs(conn)
+    cost_by_platform_key: dict[str, int] = {c["platform_key"]: c.get("monthly_cost_cents", 0) for c in configs}
+    cost_by_platform_name: dict[str, int] = {c["platform_name"].lower(): c.get("monthly_cost_cents", 0) for c in configs}
+
     total_proposals = len(proposals)
     
     status_counts = {"draft": 0, "sent": 0, "won": 0, "lost": 0}
@@ -445,17 +449,42 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
     win_rate = round((status_counts["won"] / decided_proposals * 100), 1) if decided_proposals > 0 else 0.0
     avg_won_ticket = round(total_won_value_cents / status_counts["won"]) if status_counts["won"] > 0 else 0
 
+    total_platform_investment_cents = sum(c.get("monthly_cost_cents", 0) for c in configs)
+    net_growth_profit_cents = total_won_value_cents - total_platform_investment_cents
+    overall_roi = round((net_growth_profit_cents / total_platform_investment_cents * 100), 1) if total_platform_investment_cents > 0 else (100.0 if total_won_value_cents > 0 else 0.0)
+
     platform_performance = []
     for p_name, p_data in platform_map.items():
+        p_lower = p_name.lower()
+        # Find matching platform cost
+        m_cost = 0
+        for pk, cost in cost_by_platform_key.items():
+            if pk in p_lower or p_lower in pk:
+                m_cost = cost
+                break
+        if m_cost == 0 and p_lower in cost_by_platform_name:
+            m_cost = cost_by_platform_name[p_lower]
+
         p_decided = p_data["won"] + p_data["lost"] + p_data["sent"]
         p_win_rate = round((p_data["won"] / p_decided * 100), 1) if p_decided > 0 else 0.0
+        
+        cpp_cents = round(m_cost / p_data["total"]) if p_data["total"] > 0 else 0
+        cac_cents = round(m_cost / p_data["won"]) if p_data["won"] > 0 else m_cost
+        net_profit_cents = p_data["won_value_cents"] - m_cost
+        p_roi = round((net_profit_cents / m_cost * 100), 1) if m_cost > 0 else (100.0 if p_data["won_value_cents"] > 0 else 0.0)
+
         platform_performance.append({
             "platform_name": p_name,
+            "monthly_cost_cents": m_cost,
             "total_proposals": p_data["total"],
             "won_proposals": p_data["won"],
             "lost_proposals": p_data["lost"],
             "win_rate_percentage": p_win_rate,
+            "cost_per_proposal_cents": cpp_cents,
+            "cac_cents": cac_cents,
             "won_revenue_cents": p_data["won_value_cents"],
+            "net_profit_cents": net_profit_cents,
+            "roi_percentage": p_roi,
         })
 
     platform_performance.sort(key=lambda x: x["won_revenue_cents"], reverse=True)
@@ -467,6 +496,10 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
         "total_pipeline_value_cents": total_pipeline_value_cents,
         "total_won_value_cents": total_won_value_cents,
         "average_won_ticket_cents": avg_won_ticket,
+        "total_platform_investment_cents": total_platform_investment_cents,
+        "net_growth_profit_cents": net_growth_profit_cents,
+        "overall_roi_percentage": overall_roi,
         "platform_performance": platform_performance,
     }
+
 

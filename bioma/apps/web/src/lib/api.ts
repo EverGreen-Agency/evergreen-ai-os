@@ -2126,15 +2126,24 @@ export type ProposalAnalytics = {
   total_pipeline_value_cents: number;
   total_won_value_cents: number;
   average_won_ticket_cents: number;
+  total_platform_investment_cents: number;
+  net_growth_profit_cents: number;
+  overall_roi_percentage: number;
   platform_performance: Array<{
     platform_name: string;
+    monthly_cost_cents: number;
     total_proposals: number;
     won_proposals: number;
     lost_proposals: number;
     win_rate_percentage: number;
+    cost_per_proposal_cents: number;
+    cac_cents: number;
     won_revenue_cents: number;
+    net_profit_cents: number;
+    roi_percentage: number;
   }>;
 };
+
 
 
 
