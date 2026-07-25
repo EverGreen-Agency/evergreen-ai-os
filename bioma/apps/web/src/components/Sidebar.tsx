@@ -46,7 +46,7 @@ export function Sidebar({
   }, [location.pathname]);
 
   const groupPrincipal = ["cockpit", "operacao", "clientes"];
-  const groupAdmin = ["engenharia", "eg-wiki", "eg-office", "eg-ideas", "eg-tech", "eg-architecture"];
+  const groupAdmin = visibleNavItems.map(item => item.id).filter(id => !groupPrincipal.includes(id));
   
   const isEgAdmin = user?.organizations?.some(org => org.role === "eg_admin");
 

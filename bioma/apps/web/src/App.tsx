@@ -53,6 +53,9 @@ const RhManagerView = lazy(() =>
 const KitsManagerView = lazy(() =>
   import("./views/admin/kits/KitsManager").then((module) => ({ default: module.KitsManager })),
 );
+const ProposalsManagerView = lazy(() =>
+  import("./views/admin/proposals/ProposalsManager").then((module) => ({ default: module.ProposalsManager })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -103,7 +106,11 @@ export function App() {
   const deleteArtifact = useDeleteArtifact();
 
   const apiOnline = healthData?.status === "ok";
-  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  const isEgAdmin = user
+    ? user.organizations.some((org) => org.role === "eg_admin" || org.slug === "eg") ||
+      user.email.endsWith("@evergreengrowth.com.br") ||
+      user.email.endsWith("@hmconexoes.com.br")
+    : false;
 
   useEffect(() => {
     if (
@@ -344,6 +351,11 @@ export function App() {
           <Route path="/eg-kits" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <KitsManagerView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-propostas" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <ProposalsManagerView />
             </Suspense>,
           )} />
 

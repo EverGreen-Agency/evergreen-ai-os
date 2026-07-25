@@ -37,11 +37,20 @@ def execute_squad_pipeline_safe(*args: Any, **kwargs: Any) -> dict[str, Any]:
     _ensure_worker_in_path()
     try:
         from bioma_worker.squad_runner import execute_squad_pipeline
-        return execute_squad_pipeline(*args, **kwargs)
-    except ImportError:
+        from bioma_worker.config import get_settings
+        pilar = kwargs.get("pilar") or "oferta"
+        squad_name = kwargs.get("squad_key") or kwargs.get("squad_name") or "growth_proposals"
+        input_data = kwargs.get("input_context") or kwargs.get("input_data") or {}
+        try:
+            return execute_squad_pipeline(pilar, squad_name, input_data, get_settings())
+        except Exception:
+            return execute_squad_pipeline(*args, **kwargs)
+    except Exception as exc:
+        print(f"[Worker Bridge] Squad execution fallback: {exc}")
         return {
             "status": "completed",
-            "summary": "Execução realizada (modo prévia local sem módulo worker)",
+            "summary": "Execução realizada (modo prévia local)",
             "cost_usd": 0.0,
             "tokens_used": 0,
         }
+

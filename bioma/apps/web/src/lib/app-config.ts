@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -16,7 +16,8 @@ export type ViewId =
   | "eg-tech"
   | "eg-architecture"
   | "eg-rh"
-  | "eg-kits";
+  | "eg-kits"
+  | "eg-propostas";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
@@ -32,6 +33,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
   { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
   { id: "eg-kits", label: "Logística Kits", icon: Package },
+  { id: "eg-propostas", label: "Radar & Propostas IA", icon: Target },
 ];
 
 export const clientHubNavItems: Array<{
@@ -92,6 +94,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
   "eg-architecture": "hub",
   "eg-rh": "hub",
   "eg-kits": "hub",
+  "eg-propostas": "hub",
 };
 
 export const moduleLabels: Record<ClientModule, string> = {

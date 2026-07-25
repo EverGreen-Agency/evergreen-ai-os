@@ -29,6 +29,7 @@ from bioma_api.routers import (
     tasks,
     whatsapp,
     squads,
+    proposals,
     brand_book,
     editorial_calendar,
 )
@@ -89,6 +90,8 @@ app.include_router(wiki.router)
 app.include_router(kits.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
+app.include_router(proposals.router)
+app.include_router(proposals.public_router)
 
 
 @app.get("/")

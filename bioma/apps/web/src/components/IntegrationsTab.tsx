@@ -25,7 +25,9 @@ import {
   useSetupKommoConfig,
 } from "../hooks/useBiomaApi";
 import { formatDateTime } from "../lib/format";
-import type { PerformanceConnection, PerformanceProvider } from "../lib/api";
+import type { PerformanceConnection, PerformanceProvider, OpportunityPlatformConfig } from "../lib/api";
+import { api } from "../lib/api";
+import { useEffect } from "react";
 import { WhatsAppManager } from "./WhatsAppManager";
 
 const PROVIDER_META: Record<PerformanceProvider, {
@@ -97,6 +99,47 @@ export function IntegrationsTab({
   const createConnection = useCreatePerformanceConnection();
   const updateConnection = useUpdatePerformanceConnection();
   const requestSync = useRequestPerformanceSync();
+
+  const [oppPlatforms, setOppPlatforms] = useState<OpportunityPlatformConfig[]>([]);
+  const [editingPlatformKey, setEditingPlatformKey] = useState<string | null>(null);
+  const [editRssUrl, setEditRssUrl] = useState("");
+  const [editApiKey, setEditApiKey] = useState("");
+  const [editStatus, setEditStatus] = useState<"active" | "paused" | "not_configured">("active");
+  const [editMonthlyCost, setEditMonthlyCost] = useState(0);
+  const [savingPlatform, setSavingPlatform] = useState(false);
+
+  useEffect(() => {
+    loadOppPlatforms();
+  }, []);
+
+  async function loadOppPlatforms() {
+    try {
+      const data = await api.listOpportunityPlatforms();
+      setOppPlatforms(data);
+    } catch (err) {
+      console.error("Erro ao carregar plataformas de oportunidades:", err);
+    }
+  }
+
+  async function handleSavePlatformConfig(e: FormEvent) {
+    e.preventDefault();
+    if (!editingPlatformKey) return;
+    setSavingPlatform(true);
+    try {
+      await api.updateOpportunityPlatform(editingPlatformKey, {
+        status: editStatus,
+        rss_url: editRssUrl || null,
+        api_key_or_token: editApiKey || null,
+        monthly_cost_cents: Math.round(Number(editMonthlyCost) * 100),
+      });
+      setEditingPlatformKey(null);
+      await loadOppPlatforms();
+    } catch (err: any) {
+      alert("Erro ao salvar configuração da plataforma: " + (err.message || "Erro desconhecido"));
+    } finally {
+      setSavingPlatform(false);
+    }
+  }
 
   const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
   const [accountId, setAccountId] = useState("");
@@ -501,6 +544,136 @@ export function IntegrationsTab({
           {syncFeedback && <div className="form-success" style={{ marginTop: 12 }}>{syncFeedback}</div>}
         </section>
       )}
+
+      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) --- */}
+      <section className="section-card" style={{ marginTop: 24 }}>
+        <header className="section-header">
+          <Briefcase size={20} color="var(--brand-accent)" />
+          <div>
+            <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
+            <p className="section-desc">
+              Status das integrações, RSS customizados e lançamento automático de gastos (assinaturas SaaS) no Financeiro.
+            </p>
+          </div>
+        </header>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginTop: 16 }}>
+          {oppPlatforms.map((item) => {
+            const isEditingThis = editingPlatformKey === item.platform_key;
+            const costFormatted = item.monthly_cost_cents > 0
+              ? (item.monthly_cost_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
+              : "Gratuito";
+
+            const statusPillClass = item.status === "active" ? "open" : item.status === "paused" ? "paused" : "draft";
+            const statusLabelText = item.status === "active" ? "Varredura Ativa" : item.status === "paused" ? "Requer Assinatura / Token" : "Não Configurado";
+
+            return (
+              <article
+                key={item.platform_key}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{item.platform_name}</h4>
+                    <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>{item.notes || "Plataforma B2B"}</span>
+                  </div>
+                  <span className={`status-pill ${statusPillClass}`}>{statusLabelText}</span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8rem", color: "var(--text-dim)" }}>
+                  <span style={{ background: "var(--bg-inset)", padding: "2px 8px", borderRadius: 4, color: "var(--brand-accent)", fontWeight: 600 }}>
+                    Custo: {costFormatted}
+                  </span>
+                  {item.rss_url && <span style={{ color: "#10b981" }}>✓ RSS Customizado Salvo</span>}
+                </div>
+
+                {isEditingThis ? (
+                  <form onSubmit={handleSavePlatformConfig} style={{ display: "flex", flexDirection: "column", gap: 10, background: "var(--surface-sunken)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Status da Varredura</label>
+                      <select
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value as any)}
+                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                      >
+                        <option value="active">Ativo (Varredura Ligada)</option>
+                        <option value="paused">Pausado (Requer Assinatura / Token)</option>
+                        <option value="not_configured">Não Configurado</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>URL do Feed RSS Customizado / Busca</label>
+                      <input
+                        type="text"
+                        value={editRssUrl}
+                        onChange={(e) => setEditRssUrl(e.target.value)}
+                        placeholder="https://plataforma.com/rss.xml ou busca salva"
+                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.8rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>API Key / Token de Sessão (opcional)</label>
+                      <input
+                        type="password"
+                        value={editApiKey}
+                        onChange={(e) => setEditApiKey(e.target.value)}
+                        placeholder="Token ou Cookie de Autenticação"
+                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.8rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Custo Mensal do Plano (em R$) - Integra ao Financeiro</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editMonthlyCost}
+                        onChange={(e) => setEditMonthlyCost(Number(e.target.value))}
+                        placeholder="Ex: 59.90 para R$ 59,90/mês"
+                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.8rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                      <button className="primary-button" type="submit" disabled={savingPlatform} style={{ flex: 1, padding: 6, fontSize: 12 }}>
+                        {savingPlatform ? "Salvando..." : "Salvar & Lançar Gastos"}
+                      </button>
+                      <button className="ghost-button" type="button" onClick={() => setEditingPlatformKey(null)} style={{ padding: 6, fontSize: 12 }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    className="mini-button"
+                    type="button"
+                    onClick={() => {
+                      setEditingPlatformKey(item.platform_key);
+                      setEditRssUrl(item.rss_url || "");
+                      setEditApiKey(item.api_key_or_token || "");
+                      setEditStatus(item.status);
+                      setEditMonthlyCost(item.monthly_cost_cents / 100);
+                    }}
+                    style={{ marginTop: "auto" }}
+                  >
+                    <PenLine size={13} /> Configurar Conexão & Gastos
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

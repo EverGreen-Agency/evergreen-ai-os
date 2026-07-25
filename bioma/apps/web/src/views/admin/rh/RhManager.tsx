@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, UserCheck, CheckCircle2, Plus } from "lucide-react";
+import { Users, UserCheck, CheckCircle2, Plus, Clock } from "lucide-react";
 import {
   api,
   type MilestoneTemplateSummary,
@@ -64,126 +64,194 @@ export function RhManager() {
   }
 
   return (
-    <div className="rh-manager-container p-6 space-y-6">
-      <header className="flex items-center justify-between border-b pb-4">
+    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto", color: "var(--text)" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="w-7 h-7 text-indigo-500" /> Gestão de RH & Rampagem (MOD-RH-001)
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", margin: 0 }}>
+            <Users color="var(--brand-accent)" size={28} /> Gestão de RH & Rampagem (MOD-RH-001)
           </h1>
-          <p className="text-sm text-gray-500">
+          <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
             Acompanhamento de onboarding, rampagem de colaboradores e métricas de satisfação.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab("onboarding")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "onboarding" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Planos de Onboarding ({plans.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("templates")}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === "templates" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Marcos Padrão ({templates.length})
-          </button>
-        </div>
-      </header>
+      </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-lg">{error}</div>}
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "12px", borderBottom: "1px solid var(--border)", marginBottom: "24px" }}>
+        <button
+          onClick={() => setActiveTab("onboarding")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "onboarding" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "onboarding" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <UserCheck size={18} /> Planos de Onboarding ({plans.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("templates")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "templates" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "templates" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Clock size={18} /> Marcos Padrão ({templates.length})
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ padding: "12px 16px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", color: "#ef4444", marginBottom: "20px" }}>
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Carregando dados de RH...</div>
+        <div style={{ padding: "40px", textAlign: "center", color: "var(--text-dim)" }}>Carregando dados de RH...</div>
       ) : activeTab === "onboarding" ? (
-        <div className="grid gap-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {plans.length === 0 ? (
-            <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed text-gray-500">
+            <div style={{ padding: "40px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", color: "var(--text-dim)" }}>
               Nenhum plano de onboarding cadastrado no momento.
             </div>
           ) : (
-            plans.map((plan) => (
-              <div key={plan.id} className="p-5 border rounded-xl bg-white shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b pb-3">
-                  <div>
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      <UserCheck className="w-5 h-5 text-emerald-600" /> {plan.user_name}
-                    </h3>
-                    <span className="text-xs text-gray-500">{plan.user_email} • Admissão: {plan.hire_date}</span>
-                  </div>
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold">
-                    {plan.milestones.filter((m) => m.status === "done").length} / {plan.milestones.length} concluídos
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {plan.milestones.map((m) => (
-                    <div
-                      key={m.day_offset + m.title}
-                      onClick={() => handleToggleMilestone(plan.id, m.day_offset, m.status)}
-                      className={`p-3 rounded-lg border cursor-pointer flex items-start gap-3 transition ${
-                        m.status === "done"
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                          : "bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      <CheckCircle2
-                        className={`w-5 h-5 mt-0.5 ${m.status === "done" ? "text-emerald-600" : "text-gray-400"}`}
-                      />
-                      <div>
-                        <div className="font-medium text-sm">D+{m.day_offset}: {m.title}</div>
-                        {m.completed_at && (
-                          <div className="text-xs text-emerald-700 mt-1">Concluído em: {new Date(m.completed_at).toLocaleDateString()}</div>
-                        )}
-                      </div>
+            plans.map((plan) => {
+              const doneCount = plan.milestones.filter((m) => m.status === "done").length;
+              return (
+                <div
+                  key={plan.id}
+                  style={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--glass-border)", paddingBottom: "12px" }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <UserCheck size={20} color="var(--brand-accent)" /> {plan.user_name}
+                      </h3>
+                      <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
+                        {plan.user_email} • Data de Admissão: {plan.hire_date}
+                      </span>
                     </div>
-                  ))}
+                    <span style={{ fontSize: "0.8rem", background: "var(--bg-inset)", color: "var(--brand-accent)", padding: "4px 12px", borderRadius: "16px", fontWeight: 600 }}>
+                      {doneCount} / {plan.milestones.length} marcos concluídos
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+                    {plan.milestones.map((m) => (
+                      <div
+                        key={m.day_offset}
+                        onClick={() => handleToggleMilestone(plan.id, m.day_offset, m.status)}
+                        style={{
+                          background: m.status === "done" ? "rgba(16, 185, 129, 0.08)" : "var(--surface-sunken)",
+                          border: m.status === "done" ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid var(--border)",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <CheckCircle2 size={20} color={m.status === "done" ? "#10b981" : "var(--text-faint)"} />
+                        <div>
+                          <strong style={{ fontSize: "0.85rem", display: "block", color: m.status === "done" ? "#10b981" : "var(--text)" }}>
+                            Dia {m.day_offset}: {m.title}
+                          </strong>
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>
+                            {m.status === "done" ? "Concluído" : "Pendente"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          <form onSubmit={handleCreateTemplate} className="p-4 border rounded-xl bg-white space-y-3">
-            <h3 className="font-semibold text-md flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-600" /> Criar Novo Marco Padrão (Template)
-            </h3>
-            <div className="flex gap-4">
-              <input
-                type="number"
-                placeholder="Offset Dias (ex: 30)"
-                value={newDayOffset}
-                onChange={(e) => setNewDayOffset(Number(e.target.value))}
-                className="w-32 px-3 py-2 border rounded-lg"
-                min={0}
-              />
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {/* Formulário Novo Marco */}
+          <form
+            onSubmit={handleCreateTemplate}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px",
+              padding: "20px",
+              display: "flex",
+              gap: "16px",
+              alignItems: "flex-end",
+            }}
+          >
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Título do Marco de Rampagem</label>
               <input
                 type="text"
-                placeholder="Título do Marco (ex: Alinhamento de Expectativas D+30)"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg"
+                placeholder="Ex: Treinamento inicial de processos EG"
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
-              <button type="submit" className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700">
-                Adicionar
-              </button>
             </div>
+            <div style={{ width: "160px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Dias após Admissão</label>
+              <input
+                type="number"
+                value={newDayOffset}
+                onChange={(e) => setNewDayOffset(Number(e.target.value))}
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+              />
+            </div>
+            <button className="primary-button" type="submit" style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Plus size={18} /> Adicionar Marco
+            </button>
           </form>
 
-          <div className="divide-y border rounded-xl bg-white">
+          {/* Lista de Marcos Padrão */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "12px" }}>
             {templates.map((tpl) => (
-              <div key={tpl.id} className="p-4 flex items-center justify-between">
+              <div
+                key={tpl.id}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <Clock size={20} color="var(--brand-accent)" />
                 <div>
-                  <span className="font-semibold text-indigo-600">D+{tpl.day_offset}:</span>{" "}
-                  <span className="font-medium text-gray-900">{tpl.title}</span>
+                  <strong style={{ fontSize: "0.9rem", display: "block" }}>{tpl.title}</strong>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Executar no Dia {tpl.day_offset}</span>
                 </div>
-                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                  {tpl.status}
-                </span>
               </div>
             ))}
           </div>
