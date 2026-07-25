@@ -261,6 +261,12 @@ def resolve_skill_gap(gap_id: UUID, user: CurrentUserResponse) -> dict[str, Any]
         return proposals_repo.resolve_skill_gap(conn, gap_id)
 
 
+def get_proposal_analytics(user: CurrentUserResponse) -> dict[str, Any]:
+    with connect() as conn:
+        return proposals_repo.get_proposal_analytics_metrics(conn)
+
+
+
 
 def _notify_high_fit_opportunity(opp: dict[str, Any]):
     try:

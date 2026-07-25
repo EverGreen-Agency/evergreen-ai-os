@@ -2012,6 +2012,7 @@ export const api = {
   listSkillGaps: () => request<OpportunitySkillGap[]>("/backoffice/proposals/gaps"),
   resolveSkillGap: (gapId: string) =>
     request<OpportunitySkillGap>(`/backoffice/proposals/gaps/${gapId}/resolve`, { method: "POST" }),
+  getProposalAnalytics: () => request<ProposalAnalytics>("/backoffice/proposals/analytics"),
 };
 
 export type OpportunityPlatformConfig = {
@@ -2117,6 +2118,24 @@ export type OpportunitySkillGap = {
   status: "open" | "resolved" | "ignored";
   created_at: string;
 };
+
+export type ProposalAnalytics = {
+  total_proposals: number;
+  status_counts: { draft: number; sent: number; won: number; lost: number };
+  win_rate_percentage: number;
+  total_pipeline_value_cents: number;
+  total_won_value_cents: number;
+  average_won_ticket_cents: number;
+  platform_performance: Array<{
+    platform_name: string;
+    total_proposals: number;
+    won_proposals: number;
+    lost_proposals: number;
+    win_rate_percentage: number;
+    won_revenue_cents: number;
+  }>;
+};
+
 
 
 

@@ -106,6 +106,14 @@ def resolve_gap(
     return proposals_service.resolve_skill_gap(gap_id, user)
 
 
+@router.get("/analytics")
+def get_analytics(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.get_proposal_analytics(user)
+
+
+
 
 
 

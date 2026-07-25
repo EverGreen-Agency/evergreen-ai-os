@@ -22,6 +22,10 @@ import {
   AlertTriangle,
   BookOpen,
   Layers,
+  BarChart3,
+  TrendingUp,
+  PieChart,
+  Trophy,
 } from "lucide-react";
 import {
   api,
@@ -30,15 +34,17 @@ import {
   type FreelancerProfile,
   type TechSkill,
   type OpportunitySkillGap,
+  type ProposalAnalytics,
 } from "../../../lib/api";
 
 export function ProposalsManager() {
-  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit" | "skills_gaps">("radar");
+  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
   const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
   const [skills, setSkills] = useState<TechSkill[]>([]);
   const [gaps, setGaps] = useState<OpportunitySkillGap[]>([]);
+  const [analytics, setAnalytics] = useState<ProposalAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
 
@@ -65,23 +71,25 @@ export function ProposalsManager() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [oppsRes, propsRes, profilesRes, skillsRes, gapsRes] = await Promise.all([
+      const [oppsRes, propsRes, profilesRes, skillsRes, gapsRes, analyticsRes] = await Promise.all([
         api.listOpportunities(),
         api.listProposals(),
         api.listFreelancerProfiles(),
         api.listTechSkills(),
         api.listSkillGaps(),
+        api.getProposalAnalytics(),
       ]);
       setOpportunities(oppsRes);
       setProposals(propsRes);
       setProfiles(profilesRes);
       setSkills(skillsRes);
       setGaps(gapsRes);
+      setAnalytics(analyticsRes);
       if (profilesRes.length > 0 && !selectedProfileId) {
         setSelectedProfileId(profilesRes[0].id);
       }
     } catch (err) {
-      console.error("Erro ao carregar dados de propostas e gaps:", err);
+      console.error("Erro ao carregar dados de propostas e analytics:", err);
     } finally {
       setIsLoading(false);
     }
@@ -178,6 +186,15 @@ export function ProposalsManager() {
     }
   };
 
+  const handleUpdateProposalStatus = async (proposalId: string, newStatus: ProposalSummary["status"]) => {
+    try {
+      await api.updateProposal(proposalId, { status: newStatus });
+      await loadData();
+    } catch (err: any) {
+      alert("Erro ao atualizar status da proposta: " + (err.message || "Erro desconhecido"));
+    }
+  };
+
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) || profiles[0];
 
   return (
@@ -189,7 +206,7 @@ export function ProposalsManager() {
             <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-            Varredura contínua de freelas B2B, injeção de cases reais, auditoria por URL e inventário de gaps tecnológicos.
+            Varredura contínua de freelas B2B, Big Data de conversão, injeção de cases e auditoria por URL.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -299,6 +316,23 @@ export function ProposalsManager() {
           <FileText size={18} /> Central de Propostas ({proposals.length})
         </button>
         <button
+          onClick={() => setActiveTab("bigdata")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "bigdata" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "bigdata" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <BarChart3 size={18} color="var(--brand-accent)" /> Big Data & Conversão ({analytics?.win_rate_percentage || 0}%)
+        </button>
+        <button
           onClick={() => setActiveTab("profile_audit")}
           style={{
             background: "none",
@@ -330,7 +364,7 @@ export function ProposalsManager() {
             gap: "8px",
           }}
         >
-          <AlertTriangle size={18} color={gaps.length > 0 ? "#f59e0b" : "inherit"} /> Inventário de Gaps & Competências ({gaps.length})
+          <AlertTriangle size={18} color={gaps.length > 0 ? "#f59e0b" : "inherit"} /> Inventário de Gaps ({gaps.length})
         </button>
       </div>
 
@@ -447,7 +481,32 @@ export function ProposalsManager() {
                     </span>
                     <h2 style={{ margin: "4px 0 0", fontSize: "1.2rem", fontWeight: 600 }}>{prop.client_name}</h2>
                   </div>
+
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    {/* Seletor Interativo de Status para Big Data */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "var(--surface-sunken)", padding: "4px 8px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                      <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Status:</span>
+                      <select
+                        value={prop.status}
+                        onChange={(e) => handleUpdateProposalStatus(prop.id, e.target.value as any)}
+                        style={{
+                          background: "var(--surface)",
+                          border: "1px solid var(--border)",
+                          color: prop.status === "won" ? "#10b981" : prop.status === "lost" ? "#ef4444" : prop.status === "sent" ? "#3b82f6" : "var(--text)",
+                          fontWeight: 700,
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          fontSize: "0.82rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value="draft">📝 Rascunho</option>
+                        <option value="sent">📤 Enviada</option>
+                        <option value="won">🏆 Ganha (Fechada)</option>
+                        <option value="lost">❌ Perdida</option>
+                      </select>
+                    </div>
+
                     <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--brand-accent)" }}>
                       R$ {(prop.pricing_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
@@ -498,6 +557,104 @@ export function ProposalsManager() {
               </div>
             ))
           )}
+        </div>
+      ) : activeTab === "bigdata" ? (
+        /* ABA 5: BIG DATA & ANALYTICS DE CONVERSÃO */
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* KPI Cards Big Data */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Trophy size={18} color="#10b981" /> Taxa de Conversão (Win Rate)
+              </span>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#10b981", marginTop: "8px" }}>
+                {analytics?.win_rate_percentage || 0}%
+              </div>
+              <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                {analytics?.status_counts.won || 0} ganhas de {(analytics?.status_counts.won || 0) + (analytics?.status_counts.lost || 0) + (analytics?.status_counts.sent || 0)} propostas finalizadas
+              </span>
+            </div>
+
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <DollarSign size={18} color="var(--brand-accent)" /> Receita Fechada (Vendas)
+              </span>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "var(--brand-accent)", marginTop: "8px" }}>
+                R$ {((analytics?.total_won_value_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                Em propostas com status 'Ganha'
+              </span>
+            </div>
+
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <TrendingUp size={18} color="#3b82f6" /> Ticket Médio por Venda
+              </span>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#3b82f6", marginTop: "8px" }}>
+                R$ {((analytics?.average_won_ticket_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                Valor médio por contrato fechado
+              </span>
+            </div>
+
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <FileText size={18} color="var(--text)" /> Volume Total no Histórico
+              </span>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "var(--text)", marginTop: "8px" }}>
+                R$ {((analytics?.total_pipeline_value_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                {analytics?.total_proposals || 0} propostas catalogadas
+              </span>
+            </div>
+          </div>
+
+          {/* Tabela de Desempenho por Plataforma/Canal */}
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "1.2rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+              <PieChart color="var(--brand-accent)" size={22} /> Desempenho Big Data por Plataforma & Canal
+            </h3>
+
+            {!analytics?.platform_performance || analytics.platform_performance.length === 0 ? (
+              <div style={{ padding: "24px", textAlign: "center", background: "var(--bg-inset)", borderRadius: "8px", color: "var(--text-dim)" }}>
+                Nenhum dado de conversão suficiente por plataforma no momento.
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                      <th style={{ padding: "12px", color: "var(--text-dim)" }}>Plataforma / Canal</th>
+                      <th style={{ padding: "12px", color: "var(--text-dim)" }}>Total de Propostas</th>
+                      <th style={{ padding: "12px", color: "var(--text-dim)" }}>Propostas Ganhas</th>
+                      <th style={{ padding: "12px", color: "var(--text-dim)" }}>Win Rate (%)</th>
+                      <th style={{ padding: "12px", color: "var(--text-dim)" }}>Receita Gerada (R$)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.platform_performance.map((p, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid var(--border)" }}>
+                        <td style={{ padding: "12px", fontWeight: 600, color: "var(--brand-accent)" }}>{p.platform_name}</td>
+                        <td style={{ padding: "12px" }}>{p.total_proposals}</td>
+                        <td style={{ padding: "12px", color: "#10b981", fontWeight: 600 }}>{p.won_proposals}</td>
+                        <td style={{ padding: "12px" }}>
+                          <span style={{ background: p.win_rate_percentage >= 50 ? "rgba(16, 185, 129, 0.15)" : "var(--bg-inset)", color: p.win_rate_percentage >= 50 ? "#10b981" : "var(--text)", padding: "4px 8px", borderRadius: "6px", fontWeight: 700 }}>
+                            {p.win_rate_percentage}%
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px", fontWeight: 700 }}>
+                          R$ {(p.won_revenue_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       ) : activeTab === "profile_audit" ? (
         /* ABA 3: AUTO-VIGILÂNCIA & AUDITORIA DE PERFIL IA VIA URL */

@@ -403,3 +403,70 @@ def get_proposal_by_public_token(conn, public_token: str) -> dict[str, Any] | No
         )
         row = cur.fetchone()
         return dict(row) if row else None
+
+def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
+    proposals = list_proposals(conn, limit=500)
+    total_proposals = len(proposals)
+    
+    status_counts = {"draft": 0, "sent": 0, "won": 0, "lost": 0}
+    total_pipeline_value_cents = 0
+    total_won_value_cents = 0
+    
+    platform_map: dict[str, dict[str, Any]] = {}
+
+    for prop in proposals:
+        st = prop.get("status", "draft")
+        if st in status_counts:
+            status_counts[st] += 1
+        else:
+            status_counts["draft"] += 1
+            
+        price = prop.get("pricing_cents", 0) or 0
+        total_pipeline_value_cents += price
+        
+        if st == "won":
+            total_won_value_cents += price
+
+        platform = (prop.get("target_niche") or "Outros").capitalize()
+        if platform not in platform_map:
+            platform_map[platform] = {"total": 0, "won": 0, "lost": 0, "sent": 0, "total_value_cents": 0, "won_value_cents": 0}
+            
+        platform_map[platform]["total"] += 1
+        platform_map[platform]["total_value_cents"] += price
+        if st == "won":
+            platform_map[platform]["won"] += 1
+            platform_map[platform]["won_value_cents"] += price
+        elif st == "lost":
+            platform_map[platform]["lost"] += 1
+        elif st == "sent":
+            platform_map[platform]["sent"] += 1
+
+    decided_proposals = status_counts["won"] + status_counts["lost"] + status_counts["sent"]
+    win_rate = round((status_counts["won"] / decided_proposals * 100), 1) if decided_proposals > 0 else 0.0
+    avg_won_ticket = round(total_won_value_cents / status_counts["won"]) if status_counts["won"] > 0 else 0
+
+    platform_performance = []
+    for p_name, p_data in platform_map.items():
+        p_decided = p_data["won"] + p_data["lost"] + p_data["sent"]
+        p_win_rate = round((p_data["won"] / p_decided * 100), 1) if p_decided > 0 else 0.0
+        platform_performance.append({
+            "platform_name": p_name,
+            "total_proposals": p_data["total"],
+            "won_proposals": p_data["won"],
+            "lost_proposals": p_data["lost"],
+            "win_rate_percentage": p_win_rate,
+            "won_revenue_cents": p_data["won_value_cents"],
+        })
+
+    platform_performance.sort(key=lambda x: x["won_revenue_cents"], reverse=True)
+
+    return {
+        "total_proposals": total_proposals,
+        "status_counts": status_counts,
+        "win_rate_percentage": win_rate,
+        "total_pipeline_value_cents": total_pipeline_value_cents,
+        "total_won_value_cents": total_won_value_cents,
+        "average_won_ticket_cents": avg_won_ticket,
+        "platform_performance": platform_performance,
+    }
+
