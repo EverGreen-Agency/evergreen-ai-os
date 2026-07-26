@@ -65,7 +65,7 @@ export function App() {
   const routerNavigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   

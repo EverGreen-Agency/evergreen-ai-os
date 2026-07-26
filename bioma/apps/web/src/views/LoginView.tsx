@@ -1,5 +1,5 @@
-import { FormEvent } from "react";
-import { LogIn, BarChart2, Workflow, ShieldCheck, ArrowRight } from "lucide-react";
+import { useState, FormEvent } from "react";
+import { LogIn, BarChart2, Workflow, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { apiUrl } from "../lib/api";
 import { GoogleIcon } from "../components/shared";
 
@@ -20,7 +20,10 @@ export function LoginView({
   onPasswordChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   const whatsappUrl =
+
     "https://wa.me/5511989966989?text=Vim%20pelo%20Bioma%20e%20gostaria%20de%20saber%20mais%20sobre%20a%20EverGreen.";
   // Reset de senha é gerado pelo EG admin (AUTH-002); o caminho do usuário é
   // pedir o link pelo canal de atendimento.
@@ -129,14 +132,38 @@ export function LoginView({
             </label>
             <label>
               Senha
-              <input
-                value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
+              <div style={{ position: "relative", display: "flex", alignItems: "center", width: "100%" }}>
+                <input
+                  value={password}
+                  onChange={(e) => onPasswordChange(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  style={{ paddingRight: "40px", width: "100%" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-dim)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "4px",
+                  }}
+                  title={showPassword ? "Ocultar senha" : "Exibir senha"}
+                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </label>
+
 
             {loginError && <span className="form-error">{loginError}</span>}
 
