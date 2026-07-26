@@ -34,9 +34,9 @@ Documentos operacionais:
 
 ## Estado atual
 
-Data de referência: 2026-07-21.
+Data de referência: 2026-07-26.
 
-O MVP técnico local está testável e operável. O MVP comercial baseado na proposta HM ainda não está concluído nem publicado em staging.
+O MVP técnico local está testável, operável e expandido com o motor completo da Mega-Plataforma. O MVP comercial baseado na proposta HM evoluiu para uma infraestrutura all-in-one para a EverGreen.
 
 Funcional hoje:
 
@@ -52,22 +52,33 @@ Funcional hoje:
 - Aprovar/reprovar pendência pelo front.
 - EG admin consegue solicitar aprovação de uma entrega pelo front; o cliente decide no próprio hub.
 - Cliente enxerga apenas o próprio hub no seed.
-- ClickUp Bridge manual e unidirecional: ClickUp → projeção local somente leitura.
+- ClickUp aposentado com reconciliação e snapshot legado; Bioma é a única fonte de verdade operacional.
 - CORS local para `localhost:5173` e `127.0.0.1:5173`.
 - Área documentada para assets em `apps/web/public/assets/`.
 - Smoke test básico de API em `apps/api/scripts/smoke_api.py`.
 - Módulo de Performance com schema multi-tenant, API de leitura e conexões por cliente.
-- Worker executável para Google Ads, GA4, Search Console e GTM, com fila durável no Postgres.
-- CRM/funil e financeiro com backend e telas mínimas integradas no frontend.
-- Analytics principal consumindo endpoints reais de Performance do Bioma, ainda com dados demo até credenciais reais.
-- Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`, reutilizando os mesmos módulos dos hubs sem misturar dados.
-- Navegador de workspaces pesquisável no Topbar, com recentes e atalho `Ctrl/⌘ K`; a carteira completa permanece em página própria.
-- Identidade de workspace persistente em `workspaces`, com backfill/provisionamento transacional e descoberta autenticada por `GET /workspaces`; módulos ainda usam adapters `client_id` onde necessário.
-- Configuração de deploy, CI, bootstrap seguro e smoke remoto preparados; staging externo ainda não foi criado.
-- Upload/download/exclusão de documentos por cliente (visibilidade interna/cliente) via storage S3-compatible, com painel no front em Conteúdo; requer `STORAGE_S3_*` configurado no ambiente (503 controlado se ausente).
-- Tarefas nativas do Bioma com CRUD, subtarefas, dependências e recorrência idempotente, protegidas por workspace e capability.
-- Times, atribuições e papéis `platform_admin`, `tenant_admin`, `workspace_manager`, `operator`, `approver`, `viewer` e adapter legado `client_user`.
-- Remoção cotidiana de cliente por archive; purge físico separado, confirmado, auditado e com limpeza S3.
+- Worker executável para Google Ads, GA4, Search Console e GTM, Meta Ads e LinkedIn Ads com fila durável no Postgres.
+- CRM/funil e financeiro integrados com lançamento automático de assinaturas SaaS de prospecção em `financial_records`.
+- Analytics principal consumindo endpoints reais de Performance e Big Data Comercial.
+- Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`.
+- **Radar de Oportunidades & Freelancers**:
+  - Varredura manual e agendada de 17 plataformas B2B (Workana, Upwork, 99freela, Toptal, Freelancer.com.br, WeWorkRemotely, Contra, Malt, Guru, etc.).
+  - Triagem de fit de oportunidades com scoring de 0-100 e elaboração de proposta comercial em 3 pilares (Oferta/Demanda/Conversão).
+  - Configuração interativa de RSS, Tokens, API Keys e custo mensal de subscrição das plataformas.
+- **Auto-Vigilância & Auditoria Automática de Perfil por URL**:
+  - Scraper e auditor automático por link/URL (`profile_auditor.py` + tabela `freelancer_profiles`).
+  - Raio-X com nota de autoridade (0-100), pontos fortes, gaps identificados, headline otimizada e bio em copy persuasiva pronta para copiar.
+- **Injeção Automática de Cases & Provas Sociais nas Propostas**:
+  - Cruzamento de requisitos de vagas com o acervo de cases validados da EG (`attached_cases`), injetando resultados e métricas reais nas propostas comerciais.
+- **Inventário de Gaps Tecnológicos do Mercado**:
+  - Detecção automática de ferramentas faltantes (HubSpot, Marketo, Salesforce, Shopify, etc.) nas vagas triadas (`opportunity_skill_gaps`).
+  - Incorporação de novas habilidades ao inventário (`tech_skill_inventory`) em 1 clique para aumentar o fit de futuras propostas.
+- **Painel de Big Data, ROI & CAC por Plataforma**:
+  - Seletor interativo de status de propostas (`Rascunho`, `Enviada`, `Ganha`, `Perdida`).
+  - Cálculo automático de Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Receita Ganha, Lucro Líquido de Prospecção e ROI (%) por canal de vendas.
+- **Redesenho de Design System em Módulos Nativos (RH & Kits)**:
+  - Substituição de Tailwind por tokens CSS do Bioma (`status-pill open`, `status-pill paused`, etc.), garantindo 100% de padronização visual.
+
 
 Ainda demo/dry-run:
 
@@ -470,4 +481,6 @@ Formato:
 - 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
 - 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
 - 2026-07-23 - Claude Code (Opus 4.8) - ver git log - Hardening blocos 1 e 2: (1) deduplicação de acesso — `_is_platform_admin`/`_accessible_client` removidos de client_hub/files/performance/invites e colapsados em `access.resolve_accessible_client`, fonte única do isolamento multi-tenant; (2) QUEUE-001 reaper — migration 0025 (`heartbeat_at`/`attempts`), `reclaim_stalled_jobs` no início do ciclo do worker, heartbeat entre providers, lease 900s/3 tentativas; (3) rate limit em Postgres — migration 0026 (`login_attempts`, chave `sha256(ip:email)`), registro fora da transação do 401, purga no `cleanup.py`; (4) CONTRACT-001 — `export_openapi.py` gera `openapi.json` versionado, `npm run types:api` gera `api-schema.d.ts`, `contract-conformance.ts` trava drift em compile, CI valida os dois lados; (5) suíte pytest `apps/api/tests/` (58 testes sem banco) + job `api-unit` na CI. Placeholder de contrato removido - compileall API/worker, pytest 58/58, export_openapi --check, tsc -b e build web passaram; drift injetado/revertido para provar a trava - migrations 0025/0026 aplicadas e suíte de smokes (api, performance, worker, queue, vault, reaper, invites, authz, tasks, password) executada contra Postgres local em localhost:5433, com banco isolado `bioma_smoke` para os mutáveis; todos passaram.
-- 2026-07-23 - Codex - ver git log - AI-OPS-001/FINOPS-AI-001: control plane interno com quatro workflows versionados (proposta, onboarding Bioma, LinkedIn e entrega Tech), execução idempotente e checkpoints HITL; dashboard EG de assinaturas, cotas com fonte, consumo por provedor/modelo e ledger automático do Estúdio IA - migration 0029 aplicada apenas em `bioma_aiops_smoke`, smoke completo passou e o banco temporário foi removido; compile API/worker, pytest completo, contrato OpenAPI/tipos, tsc, build web, npm audit (0 vulnerabilidades) e diff-check passaram.
+- 2026-07-25 - Antigravity - af524a8 - MOD-PROPOSTAS-RADAR-001 e MOD-BIGDATA-ROI-001: Radar de Oportunidades com varredura em 17 plataformas, integrador de custos SaaS no financeiro, auto-vigilância por URL (`profile_auditor.py`), injeção de cases (`attached_cases`), inventário de gaps (`opportunity_skill_gaps`), e painel Big Data de conversão (Win Rate %), CPP, CAC e ROI por plataforma - migrations 0042, 0043, 0044, `test_proposals_flow.py` (51/51 pytest), `npx tsc --noEmit` (0 erros), git commit na branch `develop`.
+- 2026-07-26 - Antigravity - 307f86c - Motor financeiro de ROI, CAC e custo por proposta por plataforma integrado ao Big Data e ao Repositório de Propostas - `npx tsc --noEmit` + 51/51 pytest sem erros.
+

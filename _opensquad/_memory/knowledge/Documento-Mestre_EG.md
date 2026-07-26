@@ -107,7 +107,16 @@ Tecnologia não é “enfeite de pitch”. É diferencial real quando melhora:
 
 * escala com margem.
 
+### **Infraestrutura Própria de Atração & Prospecção B2B (Bioma)**
+A EG opera um motor automatizado de prospecção no Bioma com 5 frentes tecnológicas ativas:
+* **Radar de Oportunidades & Plataformas B2B**: Varredura manual e por worker em 17 plataformas (Workana, Upwork, 99freela, Toptal, Freelancer.com.br, WeWorkRemotely, Contra, Malt, Guru, etc.) com scoring de fit (0-100) e geração de propostas nos 3 pilares da EG (Oferta, Demanda, Conversão).
+* **Auto-Vigilância & Auditoria Automática de Perfil por URL**: Scraper e auditor por link de perfil público (`profile_auditor.py`) que avalia autoridade (0-100), diagnostica pontos fortes/gaps e gera bio em copy de alta conversão.
+* **Injeção Automática de Cases & Provas Sociais**: Pareamento de requisitos de vagas com o acervo de cases validados da EG (`attached_cases`), injetando provas numéricas nas propostas.
+* **Inventário de Gaps Tecnológicos do Mercado**: Mapeamento de tecnologias exigidas no mercado (`opportunity_skill_gaps`) com assimilação ao portfólio da agência (`tech_skill_inventory`) em 1 clique.
+* **Big Data Comercial & Analytics de ROI/CAC por Plataforma**: Medição do Win Rate %, Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Lucro Líquido de Prospecção e ROI (%) por canal de vendas, integrando os custos de assinaturas SaaS diretamente com o módulo **Financeiro**.
+
 Aprofundamento (arquitetura, stack, squads) no documento operacional: [EG\_Arquitetura\_de\_Squads\_e\_IA](https://docs.google.com/document/u/0/d/10OfMcp8CxBrD5sF203qPRsNPDQjexgW_HZC9Pfo34So/edit)
+
 
 ## **Service-as-a-Software: oferta invisível**
 

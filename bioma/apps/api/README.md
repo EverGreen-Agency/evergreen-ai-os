@@ -7,12 +7,26 @@ Responsabilidades iniciais:
 - auth e sessão;
 - escopo por cliente;
 - descoberta persistente de workspaces por tenant;
+# Bioma API
+
+Backend HTTP do Bioma MVP v0.
+
+Responsabilidades iniciais:
+
+- auth e sessão;
+- escopo por cliente;
+- descoberta persistente de workspaces por tenant;
 - CRM/funil de leads;
 - financeiro mínimo;
 - métricas manuais/analytics honesto;
 - audit log;
 - motor nativo de projetos, contratos, escopo, tarefas e entregas;
 - cofre de acessos cifrado e auditado;
+- **Radar de Oportunidades & Freelancers (17 plataformas B2B)**;
+- **Auto-Vigilância & Auditoria Automática de Perfil por URL (`profile_auditor.py`)**;
+- **Injeção Automática de Cases & Provas Sociais nas Propostas (`attached_cases`)**;
+- **Inventário de Gaps Tecnológicos do Mercado (`opportunity_skill_gaps` e `tech_skill_inventory`)**;
+- **Big Data Comercial & Analytics de ROI/CAC por Plataforma**;
 - importador ClickUp legado, sem superfície de sincronização no produto;
 - publicação de artefatos para o Client Hub;
 - healthcheck para staging e produção.
@@ -67,7 +81,7 @@ Carteiras e autorização usam `tenant_memberships`, `teams`, `team_memberships`
 
 Preferências do navegador ficam em `workspace_favorites` e `workspace_saved_views`. A descoberta em `GET /workspaces` informa `is_favorite` e `is_assigned`; favoritos usam `/workspaces/{id}/favorite` e visões salvas usam `/workspaces/views`.
 
-O Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
+The Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
 
 `/backoffice/ai-operations` é exclusivo de EG admin e oferece FinOps de IA, catálogo/instalação de workflows, runs idempotentes, aprovação e conclusão ordenada de etapas. A migration `0029_ai_operations_finops.sql` não inclui seed. O smoke `scripts/smoke_ai_operations.py` valida assinatura, cota, ledger, idempotência e HITL apenas em banco `_smoke`/`_test`.
 
@@ -95,4 +109,16 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 - `GET/POST/PATCH/DELETE /clients/{client_id}/finance`
 - `GET/POST/PATCH/DELETE /clients/{client_id}/metrics`
 
-Esses endpoints cobrem o mínimo da proposta HM: funil de leads, controle financeiro e analytics manual enquanto integrações de mídia não estão conectadas.
+## Endpoints de Prospecção, Radar & Big Data (`/backoffice/proposals`)
+
+- `GET /backoffice/proposals/opportunities`: Lista oportunidades varridas.
+- `POST /backoffice/proposals/opportunities/ingest`: Triagem manual de vaga.
+- `POST /backoffice/proposals/opportunities/sync`: Dispara varredura em 17 plataformas.
+- `POST /backoffice/proposals/opportunities/{id}/generate`: Gera proposta em 3 pilares com injeção de cases.
+- `GET/POST/PATCH /backoffice/proposals`: Gerenciador de propostas comerciais (com seletor de status `draft`, `sent`, `won`, `lost`).
+- `GET /backoffice/proposals/platforms`: Lista e configura custos de assinaturas SaaS de plataformas.
+- `GET/POST/DELETE /backoffice/proposals/profiles`: Gerencia perfis para auto-vigilância.
+- `POST /backoffice/proposals/profiles/sync`: Raspa e audita perfil freelancer por URL pública.
+- `GET /backoffice/proposals/skills`: Lista competências e cases do acervo EG.
+- `GET /backoffice/proposals/gaps` e `POST /gaps/{gap_id}/resolve`: Gerencia e incorpora gaps tecnológicos ao acervo.
+- `GET /backoffice/proposals/analytics`: Retorna métricas de Big Data (Win Rate %, CPP, CAC, Lucro Líquido e ROI % por canal).

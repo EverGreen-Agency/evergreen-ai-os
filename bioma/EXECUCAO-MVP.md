@@ -149,6 +149,8 @@ Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/me
 | MOD-SAAS-BILLING-001 | TODO | Full-stack | Stripe: planos, cupons, cotas, clientes legado, suspensão de acesso (retenção, nunca backdoor) | mod-multitenant (já herdado) | — |
 | MOD-CERTIFICACOES-001 | DONE | Full-stack | Certificações de funcionário e da própria EG (status active/expiring_soon/expired calculado, sem cron) | TEAM-001 | migration 0040 + `smoke_certifications.py` (autoatendimento vs. gate de terceiro, 3 status, certificação sem dono) |
 | MOD-CONTRATOS-001 | DONE | Arquitetura | ADR: Autentique permanece externo como adapter de assinatura; Bioma é fonte de verdade do contrato (campos já existiam em PROJECT-001) | PROJECT-001 | `docs/adr/0003-autentique-contratos.md` |
+| MOD-PROPOSTAS-RADAR-001 | DONE | Full-stack/Worker | Radar de Oportunidades em 17 plataformas B2B, scrapers/RSS, auditoria por URL (`profile_auditor.py`), injeção de cases e inventário de gaps | AUTHZ-WS-001 | migrations 0042/0043/0044 + `test_proposals_flow.py` (51/51 pytest) |
+| MOD-BIGDATA-ROI-001 | DONE | Full-stack | Motor Big Data Comercial: seletor de status de propostas, analytics de conversão (Win Rate %), CPP, CAC por plataforma, receita ganha, lucro líquido e ROI (%) | MOD-PROPOSTAS-RADAR-001 | `get_proposal_analytics_metrics` + `ProposalsManager.tsx` + `npx tsc --noEmit` + `pytest` |
 | INT-AUT-001 | BLOCKED | Backend | Escrever/ler adapter Autentique real (criar documento, webhook de assinatura) | credencial/API key Autentique | comparação com documento assinado real |
 
 ## Template de handoff
