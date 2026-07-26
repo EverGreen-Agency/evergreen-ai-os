@@ -27,7 +27,7 @@ const MODULE_DESCRIPTIONS: Record<ClientModule, string> = {
   engineering: "Documentação técnica",
 };
 
-const STEPS = ["Identidade", "Módulos", "Onboarding"] as const;
+const STEPS = ["Identidade", "Módulos", "Entregas Iniciais"] as const;
 
 export function NewClientWizard({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
@@ -185,7 +185,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
                 Status Inicial
                 <select value={status} onChange={(e) => setStatus(e.target.value as ClientStatus)} style={{ padding: "10px", borderRadius: "6px" }}>
-                  {(["onboarding", "active", "paused"] as ClientStatus[]).map((value) => (
+                  {(["onboarding", "active", "completed", "paused", "archived"] as ClientStatus[]).map((value) => (
                     <option key={value} value={value}>{statusLabel[value]}</option>
                   ))}
                 </select>
@@ -276,16 +276,41 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          {/* ETAPA 3: ONBOARDING & KICKOFF EXPLICADO */}
+          {/* ETAPA 3: ENTREGAS INICIAIS ADAPTATIVAS */}
           {step === 2 && (
             <div>
               <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", borderRadius: "8px", padding: "12px 14px", marginBottom: "16px" }}>
                 <strong style={{ fontSize: "0.88rem", color: "#10b981", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Rocket size={16} /> Arranque Inicial (Kickoff Automatizado)
+                  <Rocket size={16} /> Entregas & Marcos de Arranque ({statusLabel[status]})
                 </strong>
                 <p style={{ margin: "4px 0 0", color: "var(--text)", fontSize: "0.82rem", lineHeight: 1.4 }}>
-                  Ao criar o cliente, estas entregas de onboarding serão criadas automaticamente no Hub para que a equipe EG inicie o atendimento imediatamente. Desmarque qualquer item que não desejar:
+                  {status === "onboarding"
+                    ? "Mesmo com o cliente em onboarding, o sistema já gera estas entregas essenciais no Hub para alinhar o atendimento inicial."
+                    : status === "active"
+                    ? "Para clientes ativos/em recorrência, você pode selecionar quais entregas operacionais já devem iniciar criadas no Hub do cliente."
+                    : status === "completed"
+                    ? "Para clientes de sprints/projetos concluídos, selecione as entregas finalizadas para manter o histórico estruturado no Hub."
+                    : "Entregas base selecionadas para documentar o histórico do cliente no Hub."}
                 </p>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--text-dim)", fontWeight: 600 }}>
+                  Entregas sugeridas ({onboarding.size}/{ONBOARDING_TEMPLATE.length}):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onboarding.size === ONBOARDING_TEMPLATE.length) {
+                      setOnboarding(new Set());
+                    } else {
+                      setOnboarding(new Set(ONBOARDING_TEMPLATE));
+                    }
+                  }}
+                  style={{ background: "none", border: "none", color: "var(--brand-accent)", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600 }}
+                >
+                  {onboarding.size === ONBOARDING_TEMPLATE.length ? "Desmarcar Todas" : "Selecionar Todas"}
+                </button>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
@@ -335,7 +360,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.85rem" }}>
                 <strong style={{ color: "var(--brand-accent)" }}>{name || "—"}</strong> · {organization || "—"}<br />
                 <span style={{ color: "var(--text-dim)" }}>
-                  Status: {statusLabel[status]} • {1 + modules.size} Módulos Habilitados • {onboarding.size} Entregas de Kickoff
+                  Status: <strong>{statusLabel[status]}</strong> • {1 + modules.size} Módulos Habilitados • {onboarding.size} Entregas Iniciais
                 </span>
               </div>
             </div>

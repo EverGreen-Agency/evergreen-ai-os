@@ -3945,7 +3945,7 @@ export interface components {
              * @default onboarding
              * @enum {string}
              */
-            status: "onboarding" | "active" | "paused" | "archived";
+            status: "onboarding" | "active" | "paused" | "completed" | "archived";
         };
         /** ClientFileDownloadResponse */
         ClientFileDownloadResponse: {
@@ -4034,7 +4034,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "onboarding" | "active" | "paused" | "archived";
+            status: "onboarding" | "active" | "paused" | "completed" | "archived";
         };
         /** ClientUpdateRequest */
         ClientUpdateRequest: {
@@ -4047,7 +4047,7 @@ export interface components {
             /** Responsible Name */
             responsible_name?: string | null;
             /** Status */
-            status?: ("onboarding" | "active" | "paused" | "archived") | null;
+            status?: ("onboarding" | "active" | "paused" | "completed" | "archived") | null;
         };
         /** CommercialPortalResponse */
         CommercialPortalResponse: {
@@ -7865,7 +7865,7 @@ export interface components {
             /** Client Id */
             client_id?: string | null;
             /** Client Status */
-            client_status?: ("onboarding" | "active" | "paused" | "archived") | null;
+            client_status?: ("onboarding" | "active" | "paused" | "completed" | "archived") | null;
             /** Enabled Modules */
             enabled_modules?: string[];
             /**

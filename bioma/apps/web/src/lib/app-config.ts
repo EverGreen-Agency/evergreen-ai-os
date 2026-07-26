@@ -127,8 +127,9 @@ export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmi
 
 export const statusLabel: Record<ClientStatus, string> = {
   onboarding: "Onboarding",
-  active: "Ativo",
+  active: "Ativo (Recorrência)",
   paused: "Pausado",
+  completed: "Projeto Concluído",
   archived: "Arquivado",
 };
 

@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-ClientStatus = Literal["onboarding", "active", "paused", "archived"]
+ClientStatus = Literal["onboarding", "active", "paused", "completed", "archived"]
 ArtifactVisibility = Literal["internal", "client"]
 DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
 ApprovalStatus = Literal["pending", "approved", "rejected", "cancelled"]

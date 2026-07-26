@@ -23,7 +23,7 @@ export type CurrentUser = {
   }>;
 };
 
-export type ClientStatus = "onboarding" | "active" | "paused" | "archived";
+export type ClientStatus = "onboarding" | "active" | "paused" | "completed" | "archived";
 
 export type ClientSummary = {
   id: string;
