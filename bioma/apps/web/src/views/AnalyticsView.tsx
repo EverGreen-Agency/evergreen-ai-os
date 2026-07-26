@@ -13,8 +13,10 @@ import {
   Tags,
   Target,
   TrendingUp,
+  Printer,
 } from "lucide-react";
 import { EmptyState, SectionHeader } from "../components/shared";
+import { ExecutiveReportPdfModal } from "../components/ExecutiveReportPdfModal";
 import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
 import {
   api,
@@ -538,6 +540,28 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
 
   const ads = overview?.ads;
 
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [syncingMedia, setSyncingMedia] = useState(false);
+
+  const handleSyncMedia = async () => {
+    if (!effectiveClientId) return;
+    setSyncingMedia(true);
+    try {
+      await api.syncPerformanceMedia(effectiveClientId);
+      const [nextOverview, nextCampaigns] = await Promise.all([
+        api.performanceOverview(effectiveClientId),
+        api.adsCampaigns(effectiveClientId),
+      ]);
+      setOverview(nextOverview);
+      setCampaigns(nextCampaigns);
+      alert("Sincronização de mídia (Meta Ads & LinkedIn Ads) solicitada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao sincronizar mídia: " + (err.message || "Erro de conexão."));
+    } finally {
+      setSyncingMedia(false);
+    }
+  };
+
   return (
     <section className="analytics-layout">
       {error && <div className="notice error">{error}</div>}
@@ -551,13 +575,58 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
               : "Sem dados de Performance para o período atual."}
           </p>
         </div>
-        <div className="analytics-actions">
-          <button className="ghost-button dark" type="button" disabled>
-            <RefreshCw size={16} />
-            Sync manual pelo backend
+        <div className="analytics-actions" style={{ display: "flex", gap: "10px" }}>
+          <button className="secondary-button" type="button" onClick={handleSyncMedia} disabled={syncingMedia}>
+            <RefreshCw size={16} className={syncingMedia ? "spin" : ""} />
+            {syncingMedia ? "Sincronizando..." : "Varredura de Mídia em Tempo Real"}
+          </button>
+          <button className="primary-button" type="button" onClick={() => setIsPdfModalOpen(true)}>
+            <Printer size={16} /> Exportar Relatório Executivo PDF
           </button>
         </div>
       </div>
+
+      {isPdfModalOpen && overview && (
+        <ExecutiveReportPdfModal
+          data={{
+            title: `Relatório Executivo de Performance`,
+            subtitle: `Análise consolidada de mídia paga, tráfego orgânico e conversões`,
+            clientName: workspaceName ?? selectedClient?.name ?? "Cliente EG",
+            period: `${overview.period_start} a ${overview.period_end}`,
+            summaryMetrics: [
+              { label: "Impressões Totais", value: formatNumber(overview.summary.total_impressions) },
+              { label: "Cliques em Campanhas", value: formatNumber(overview.summary.total_clicks), detail: `CTR ${formatPercent(overview.summary.ctr)}` },
+              { label: "Investimento em Mídia", value: formatMoneyMicros(overview.summary.total_cost_micros) },
+              { label: "Receita & Conversões", value: formatMoneyMicros(overview.summary.total_revenue_micros), detail: `ROAS ${overview.summary.roas.toFixed(2)}` },
+            ],
+            highlights: [
+              "Campanhas ativas de Meta Ads e Google Ads operando com ROI positivo.",
+              "Rastreamento de métricas unificado com integração direta de pixels e tags via GTM.",
+              "Otimização automatizada de lances e audiências sugerida pela IA EverGreen.",
+            ],
+            tables: campaigns.length > 0 ? [
+              {
+                title: "Desempenho por Campanha",
+                headers: ["Campanha", "Canal", "Impressões", "Cliques", "Investimento", "ROAS"],
+                rows: campaigns.slice(0, 10).map((c) => [
+                  c.campaign_name,
+                  c.channel_type.toUpperCase(),
+                  formatNumber(c.impressions),
+                  formatNumber(c.clicks),
+                  formatMoneyMicros(c.cost_micros),
+                  c.roas.toFixed(2),
+                ]),
+              },
+            ] : undefined,
+            nextSteps: [
+              "Realizar reescalonamento de orçamento nas campanhas de maior conversão.",
+              "Ajustar criativos e copys no Estúdio IA para os formatos de Stories e Reels.",
+              "Acompanhar reuniões de alinhamento com a equipe de performance da EG.",
+            ],
+          }}
+          onClose={() => setIsPdfModalOpen(false)}
+        />
+      )}
 
       <div className="performance-tabs" role="tablist">
         {performanceTabs.map((item) => {

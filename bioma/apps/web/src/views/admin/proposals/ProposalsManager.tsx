@@ -28,7 +28,9 @@ import {
   Trophy,
   Wallet,
   ArrowUpRight,
+  Printer,
 } from "lucide-react";
+import { ExecutiveReportPdfModal } from "../../../components/ExecutiveReportPdfModal";
 import {
   api,
   type OpportunitySummary,
@@ -49,6 +51,7 @@ export function ProposalsManager() {
   const [analytics, setAnalytics] = useState<ProposalAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
   // Form State para Ingestão Manual Rápida
   const [sourcePlatform, setSourcePlatform] = useState("99freelas");
@@ -213,6 +216,23 @@ export function ProposalsManager() {
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button
+            onClick={() => setIsPdfModalOpen(true)}
+            style={{
+              padding: "10px 18px",
+              borderRadius: "8px",
+              background: "var(--brand-accent)",
+              border: "none",
+              color: "#000",
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <Printer size={18} /> Exportar Relatório PDF
+          </button>
+          <button
             onClick={async () => {
               setIsSyncing(true);
               setSyncFeedback(null);
@@ -242,7 +262,7 @@ export function ProposalsManager() {
             }}
           >
             <RefreshCw size={18} className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? "Varrendo Plataformas..." : "Varrer Plataformas Agora"}
+            {isSyncing ? "Varrer Plataformas..." : "⚡ Varredura Instantânea"}
           </button>
 
           <button
@@ -995,6 +1015,47 @@ export function ProposalsManager() {
             </form>
           </div>
         </div>
+      )}
+
+      {isPdfModalOpen && (
+        <ExecutiveReportPdfModal
+          data={{
+            title: "Relatório Executivo de Prospecção & Propostas",
+            subtitle: "Visão consolidada de oportunidades triadas, taxa de conversão e vitórias",
+            clientName: "Operação EverGreen Growth",
+            period: new Date().toLocaleDateString("pt-BR"),
+            summaryMetrics: [
+              { label: "Total de Vagas no Radar", value: String(opportunities.length) },
+              { label: "Propostas Ativas Geradas", value: String(proposals.length) },
+              { label: "Taxa de Vitória (Win-Rate)", value: `${(analytics?.win_rate_percent || 0).toFixed(1)}%` },
+              { label: "Faturamento Ganho", value: `R$ ${((analytics?.won_volume_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
+            ],
+            highlights: [
+              "Sistema de varredura ativa conectado a 4+ plataformas remote/freelancer.",
+              "Gerador autônomo de escopos comerciais e cronogramas de entrega em segundos com IA.",
+              "Auditor de perfil integrado para correção de posicionamento e bio estratégica.",
+            ],
+            tables: proposals.length > 0 ? [
+              {
+                title: "Propostas Comerciais Recentes",
+                headers: ["Cliente/Projeto", "Nicho", "Investimento (R$)", "Prazo", "Status"],
+                rows: proposals.slice(0, 8).map((p) => [
+                  p.client_name,
+                  p.target_niche || "Geral",
+                  `R$ ${(p.pricing_cents / 100).toFixed(2)}`,
+                  `${p.delivery_days} dias`,
+                  p.status.toUpperCase(),
+                ]),
+              },
+            ] : undefined,
+            nextSteps: [
+              "Manter a varredura contínua de RSS e APIs de plataformas ligada.",
+              "Avançar nas negociações de propostas enviadas que aguardam assinatura.",
+              "Atualizar os cases de sucesso no banco de dados para aumentar o fit-score.",
+            ],
+          }}
+          onClose={() => setIsPdfModalOpen(false)}
+        />
       )}
     </div>
   );

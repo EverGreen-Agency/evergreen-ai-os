@@ -2014,6 +2014,27 @@ export const api = {
   resolveSkillGap: (gapId: string) =>
     request<OpportunitySkillGap>(`/backoffice/proposals/gaps/${gapId}/resolve`, { method: "POST" }),
   getProposalAnalytics: () => request<ProposalAnalytics>("/backoffice/proposals/analytics"),
+
+  // --- WhatsApp Multiprovider & Mídia ---
+  listWhatsAppProviders: (workspaceId: string) =>
+    request<Array<{ id: string; provider: string; instance_name: string; is_active: boolean }>>(`/workspaces/${workspaceId}/whatsapp/providers`),
+  upsertWhatsAppProvider: (workspaceId: string, payload: { provider: string; instance_name: string; api_url?: string; api_token?: string; is_active?: boolean }) =>
+    request<{ id: string; provider: string; instance_name: string; is_active: boolean }>(`/workspaces/${workspaceId}/whatsapp/providers`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  sendWhatsAppMessage: (workspaceId: string, payload: { phone_number: string; text: string }) =>
+    request<{ id: string; status: string; sent_at: string }>(`/workspaces/${workspaceId}/whatsapp/send`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  listWhatsAppLogs: (workspaceId: string) =>
+    request<Array<{ id: string; phone_number: string; text: string; status: string; created_at: string }>>(`/workspaces/${workspaceId}/whatsapp/logs`),
+  syncPerformanceMedia: (workspaceId: string) =>
+    request<{ status: string; synced_rows: number }>(`/workspaces/${workspaceId}/performance/sync`, {
+      method: "POST",
+      body: JSON.stringify({ range_days: 30 }),
+    }),
 };
 
 export type OpportunityPlatformConfig = {

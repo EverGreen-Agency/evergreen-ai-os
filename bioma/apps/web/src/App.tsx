@@ -108,8 +108,7 @@ export function App() {
   const apiOnline = healthData?.status === "ok";
   const isEgAdmin = user
     ? user.organizations.some((org) => org.role === "eg_admin" || org.slug === "eg") ||
-      user.email.endsWith("@evergreengrowth.com.br") ||
-      user.email.endsWith("@hmconexoes.com.br")
+      user.email.endsWith("@evergreengrowth.com.br")
     : false;
 
   useEffect(() => {
