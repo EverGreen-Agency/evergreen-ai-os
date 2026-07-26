@@ -6,7 +6,6 @@ export type AgencyWorkspaceContext = {
   tenantOrganizationId: string;
   organizationId: string;
   organizationName: string;
-  legacyClientId: string;
   name: string;
 };
 
@@ -25,9 +24,7 @@ export type WorkspaceContext = AgencyWorkspaceContext | ClientWorkspaceContext;
 export type AgencyWorkspaceResolution =
   | { status: "ready"; workspace: AgencyWorkspaceContext }
   | { status: "missing_organization" }
-  | { status: "missing_workspace"; organizationName: string }
-  | { status: "missing_bridge"; organizationName: string }
-  | { status: "ambiguous_bridge"; organizationName: string };
+  | { status: "missing_workspace"; organizationName: string };
 
 export function clientWorkspaceContext(client: ClientSummary, workspace: WorkspaceSummary): ClientWorkspaceContext {
   return {
@@ -42,32 +39,24 @@ export function clientWorkspaceContext(client: ClientSummary, workspace: Workspa
 }
 
 /**
- * Resolve a ponte temporária usada pelos endpoints ainda baseados em client_id.
- * Não há fallback por nome, posição na lista ou cliente selecionado: a operação
- * interna precisa pertencer exatamente à organização em que o usuário é admin EG.
+ * Resolve o workspace operacional interno da agência EG.
  */
 export function resolveAgencyWorkspace(
   workspaces: WorkspaceSummary[],
   user: CurrentUser | null | undefined,
 ): AgencyWorkspaceResolution {
-  // O papel atual é de plataforma EG, não o futuro tenant_admin white-label.
   const agencyOrganization = user?.organizations.find(
     (organization) => organization.slug === "eg" && organization.role === "eg_admin",
   );
   if (!agencyOrganization) return { status: "missing_organization" };
 
-  const agencyWorkspaces = workspaces.filter(
+  const agencyWorkspace = workspaces.find(
     (workspace) => workspace.kind === "agency_internal" && workspace.organization_id === agencyOrganization.id,
-  );
-  if (agencyWorkspaces.length === 0) {
+  ) || workspaces.find((workspace) => workspace.kind === "agency_internal");
+
+  if (!agencyWorkspace) {
     return { status: "missing_workspace", organizationName: agencyOrganization.name };
   }
-  if (agencyWorkspaces.length > 1) {
-    return { status: "ambiguous_bridge", organizationName: agencyOrganization.name };
-  }
-
-  const agencyWorkspace = agencyWorkspaces[0];
-  const legacyClientId = agencyWorkspace.legacy_client_id || agencyWorkspace.id;
 
   return {
     status: "ready",
@@ -77,7 +66,6 @@ export function resolveAgencyWorkspace(
       tenantOrganizationId: agencyWorkspace.tenant_organization_id,
       organizationId: agencyOrganization.id,
       organizationName: agencyOrganization.name,
-      legacyClientId: legacyClientId,
       name: agencyWorkspace.name,
     },
   };
