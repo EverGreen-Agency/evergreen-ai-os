@@ -1,21 +1,31 @@
 import { useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Plus, Sparkles, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Plus, Sparkles, X, LayoutDashboard, FolderOpen, Users, BarChart3, Link2, KeyRound, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { moduleLabels, statusLabel, toggleableModules } from "../lib/app-config";
 import { useCreateClient, useCreateDeliverable, useUpdateClient } from "../hooks/useBiomaApi";
 import type { ClientModule, ClientStatus } from "../lib/api";
 
-// Módulos sempre ativos (o backend força "hub"; "content" é base da metodologia).
-const BASE_MODULES: ClientModule[] = ["hub", "content"];
+// Módulos essenciais do núcleo (o hub é obrigatório e sempre ativo)
+const BASE_MODULES: ClientModule[] = ["hub"];
 
-// Entregas de arranque sugeridas — o operador escolhe quais criar no onboarding.
+// Entregas de arranque do kickoff
 const ONBOARDING_TEMPLATE = [
   "Reunião de kickoff",
   "Coletar acessos e credenciais",
   "Briefing e diagnóstico inicial",
   "Definir cronograma e escopo",
 ];
+
+const MODULE_DESCRIPTIONS: Record<ClientModule, string> = {
+  hub: "Visão geral, projetos e acompanhamento do cliente",
+  content: "Estúdio IA para geração de posts e roteiros",
+  files: "Depósito de documentos e arquivos compartilhados",
+  commercial: "CRM comercial e painel financeiro",
+  analytics: "Métricas de mídia (Google, Meta, GA4)",
+  integrations: "Conexão com ferramentas externas",
+  engineering: "Documentação técnica",
+};
 
 const STEPS = ["Identidade", "Módulos", "Onboarding"] as const;
 
@@ -30,10 +40,11 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
 
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
-  const [responsible, setResponsible] = useState("");
+  const [responsible, setResponsible] = useState("Eduardo EG");
   const [status, setStatus] = useState<ClientStatus>("onboarding");
-  // files ligado por default (equivale ao DEFAULT_CLIENT_MODULES do backend).
-  const [modules, setModules] = useState<Set<ClientModule>>(new Set(["files"]));
+  
+  // Por padrão ativamos os módulos recomendados para o novo cliente
+  const [modules, setModules] = useState<Set<ClientModule>>(new Set(["content", "files", "commercial", "analytics"]));
   const [onboarding, setOnboarding] = useState<Set<string>>(new Set(ONBOARDING_TEMPLATE));
 
   const busy = createClient.isPending || updateClient.isPending;
@@ -56,64 +67,70 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
   };
 
   const goNext = () => {
-    if (step === 0 && !identityValid) {
-      setError("Preencha nome do cliente e organização para avançar.");
-      return;
-    }
+    if (step === 0 && !identityValid) return;
     setError("");
-    setStep((current) => Math.min(current + 1, STEPS.length - 1));
+    setStep((s) => s + 1);
   };
 
   const goBack = () => {
     setError("");
-    setStep((current) => Math.max(current - 1, 0));
+    setStep((s) => s - 1);
   };
 
   const handleCreate = async () => {
     setError("");
     try {
-      const portal = await createClient.mutateAsync({
+      // 1. Criar o cliente no banco
+      const res = await createClient.mutateAsync({
         name: name.trim(),
         organization_name: organization.trim(),
-        responsible_name: responsible.trim() || null,
+        responsible_name: responsible || "Eduardo EG",
         status,
       });
-      const clientId = portal.client.id;
 
-      // enabled_modules não entra na criação; ajusta em seguida se divergir do default.
-      const chosen = new Set<ClientModule>([...BASE_MODULES, ...modules]);
-      const created = new Set(portal.client.enabled_modules ?? []);
-      const differs = chosen.size !== created.size || [...chosen].some((m) => !created.has(m));
-      if (differs) {
-        await updateClient.mutateAsync({ id: clientId, payload: { enabled_modules: Array.from(chosen) } });
-      }
+      const clientId = res.client.id;
 
-      // Entregas de onboarding são best-effort: uma falha não desfaz o cliente já criado.
-      for (const title of onboarding) {
-        try {
-          await createDeliverable.mutateAsync({ clientId, payload: { title, status: "planned" } });
-        } catch {
-          /* segue o baile; o cliente existe e o operador pode recriar a entrega */
-        }
-      }
+      // 2. Atualizar os módulos ativos do cliente
+      const allModules = Array.from(new Set<ClientModule>(["hub", ...Array.from(modules)]));
+      await updateClient.mutateAsync({
+        id: clientId,
+        payload: { enabled_modules: allModules },
+      });
+
+      // 3. Criar entregáveis de kickoff selecionados
+      const deliverablePromises = Array.from(onboarding).map((title) =>
+        createDeliverable.mutateAsync({
+          clientId,
+          payload: {
+            title,
+            status: "planned",
+          },
+        })
+      );
+      await Promise.all(deliverablePromises);
 
       onClose();
       navigate(`/clientes/${clientId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível criar o cliente.");
+    } catch (err: any) {
+      setError(err.message || "Erro ao criar cliente. Tente novamente.");
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(event) => event.stopPropagation()} style={{ maxWidth: "560px" }}>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card wide" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
         <div className="modal-header">
-          <h3><Sparkles size={18} color="var(--brand-accent)" style={{ verticalAlign: "-3px", marginRight: 8 }} />Novo cliente</h3>
-          <button className="icon-btn" onClick={onClose} aria-label="Fechar"><X size={20} /></button>
+          <div className="modal-title-group">
+            <Sparkles size={18} className="modal-icon" color="var(--brand-accent)" />
+            <h2>Novo cliente</h2>
+          </div>
+          <button className="icon-button" onClick={onClose} type="button" aria-label="Fechar">
+            <X size={16} />
+          </button>
         </div>
 
-        {/* Passos */}
-        <div style={{ display: "flex", gap: 8, padding: "0 20px", marginBottom: 4 }}>
+        {/* Stepper */}
+        <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "12px 20px" }}>
           {STEPS.map((label, index) => (
             <div
               key={label}
@@ -122,51 +139,52 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                padding: "10px 0",
-                color: index === step ? "var(--brand-accent)" : "var(--text-muted)",
-                fontWeight: index === step ? 700 : 500,
                 fontSize: "0.82rem",
-                borderBottom: `2px solid ${index === step ? "var(--brand-accent)" : "var(--glass-border)"}`,
+                fontWeight: index === step ? 700 : 500,
+                color: index === step ? "var(--brand-accent)" : index < step ? "#10b981" : "var(--text-dim)",
               }}
             >
               <span
                 style={{
-                  width: 22, height: 22, borderRadius: "50%", display: "grid", placeItems: "center",
-                  fontSize: "0.72rem", flexShrink: 0,
-                  background: index < step ? "var(--brand-accent)" : "transparent",
-                  color: index < step ? "#111" : "inherit",
-                  border: `1px solid ${index <= step ? "var(--brand-accent)" : "var(--glass-border)"}`,
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: "0.75rem",
+                  background: index < step ? "#10b981" : index === step ? "var(--brand-accent)" : "var(--surface-sunken)",
+                  color: index <= step ? "#000" : "var(--text-dim)",
+                  fontWeight: 700,
                 }}
               >
-                {index < step ? <Check size={13} /> : index + 1}
+                {index < step ? <Check size={13} color="#000" /> : index + 1}
               </span>
               {label}
             </div>
           ))}
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body" style={{ padding: "20px" }}>
+          {/* ETAPA 1: IDENTIDADE */}
           {step === 0 && (
             <div className="form-grid two" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <label>
-                Cliente
-                <input value={name} autoFocus onChange={(event) => setName(event.target.value)} placeholder="Nome do cliente" />
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Nome do Cliente / Empresa *
+                <input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder="Ex: HM Conexões" style={{ padding: "10px", borderRadius: "6px" }} />
               </label>
-              <label>
-                Organização
-                <input value={organization} onChange={(event) => setOrganization(event.target.value)} placeholder="Razão social / marca" />
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Razão Social / Marca *
+                <input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Ex: HM Conexões Ltda" style={{ padding: "10px", borderRadius: "6px" }} />
               </label>
-              <label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
                 Responsável EG
-                <select value={responsible} onChange={(event) => setResponsible(event.target.value)}>
-                  <option value="">— Selecione um responsável EG —</option>
+                <select value={responsible} onChange={(e) => setResponsible(e.target.value)} style={{ padding: "10px", borderRadius: "6px" }}>
                   <option value="Eduardo EG">Eduardo EG (eduardo@evergreengrowth.com.br)</option>
-                  <option value="Henrique EG">Henrique EG (henrique@hmconexoes.com.br)</option>
                 </select>
               </label>
-              <label>
-                Status inicial
-                <select value={status} onChange={(event) => setStatus(event.target.value as ClientStatus)}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Status Inicial
+                <select value={status} onChange={(e) => setStatus(e.target.value as ClientStatus)} style={{ padding: "10px", borderRadius: "6px" }}>
                   {(["onboarding", "active", "paused"] as ClientStatus[]).map((value) => (
                     <option key={value} value={value}>{statusLabel[value]}</option>
                   ))}
@@ -175,42 +193,81 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
+          {/* ETAPA 2: MÓDULOS (UNIFORMIZADO E SEM DUPLICAÇÃO) */}
           {step === 1 && (
             <div>
-              <p style={{ color: "var(--text-muted)", marginTop: 0, fontSize: "0.86rem" }}>
-                Define o que o cliente enxerga no hub dele. Hub e Conteúdo são sempre ativos.
+              <p style={{ color: "var(--text-dim)", marginTop: 0, marginBottom: 14, fontSize: "0.86rem" }}>
+                Selecione os módulos que serão exibidos no Hub do cliente:
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {BASE_MODULES.map((module) => (
-                  <div key={module} className="surface" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", opacity: 0.7 }}>
-                    <span>{moduleLabels[module]}</span>
-                    <span style={{ fontSize: "0.72rem", color: "var(--brand-accent)", fontWeight: 700 }}>SEMPRE ATIVO</span>
+                {/* Módulo Base (Hub) */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 16px",
+                    background: "var(--surface-sunken)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: "0.9rem", color: "var(--text)", display: "block" }}>
+                      {moduleLabels["hub"]}
+                    </strong>
+                    <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                      {MODULE_DESCRIPTIONS["hub"]}
+                    </span>
                   </div>
-                ))}
+                  <span style={{ fontSize: "0.72rem", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", padding: "4px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                    SEMPRE ATIVO
+                  </span>
+                </div>
+
+                {/* Módulos Selecionáveis */}
                 {toggleableModules.map((module) => {
                   const on = modules.has(module);
                   return (
                     <button
                       key={module}
                       type="button"
-                      className="surface"
                       onClick={() => toggleModule(module)}
                       style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "10px 14px", cursor: "pointer", textAlign: "left",
-                        borderColor: on ? "var(--brand-accent)" : "var(--glass-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 16px",
+                        background: on ? "var(--surface)" : "var(--surface-sunken)",
+                        border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.15s ease",
                       }}
                     >
-                      <span>{moduleLabels[module]}</span>
+                      <div>
+                        <strong style={{ fontSize: "0.9rem", color: "var(--text)", display: "block" }}>
+                          {moduleLabels[module]}
+                        </strong>
+                        <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
+                          {MODULE_DESCRIPTIONS[module]}
+                        </span>
+                      </div>
                       <span
                         style={{
-                          width: 20, height: 20, borderRadius: 6, display: "grid", placeItems: "center",
+                          width: 22,
+                          height: 22,
+                          borderRadius: 6,
+                          display: "grid",
+                          placeItems: "center",
                           background: on ? "var(--brand-accent)" : "transparent",
-                          border: `1px solid ${on ? "var(--brand-accent)" : "var(--glass-border)"}`,
-                          color: "#111",
+                          border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
+                          color: "#000",
+                          fontWeight: 700,
                         }}
                       >
-                        {on && <Check size={13} />}
+                        {on && <Check size={14} color="#000" />}
                       </span>
                     </button>
                   );
@@ -219,11 +276,18 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
+          {/* ETAPA 3: ONBOARDING & KICKOFF EXPLICADO */}
           {step === 2 && (
             <div>
-              <p style={{ color: "var(--text-muted)", marginTop: 0, fontSize: "0.86rem" }}>
-                Entregas de arranque criadas já no hub. Desmarque as que não quiser.
-              </p>
+              <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", borderRadius: "8px", padding: "12px 14px", marginBottom: "16px" }}>
+                <strong style={{ fontSize: "0.88rem", color: "#10b981", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Rocket size={16} /> Arranque Inicial (Kickoff Automatizado)
+                </strong>
+                <p style={{ margin: "4px 0 0", color: "var(--text)", fontSize: "0.82rem", lineHeight: 1.4 }}>
+                  Ao criar o cliente, estas entregas de onboarding serão criadas automaticamente no Hub para que a equipe EG inicie o atendimento imediatamente. Desmarque qualquer item que não desejar:
+                </p>
+              </div>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
                 {ONBOARDING_TEMPLATE.map((title) => {
                   const on = onboarding.has(title);
@@ -231,39 +295,53 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                     <button
                       key={title}
                       type="button"
-                      className="surface"
                       onClick={() => toggleOnboarding(title)}
                       style={{
-                        display: "flex", alignItems: "center", gap: 10,
-                        padding: "10px 14px", cursor: "pointer", textAlign: "left",
-                        borderColor: on ? "var(--brand-accent)" : "var(--glass-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "12px 14px",
+                        background: on ? "var(--surface)" : "var(--surface-sunken)",
+                        border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        color: "var(--text)",
+                        fontSize: "0.88rem",
                       }}
                     >
                       <span
                         style={{
-                          width: 20, height: 20, borderRadius: 6, display: "grid", placeItems: "center", flexShrink: 0,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 6,
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
                           background: on ? "var(--brand-accent)" : "transparent",
-                          border: `1px solid ${on ? "var(--brand-accent)" : "var(--glass-border)"}`,
-                          color: "#111",
+                          border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
+                          color: "#000",
                         }}
                       >
-                        {on && <Check size={13} />}
+                        {on && <Check size={13} color="#000" />}
                       </span>
                       {title}
                     </button>
                   );
                 })}
               </div>
-              <div className="surface" style={{ padding: "12px 14px", fontSize: "0.84rem" }}>
-                <strong>{name || "—"}</strong> · {organization || "—"}<br />
-                <span style={{ color: "var(--text-muted)" }}>
-                  {statusLabel[status]} · {BASE_MODULES.length + modules.size} módulos · {onboarding.size} entregas de onboarding
+
+              {/* Resumo do Cadastro */}
+              <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.85rem" }}>
+                <strong style={{ color: "var(--brand-accent)" }}>{name || "—"}</strong> · {organization || "—"}<br />
+                <span style={{ color: "var(--text-dim)" }}>
+                  Status: {statusLabel[status]} • {1 + modules.size} Módulos Habilitados • {onboarding.size} Entregas de Kickoff
                 </span>
               </div>
             </div>
           )}
 
-          {error && <p style={{ color: "var(--danger, #e5484d)", fontSize: "0.84rem", marginTop: 14 }}>{error}</p>}
+          {error && <p style={{ color: "#ef4444", fontSize: "0.84rem", marginTop: 14 }}>{error}</p>}
 
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
             <button className="ghost-button" type="button" onClick={step === 0 ? onClose : goBack} disabled={busy}>
@@ -275,7 +353,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               </button>
             ) : (
               <button className="primary-button" type="button" onClick={handleCreate} disabled={busy}>
-                <Plus size={16} /> {busy ? "Criando..." : "Criar cliente"}
+                <Plus size={16} /> {busy ? "Criando Cliente..." : "Criar cliente agora"}
               </button>
             )}
           </div>

@@ -141,10 +141,8 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                   value={clientDraft.responsible_name ?? ""}
                   onChange={(event) => setClientDraft({ ...clientDraft, responsible_name: event.target.value })}
                 >
-                  <option value="">— Selecione um responsável EG —</option>
                   <option value="Eduardo EG">Eduardo EG (eduardo@evergreengrowth.com.br)</option>
-                  <option value="Henrique EG">Henrique EG (henrique@hmconexoes.com.br)</option>
-                  {clientDraft.responsible_name && !["Eduardo EG", "Henrique EG"].includes(clientDraft.responsible_name) && (
+                  {clientDraft.responsible_name && clientDraft.responsible_name !== "Eduardo EG" && (
                     <option value={clientDraft.responsible_name}>{clientDraft.responsible_name}</option>
                   )}
                 </select>
