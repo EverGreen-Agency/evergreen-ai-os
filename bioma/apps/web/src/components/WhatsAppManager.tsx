@@ -102,7 +102,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
         onSuccess: (res) => {
           setFeedback({
             type: "success",
-            text: `Mensagem disparada com sucesso via ${res.provider_type.toUpperCase()}! Log ID: ${res.id}`,
+            text: `Mensagem disparada com sucesso via ${(res.provider_type || selectedProvider).toUpperCase()}! Log ID: ${res.id}`,
           });
         },
         onError: (err) => {

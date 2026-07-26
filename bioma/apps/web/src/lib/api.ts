@@ -2023,18 +2023,13 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  sendWhatsAppMessage: (workspaceId: string, payload: { phone_number: string; text: string }) =>
-    request<{ id: string; status: string; sent_at: string }>(`/workspaces/${workspaceId}/whatsapp/send`, {
+  sendWhatsAppMessage: (workspaceId: string, payload: { phone_number?: string; to_number?: string; text?: string; message_text?: string; provider_type?: string }) =>
+    request<{ id: string; status: string; sent_at: string; provider_type?: string }>(`/workspaces/${workspaceId}/whatsapp/send`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   listWhatsAppLogs: (workspaceId: string) =>
     request<Array<{ id: string; phone_number: string; text: string; status: string; created_at: string }>>(`/workspaces/${workspaceId}/whatsapp/logs`),
-  syncPerformanceMedia: (workspaceId: string) =>
-    request<{ status: string; synced_rows: number }>(`/workspaces/${workspaceId}/performance/sync`, {
-      method: "POST",
-      body: JSON.stringify({ range_days: 30 }),
-    }),
 };
 
 export type OpportunityPlatformConfig = {

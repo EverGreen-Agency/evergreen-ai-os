@@ -1027,8 +1027,8 @@ export function ProposalsManager() {
             summaryMetrics: [
               { label: "Total de Vagas no Radar", value: String(opportunities.length) },
               { label: "Propostas Ativas Geradas", value: String(proposals.length) },
-              { label: "Taxa de Vitória (Win-Rate)", value: `${(analytics?.win_rate_percent || 0).toFixed(1)}%` },
-              { label: "Faturamento Ganho", value: `R$ ${((analytics?.won_volume_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
+              { label: "Taxa de Vitória (Win-Rate)", value: `${(analytics?.win_rate_percentage || 0).toFixed(1)}%` },
+              { label: "Faturamento Ganho", value: `R$ ${((analytics?.total_won_value_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
             ],
             highlights: [
               "Sistema de varredura ativa conectado a 4+ plataformas remote/freelancer.",

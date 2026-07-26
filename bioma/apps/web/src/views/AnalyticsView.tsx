@@ -547,7 +547,7 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
     if (!effectiveClientId) return;
     setSyncingMedia(true);
     try {
-      await api.syncPerformanceMedia(effectiveClientId);
+      await api.requestPerformanceSync(effectiveClientId, "all");
       const [nextOverview, nextCampaigns] = await Promise.all([
         api.performanceOverview(effectiveClientId),
         api.adsCampaigns(effectiveClientId),
@@ -594,10 +594,10 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
             clientName: workspaceName ?? selectedClient?.name ?? "Cliente EG",
             period: `${overview.period_start} a ${overview.period_end}`,
             summaryMetrics: [
-              { label: "Impressões Totais", value: formatNumber(overview.summary.total_impressions) },
-              { label: "Cliques em Campanhas", value: formatNumber(overview.summary.total_clicks), detail: `CTR ${formatPercent(overview.summary.ctr)}` },
-              { label: "Investimento em Mídia", value: formatMoneyMicros(overview.summary.total_cost_micros) },
-              { label: "Receita & Conversões", value: formatMoneyMicros(overview.summary.total_revenue_micros), detail: `ROAS ${overview.summary.roas.toFixed(2)}` },
+              { label: "Impressões Totais", value: formatNumber(overview.daily.reduce((acc, d) => acc + d.impressions, 0)) },
+              { label: "Cliques em Campanhas", value: formatNumber(overview.daily.reduce((acc, d) => acc + d.clicks, 0)) },
+              { label: "Investimento em Mídia", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + d.cost_micros, 0)) },
+              { label: "Receita & Conversões", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + d.revenue_micros, 0)) },
             ],
             highlights: [
               "Campanhas ativas de Meta Ads e Google Ads operando com ROI positivo.",

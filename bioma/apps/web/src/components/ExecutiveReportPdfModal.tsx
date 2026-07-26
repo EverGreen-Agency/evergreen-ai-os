@@ -50,7 +50,7 @@ export function ExecutiveReportPdfModal({
           className="no-print"
           style={{
             display: "flex",
-            justify: "space-between",
+            justifyContent: "space-between",
             alignItems: "center",
             borderBottom: "1px solid #e2e8f0",
             paddingBottom: "16px",
@@ -101,7 +101,7 @@ export function ExecutiveReportPdfModal({
         <div
           style={{
             display: "flex",
-            justify: "space-between",
+            justifyContent: "space-between",
             alignItems: "flex-start",
             borderBottom: "2px solid #10b981",
             paddingBottom: "20px",
