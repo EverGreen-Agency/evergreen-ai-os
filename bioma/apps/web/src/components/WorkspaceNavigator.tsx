@@ -408,19 +408,11 @@ export function WorkspaceNavigator({
           {!isLoading && !errorMessage && isEgAdmin && agencyMatches && (normalizedQuery || !persistedAgencyWorkspace || !recentKeys.has(persistedAgencyWorkspace.id)) && (
             <div className="workspace-result-section">
               <div className="workspace-result-label">Agência</div>
-              {persistedAgencyWorkspace && agencyResolution.status === "ready" ? (
-                <button className={`workspace-result ${inAgencyWorkspace ? "active" : ""}`} type="button" onClick={openAgencyWorkspace}>
-                  <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                  <span><strong>{persistedAgencyWorkspace.name}</strong><small>CRM, financeiro e métricas da própria agência</small></span>
-                  <span className="workspace-kind-pill">Interno</span>
-                </button>
-              ) : (
-                <div className="workspace-result disabled">
-                  <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                  <span><strong>Operação EG</strong><small>Workspace ou ponte operacional ainda pendente</small></span>
-                  <span className="workspace-kind-pill warning">Pendente</span>
-                </div>
-              )}
+              <button className={`workspace-result ${inAgencyWorkspace ? "active" : ""}`} type="button" onClick={openAgencyWorkspace}>
+                <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
+                <span><strong>{persistedAgencyWorkspace?.name || "Operação EG"}</strong><small>CRM, financeiro e métricas da própria agência</small></span>
+                <span className="workspace-kind-pill">Interno</span>
+              </button>
             </div>
           )}
 

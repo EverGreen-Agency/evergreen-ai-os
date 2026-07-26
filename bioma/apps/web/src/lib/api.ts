@@ -680,6 +680,7 @@ export type KitPieceSummary = {
   supplier?: string | null;
   unit_cost_cents: number;
   stock_qty: number;
+  image_url?: string | null;
   status: "active" | "discontinued";
   metadata: Record<string, unknown>;
   created_at: string;

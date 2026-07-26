@@ -14,8 +14,10 @@ class KitPieceCreateRequest(BaseModel):
     supplier: str | None = Field(default=None, max_length=200)
     unit_cost_cents: int = Field(default=0, ge=0)
     stock_qty: int = Field(default=0, ge=0)
+    image_url: str | None = Field(default=None, max_length=1000)
     status: KitPieceStatus = "active"
     metadata: dict = Field(default_factory=dict)
+
 
 
 class KitPieceUpdateRequest(BaseModel):
@@ -23,6 +25,7 @@ class KitPieceUpdateRequest(BaseModel):
     supplier: str | None = Field(default=None, max_length=200)
     unit_cost_cents: int | None = Field(default=None, ge=0)
     stock_qty: int | None = Field(default=None, ge=0)
+    image_url: str | None = Field(default=None, max_length=1000)
     status: KitPieceStatus | None = None
     metadata: dict | None = None
 
@@ -33,10 +36,12 @@ class KitPieceSummary(BaseModel):
     supplier: str | None = None
     unit_cost_cents: int
     stock_qty: int
+    image_url: str | None = None
     status: KitPieceStatus
     metadata: dict = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
+
 
 
 class KitDefinitionPieceEntry(BaseModel):

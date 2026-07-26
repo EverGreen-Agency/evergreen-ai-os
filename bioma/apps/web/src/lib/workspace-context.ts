@@ -67,9 +67,7 @@ export function resolveAgencyWorkspace(
   }
 
   const agencyWorkspace = agencyWorkspaces[0];
-  if (!agencyWorkspace.legacy_client_id) {
-    return { status: "missing_bridge", organizationName: agencyOrganization.name };
-  }
+  const legacyClientId = agencyWorkspace.legacy_client_id || agencyWorkspace.id;
 
   return {
     status: "ready",
@@ -79,7 +77,7 @@ export function resolveAgencyWorkspace(
       tenantOrganizationId: agencyWorkspace.tenant_organization_id,
       organizationId: agencyOrganization.id,
       organizationName: agencyOrganization.name,
-      legacyClientId: agencyWorkspace.legacy_client_id,
+      legacyClientId: legacyClientId,
       name: agencyWorkspace.name,
     },
   };

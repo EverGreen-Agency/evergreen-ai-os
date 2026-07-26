@@ -137,9 +137,21 @@ def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any
     from bioma_api.worker_bridge import _ensure_worker_in_path
     _ensure_worker_in_path()
 
+    custom_sources = []
+    with connect() as conn:
+        configs = proposals_repo.list_platform_configs(conn)
+        for cfg in configs:
+            rss_url = cfg.get("rss_url")
+            if rss_url and rss_url.strip():
+                custom_sources.append({
+                    "platform": cfg["platform_key"],
+                    "name": cfg["platform_name"],
+                    "url": rss_url.strip(),
+                })
+
     try:
         from bioma_worker.scrapers.opportunities import fetch_rss_opportunities
-        items = fetch_rss_opportunities()
+        items = fetch_rss_opportunities(custom_sources=custom_sources)
     except Exception as exc:
         print(f"[Proposals Service] Erro ao executar scrapers: {exc}")
         items = []
