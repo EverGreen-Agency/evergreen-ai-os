@@ -4295,17 +4295,17 @@ h3 {
   justify-content: space-between !important;
   padding: 18px 24px !important;
   border-bottom: 1px solid var(--border) !important;
-  background: #0c2b21 !important;
+    grid-template-columns: 1fr;
+  }
 }
 
-.modal-title-group {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
+.agency-workspace-home {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
 }
 
-.modal-title-group h2 {
-  margin: 0 !important;
+.agency-workspace-hero {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;

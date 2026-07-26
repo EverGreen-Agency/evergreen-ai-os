@@ -42,6 +42,8 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
   const [organization, setOrganization] = useState("");
   const [responsible, setResponsible] = useState("Eduardo EG");
   const [status, setStatus] = useState<ClientStatus>("onboarding");
+  const [website, setWebsite] = useState("");
+  const [useAiSetup, setUseAiSetup] = useState(true);
   
   // Por padrão ativamos os módulos recomendados para o novo cliente
   const [modules, setModules] = useState<Set<ClientModule>>(new Set(["content", "files", "commercial", "analytics"]));
@@ -177,6 +179,10 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                 <input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Ex: HM Conexões Ltda" style={{ padding: "10px", borderRadius: "6px" }} />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Website / URL da Empresa (opcional para Varredura IA)
+                <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="Ex: https://hmconexoes.com.br" style={{ padding: "10px", borderRadius: "6px" }} />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
                 Responsável EG
                 <select value={responsible} onChange={(e) => setResponsible(e.target.value)} style={{ padding: "10px", borderRadius: "6px" }}>
                   <option value="Eduardo EG">Eduardo EG (eduardo@evergreengrowth.com.br)</option>
@@ -190,6 +196,49 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                   ))}
                 </select>
               </label>
+
+              {/* Toca do Squad de Onboarding Inteligente */}
+              <button
+                type="button"
+                onClick={() => setUseAiSetup(!useAiSetup)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  background: useAiSetup ? "rgba(58, 201, 123, 0.12)" : "var(--surface-sunken)",
+                  border: `1px solid ${useAiSetup ? "var(--brand-accent)" : "var(--border)"}`,
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  marginTop: "6px",
+                  textAlign: "left",
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: "0.88rem", color: useAiSetup ? "var(--brand-accent)" : "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                    🤖 Disparar Squad IA de Onboarding & Setup
+                  </strong>
+                  <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
+                    A IA realizará a varredura do site, analisará o tom de voz e gerará o kickoff inicial automaticamente no Hub.
+                  </span>
+                </div>
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    display: "grid",
+                    placeItems: "center",
+                    flexShrink: 0,
+                    background: useAiSetup ? "var(--brand-accent)" : "transparent",
+                    border: `1px solid ${useAiSetup ? "var(--brand-accent)" : "var(--border)"}`,
+                    color: "#000",
+                    fontWeight: 700,
+                  }}
+                >
+                  {useAiSetup && <Check size={14} color="#000" />}
+                </span>
+              </button>
             </div>
           )}
 
