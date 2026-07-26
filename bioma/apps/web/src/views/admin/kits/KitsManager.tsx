@@ -54,13 +54,13 @@ export function KitsManager() {
         api.listKitShipments(),
         api.listKitDefinitions(),
         api.listKitPieces(),
-        api.listWorkspaces(),
+        api.workspaces(),
       ]);
-      const clientWorkspaces = w.filter((item) => item.kind === "client");
+      const clientWorkspaces = w.filter((item: any) => item.kind === "client");
       setShipments(s);
       setKits(k);
       setPieces(p);
-      setClients(clientWorkspaces.map((cw) => ({ id: cw.id, name: cw.name } as any)));
+      setClients(clientWorkspaces.map((cw: any) => ({ id: cw.id, name: cw.name } as any)));
 
       if (k.length > 0 && !shipmentKitId) setShipmentKitId(k[0].id);
       if (clientWorkspaces.length > 0 && !shipmentClientId) setShipmentClientId(clientWorkspaces[0].id);
