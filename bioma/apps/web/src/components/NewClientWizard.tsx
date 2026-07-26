@@ -199,7 +199,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               <p style={{ color: "var(--text-dim)", marginTop: 0, marginBottom: 14, fontSize: "0.86rem" }}>
                 Selecione os módulos que serão exibidos no Hub do cliente:
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: "310px", overflowY: "auto", paddingRight: "4px" }}>
                 {/* Módulo Base (Hub) */}
                 <div
                   style={{
