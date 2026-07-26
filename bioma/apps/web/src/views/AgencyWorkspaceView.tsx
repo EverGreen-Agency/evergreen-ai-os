@@ -32,13 +32,9 @@ export function AgencyWorkspaceView() {
 
   if (resolution.status !== "ready") {
     const description = isError
-      ? "Não foi possível consultar o contexto persistente deste workspace. Verifique a API e a migration 0010."
-      : resolution.status === "ambiguous_bridge"
-      ? "Há mais de um registro operacional ligado à organização EG. A correção precisa ser feita no backend antes de abrir este workspace."
-      : resolution.status === "missing_bridge"
-        ? "O workspace interno ainda não foi provisionado para esta organização. Execute o provisionamento administrativo antes de usar os módulos operacionais."
-        : resolution.status === "missing_workspace"
-          ? "A organização EG existe, mas ainda não possui um workspace interno persistente. Rode as migrations e o bootstrap administrativo."
+      ? "Não foi possível consultar o contexto persistente deste workspace."
+      : resolution.status === "missing_workspace"
+        ? "A organização EG existe, mas ainda não possui um workspace interno persistente."
         : "Sua sessão não possui uma organização administrativa válida para a Operação EG.";
 
     return (
