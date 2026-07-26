@@ -597,7 +597,7 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
               { label: "Impressões Totais", value: formatNumber(overview.daily.reduce((acc, d) => acc + d.impressions, 0)) },
               { label: "Cliques em Campanhas", value: formatNumber(overview.daily.reduce((acc, d) => acc + d.clicks, 0)) },
               { label: "Investimento em Mídia", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + d.cost_micros, 0)) },
-              { label: "Receita & Conversões", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + d.revenue_micros, 0)) },
+              { label: "Receita & Conversões", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + (d.conversion_value || 0), 0)) },
             ],
             highlights: [
               "Campanhas ativas de Meta Ads e Google Ads operando com ROI positivo.",
