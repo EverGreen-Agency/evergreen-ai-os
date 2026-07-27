@@ -36,7 +36,9 @@ Administradores EG configuram times, membros já habilitados e distribuição de
 
 Cada Hub com módulo `content` habilitado expõe o Estúdio IA em `/clientes/:id/conteudo-ia`. A tela cria ativações, acompanha fila/execução e diferencia visualmente geração real de prévia metodológica local; nenhuma saída é publicada automaticamente.
 
-`/clientes/:id/pesquisa-mercado` e `/operacao/pesquisa-mercado` abrem o Estúdio de Pesquisa: setor → focos selecionáveis → relatório versionado. O resultado separa fontes, dores, líderes, terminologia, roteiro de prospecção e oportunidades de Growth/Social. A espera é indeterminada e não inventa porcentagem de progresso; impressão/exportação usa o relatório atualmente exibido. A visibilidade do cliente é uma ação explícita disponível apenas a quem possui `manage_work`.
+`/operacao/pesquisa-mercado` abre o Estúdio de Pesquisa da EG: setor → focos selecionáveis → relatório versionado. O resultado separa fontes, dores, líderes, terminologia, roteiro de prospecção e oportunidades de Growth/Social para preparar a abordagem de uma vertical. A espera é indeterminada e não inventa porcentagem de progresso; impressão/exportação usa o relatório atualmente exibido. A pesquisa não é exibida nem publicada no Hub do cliente.
+
+`/clientes/:id/contexto` expõe o contexto estruturado do cliente: informações básicas, contato, negócio, marketing e recursos/preferências. A porcentagem só reflete campos preenchidos de fato; quem possui `manage_work` pode editar, enquanto usuários com `view` acompanham o mesmo contexto em modo leitura.
 
 Na Operação EG, `/operacao/ia` instala e solicita workflows versionados; execuções ficam visíveis com etapas e checkpoints HITL. `/operacao/financeiro` inclui FinOps de IA: assinaturas, equivalência mensal, cotas com fonte declarada e consumo observado. Esses blocos não são consultados nem renderizados em hubs de cliente.
 

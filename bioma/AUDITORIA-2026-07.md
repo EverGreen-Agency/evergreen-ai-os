@@ -6,16 +6,18 @@ Avaliação geral de código, segurança, negócio e próximos passos, feita por
 
 O primeiro módulo de referência da ferramenta Spalla foi absorvido como domínio nativo `market_research`, sem copiar suas fragilidades. A referência recebida possui bom fluxo de setor → refinamento → relatório, mas o PDF analisado não vincula afirmações a fontes e repete parte das seções. No Bioma:
 
-- cada pesquisa pertence a um tenant/workspace, recebe versão própria e começa privada;
+- cada pesquisa pertence ao workspace interno da EG, recebe versão própria e é usada exclusivamente para escolher e dominar uma vertical de prospecção;
 - refinamento e relatório usam schema estruturado, com saídas específicas para prospecção, Growth e Social;
 - execução live usa pesquisa web e só aceita URLs efetivamente observadas no retorno do provedor;
 - relatório live insuficientemente fundamentado falha em vez de ser publicado como sucesso;
 - modo sem credencial é `preview` metodológico, sem fatos, fontes ou números inventados;
-- refinamento, geração e publicação exigem `manage_work`; `client_user` apenas lê versões concluídas e publicadas;
+- refinamento e geração exigem `manage_work`; não existe leitura, publicação ou navegação de pesquisa no Hub do cliente;
 - tokens são registrados em FinOps e o custo fica desconhecido quando não puder ser calculado com fonte confiável;
 - nenhuma migration foi aplicada e nenhum dado local foi criado nesta implementação.
 
-O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta apenas APIs RSC instáveis; o frontend do Bioma é uma SPA Vite e não usa RSC. A correção publicada exige React Router 8.3.0, portanto não foi aplicado upgrade major automático nesta frente. O alerta deve permanecer visível até uma migração compatível e testada para v8.
+O contexto de cliente foi absorvido como domínio separado de onboarding, em vez de reutilizar indevidamente a pesquisa de mercado. `workspace_client_profiles` guarda um perfil por workspace de cliente, com dados básicos, contato, negócio, marketing e recursos/preferências. A completude é calculada a partir de campos reais; leitura requer `view`, escrita requer `manage_work` e é auditada. O planejador recebe esse contexto apenas ao criar o seu rascunho aprovado internamente. Nenhum cliente, perfil ou dado demonstrativo foi criado nesta frente.
+
+O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta o modo RSC; o frontend do Bioma é uma SPA Vite e não usa RSC. O npm só oferece correção automática forçada com mudança de versão incompatível para a faixa atual, portanto não foi aplicado upgrade automático nesta frente. O alerta deve permanecer visível até uma atualização compatível e testada do roteador.
 
 ## Adendo de remediação — 2026-07-23
 

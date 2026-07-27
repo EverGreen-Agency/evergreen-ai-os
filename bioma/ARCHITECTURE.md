@@ -22,7 +22,9 @@ feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
 
 O domínio `ai_content` persiste ativações por workspace e não publica conteúdo automaticamente. A API apenas enfileira; o worker escolhe o job mais antigo entre Performance e IA, registra execução em `ai_runs` e produz saída estruturada. Sem credencial externa, o modo local é explicitamente `preview`; com `OPENAI_API_KEY`, o adapter usa a Responses API com JSON Schema estrito.
 
-O domínio `market_research` usa a mesma separação router → service → repository e persiste versões em `market_researches`, com fontes normalizadas em `market_research_sources`. O vínculo `workspace → tenant_organization_id` é validado pelo serviço e por trigger no banco. Chamadas ao provedor acontecem fora da transação; somente o resultado final ou a falha são persistidos depois. No modo `live`, o worker combina Structured Outputs com pesquisa web, aceita como citáveis apenas URLs observadas no retorno nativo do provedor e exige um conjunto mínimo de fontes. O modo `preview` não contém afirmações factuais nem referências.
+O domínio `market_research` usa a mesma separação router → service → repository e persiste versões em `market_researches`, com fontes normalizadas em `market_research_sources`. Ele é exclusivo do workspace interno da EG e apoia a prospecção de uma vertical; não é conteúdo de Hub e não possui publicação para cliente. O vínculo `workspace → tenant_organization_id` é validado pelo serviço e por trigger no banco. Chamadas ao provedor acontecem fora da transação; somente o resultado final ou a falha são persistidos depois. No modo `live`, o worker combina Structured Outputs com pesquisa web, aceita como citáveis apenas URLs observadas no retorno nativo do provedor e exige um conjunto mínimo de fontes. O modo `preview` não contém afirmações factuais nem referências.
+
+O domínio `client_profiles` persiste um único contexto estruturado por workspace de cliente em `workspace_client_profiles`. A leitura usa `view`, a alteração usa `manage_work` e cada alteração gera evento de auditoria. A completude é derivada no serviço, nunca gravada como valor manual. Ao gerar um plano de projeto, o serviço carrega esse contexto por organização e o inclui no snapshot do planejador; o worker só produz rascunho e não materializa fases ou entregas sem aprovação.
 
 O domínio interno `ai_operations` é o control plane dos fluxos da EG. Templates em código são instalados como definições versionadas; cada execução usa chave de idempotência, materializa etapas em ordem e volta a `pending_approval` nos checkpoints interativos. Completar uma etapa pode registrar uso/custo, mas o motor não executa escrita externa nem pula HITL. Os primeiros fluxos são proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
 
@@ -91,7 +93,7 @@ Mapa de acesso atual (quem vê o quê):
 | Público | `/` (login), `/convite/:token`, `/redefinir/:token`, `/privacidade` | nenhuma |
 | Control Plane EG | `/`, `/clientes` | sessão + `guardAdmin()` quando administrativo |
 | Operação EG | `/operacao`, `/operacao/crm`, `/operacao/financeiro`, `/operacao/metricas` | `guardAdmin()` + ponte exata da organização EG |
-| Workspace cliente | `/clientes/:id`, `/projetos`, `/tarefas`, `/acessos`, `/pesquisa-mercado`, `/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
+| Workspace cliente | `/clientes/:id`, `/contexto`, `/projetos`, `/tarefas`, `/acessos`, `/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
 | Backoffice EG | `/engenharia`, `/eg-office`, `/eg-ideas`, `/eg-tech`, `/eg-architecture`, `/configuracoes` | `guardAdmin()` + lazy-load |
 
 Regras invioláveis:
