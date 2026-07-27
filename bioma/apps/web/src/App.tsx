@@ -23,6 +23,7 @@ import {
   ClientTasksRoute,
   ClientIntegrationsRoute,
   ClientFilesRoute,
+  ClientMarketResearchRoute,
   ClientVaultRoute,
   ClientProjectsRoute,
   ClientWorkspaceView,
@@ -38,6 +39,7 @@ const AgencyCrmRoute = lazy(() => import("./views/AgencyWorkspaceView").then((mo
 const AgencyFinanceRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyFinanceRoute })));
 const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAnalyticsRoute })));
 const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
+const AgencyMarketResearchRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyMarketResearchRoute })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -280,6 +282,7 @@ export function App() {
             <Route path="financeiro" element={<AgencyFinanceRoute />} />
             <Route path="metricas" element={<AgencyAnalyticsRoute />} />
             <Route path="ia" element={<AgencyAiOperationsRoute />} />
+            <Route path="pesquisa-mercado" element={<AgencyMarketResearchRoute />} />
           </Route>
 
           <Route path="/clientes" element={guard("clientes",
@@ -297,6 +300,7 @@ export function App() {
             <Route path="crm" element={<ClientCrmRoute />} />
             <Route path="tarefas" element={<ClientTasksRoute />} />
             <Route path="conteudo-ia" element={<ClientAiContentRoute />} />
+            <Route path="pesquisa-mercado" element={<ClientMarketResearchRoute />} />
             <Route path="financeiro" element={<ClientFinanceRoute />} />
             <Route path="analytics" element={<ClientAnalyticsRoute />} />
             <Route path="documentos" element={<ClientFilesRoute />} />

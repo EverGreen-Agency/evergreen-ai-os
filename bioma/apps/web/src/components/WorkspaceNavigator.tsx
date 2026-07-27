@@ -69,7 +69,7 @@ function clientIdFromPath(pathname: string): string | null {
 }
 
 function clientSuffixFromPath(pathname: string): string {
-  const match = pathname.match(/^\/clientes\/[^/]+\/(crm|financeiro|analytics|documentos|integracoes|conteudo-ia|tarefas|acessos)/);
+  const match = pathname.match(/^\/clientes\/[^/]+\/(crm|financeiro|analytics|documentos|integracoes|conteudo-ia|pesquisa-mercado|tarefas|acessos)/);
   if (match?.[1]) return match[1];
   if (pathname.startsWith("/operacao/crm")) return "crm";
   if (pathname.startsWith("/operacao/financeiro")) return "financeiro";

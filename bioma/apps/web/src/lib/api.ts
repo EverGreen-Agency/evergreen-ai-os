@@ -445,6 +445,117 @@ export type FinOpsSummaryResponse = {
   total_executions: number;
 };
 
+export type MarketResearchFocusOption = {
+  key: string;
+  label: string;
+  description: string;
+};
+
+export type MarketResearchRefinement = {
+  sector_interpretation: string;
+  assumptions: string[];
+  focus_options: MarketResearchFocusOption[];
+  generation_mode: "live" | "preview" | "manual";
+};
+
+export type MarketResearchSource = {
+  url: string;
+  title: string | null;
+  publisher: string | null;
+  publication_date: string | null;
+  consulted_at: string | null;
+};
+
+export type MarketResearchReport = {
+  title: string;
+  executive_summary: string;
+  market_overview: {
+    description: string;
+    market_size_and_segments: string[];
+    business_models: string[];
+    growth_outlook: string;
+    trends: string[];
+    source_urls: string[];
+  };
+  commercial_process: {
+    sales_strategies: string[];
+    acquisition_and_retention: string[];
+    buying_journey: string[];
+    qualification_signals: string[];
+    source_urls: string[];
+  };
+  challenges: Array<{
+    challenge: string;
+    business_impact: string;
+    opportunity: string;
+    source_urls: string[];
+  }>;
+  market_leaders: Array<{
+    name: string;
+    segment: string;
+    success_strategy: string;
+    source_urls: string[];
+  }>;
+  terminology: Array<{
+    term: string;
+    definition: string;
+    source_urls: string[];
+  }>;
+  growth_opportunities: Array<{
+    opportunity: string;
+    recommended_service: string;
+    rationale: string;
+    priority: "high" | "medium" | "low";
+    source_urls: string[];
+  }>;
+  prospecting_playbook: {
+    opening_angles: string[];
+    qualification_questions: string[];
+    likely_objections: string[];
+    credibility_cautions: string[];
+  };
+  content_opportunities: Array<{
+    theme: string;
+    recommended_format: string;
+    funnel_stage: "awareness" | "consideration" | "decision" | "retention";
+    rationale: string;
+    source_urls: string[];
+  }>;
+  caveats: string[];
+  sources: MarketResearchSource[];
+};
+
+export type MarketResearchSummary = {
+  id: string;
+  workspace_id: string;
+  version: number;
+  sector: string;
+  geographic_scope: string;
+  objective: string | null;
+  selected_focus: MarketResearchFocusOption[];
+  status: "running" | "completed" | "failed" | "archived";
+  generation_mode: "live" | "preview" | "manual";
+  provider: string | null;
+  model: string | null;
+  token_usage: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+  estimated_cost_cents: number | null;
+  source_count: number;
+  client_visible: boolean;
+  error_message: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketResearchDetail = MarketResearchSummary & {
+  report: MarketResearchReport | null;
+  sources: MarketResearchSource[];
+};
+
 export type BrandBookSummary = {
   id: string;
   workspace_id: string;
@@ -1801,6 +1912,36 @@ export const api = {
     request<SquadExecutionSummary[]>(`/workspaces/${workspaceId}/squads/executions`),
   squadFinOps: (workspaceId: string) =>
     request<FinOpsSummaryResponse>(`/workspaces/${workspaceId}/squads/finops`),
+  marketResearches: (workspaceId: string) =>
+    request<MarketResearchSummary[]>(`/workspaces/${workspaceId}/market-research`),
+  refineMarketResearch: (
+    workspaceId: string,
+    payload: { sector: string; objective?: string | null; geographic_scope?: string },
+  ) =>
+    request<MarketResearchRefinement>(`/workspaces/${workspaceId}/market-research/refine`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  createMarketResearch: (
+    workspaceId: string,
+    payload: {
+      sector: string;
+      objective?: string | null;
+      geographic_scope: string;
+      selected_focus: MarketResearchFocusOption[];
+    },
+  ) =>
+    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  marketResearch: (workspaceId: string, researchId: string) =>
+    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research/${researchId}`),
+  setMarketResearchVisibility: (workspaceId: string, researchId: string, clientVisible: boolean) =>
+    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research/${researchId}/visibility`, {
+      method: "PATCH",
+      body: JSON.stringify({ client_visible: clientVisible }),
+    }),
   brandBook: (workspaceId: string) =>
     request<BrandBookSummary>(`/workspaces/${workspaceId}/brand-book`),
   saveBrandBook: (

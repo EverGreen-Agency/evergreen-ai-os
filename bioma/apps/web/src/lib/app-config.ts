@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileSearch, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -37,7 +37,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
 ];
 
 export const clientHubNavItems: Array<{
-  id: "hub" | "projects" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
+  id: "hub" | "projects" | "ai-content" | "market-research" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
   label: string;
   path: string;
   module: ClientModule;
@@ -46,6 +46,7 @@ export const clientHubNavItems: Array<{
   { id: "hub", label: "Visão geral", path: "", module: "hub", icon: LayoutDashboard },
   { id: "projects", label: "Projetos e contratos", path: "projetos", module: "hub", icon: BriefcaseBusiness },
   { id: "ai-content", label: "Estúdio IA", path: "conteudo-ia", module: "content", icon: Sparkles },
+  { id: "market-research", label: "Pesquisa de mercado", path: "pesquisa-mercado", module: "hub", icon: FileSearch },
   { id: "crm", label: "CRM", path: "crm", module: "commercial", icon: Users },
   { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
   { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
@@ -71,6 +72,13 @@ export const agencyWorkspaceNavItems: Array<{
     path: "ia",
     module: "hub",
     icon: Bot,
+  },
+  {
+    id: "market-research",
+    label: "Pesquisa de mercado",
+    path: "pesquisa-mercado",
+    module: "hub",
+    icon: FileSearch,
   },
 ];
 

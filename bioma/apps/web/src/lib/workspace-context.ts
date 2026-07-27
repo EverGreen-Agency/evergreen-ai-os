@@ -7,6 +7,7 @@ export type AgencyWorkspaceContext = {
   organizationId: string;
   organizationName: string;
   name: string;
+  accessRole: WorkspaceSummary["access_role"];
 };
 
 export type ClientWorkspaceContext = {
@@ -67,6 +68,7 @@ export function resolveAgencyWorkspace(
       organizationId: agencyOrganization.id,
       organizationName: agencyOrganization.name,
       name: agencyWorkspace.name,
+      accessRole: agencyWorkspace.access_role,
     },
   };
 }
