@@ -10,6 +10,7 @@ from bioma_api.routers import (
     auth,
     benchmark,
     certifications,
+    client_profiles,
     client_hub,
     commercial,
     files,
@@ -62,6 +63,7 @@ app.include_router(passwords.router)
 app.include_router(invites.public_router)
 app.include_router(benchmark.public_router)
 app.include_router(client_hub.router)
+app.include_router(client_profiles.router)
 app.include_router(workspaces.router)
 app.include_router(commercial.router)
 app.include_router(whatsapp.router)

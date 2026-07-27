@@ -20,6 +20,7 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
     plan_id = uuid4()
     open_connections = 0
     saved_items = []
+    captured_context = {}
 
     @contextmanager
     def fake_connect():
@@ -56,8 +57,9 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
         "status": "active",
     }
 
-    def fake_execute(**_kwargs):
+    def fake_execute(**kwargs):
         assert open_connections == 0
+        captured_context.update(kwargs["input_context"])
         return {
             "output_data": {
                 "plan_title": "Plano editorial",
@@ -87,6 +89,11 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
     monkeypatch.setattr(project_service.project_repo, "list_contracts", lambda *_args: [])
     monkeypatch.setattr(project_service.project_repo, "list_scope_items", lambda *_args: [scope])
     monkeypatch.setattr(project_service.project_repo, "list_documents", lambda *_args: [])
+    monkeypatch.setattr(
+        project_service.client_profile_repo,
+        "get_profile_for_organization",
+        lambda *_args: {"sector": "Saúde", "primary_offer": "Clínica especializada", "updated_at": None},
+    )
     monkeypatch.setattr(project_service, "execute_squad_pipeline_safe", fake_execute)
     monkeypatch.setattr(project_service.project_repo, "lock_project", lambda *_args: None)
     monkeypatch.setattr(project_service.project_repo, "next_plan_version", lambda *_args: 1)
@@ -111,6 +118,7 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
     assert saved_items[0]["client_visible"] is True
     assert saved_items[0]["approval_required"] is True
     assert saved_items[0]["metadata"]["contract_cadence"] == "monthly"
+    assert captured_context["client_context"] == {"sector": "Saúde", "primary_offer": "Clínica especializada"}
 
 
 def test_materialization_replay_does_not_duplicate_deliverables(eg_admin, monkeypatch):

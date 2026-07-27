@@ -6,7 +6,9 @@ from pydantic import ValidationError
 
 from bioma_api.access import is_platform_admin, require_workspace_capability
 from bioma_api.db import connect
+from bioma_api.repositories import client_profiles as client_profile_repo
 from bioma_api.repositories import projects as project_repo
+from bioma_api.services import client_profiles as client_profile_service
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
     ContractCreate, ContractSummary, ContractUpdate, ProjectCreate, ProjectDeliverableCreate,
@@ -260,6 +262,9 @@ def generate_project_plan(
             if row["status"] == "active" and (not contract or row["contract_id"] == contract["id"])
         ]
         documents = project_repo.list_documents(conn, project_id, True)
+        client_profile = client_profile_service.planning_context(
+            client_profile_repo.get_profile_for_organization(conn, project["organization_id"])
+        )
         snapshot = {
             "project_name": project["name"],
             "discipline": project["project_type"],
@@ -296,6 +301,7 @@ def generate_project_plan(
                 {"kind": item["kind"], "title": item["title"], "url": item["url"]}
                 for item in documents
             ],
+            "client_context": client_profile,
         }
 
     result = execute_squad_pipeline_safe(
