@@ -8453,6 +8453,28 @@
             ],
             "title": "Due At"
           },
+          "github_issue_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Issue Number"
+          },
+          "github_issue_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Issue Url"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -8663,6 +8685,13 @@
               "$ref": "#/components/schemas/ProjectPhaseSummary"
             },
             "title": "Phases",
+            "type": "array"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPlanSummary"
+            },
+            "title": "Plans",
             "type": "array"
           },
           "project_type": {
@@ -9133,6 +9162,391 @@
           }
         },
         "title": "ProjectPhaseUpdate",
+        "type": "object"
+      },
+      "ProjectPlanApproveRequest": {
+        "properties": {
+          "confirm": {
+            "const": true,
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "ProjectPlanApproveRequest",
+        "type": "object"
+      },
+      "ProjectPlanGenerateRequest": {
+        "properties": {
+          "briefing": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Briefing"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "social_approval_flow": {
+            "default": "adaptive",
+            "enum": [
+              "adaptive",
+              "idea_before_production",
+              "after_production",
+              "final_only"
+            ],
+            "title": "Social Approval Flow",
+            "type": "string"
+          },
+          "source_kind": {
+            "default": "contract",
+            "enum": [
+              "contract",
+              "briefing",
+              "onboarding",
+              "manual"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          }
+        },
+        "title": "ProjectPlanGenerateRequest",
+        "type": "object"
+      },
+      "ProjectPlanItemSummary": {
+        "properties": {
+          "approval_required": {
+            "title": "Approval Required",
+            "type": "boolean"
+          },
+          "client_visible": {
+            "title": "Client Visible",
+            "type": "boolean"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "due_offset_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Offset Days"
+          },
+          "github_eligible": {
+            "title": "Github Eligible",
+            "type": "boolean"
+          },
+          "github_issue_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Issue Number"
+          },
+          "github_issue_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Issue Url"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_kind": {
+            "enum": [
+              "milestone",
+              "deliverable",
+              "content",
+              "campaign",
+              "technical_task"
+            ],
+            "title": "Item Kind",
+            "type": "string"
+          },
+          "materialized_deliverable_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materialized Deliverable Id"
+          },
+          "materialized_phase_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materialized Phase Id"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "phase_name": {
+            "title": "Phase Name",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "source_scope_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Scope Item Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "plan_id",
+          "sequence",
+          "phase_name",
+          "title",
+          "item_kind",
+          "client_visible",
+          "approval_required",
+          "github_eligible"
+        ],
+        "title": "ProjectPlanItemSummary",
+        "type": "object"
+      },
+      "ProjectPlanMaterializeRequest": {
+        "properties": {
+          "confirm": {
+            "const": true,
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "ProjectPlanMaterializeRequest",
+        "type": "object"
+      },
+      "ProjectPlanSummary": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "discipline": {
+            "enum": [
+              "social",
+              "growth",
+              "tech",
+              "general"
+            ],
+            "title": "Discipline",
+            "type": "string"
+          },
+          "generation_mode": {
+            "enum": [
+              "live",
+              "preview",
+              "manual"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPlanItemSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "materialized_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materialized At"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "source_contract_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Contract Id"
+          },
+          "source_kind": {
+            "enum": [
+              "contract",
+              "briefing",
+              "onboarding",
+              "manual"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "approved",
+              "materialized",
+              "superseded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "discipline",
+          "source_kind",
+          "status",
+          "generation_mode",
+          "title",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectPlanSummary",
         "type": "object"
       },
       "ProjectSummary": {
@@ -10141,7 +10555,8 @@
               "oferta",
               "demanda",
               "conversao",
-              "onboarding"
+              "onboarding",
+              "planning"
             ],
             "title": "Pilar",
             "type": "string"
@@ -10826,7 +11241,8 @@
               "oferta",
               "demanda",
               "conversao",
-              "onboarding"
+              "onboarding",
+              "planning"
             ],
             "title": "Pilar",
             "type": "string"
@@ -10909,7 +11325,8 @@
               "oferta",
               "demanda",
               "conversao",
-              "onboarding"
+              "onboarding",
+              "planning"
             ],
             "title": "Pilar",
             "type": "string"
@@ -11020,7 +11437,8 @@
               "oferta",
               "demanda",
               "conversao",
-              "onboarding"
+              "onboarding",
+              "planning"
             ],
             "title": "Pilar",
             "type": "string"
@@ -20676,6 +21094,155 @@
         ]
       }
     },
+    "/project-plans/{plan_id}": {
+      "get": {
+        "operationId": "get_project_plan_project_plans__plan_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Project Plan",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/project-plans/{plan_id}/approve": {
+      "post": {
+        "operationId": "approve_project_plan_project_plans__plan_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPlanApproveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Project Plan",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/project-plans/{plan_id}/materialize": {
+      "post": {
+        "operationId": "materialize_project_plan_project_plans__plan_id__materialize_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPlanMaterializeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Materialize Project Plan",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/projects/{project_id}": {
       "get": {
         "operationId": "get_project_projects__project_id__get",
@@ -20977,6 +21544,59 @@
           }
         },
         "summary": "Create Phase",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{project_id}/plans/generate": {
+      "post": {
+        "operationId": "generate_project_plan_projects__project_id__plans_generate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPlanGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Project Plan",
         "tags": [
           "projects"
         ]

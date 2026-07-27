@@ -1957,6 +1957,57 @@ export interface paths {
         patch: operations["update_phase_project_phases__phase_id__patch"];
         trace?: never;
     };
+    "/project-plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Project Plan */
+        get: operations["get_project_plan_project_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project-plans/{plan_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Project Plan */
+        post: operations["approve_project_plan_project_plans__plan_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project-plans/{plan_id}/materialize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Materialize Project Plan */
+        post: operations["materialize_project_plan_project_plans__plan_id__materialize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{project_id}": {
         parameters: {
             query?: never;
@@ -2037,6 +2088,23 @@ export interface paths {
         put?: never;
         /** Create Phase */
         post: operations["create_phase_projects__project_id__phases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{project_id}/plans/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Project Plan */
+        post: operations["generate_project_plan_projects__project_id__plans_generate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6342,6 +6410,10 @@ export interface components {
             completed_at?: string | null;
             /** Due At */
             due_at?: string | null;
+            /** Github Issue Number */
+            github_issue_number?: number | null;
+            /** Github Issue Url */
+            github_issue_url?: string | null;
             /**
              * Id
              * Format: uuid
@@ -6431,6 +6503,8 @@ export interface components {
             pace_status: "unknown" | "on_track" | "at_risk" | "off_track";
             /** Phases */
             phases?: components["schemas"]["ProjectPhaseSummary"][];
+            /** Plans */
+            plans?: components["schemas"]["ProjectPlanSummary"][];
             /**
              * Project Type
              * @enum {string}
@@ -6590,6 +6664,150 @@ export interface components {
             starts_at?: string | null;
             /** Status */
             status?: ("planned" | "development" | "blocked" | "internal_testing" | "client_validation" | "released") | null;
+        };
+        /** ProjectPlanApproveRequest */
+        ProjectPlanApproveRequest: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+        };
+        /** ProjectPlanGenerateRequest */
+        ProjectPlanGenerateRequest: {
+            /** Briefing */
+            briefing?: string | null;
+            /** Contract Id */
+            contract_id?: string | null;
+            /** Objective */
+            objective?: string | null;
+            /**
+             * Social Approval Flow
+             * @default adaptive
+             * @enum {string}
+             */
+            social_approval_flow: "adaptive" | "idea_before_production" | "after_production" | "final_only";
+            /**
+             * Source Kind
+             * @default contract
+             * @enum {string}
+             */
+            source_kind: "contract" | "briefing" | "onboarding" | "manual";
+        };
+        /** ProjectPlanItemSummary */
+        ProjectPlanItemSummary: {
+            /** Approval Required */
+            approval_required: boolean;
+            /** Client Visible */
+            client_visible: boolean;
+            /** Description */
+            description?: string | null;
+            /** Due Offset Days */
+            due_offset_days?: number | null;
+            /** Github Eligible */
+            github_eligible: boolean;
+            /** Github Issue Number */
+            github_issue_number?: number | null;
+            /** Github Issue Url */
+            github_issue_url?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Item Kind
+             * @enum {string}
+             */
+            item_kind: "milestone" | "deliverable" | "content" | "campaign" | "technical_task";
+            /** Materialized Deliverable Id */
+            materialized_deliverable_id?: string | null;
+            /** Materialized Phase Id */
+            materialized_phase_id?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Phase Name */
+            phase_name: string;
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Source Scope Item Id */
+            source_scope_item_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** ProjectPlanMaterializeRequest */
+        ProjectPlanMaterializeRequest: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+        };
+        /** ProjectPlanSummary */
+        ProjectPlanSummary: {
+            /** Approved At */
+            approved_at?: string | null;
+            /** Assumptions */
+            assumptions?: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Discipline
+             * @enum {string}
+             */
+            discipline: "social" | "growth" | "tech" | "general";
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items?: components["schemas"]["ProjectPlanItemSummary"][];
+            /** Materialized At */
+            materialized_at?: string | null;
+            /** Objective */
+            objective?: string | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Source Contract Id */
+            source_contract_id?: string | null;
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "contract" | "briefing" | "onboarding" | "manual";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "materialized" | "superseded";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
         };
         /** ProjectSummary */
         ProjectSummary: {
@@ -6934,7 +7152,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
             /** Squad Name */
             squad_name: string;
             /** Squad Slug */
@@ -7187,7 +7405,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
             /** Pipeline Yaml */
             pipeline_yaml?: string | null;
             /** Squad Name */
@@ -7223,7 +7441,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
             /** Pipeline Yaml */
             pipeline_yaml?: string | null;
             /** Squad Name */
@@ -7278,7 +7496,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
             /** Squad Id */
             squad_id?: string | null;
             /** Squad Name */
@@ -12913,6 +13131,107 @@ export interface operations {
             };
         };
     };
+    get_project_plan_project_plans__plan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_project_plan_project_plans__plan_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanApproveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    materialize_project_plan_project_plans__plan_id__materialize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanMaterializeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_projects__project_id__get: {
         parameters: {
             query?: never;
@@ -13106,6 +13425,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_project_plan_projects__project_id__plans_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanSummary"];
                 };
             };
             /** @description Validation Error */
