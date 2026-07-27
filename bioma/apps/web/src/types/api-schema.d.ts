@@ -3087,6 +3087,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspace_id}/market-research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Researches */
+        get: operations["list_researches_workspaces__workspace_id__market_research_get"];
+        put?: never;
+        /** Create Research */
+        post: operations["create_research_workspaces__workspace_id__market_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/market-research/refine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refine Sector */
+        post: operations["refine_sector_workspaces__workspace_id__market_research_refine_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/market-research/{research_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Research */
+        get: operations["get_research_workspaces__workspace_id__market_research__research_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/market-research/{research_id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Visibility */
+        patch: operations["update_visibility_workspaces__workspace_id__market_research__research_id__visibility_patch"];
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/projects": {
         parameters: {
             query?: never;
@@ -5675,6 +5744,225 @@ export interface components {
             /** Workspace Name */
             workspace_name: string;
         };
+        /** MarketResearchCreate */
+        MarketResearchCreate: {
+            /**
+             * Geographic Scope
+             * @default Brasil
+             */
+            geographic_scope: string;
+            /** Objective */
+            objective?: string | null;
+            /** Sector */
+            sector: string;
+            /** Selected Focus */
+            selected_focus: components["schemas"]["MarketResearchFocusOption"][];
+        };
+        /** MarketResearchDetail */
+        MarketResearchDetail: {
+            /** Client Visible */
+            client_visible: boolean;
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Message */
+            error_message?: string | null;
+            /** Estimated Cost Cents */
+            estimated_cost_cents?: number | null;
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /** Geographic Scope */
+            geographic_scope: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model?: string | null;
+            /** Objective */
+            objective?: string | null;
+            /** Provider */
+            provider?: string | null;
+            report?: components["schemas"]["MarketResearchReport"] | null;
+            /** Sector */
+            sector: string;
+            /** Selected Focus */
+            selected_focus: components["schemas"]["MarketResearchFocusOption"][];
+            /** Source Count */
+            source_count: number;
+            /** Sources */
+            sources?: components["schemas"]["MarketResearchSource"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed" | "archived";
+            /** Token Usage */
+            token_usage: {
+                [key: string]: unknown;
+            };
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** MarketResearchFocusOption */
+        MarketResearchFocusOption: {
+            /** Description */
+            description: string;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+        };
+        /** MarketResearchRefineRequest */
+        MarketResearchRefineRequest: {
+            /**
+             * Geographic Scope
+             * @default Brasil
+             */
+            geographic_scope: string;
+            /** Objective */
+            objective?: string | null;
+            /** Sector */
+            sector: string;
+        };
+        /** MarketResearchRefinement */
+        MarketResearchRefinement: {
+            /** Assumptions */
+            assumptions?: string[];
+            /** Focus Options */
+            focus_options: components["schemas"]["MarketResearchFocusOption"][];
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /** Sector Interpretation */
+            sector_interpretation: string;
+        };
+        /** MarketResearchReport */
+        MarketResearchReport: {
+            /** Caveats */
+            caveats: string[];
+            /** Challenges */
+            challenges: components["schemas"]["ResearchChallenge"][];
+            commercial_process: components["schemas"]["ResearchCommercialProcess"];
+            /** Content Opportunities */
+            content_opportunities: components["schemas"]["ResearchContentOpportunity"][];
+            /** Executive Summary */
+            executive_summary: string;
+            /** Growth Opportunities */
+            growth_opportunities: components["schemas"]["ResearchGrowthOpportunity"][];
+            /** Market Leaders */
+            market_leaders: components["schemas"]["ResearchMarketLeader"][];
+            market_overview: components["schemas"]["ResearchMarketOverview"];
+            prospecting_playbook: components["schemas"]["ResearchProspectingPlaybook"];
+            /** Sources */
+            sources?: components["schemas"]["MarketResearchSource"][];
+            /** Terminology */
+            terminology: components["schemas"]["ResearchTerminology"][];
+            /** Title */
+            title: string;
+        };
+        /** MarketResearchSource */
+        MarketResearchSource: {
+            /** Consulted At */
+            consulted_at?: string | null;
+            /** Publication Date */
+            publication_date?: string | null;
+            /** Publisher */
+            publisher?: string | null;
+            /** Title */
+            title?: string | null;
+            /**
+             * Url
+             * Format: uri
+             */
+            url: string;
+        };
+        /** MarketResearchSummary */
+        MarketResearchSummary: {
+            /** Client Visible */
+            client_visible: boolean;
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Message */
+            error_message?: string | null;
+            /** Estimated Cost Cents */
+            estimated_cost_cents?: number | null;
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /** Geographic Scope */
+            geographic_scope: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model?: string | null;
+            /** Objective */
+            objective?: string | null;
+            /** Provider */
+            provider?: string | null;
+            /** Sector */
+            sector: string;
+            /** Selected Focus */
+            selected_focus: components["schemas"]["MarketResearchFocusOption"][];
+            /** Source Count */
+            source_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed" | "archived";
+            /** Token Usage */
+            token_usage: {
+                [key: string]: unknown;
+            };
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
+        /** MarketResearchVisibilityUpdate */
+        MarketResearchVisibilityUpdate: {
+            /** Client Visible */
+            client_visible: boolean;
+        };
         /** MilestoneCompletionRequest */
         MilestoneCompletionRequest: {
             /** Day Offset */
@@ -7136,6 +7424,108 @@ export interface components {
             scope_offer?: string | null;
             /** Target Niche */
             target_niche?: string | null;
+        };
+        /** ResearchChallenge */
+        ResearchChallenge: {
+            /** Business Impact */
+            business_impact: string;
+            /** Challenge */
+            challenge: string;
+            /** Opportunity */
+            opportunity: string;
+            /** Source Urls */
+            source_urls?: string[];
+        };
+        /** ResearchCommercialProcess */
+        ResearchCommercialProcess: {
+            /** Acquisition And Retention */
+            acquisition_and_retention: string[];
+            /** Buying Journey */
+            buying_journey: string[];
+            /** Qualification Signals */
+            qualification_signals: string[];
+            /** Sales Strategies */
+            sales_strategies: string[];
+            /** Source Urls */
+            source_urls?: string[];
+        };
+        /** ResearchContentOpportunity */
+        ResearchContentOpportunity: {
+            /**
+             * Funnel Stage
+             * @enum {string}
+             */
+            funnel_stage: "awareness" | "consideration" | "decision" | "retention";
+            /** Rationale */
+            rationale: string;
+            /** Recommended Format */
+            recommended_format: string;
+            /** Source Urls */
+            source_urls?: string[];
+            /** Theme */
+            theme: string;
+        };
+        /** ResearchGrowthOpportunity */
+        ResearchGrowthOpportunity: {
+            /** Opportunity */
+            opportunity: string;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "high" | "medium" | "low";
+            /** Rationale */
+            rationale: string;
+            /** Recommended Service */
+            recommended_service: string;
+            /** Source Urls */
+            source_urls?: string[];
+        };
+        /** ResearchMarketLeader */
+        ResearchMarketLeader: {
+            /** Name */
+            name: string;
+            /** Segment */
+            segment: string;
+            /** Source Urls */
+            source_urls?: string[];
+            /** Success Strategy */
+            success_strategy: string;
+        };
+        /** ResearchMarketOverview */
+        ResearchMarketOverview: {
+            /** Business Models */
+            business_models: string[];
+            /** Description */
+            description: string;
+            /** Growth Outlook */
+            growth_outlook: string;
+            /** Market Size And Segments */
+            market_size_and_segments: string[];
+            /** Source Urls */
+            source_urls?: string[];
+            /** Trends */
+            trends: string[];
+        };
+        /** ResearchProspectingPlaybook */
+        ResearchProspectingPlaybook: {
+            /** Credibility Cautions */
+            credibility_cautions: string[];
+            /** Likely Objections */
+            likely_objections: string[];
+            /** Opening Angles */
+            opening_angles: string[];
+            /** Qualification Questions */
+            qualification_questions: string[];
+        };
+        /** ResearchTerminology */
+        ResearchTerminology: {
+            /** Definition */
+            definition: string;
+            /** Source Urls */
+            source_urls?: string[];
+            /** Term */
+            term: string;
         };
         /**
          * Role
@@ -16074,6 +16464,175 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkspaceSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_researches_workspaces__workspace_id__market_research_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketResearchSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_research_workspaces__workspace_id__market_research_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketResearchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketResearchDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refine_sector_workspaces__workspace_id__market_research_refine_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketResearchRefineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketResearchRefinement"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_research_workspaces__workspace_id__market_research__research_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                research_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketResearchDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_visibility_workspaces__workspace_id__market_research__research_id__visibility_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                research_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketResearchVisibilityUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketResearchDetail"];
                 };
             };
             /** @description Validation Error */
