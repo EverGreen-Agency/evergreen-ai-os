@@ -40,7 +40,7 @@ Na Operação EG, `/operacao/ia` instala e solicita workflows versionados; execu
 
 Tarefas importadas do ClickUp aparecem apenas como legado somente leitura. Edição, subtarefas, dependências, recorrência e exclusão ficam disponíveis para tarefas nativas do Bioma e usuários com `manage_work`. A sincronização ClickUp foi removida das superfícies do produto.
 
-O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, fases, entregas, conclusão e ritmo; em Tech também há links de proposta/especificação, atualizações de progresso, bloqueio, teste ou release e atividade GitHub em leitura (issues, PRs e commits). Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, com os campos operacionais da planilha (plataforma, conta, usuário, e-mail, senha, outro acesso e link) sem incluir segredo nas listagens.
+O Hub possui rotas `projetos` e `acessos`. Projetos exibem contrato, escopo, fases, entregas, conclusão e ritmo; em Tech também há links de proposta/especificação, atualizações de progresso, bloqueio, teste ou release e atividade GitHub (issues, PRs e commits). Operadores com `manage_work` podem criar uma issue a partir de uma entrega após confirmação explícita. Acessos permite depósito seguro pelo cliente e gestão/revelação conforme o papel, com os campos operacionais da planilha sem incluir segredo nas listagens.
 
 A fonte da navegação é `GET /workspaces`, não uma inferência sobre a lista de clientes. Recentes usam `workspace.id`; entradas locais antigas por cliente são convertidas à medida que forem reabertas. As URLs visuais continuam legíveis como `/clientes/:clientId`, mas os módulos chamam a API canônica por `/workspaces/:workspaceId`; o backend ainda aceita `client_id` como adapter de compatibilidade.
 

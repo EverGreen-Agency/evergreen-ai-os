@@ -22,7 +22,7 @@ Responsabilidades iniciais:
 - audit log;
 - motor nativo de projetos, contratos, escopo, tarefas e entregas;
 - cofre de acessos cifrado e auditado;
-- **Radar de Oportunidades & Freelancers (17 plataformas B2B)**;
+- radar de oportunidades por captura manual, fontes RSS públicas e feeds configuráveis;
 - **Auto-Vigilância & Auditoria Automática de Perfil por URL (`profile_auditor.py`)**;
 - **Injeção Automática de Cases & Provas Sociais nas Propostas (`attached_cases`)**;
 - **Inventário de Gaps Tecnológicos do Mercado (`opportunity_skill_gaps` e `tech_skill_inventory`)**;
@@ -113,7 +113,7 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 
 - `GET /backoffice/proposals/opportunities`: Lista oportunidades varridas.
 - `POST /backoffice/proposals/opportunities/ingest`: Triagem manual de vaga.
-- `POST /backoffice/proposals/opportunities/sync`: Dispara varredura em 17 plataformas.
+- `POST /backoffice/proposals/opportunities/sync`: consulta as três fontes RSS públicas e feeds adicionais configurados.
 - `POST /backoffice/proposals/opportunities/{id}/generate`: Gera proposta em 3 pilares com injeção de cases.
 - `GET/POST/PATCH /backoffice/proposals`: Gerenciador de propostas comerciais (com seletor de status `draft`, `sent`, `won`, `lost`).
 - `GET /backoffice/proposals/platforms`: Lista e configura custos de assinaturas SaaS de plataformas.

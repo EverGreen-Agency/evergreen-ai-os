@@ -24,7 +24,17 @@ Implementações locais desta rodada:
 - motor nativo de projetos (`migration 0022`): projeto, contrato versionado, item de escopo, vínculo de entrega, conclusão, aceite separado e indicadores de progresso/ritmo;
 - área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
 - acompanhamento Tech (`migration 0023`): fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release filtradas por visibilidade do cliente;
-- GitHub Tech em leitura (`migration 0028`): mapping auditado por projeto, autorização de workspace e projeção de issues, PRs e commits; escrita externa continua inexistente;
+- GitHub Tech começou em leitura (`migration 0028`) e passou a permitir criação de issue por entrega com `confirm=true`, autorização de workspace, auditoria e replay local idempotente (`migration 0037`);
+
+## Adendo de hardening — 2026-07-27
+
+- O backoffice de propostas passou a exigir EG admin antes de acessar o banco.
+- O campo `api_key_or_token` foi removido: o radar atual consome RSS e não possui justificativa para guardar cookies/tokens de plataformas.
+- Configurações deixaram de criar/alterar schema em requisições e não gravam mais despesas incompatíveis em `financial_records`.
+- Propostas agora consomem as saídas de Oferta, Conversão e Demanda; preço, prazo e cases permanecem vazios até decisão/evidência humana.
+- Falha de auditoria, scraper, provider ou squad não é mais convertida em sucesso ou conteúdo fictício.
+- O wizard executa o squad de onboarding e incorpora sugestões de entregáveis; execução sem chave fica identificada como prévia local.
+- `test_proposals_flow.py` foi convertido para teste sem banco depois que a versão anterior deixou registros no Postgres local.
 - aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
 - cofre ampliado com os campos mínimos da operação (plataforma, conta, usuário, e-mail, senha, outro acesso e link), mantendo valores de acesso cifrados;
 - smoke isolado para cofre e projetos, sem dependência da HM.

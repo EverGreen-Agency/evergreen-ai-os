@@ -1,6 +1,6 @@
 # Bioma MVP v0 & Mega-Plataforma
 
-Bioma é a plataforma operacional e motor comercial da EverGreen. O sistema reúne cockpit interno EG, Client Hub, motor nativo de projetos/tarefas, contratos e escopo, cofre de acessos, **Radar de Oportunidades & Freelancers (17 plataformas B2B)**, **Auto-Vigilância & Auditoria Automática de Perfil por URL**, **Injeção de Cases Validados**, **Inventário de Gaps Tecnológicos**, **Big Data Comercial de ROI & CAC por Plataforma**, auth, Postgres e adapters externos.
+Bioma é a plataforma operacional e motor comercial da EverGreen. O sistema reúne cockpit interno EG, Client Hub, motor nativo de projetos/tarefas, contratos e escopo, cofre de acessos, radar de oportunidades por captura manual e feeds RSS verificáveis, auditoria assistida de perfis por URL, inventário de gaps tecnológicos, métricas comerciais, auth, Postgres e adapters externos.
 
 ## Modelo de produto
 
@@ -185,16 +185,16 @@ O smoke `apps/api/scripts/smoke_ai_operations.py` recusa bancos que não termine
 
 Projetos conectam contrato versionado, itens de escopo, fases, entregas e aceite. Em projetos Tech, proposta e especificação podem ser vinculadas por URL e o cliente acompanha atualizações de progresso, bloqueio, testes e release — inclusive quando um dia foi gasto somente depurando um problema. A área Acessos substitui planilhas: conta/plataforma, usuário, e-mail, senha, outra forma de acesso e link. E-mail, usuário, senha e outro método são cifrados antes do banco; listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` somente contra banco de teste isolado e migrado.
 
-Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes em leitura usando `GITHUB_API_TOKEN`; nenhuma escrita externa é executada por essa integração.
+Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes e pode criar uma issue a partir de uma entrega somente com `manage_work`, `confirm=true`, auditoria e replay local idempotente.
 
 ## Prospecção B2B, Auto-Vigilância & Big Data de Conversão
 
 O módulo de Propostas Comerciais (`/backoffice/proposals`) opera como a central de atração e conversão B2B da EverGreen:
 
-1. **Radar de Oportunidades & Plataformas B2B**: Varredura manual e agendada em 17 plataformas (Workana, Upwork, 99freela, Toptal, Freelancer.com.br, WeWorkRemotely, Contra, Malt, Guru, etc.) com triagem de fit (0-100) e elaboração automática de propostas nos 3 pilares da EG (Oferta, Conversão, Demanda).
+1. **Radar de Oportunidades & Plataformas B2B**: captura manual e consulta explícita de feeds RSS públicos de Freelancer.com.br, WeWorkRemotely e Remotive, além de feeds configurados pela EG. O scoring atual é determinístico por regras; o rascunho de proposta consome os runners dos três pilares (Oferta, Conversão e Demanda).
 2. **Integração Financeira de SaaS**: Custos mensais de assinaturas configurados por plataforma geram lançamentos automáticos de despesa recorrente no módulo **Financeiro (`financial_records`)**.
-3. **Auto-Vigilância por Link de Perfil (`profile_auditor.py`)**: Cole o link do seu perfil em qualquer plataforma. O scraper raspa a URL, extrai headline, bio e calcula nota de autoridade (0-100), sugerindo melhorias e bio otimizada pronta para copiar.
-4. **Injeção Automática de Cases & Provas Sociais**: Pareamento inteligente que cruza exigências das vagas com os cases validados da EG (`attached_cases`), injetando métricas numéricas na proposta comercial.
+3. **Auditoria por link de perfil (`profile_auditor.py`)**: o scraper tenta extrair informações públicas e retorna erro verificável quando a fonte bloqueia ou falha; o sistema não persiste score ou recomendações fictícias.
+4. **Cases e provas sociais**: `attached_cases` permanece vazio até existir uma biblioteca de cases aprovada com origem e resultados verificáveis; inventário de habilidades não é tratado como prova de case.
 5. **Inventário de Gaps Tecnológicos**: Identifica automaticamente ferramentas do mercado (HubSpot, Marketo, Salesforce, Shopify, etc.) exigidas em vagas triadas (`opportunity_skill_gaps`), permitindo a incorporação ao portfólio (`tech_skill_inventory`) com 1 clique.
 6. **Big Data, ROI & CAC por Plataforma**: Acompanhamento de conversão (Win Rate %), Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Receita Ganha, Lucro Líquido e ROI (%) por canal de prospecção.
 

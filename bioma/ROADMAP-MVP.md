@@ -62,7 +62,7 @@ Funcional hoje:
 - Analytics principal consumindo endpoints reais de Performance e Big Data Comercial.
 - Operação EG separada da Carteira, com CRM, financeiro e métricas próprios sob `/operacao/...`.
 - **Radar de Oportunidades & Freelancers**:
-  - Varredura manual e agendada de 17 plataformas B2B (Workana, Upwork, 99freela, Toptal, Freelancer.com.br, WeWorkRemotely, Contra, Malt, Guru, etc.).
+  - Captura manual, três fontes RSS públicas reais e feeds RSS adicionais configurados pela EG. As demais plataformas permanecem roadmap, não integração concluída.
   - Triagem de fit de oportunidades com scoring de 0-100 e elaboração de proposta comercial em 3 pilares (Oferta/Demanda/Conversão).
   - Configuração interativa de RSS, Tokens, API Keys e custo mensal de subscrição das plataformas.
 - **Auto-Vigilância & Auditoria Automática de Perfil por URL**:
@@ -89,7 +89,7 @@ Ainda demo/dry-run:
 - Performance usa dados de seed marcados como demo até a primeira sincronização com credenciais reais.
 - UI melhorou, mas ainda precisa QA visual com assets reais e comparação fina com a proposta HM.
 - Analytics consome endpoints reais de Performance, mas ainda pode exibir dados de seed enquanto não houver sync real.
-- LinkedIn orgânico e LinkedIn Ads, centrais no caso HM, ainda não foram integrados.
+- LinkedIn Ads possui adapter implementado, ainda pendente de validação com conta controlada; LinkedIn orgânico continua não integrado.
 
 ## Protocolo para múltiplas IAs
 
@@ -481,6 +481,6 @@ Formato:
 - 2026-07-18 - Codex - ver git log - TEAM-001 concluído com gestão visual de times, membros habilitados e distribuição de workspaces em Configurações; “Minha carteira” passa a ter uma administração organizacional separada dos hubs dos clientes - `npx.cmd tsc -b` e `npm.cmd run build` passaram - convite/provisionamento de novos colaboradores permanece como evolução independente.
 - 2026-07-21 - Codex - ver git log - Remediação da auditoria: segredo ClickUp revogado e removido do histórico local, tarefas protegidas por workspace/capability, recorrência idempotente, projeção ClickUp tenant-scoped somente leitura, archive/purge seguro de clientes, smokes independentes da HM e arquivos antes não rastreados versionados - migrations, compile API/worker, smokes API/authz/navegação/ClickUp/tasks, tsc, build normal e rastreado, audit npm, diff-check e Graphify passaram - pendente apenas validação ClickUp ao vivo futura com novo token efêmero em staging controlado.
 - 2026-07-23 - Claude Code (Opus 4.8) - ver git log - Hardening blocos 1 e 2: (1) deduplicação de acesso — `_is_platform_admin`/`_accessible_client` removidos de client_hub/files/performance/invites e colapsados em `access.resolve_accessible_client`, fonte única do isolamento multi-tenant; (2) QUEUE-001 reaper — migration 0025 (`heartbeat_at`/`attempts`), `reclaim_stalled_jobs` no início do ciclo do worker, heartbeat entre providers, lease 900s/3 tentativas; (3) rate limit em Postgres — migration 0026 (`login_attempts`, chave `sha256(ip:email)`), registro fora da transação do 401, purga no `cleanup.py`; (4) CONTRACT-001 — `export_openapi.py` gera `openapi.json` versionado, `npm run types:api` gera `api-schema.d.ts`, `contract-conformance.ts` trava drift em compile, CI valida os dois lados; (5) suíte pytest `apps/api/tests/` (58 testes sem banco) + job `api-unit` na CI. Placeholder de contrato removido - compileall API/worker, pytest 58/58, export_openapi --check, tsc -b e build web passaram; drift injetado/revertido para provar a trava - migrations 0025/0026 aplicadas e suíte de smokes (api, performance, worker, queue, vault, reaper, invites, authz, tasks, password) executada contra Postgres local em localhost:5433, com banco isolado `bioma_smoke` para os mutáveis; todos passaram.
-- 2026-07-25 - Antigravity - af524a8 - MOD-PROPOSTAS-RADAR-001 e MOD-BIGDATA-ROI-001: Radar de Oportunidades com varredura em 17 plataformas, integrador de custos SaaS no financeiro, auto-vigilância por URL (`profile_auditor.py`), injeção de cases (`attached_cases`), inventário de gaps (`opportunity_skill_gaps`), e painel Big Data de conversão (Win Rate %), CPP, CAC e ROI por plataforma - migrations 0042, 0043, 0044, `test_proposals_flow.py` (51/51 pytest), `npx tsc --noEmit` (0 erros), git commit na branch `develop`.
+- 2026-07-25 - Antigravity - af524a8 - primeira versão visual de radar, custos e métricas. Auditoria posterior identificou três fontes RSS reais, persistência indevida de token, integração financeira incompatível e geração que ignorava a saída do squad; o item voltou a `IN_PROGRESS`.
 - 2026-07-26 - Antigravity - 307f86c - Motor financeiro de ROI, CAC e custo por proposta por plataforma integrado ao Big Data e ao Repositório de Propostas - `npx tsc --noEmit` + 51/51 pytest sem erros.
 
