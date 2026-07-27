@@ -1175,6 +1175,40 @@ export type GitHubProjectActivity = {
   commits: Array<{ sha: string; message: string; url: string; author_name: string | null; authored_at: string | null }>;
 };
 
+export type ClientProfilePayload = {
+  sector?: string | null;
+  primary_offer?: string | null;
+  initial_objective?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  website?: string | null;
+  business_address?: string | null;
+  business_details?: string | null;
+  target_audience?: string | null;
+  competitors?: string | null;
+  marketing_objectives?: string | null;
+  marketing_history?: string | null;
+  challenges_opportunities?: string | null;
+  resources_budget?: string | null;
+  tone_of_voice?: string | null;
+  preferences_restrictions?: string | null;
+};
+
+export type ClientProfileSectionProgress = {
+  key: string;
+  label: string;
+  filled: number;
+  total: number;
+  percentage: number;
+};
+
+export type ClientProfile = ClientProfilePayload & {
+  workspace_id: string;
+  completion_percentage: number;
+  sections: ClientProfileSectionProgress[];
+  updated_at: string | null;
+};
+
 export type GitHubIssueLink = {
   deliverable_id: string;
   repository: string;
@@ -1920,6 +1954,13 @@ export const api = {
   ) =>
     request<MarketResearchRefinement>(`/workspaces/${workspaceId}/market-research/refine`, {
       method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  clientProfile: (workspaceId: string) =>
+    request<ClientProfile>(`/workspaces/${workspaceId}/client-profile`),
+  updateClientProfile: (workspaceId: string, payload: ClientProfilePayload) =>
+    request<ClientProfile>(`/workspaces/${workspaceId}/client-profile`, {
+      method: "PATCH",
       body: JSON.stringify(payload),
     }),
   createMarketResearch: (

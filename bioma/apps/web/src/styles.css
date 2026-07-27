@@ -59,6 +59,106 @@
   text-rendering: optimizeLegibility;
 }
 
+.client-profile-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.client-profile-panel .panel-heading {
+  align-items: start;
+}
+
+.client-profile-panel .panel-heading h2,
+.client-profile-section h3,
+.client-profile-actions small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-profile-progress {
+  min-width: 98px;
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, var(--border));
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
+  background: color-mix(in srgb, var(--brand-accent) 9%, var(--surface));
+}
+
+.client-profile-progress strong {
+  display: block;
+  color: var(--brand-accent);
+  font-size: 1.25rem;
+}
+
+.client-profile-progress span,
+.client-profile-section header small {
+  color: var(--text-dim);
+  font-size: .78rem;
+}
+
+.client-profile-sections {
+  display: grid;
+  gap: 12px;
+}
+
+.client-profile-section {
+  padding: 18px;
+}
+
+.client-profile-section > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.client-profile-section > header h3 {
+  margin: 0 0 3px;
+}
+
+.client-profile-section > header > span {
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-sunken);
+  color: var(--brand-accent);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.client-profile-section .span-two {
+  grid-column: 1 / -1;
+}
+
+.client-profile-section textarea,
+.client-profile-section input[readonly] {
+  background: var(--surface-sunken);
+}
+
+.client-profile-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.client-profile-actions small {
+  color: var(--text-dim);
+}
+
+@media (max-width: 720px) {
+  .client-profile-panel .panel-heading,
+  .client-profile-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .client-profile-progress {
+    width: max-content;
+  }
+}
+
 .projects-layout { display: grid; gap: 18px; }
 .projects-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .project-create-form { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; padding: 18px; align-items: end; }

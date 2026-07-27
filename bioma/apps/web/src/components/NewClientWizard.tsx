@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { moduleLabels, statusLabel, toggleableModules } from "../lib/app-config";
 import { useCreateClient, useCreateDeliverable, useUpdateClient } from "../hooks/useBiomaApi";
-import { api, type ClientModule, type ClientStatus, type ProjectType } from "../lib/api";
+import { api, type ClientModule, type ClientProfilePayload, type ClientStatus, type ProjectType } from "../lib/api";
 
 // Módulos essenciais do núcleo (o hub é obrigatório e sempre ativo)
 const BASE_MODULES: ClientModule[] = ["hub"];
@@ -49,6 +49,9 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
   const [responsible, setResponsible] = useState("Eduardo EG");
   const [status, setStatus] = useState<ClientStatus>("onboarding");
   const [website, setWebsite] = useState("");
+  const [sector, setSector] = useState("");
+  const [primaryOffer, setPrimaryOffer] = useState("");
+  const [initialObjective, setInitialObjective] = useState("");
   const [useAiSetup, setUseAiSetup] = useState(true);
   
   // Por padrão ativamos os módulos recomendados para o novo cliente
@@ -107,6 +110,15 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
       });
 
       const clientId = res.client.id;
+      const initialContext: ClientProfilePayload = {
+        sector: sector.trim() || null,
+        primary_offer: primaryOffer.trim() || null,
+        initial_objective: initialObjective.trim() || null,
+        website: website.trim() || null,
+      };
+      if (Object.values(initialContext).some(Boolean)) {
+        await api.updateClientProfile(clientId, initialContext);
+      }
 
       // 2. Atualizar os módulos ativos do cliente
       const allModules = Array.from(new Set<ClientModule>(["hub", ...Array.from(modules)]));
@@ -127,6 +139,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               company_name: organization.trim(),
               client_name: name.trim(),
               website: website.trim() || null,
+              client_context: initialContext,
               enabled_modules: allModules,
             },
           });
@@ -251,6 +264,18 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
                 Website / URL da Empresa (opcional para Varredura IA)
                 <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="Ex: https://hmconexoes.com.br" style={{ padding: "10px", borderRadius: "6px" }} />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Setor de atuação
+                <input value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Ex.: saúde, energia, varejo B2B" style={{ padding: "10px", borderRadius: "6px" }} />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Produto/serviço principal
+                <input value={primaryOffer} onChange={(e) => setPrimaryOffer(e.target.value)} placeholder="Ex.: consultoria, aplicativo, clínica" style={{ padding: "10px", borderRadius: "6px" }} />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
+                Objetivo inicial
+                <textarea value={initialObjective} onChange={(e) => setInitialObjective(e.target.value)} placeholder="O que o cliente precisa alcançar agora?" rows={3} style={{ padding: "10px", borderRadius: "6px" }} />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem" }}>
                 Responsável EG

@@ -20,7 +20,7 @@ const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then(
 const AiContentStudio = lazy(() => import("../components/AiContentStudio").then((module) => ({ default: module.AiContentStudio })));
 const AccessVault = lazy(() => import("../components/AccessVault").then((module) => ({ default: module.AccessVault })));
 const ProjectsPanel = lazy(() => import("../components/ProjectsPanel").then((module) => ({ default: module.ProjectsPanel })));
-const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
+const ClientProfilePanel = lazy(() => import("../components/ClientProfilePanel").then((module) => ({ default: module.ClientProfilePanel })));
 
 export type ClientWorkspaceOutletContext = {
   client: ClientSummary;
@@ -193,13 +193,13 @@ export function ClientProjectsRoute() {
   );
 }
 
-export function ClientMarketResearchRoute() {
+export function ClientProfileRoute() {
   const { workspace } = useClientWorkspace();
   return (
     <ClientModuleBoundary module="hub">
       <div className="workspace-module-panel">
         <Suspense fallback={<ModuleLoading />}>
-          <MarketResearchStudio workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
+          <ClientProfilePanel workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
         </Suspense>
       </div>
     </ClientModuleBoundary>
