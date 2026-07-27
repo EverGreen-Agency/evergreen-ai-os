@@ -237,6 +237,7 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
 - [x] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa (PROJECT-GH-002, 2026-07-24).
 - [x] Implementar planejador compartilhado e versionado para Tech/Growth/Social, com origem em contrato/briefing/onboarding, aprovação antes da materialização e vínculo de itens ao escopo (PROJECT-PLAN-001, 2026-07-27).
+- [x] Implementar pesquisa de mercado versionada por workspace, com refinamento de foco, fontes verificáveis no modo live, relatório Growth/Social/prospecção e publicação explícita ao cliente (MARKET-RESEARCH-001, 2026-07-27).
 - [ ] Definir arquitetura de VoIP para prospecção (provedor/SIP, números, consentimento, gravação, LGPD, discador, CRM e métricas) antes de escolher integração ou construir telefonia própria.
 - [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 

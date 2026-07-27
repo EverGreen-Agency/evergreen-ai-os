@@ -183,6 +183,12 @@ A Operação EG possui um control plane para instalar workflows versionados e so
 
 O smoke `apps/api/scripts/smoke_ai_operations.py` recusa bancos que não terminem em `_smoke` ou `_test`.
 
+## Inteligência de mercado
+
+Cada workspace possui um Estúdio de Pesquisa em `pesquisa-mercado`: setor e recorte geográfico são refinados em focos selecionáveis, e a pesquisa gera um relatório versionado com mercado, processo comercial, dores, referências, terminologia, oportunidades de Growth/Social e roteiro de prospecção. A execução `live` usa pesquisa web, persiste as fontes consultadas e rejeita URLs citadas que não tenham sido devolvidas pelo provedor; sem credencial, o modo `preview` descreve somente a estrutura metodológica e não se apresenta como evidência factual.
+
+Relatórios começam privados para a EG e só aparecem ao cliente após uma ação explícita de publicação. O uso de tokens é enviado ao ledger de FinOps; quando não existe uma tabela de preço verificável para modelo e pesquisa web, o custo permanece desconhecido. A exportação inicial usa a impressão/PDF do navegador, preservando a mesma versão exibida na tela.
+
 Projetos conectam contrato versionado, itens de escopo, plano de execução versionado, fases, entregas e aceite. O planejador parte de contrato, briefing ou onboarding, gera rascunho identificado como `live`/`preview`, exige aprovação interna e só então materializa fases e entregas de forma idempotente. Tech, Growth e Social compartilham o núcleo; Social permite escolher o momento de aprovação e somente Tech produz candidatos a issue GitHub. Em projetos Tech, proposta e especificação podem ser vinculadas por URL e o cliente acompanha atualizações de progresso, bloqueio, testes e release — inclusive quando um dia foi gasto somente depurando um problema. A área Acessos substitui planilhas: conta/plataforma, usuário, e-mail, senha, outra forma de acesso e link. E-mail, usuário, senha e outro método são cifrados antes do banco; listagens não contêm segredos e revelações/cópias são auditadas. Rode `python scripts/smoke_projects.py` e `python scripts/smoke_vault.py` somente contra banco de teste isolado e migrado.
 
 Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issues, pull requests e commits recentes e pode criar uma issue a partir de uma entrega somente com `manage_work`, confirmação HITL e auditoria. A escrita usa reserva local e marcador estável no título para recuperar replays após falhas entre GitHub e banco.

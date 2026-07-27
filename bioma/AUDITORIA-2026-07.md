@@ -2,6 +2,21 @@
 
 Avaliação geral de código, segurança, negócio e próximos passos, feita por Claude Code (Sonnet 5) a pedido do Eduardo. Complementa `ROADMAP-MVP.md` (estado/backlog) e `DEPLOY.md` (runbook) — não os substitui.
 
+## Adendo de produto — 2026-07-27 (pesquisa de mercado)
+
+O primeiro módulo de referência da ferramenta Spalla foi absorvido como domínio nativo `market_research`, sem copiar suas fragilidades. A referência recebida possui bom fluxo de setor → refinamento → relatório, mas o PDF analisado não vincula afirmações a fontes e repete parte das seções. No Bioma:
+
+- cada pesquisa pertence a um tenant/workspace, recebe versão própria e começa privada;
+- refinamento e relatório usam schema estruturado, com saídas específicas para prospecção, Growth e Social;
+- execução live usa pesquisa web e só aceita URLs efetivamente observadas no retorno do provedor;
+- relatório live insuficientemente fundamentado falha em vez de ser publicado como sucesso;
+- modo sem credencial é `preview` metodológico, sem fatos, fontes ou números inventados;
+- refinamento, geração e publicação exigem `manage_work`; `client_user` apenas lê versões concluídas e publicadas;
+- tokens são registrados em FinOps e o custo fica desconhecido quando não puder ser calculado com fonte confiável;
+- nenhuma migration foi aplicada e nenhum dado local foi criado nesta implementação.
+
+O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta apenas APIs RSC instáveis; o frontend do Bioma é uma SPA Vite e não usa RSC. A correção publicada exige React Router 8.3.0, portanto não foi aplicado upgrade major automático nesta frente. O alerta deve permanecer visível até uma migração compatível e testada para v8.
+
 ## Adendo de remediação — 2026-07-23
 
 Fechados desta rodada, dos "próximos passos" abaixo:
