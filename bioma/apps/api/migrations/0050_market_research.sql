@@ -72,4 +72,3 @@ drop trigger if exists market_research_workspace_scope_guard on market_researche
 create trigger market_research_workspace_scope_guard
 before insert or update on market_researches
 for each row execute function enforce_market_research_workspace_scope();
-
