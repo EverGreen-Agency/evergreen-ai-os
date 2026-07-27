@@ -129,7 +129,7 @@ Divisão recomendada:
 
 O Bioma substitui o ClickUp como fonte de verdade da execução. A estrutura importada e os manuais operacionais servem de referência, mas o produto passa a possuir `workspace → projeto → contrato versionado → escopo → entregas/tarefas → aceite`.
 
-- Social, Growth, Tech e projetos gerais compartilham o núcleo, com templates e status configuráveis por projeto;
+- Social, Growth, Tech e projetos gerais compartilham o núcleo e o planejador versionado `contrato/briefing → rascunho → aprovação → fases/entregas`;
 - projetos Social podem exigir aprovação da ideia antes da gravação ou somente aprovação final, conforme o cliente;
 - projetos Tech possuem fases, documentos de proposta/especificação e atualizações honestas visíveis ao cliente; o adapter GitHub para issues/PRs continua separado, mantendo contrato, contexto e acompanhamento canônicos no Bioma;
 - itens de escopo registram quantidade, unidade, cadência e critério de aceite;
@@ -159,7 +159,7 @@ As decisões sobre ClickUp, calendário e rigidez dos fluxos acima foram superse
 - **ClickUp:** cancelar a dependência paga após snapshot/reconciliação; adapter permanece somente durante a migração controlada.
 - **Contratos/escopo:** primeira classe por projeto, com vigência, versão, quantidade/cadência e aceite separados da conclusão.
 - **Acompanhamento Tech:** fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release. Um dia de depuração sem entrega é publicado como atualização honesta, não como avanço fictício.
-- **GitHub:** projetos Tech podem mapear `owner/repository` e consultar issues, PRs e commits em modo leitura. O Bioma ainda não cria nem altera itens externos; escrita exigirá idempotência, auditoria e confirmação humana (HITL).
+- **GitHub:** projetos Tech podem mapear `owner/repository`, consultar atividade e criar issue a partir de entrega com HITL, auditoria, reserva local e marcador de reconciliação. Growth e Social não escrevem no GitHub.
 - **Cofre de acessos:** substituir planilhas; segredos cifrados, listagem sem valores, revelação auditada e RBAC.
 - **SleekFlow:** descoberta de parceria; possível adapter omnichannel, sem compromisso de implementação antes do contrato oficial de API/dados.
 - **Kommo/CRM:** manter adapter onde fizer sentido e evoluir CRM nativo pelo uso real.
@@ -236,6 +236,8 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Adicionar acompanhamento Tech: fases, vínculo de entregas, links de proposta/especificação e feed de atualizações com visibilidade por cliente.
 - [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
 - [x] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa (PROJECT-GH-002, 2026-07-24).
+- [x] Implementar planejador compartilhado e versionado para Tech/Growth/Social, com origem em contrato/briefing/onboarding, aprovação antes da materialização e vínculo de itens ao escopo (PROJECT-PLAN-001, 2026-07-27).
+- [ ] Definir arquitetura de VoIP para prospecção (provedor/SIP, números, consentimento, gravação, LGPD, discador, CRM e métricas) antes de escolher integração ou construir telefonia própria.
 - [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 
 ### P1.5 - Port do BIAds / Performance

@@ -34,6 +34,9 @@ Implementações locais desta rodada:
 - Propostas agora consomem as saídas de Oferta, Conversão e Demanda; preço, prazo e cases permanecem vazios até decisão/evidência humana.
 - Falha de auditoria, scraper, provider ou squad não é mais convertida em sucesso ou conteúdo fictício.
 - O wizard executa o squad de onboarding e incorpora sugestões de entregáveis; execução sem chave fica identificada como prévia local.
+- Em 2026-07-27, o domínio de projetos ganhou `project_plans/project_plan_items`: Tech, Growth e Social geram planos versionados de contrato, briefing ou onboarding; aprovação e materialização são separadas, e replay não duplica fases/entregas.
+- Social registra política de aprovação adaptativa; Growth/Social nunca geram candidato GitHub. Tech só cria issue após HITL individual.
+- A escrita GitHub deixou de manter transação aberta durante a rede e passou a reservar a entrega e usar marcador `[Bioma:<deliverable_id>]` para reconciliar falhas intermediárias.
 - `test_proposals_flow.py` foi convertido para teste sem banco depois que a versão anterior deixou registros no Postgres local.
 - aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
 - cofre ampliado com os campos mínimos da operação (plataforma, conta, usuário, e-mail, senha, outro acesso e link), mantendo valores de acesso cifrados;
