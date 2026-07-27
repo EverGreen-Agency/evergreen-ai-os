@@ -1978,11 +1978,6 @@ export const api = {
     }),
   marketResearch: (workspaceId: string, researchId: string) =>
     request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research/${researchId}`),
-  setMarketResearchVisibility: (workspaceId: string, researchId: string, clientVisible: boolean) =>
-    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research/${researchId}/visibility`, {
-      method: "PATCH",
-      body: JSON.stringify({ client_visible: clientVisible }),
-    }),
   brandBook: (workspaceId: string) =>
     request<BrandBookSummary>(`/workspaces/${workspaceId}/brand-book`),
   saveBrandBook: (

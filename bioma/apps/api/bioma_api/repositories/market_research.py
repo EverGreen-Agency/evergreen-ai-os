@@ -9,7 +9,7 @@ _SUMMARY_COLUMNS = """
   research.geographic_scope, research.objective, research.selected_focus,
   research.status, research.generation_mode, research.provider, research.model,
   research.token_usage, research.estimated_cost_cents, research.source_count,
-  research.client_visible, research.error_message, research.completed_at,
+  research.error_message, research.completed_at,
   research.created_at, research.updated_at
 """
 
@@ -40,8 +40,8 @@ def create_running(
         insert into market_researches (
           workspace_id, tenant_organization_id, subject_organization_id, version,
           sector, geographic_scope, objective, selected_focus, status,
-          generation_mode, client_visible, created_by
-        ) values (%s, %s, %s, %s, %s, %s, %s, %s, 'running', 'manual', false, %s)
+          generation_mode, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, 'running', 'manual', %s)
         returning *
         """,
         (
@@ -143,10 +143,6 @@ def list_researches(conn, workspace_id: UUID, is_admin: bool, user_id: UUID):
         ) access
         where research.workspace_id = %s
           and access.role is not null
-          and (
-            access.role <> 'client_user'
-            or (research.client_visible and research.status = 'completed')
-          )
         order by research.version desc
         """,
         (is_admin, user_id, workspace_id),
@@ -159,6 +155,7 @@ def find_research_context(conn, research_id: UUID, is_admin: bool, user_id: UUID
         select {_SUMMARY_COLUMNS}, research.tenant_organization_id,
           research.subject_organization_id, research.report, access.role as access_role
         from market_researches research
+        join workspaces workspace on workspace.id = research.workspace_id
         cross join lateral (
           select case
             when %s then 'platform_admin'
@@ -166,23 +163,8 @@ def find_research_context(conn, research_id: UUID, is_admin: bool, user_id: UUID
           end as role
         ) access
         where research.id = %s
+          and workspace.kind = 'agency_internal'
           and access.role is not null
-          and (
-            access.role <> 'client_user'
-            or (research.client_visible and research.status = 'completed')
-          )
         """,
         (is_admin, user_id, research_id),
-    ).fetchone()
-
-
-def set_visibility(conn, research_id: UUID, client_visible: bool):
-    return conn.execute(
-        """
-        update market_researches
-        set client_visible = %s, updated_at = now()
-        where id = %s and status = 'completed'
-        returning *
-        """,
-        (client_visible, research_id),
     ).fetchone()

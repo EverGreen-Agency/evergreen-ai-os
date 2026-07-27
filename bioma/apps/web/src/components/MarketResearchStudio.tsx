@@ -53,7 +53,7 @@ export function MarketResearchStudio({
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [history, setHistory] = useState<MarketResearchSummary[]>([]);
   const [activeResearch, setActiveResearch] = useState<MarketResearchDetail | null>(null);
-  const [busy, setBusy] = useState<"history" | "refine" | "generate" | "visibility" | null>(null);
+  const [busy, setBusy] = useState<"history" | "refine" | "generate" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const canManage = ["platform_admin", "tenant_admin", "workspace_manager", "operator"].includes(accessRole);
@@ -138,25 +138,6 @@ export function MarketResearchStudio({
     }
   }
 
-  async function toggleVisibility() {
-    if (!activeResearch || !canManage) return;
-    setBusy("visibility");
-    setError(null);
-    try {
-      const updated = await api.setMarketResearchVisibility(
-        workspaceId,
-        activeResearch.id,
-        !activeResearch.client_visible,
-      );
-      setActiveResearch(updated);
-      setHistory((items) => items.map((item) => item.id === updated.id ? updated : item));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Não foi possível alterar a visibilidade.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   function toggleFocus(option: MarketResearchFocusOption) {
     setSelectedKeys((current) => {
       const next = new Set(current);
@@ -181,8 +162,8 @@ export function MarketResearchStudio({
           <span className="eyebrow">Inteligência de mercado</span>
           <h1>Pesquisa setorial rastreável</h1>
           <p>
-            Refine o recorte, pesquise fontes atuais e transforme evidências em argumentos comerciais,
-            oportunidades de Growth e pautas para Social Media.
+            Prepare a equipe para entrar em um novo nicho de prospecção: linguagem, dores,
+            argumentos comerciais, oportunidades de Growth e pautas para Social Media.
           </p>
         </div>
       </header>
@@ -306,9 +287,7 @@ export function MarketResearchStudio({
             <MarketResearchReportView
               research={activeResearch}
               canManage={canManage}
-              visibilityBusy={busy === "visibility"}
               onNew={startNewResearch}
-              onToggleVisibility={() => void toggleVisibility()}
             />
           )}
         </main>
@@ -376,15 +355,11 @@ function ResearchStepCard({
 function MarketResearchReportView({
   research,
   canManage,
-  visibilityBusy,
   onNew,
-  onToggleVisibility,
 }: {
   research: MarketResearchDetail;
   canManage: boolean;
-  visibilityBusy: boolean;
   onNew: () => void;
-  onToggleVisibility: () => void;
 }) {
   const report = research.report;
   if (!report) {
@@ -414,11 +389,6 @@ function MarketResearchReportView({
           </button>
           {canManage && (
             <button className="secondary-button" type="button" onClick={onNew}>Nova pesquisa</button>
-          )}
-          {canManage && (
-            <button className="secondary-button" type="button" disabled={visibilityBusy} onClick={onToggleVisibility}>
-              {research.client_visible ? "Remover do hub" : "Publicar no hub"}
-            </button>
           )}
         </div>
       </header>

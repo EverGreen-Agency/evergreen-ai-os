@@ -133,7 +133,6 @@ class MarketResearchSummary(BaseModel):
     token_usage: dict
     estimated_cost_cents: int | None = None
     source_count: int
-    client_visible: bool
     error_message: str | None = None
     completed_at: datetime | None = None
     created_at: datetime
@@ -143,7 +142,3 @@ class MarketResearchSummary(BaseModel):
 class MarketResearchDetail(MarketResearchSummary):
     report: MarketResearchReport | None = None
     sources: list[MarketResearchSource] = Field(default_factory=list)
-
-
-class MarketResearchVisibilityUpdate(BaseModel):
-    client_visible: bool

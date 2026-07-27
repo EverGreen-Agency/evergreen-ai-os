@@ -3001,6 +3001,24 @@ export interface paths {
         patch: operations["update_stage_workspaces__workspace_id__calendar__item_id__stage_patch"];
         trace?: never;
     };
+    "/workspaces/{workspace_id}/client-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Profile */
+        get: operations["get_client_profile_workspaces__workspace_id__client_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Upsert Client Profile */
+        patch: operations["upsert_client_profile_workspaces__workspace_id__client_profile_patch"];
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/commercial": {
         parameters: {
             query?: never;
@@ -3137,23 +3155,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/workspaces/{workspace_id}/market-research/{research_id}/visibility": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Visibility */
-        patch: operations["update_visibility_workspaces__workspace_id__market_research__research_id__visibility_patch"];
         trace?: never;
     };
     "/workspaces/{workspace_id}/projects": {
@@ -4403,6 +4404,100 @@ export interface components {
             deliverables: components["schemas"]["DeliverableSummary"][];
             /** Sync Runs */
             sync_runs: components["schemas"]["SyncRunSummary"][];
+        };
+        /** ClientProfilePayload */
+        ClientProfilePayload: {
+            /** Business Address */
+            business_address?: string | null;
+            /** Business Details */
+            business_details?: string | null;
+            /** Challenges Opportunities */
+            challenges_opportunities?: string | null;
+            /** Competitors */
+            competitors?: string | null;
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Initial Objective */
+            initial_objective?: string | null;
+            /** Marketing History */
+            marketing_history?: string | null;
+            /** Marketing Objectives */
+            marketing_objectives?: string | null;
+            /** Preferences Restrictions */
+            preferences_restrictions?: string | null;
+            /** Primary Offer */
+            primary_offer?: string | null;
+            /** Resources Budget */
+            resources_budget?: string | null;
+            /** Sector */
+            sector?: string | null;
+            /** Target Audience */
+            target_audience?: string | null;
+            /** Tone Of Voice */
+            tone_of_voice?: string | null;
+            /** Website */
+            website?: string | null;
+        };
+        /** ClientProfileSectionProgress */
+        ClientProfileSectionProgress: {
+            /** Filled */
+            filled: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Percentage */
+            percentage: number;
+            /** Total */
+            total: number;
+        };
+        /** ClientProfileSummary */
+        ClientProfileSummary: {
+            /** Business Address */
+            business_address?: string | null;
+            /** Business Details */
+            business_details?: string | null;
+            /** Challenges Opportunities */
+            challenges_opportunities?: string | null;
+            /** Competitors */
+            competitors?: string | null;
+            /** Completion Percentage */
+            completion_percentage: number;
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Initial Objective */
+            initial_objective?: string | null;
+            /** Marketing History */
+            marketing_history?: string | null;
+            /** Marketing Objectives */
+            marketing_objectives?: string | null;
+            /** Preferences Restrictions */
+            preferences_restrictions?: string | null;
+            /** Primary Offer */
+            primary_offer?: string | null;
+            /** Resources Budget */
+            resources_budget?: string | null;
+            /** Sections */
+            sections: components["schemas"]["ClientProfileSectionProgress"][];
+            /** Sector */
+            sector?: string | null;
+            /** Target Audience */
+            target_audience?: string | null;
+            /** Tone Of Voice */
+            tone_of_voice?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Website */
+            website?: string | null;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
         };
         /** ClientPurgeRequest */
         ClientPurgeRequest: {
@@ -5760,8 +5855,6 @@ export interface components {
         };
         /** MarketResearchDetail */
         MarketResearchDetail: {
-            /** Client Visible */
-            client_visible: boolean;
             /** Completed At */
             completed_at?: string | null;
             /**
@@ -5899,8 +5992,6 @@ export interface components {
         };
         /** MarketResearchSummary */
         MarketResearchSummary: {
-            /** Client Visible */
-            client_visible: boolean;
             /** Completed At */
             completed_at?: string | null;
             /**
@@ -5957,11 +6048,6 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
-        };
-        /** MarketResearchVisibilityUpdate */
-        MarketResearchVisibilityUpdate: {
-            /** Client Visible */
-            client_visible: boolean;
         };
         /** MilestoneCompletionRequest */
         MilestoneCompletionRequest: {
@@ -16278,6 +16364,72 @@ export interface operations {
             };
         };
     };
+    get_client_profile_workspaces__workspace_id__client_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientProfileSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_client_profile_workspaces__workspace_id__client_profile_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientProfilePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientProfileSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_commercial_portal_workspaces__workspace_id__commercial_get: {
         parameters: {
             query?: never;
@@ -16589,42 +16741,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarketResearchDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_visibility_workspaces__workspace_id__market_research__research_id__visibility_patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workspace_id: string;
-                research_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MarketResearchVisibilityUpdate"];
-            };
-        };
         responses: {
             /** @description Successful Response */
             200: {

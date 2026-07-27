@@ -10,7 +10,6 @@ from bioma_api.schemas.market_research import (
     MarketResearchRefineRequest,
     MarketResearchRefinement,
     MarketResearchSummary,
-    MarketResearchVisibilityUpdate,
 )
 from bioma_api.services import market_research as service
 
@@ -57,16 +56,3 @@ def get_research(
     if research.workspace_id != workspace_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pesquisa não encontrada.")
     return research
-
-
-@router.patch("/{research_id}/visibility", response_model=MarketResearchDetail)
-def update_visibility(
-    workspace_id: UUID,
-    research_id: UUID,
-    payload: MarketResearchVisibilityUpdate,
-    user: CurrentUserResponse = Depends(current_user_from_request),
-) -> MarketResearchDetail:
-    research = service.get_research(research_id, user)
-    if research.workspace_id != workspace_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pesquisa não encontrada.")
-    return service.update_visibility(research_id, payload, user)

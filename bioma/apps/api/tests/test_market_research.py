@@ -122,6 +122,7 @@ def test_research_provider_runs_outside_transaction_and_records_sources(eg_admin
             "tenant_organization_id": tenant_id,
             "organization_id": subject_id,
             "access_role": "platform_admin",
+            "workspace_kind": "agency_internal",
             "enabled_modules": ["hub"],
         },
     )
@@ -175,6 +176,7 @@ def test_live_research_with_insufficient_sources_is_failed(eg_admin, monkeypatch
             "tenant_organization_id": uuid4(),
             "organization_id": uuid4(),
             "access_role": "platform_admin",
+            "workspace_kind": "agency_internal",
             "enabled_modules": ["hub"],
         },
     )
@@ -248,6 +250,24 @@ def test_refinement_and_generation_require_manage_work(eg_admin, monkeypatch):
         service.create_research(uuid4(), _payload(), eg_admin)
 
     assert requested_capabilities == ["manage_work", "manage_work"]
+
+
+def test_market_research_rejects_client_workspace(eg_admin, monkeypatch):
+    @contextmanager
+    def fake_connect():
+        yield object()
+
+    monkeypatch.setattr(service, "connect", fake_connect)
+    monkeypatch.setattr(
+        service,
+        "resolve_accessible_client",
+        lambda *_args, **_kwargs: {"workspace_kind": "client"},
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        service.list_researches(uuid4(), eg_admin)
+
+    assert exc.value.status_code == 404
 
 
 def test_provider_source_set_rejects_declared_url_not_seen_by_web_search():

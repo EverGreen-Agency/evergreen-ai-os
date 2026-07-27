@@ -5,7 +5,6 @@ from pydantic import ValidationError
 
 from bioma_api.access import (
     is_platform_admin,
-    require_workspace_capability,
     resolve_accessible_client,
 )
 from bioma_api.db import connect
@@ -20,7 +19,6 @@ from bioma_api.schemas.market_research import (
     MarketResearchRefinement,
     MarketResearchReport,
     MarketResearchSummary,
-    MarketResearchVisibilityUpdate,
 )
 from bioma_api.worker_bridge import (
     generate_market_research_safe,
@@ -194,42 +192,17 @@ def create_research(
     return get_research(research_id, user)
 
 
-def update_visibility(
-    research_id: UUID,
-    payload: MarketResearchVisibilityUpdate,
-    user: CurrentUserResponse,
-) -> MarketResearchDetail:
-    with connect() as conn:
-        research = _research(conn, research_id, user)
-        require_workspace_capability(research, user, "manage_work")
-        row = research_repo.set_visibility(conn, research_id, payload.client_visible)
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Somente pesquisas concluídas podem ser publicadas no hub.",
-            )
-        client_hub_repo.write_audit(
-            conn,
-            user.id,
-            research["subject_organization_id"],
-            "market_research.visibility_changed",
-            {
-                "workspace_id": str(research["workspace_id"]),
-                "research_id": str(research_id),
-                "client_visible": payload.client_visible,
-            },
-        )
-    return get_research(research_id, user)
-
-
 def _workspace(conn, workspace_id: UUID, user: CurrentUserResponse, capability: str):
-    return resolve_accessible_client(
+    workspace = resolve_accessible_client(
         conn,
         workspace_id,
         user,
         module="hub",
         capability=capability,
     )
+    if workspace["workspace_kind"] != "agency_internal":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pesquisa de mercado não encontrada.")
+    return workspace
 
 
 def _research(conn, research_id: UUID, user: CurrentUserResponse):
