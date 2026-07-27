@@ -9,6 +9,7 @@ AGENT_NAME_BY_PILAR = {
     "demanda": "Paid Media & Growth Agent",
     "conversao": "Sales Closer & Script Agent",
     "onboarding": "Client Onboarding Strategist",
+    "planning": "Multi-discipline Project Planner",
 }
 
 PILAR_INSTRUCTIONS = {
@@ -31,6 +32,14 @@ PILAR_INSTRUCTIONS = {
         "Você é o agente de onboarding da EverGreen. A partir da empresa, website e módulos contratados, "
         "produza um diagnóstico inicial estritamente baseado no contexto recebido, descreva o tom de voz "
         "apenas quando houver evidência e proponha entregas concretas para kickoff. Não invente fatos."
+    ),
+    "planning": (
+        "Você é o planejador operacional da EverGreen. Converta contrato, escopo, briefing e documentos "
+        "em um plano versionável para o projeto informado. Em Tech, produza tarefas acionáveis e testáveis, "
+        "separando implementação, QA, validação e release; apenas technical_task pode ser candidata ao GitHub. "
+        "Em Growth, diferencie entregas finitas de ciclos recorrentes, revisão e dependências. Em Social Media, "
+        "trate 1 conteúdo como 1 entrega e respeite social_approval_flow, sem impor aprovação prévia da ideia "
+        "quando o cliente só aprova depois da produção. Não invente escopo, preço, prazo ou evidência."
     ),
 }
 
@@ -108,11 +117,55 @@ OUTPUT_SCHEMA_ONBOARDING = {
     },
 }
 
+OUTPUT_SCHEMA_PLANNING = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["plan_title", "objective", "assumptions", "items"],
+    "properties": {
+        "plan_title": {"type": "string"},
+        "objective": {"type": ["string", "null"]},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "source_scope_item_id",
+                    "phase_name",
+                    "title",
+                    "description",
+                    "item_kind",
+                    "due_offset_days",
+                    "client_visible",
+                    "approval_required",
+                    "github_eligible",
+                ],
+                "properties": {
+                    "source_scope_item_id": {"type": ["string", "null"]},
+                    "phase_name": {"type": "string"},
+                    "title": {"type": "string"},
+                    "description": {"type": ["string", "null"]},
+                    "item_kind": {
+                        "type": "string",
+                        "enum": ["milestone", "deliverable", "content", "campaign", "technical_task"],
+                    },
+                    "due_offset_days": {"type": ["integer", "null"]},
+                    "client_visible": {"type": "boolean"},
+                    "approval_required": {"type": "boolean"},
+                    "github_eligible": {"type": "boolean"},
+                },
+            },
+        },
+    },
+}
+
 OUTPUT_SCHEMA_BY_PILAR = {
     "oferta": OUTPUT_SCHEMA_OFERTA,
     "demanda": OUTPUT_SCHEMA_DEMANDA,
     "conversao": OUTPUT_SCHEMA_CONVERSAO,
     "onboarding": OUTPUT_SCHEMA_ONBOARDING,
+    "planning": OUTPUT_SCHEMA_PLANNING,
 }
 
 
@@ -152,7 +205,7 @@ def execute_squad_pipeline(
         "instructions": PILAR_INSTRUCTIONS[pilar],
         "input": json.dumps({"squad_name": squad_name, "pilar": pilar, "input_data": input_data}, ensure_ascii=False),
         "text": {"format": {"type": "json_schema", "name": f"bioma_squad_{pilar}", "strict": True, "schema": schema}},
-        "max_output_tokens": 2000,
+        "max_output_tokens": 6000 if pilar == "planning" else 2000,
     }
     headers = {"Authorization": f"Bearer {settings.openai_api_key}", "Content-Type": "application/json"}
     owns_client = http_client is None
@@ -241,6 +294,72 @@ def _preview_output(pilar: str, squad_name: str, input_data: dict[str, Any]) -> 
                 "Briefing e diagnóstico inicial",
                 "Definir cronograma e escopo",
             ],
+        }
+    if pilar == "planning":
+        discipline = input_data.get("discipline") or "general"
+        project_name = input_data.get("project_name") or objective
+        scope_items = input_data.get("scope_items") or []
+        approval_flow = input_data.get("social_approval_flow") or "adaptive"
+        if not scope_items:
+            scope_items = [{
+                "id": None,
+                "title": input_data.get("project_objective") or f"Planejar execução de {project_name}",
+                "description": input_data.get("briefing"),
+                "cadence": "one_off",
+                "acceptance_required": True,
+                "client_visible": True,
+            }]
+
+        phase_by_discipline = {
+            "tech": "Implementação",
+            "growth": "Execução e otimização",
+            "social": "Planejamento e produção editorial",
+            "general": "Execução",
+        }
+        kind_by_discipline = {
+            "tech": "technical_task",
+            "growth": "campaign",
+            "social": "content",
+            "general": "deliverable",
+        }
+        items = []
+        for index, scope in enumerate(scope_items):
+            items.append({
+                "source_scope_item_id": scope.get("id"),
+                "phase_name": phase_by_discipline.get(discipline, "Execução"),
+                "title": scope.get("title") or f"Entrega {index + 1}",
+                "description": scope.get("description"),
+                "item_kind": kind_by_discipline.get(discipline, "deliverable"),
+                "due_offset_days": None,
+                "client_visible": scope.get("client_visible", True),
+                "approval_required": scope.get("acceptance_required", True),
+                "github_eligible": discipline == "tech",
+            })
+        validation_phase = {
+            "tech": "QA, validação e release",
+            "growth": "Revisão de resultados",
+            "social": "Aprovação, publicação e análise",
+            "general": "Validação",
+        }.get(discipline, "Validação")
+        items.append({
+            "source_scope_item_id": None,
+            "phase_name": validation_phase,
+            "title": "Validar critérios de aceite e registrar resultado",
+            "description": "Checkpoint explícito antes de considerar o ciclo concluído.",
+            "item_kind": "milestone",
+            "due_offset_days": None,
+            "client_visible": True,
+            "approval_required": True,
+            "github_eligible": False,
+        })
+        assumptions = ["Prévia local determinística; revise o plano antes de aprovar."]
+        if discipline == "social":
+            assumptions.append(f"Fluxo de aprovação social selecionado: {approval_flow}.")
+        return {
+            "plan_title": f"Plano de execução — {project_name}",
+            "objective": input_data.get("project_objective"),
+            "assumptions": assumptions,
+            "items": items,
         }
     return {
         "script_fechamento": f"Prévia local — script para: {objective}",

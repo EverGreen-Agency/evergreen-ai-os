@@ -7,7 +7,8 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
     ContractCreate, ContractUpdate, ProjectCreate, ProjectDeliverableCreate, ProjectDetail,
     ProjectDocumentCreate, ProjectPhaseCreate, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
-    ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
+    ProjectPlanApproveRequest, ProjectPlanGenerateRequest, ProjectPlanMaterializeRequest,
+    ProjectPlanSummary, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
 )
 from bioma_api.services import projects as project_service
 
@@ -79,3 +80,35 @@ def create_document(project_id: UUID, payload: ProjectDocumentCreate, user: Curr
 @router.post("/projects/{project_id}/updates", response_model=ProjectDetail, status_code=status.HTTP_201_CREATED)
 def create_project_update(project_id: UUID, payload: ProjectUpdateCreate, user: CurrentUserResponse = Depends(current_user_from_request)):
     return project_service.create_project_update(project_id, payload, user)
+
+
+@router.get("/project-plans/{plan_id}", response_model=ProjectPlanSummary)
+def get_project_plan(plan_id: UUID, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.get_project_plan(plan_id, user)
+
+
+@router.post("/projects/{project_id}/plans/generate", response_model=ProjectPlanSummary, status_code=status.HTTP_201_CREATED)
+def generate_project_plan(
+    project_id: UUID,
+    payload: ProjectPlanGenerateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.generate_project_plan(project_id, payload, user)
+
+
+@router.post("/project-plans/{plan_id}/approve", response_model=ProjectPlanSummary)
+def approve_project_plan(
+    plan_id: UUID,
+    payload: ProjectPlanApproveRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.approve_project_plan(plan_id, payload, user)
+
+
+@router.post("/project-plans/{plan_id}/materialize", response_model=ProjectDetail)
+def materialize_project_plan(
+    plan_id: UUID,
+    payload: ProjectPlanMaterializeRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.materialize_project_plan(plan_id, payload, user)

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-PilarType = Literal["oferta", "demanda", "conversao", "onboarding"]
+PilarType = Literal["oferta", "demanda", "conversao", "onboarding", "planning"]
 
 
 class SquadDefinitionPayload(BaseModel):
