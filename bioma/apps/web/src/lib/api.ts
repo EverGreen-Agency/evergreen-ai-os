@@ -169,7 +169,7 @@ export type AiContentRequest = {
   methodology_refs: string[];
   provider: string | null;
   model: string | null;
-  generation_mode: "live" | "preview" | null;
+  generation_mode: "live" | "preview" | "manual" | null;
   output: {
     strategy_note: string;
     posts?: AiContentPost[];
@@ -394,7 +394,7 @@ export type WhatsAppMessageLogSummary = {
   sent_at: string;
 };
 
-export type PilarType = "oferta" | "demanda" | "conversao";
+export type PilarType = "oferta" | "demanda" | "conversao" | "onboarding";
 
 export type SquadDefinitionSummary = {
   id: string;
@@ -418,6 +418,7 @@ export type SquadExecutionSummary = {
   squad_name: string;
   triggered_by: string;
   status: "running" | "completed" | "failed";
+  generation_mode: "live" | "preview" | "manual";
   input_data: Record<string, unknown>;
   output_data: Record<string, unknown>;
   token_usage: {
@@ -2022,7 +2023,6 @@ export type OpportunityPlatformConfig = {
   platform_name: string;
   status: "active" | "paused" | "not_configured";
   rss_url: string | null;
-  api_key_or_token: string | null;
   monthly_cost_cents: number;
   notes: string | null;
   created_at: string;
@@ -2054,12 +2054,14 @@ export type ProposalSummary = {
   scope_offer: string | null;
   scope_conversion: string | null;
   scope_demand: string | null;
-  scope_items: Array<{ item: string; pilar?: string; prazo_dias?: number }>;
+  scope_items: Array<{ item: string; pilar?: string; prazo_dias?: number; details?: Record<string, unknown> }>;
   attached_cases?: Array<{ case_title: string; description: string; skill: string; results_highlight: string }>;
   pricing_cents: number;
   delivery_days: number;
   status: "draft" | "approved" | "sent" | "won" | "lost";
   public_token: string;
+  public_expires_at: string;
+  generation_mode: "live" | "preview" | "manual";
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;

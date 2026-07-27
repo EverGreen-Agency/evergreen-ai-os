@@ -4295,8 +4295,6 @@ h3 {
   justify-content: space-between !important;
   padding: 18px 24px !important;
   border-bottom: 1px solid var(--border) !important;
-    grid-template-columns: 1fr;
-  }
 }
 
 .agency-workspace-home {

@@ -62,12 +62,13 @@ def create_execution(conn, workspace_id: UUID, payload: dict):
         """
         insert into workspace_squad_executions (
           workspace_id, squad_id, pilar, squad_name, triggered_by, status,
-          input_data, output_data, token_usage, estimated_cost_cents, execution_logs, completed_at
+          generation_mode, input_data, output_data, token_usage,
+          estimated_cost_cents, execution_logs, completed_at
         )
-        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         returning id, workspace_id, squad_id, pilar, squad_name, triggered_by,
-                  status, input_data, output_data, token_usage, estimated_cost_cents,
-                  execution_logs, started_at, completed_at
+                  status, generation_mode, input_data, output_data, token_usage,
+                  estimated_cost_cents, execution_logs, started_at, completed_at
         """,
         (
             workspace_id,
@@ -76,6 +77,7 @@ def create_execution(conn, workspace_id: UUID, payload: dict):
             payload["squad_name"],
             payload.get("triggered_by", "manual"),
             payload.get("status", "completed"),
+            payload.get("generation_mode", "manual"),
             Jsonb(payload.get("input_data", {})),
             Jsonb(payload.get("output_data", {})),
             Jsonb(payload.get("token_usage", {})),
@@ -90,8 +92,8 @@ def list_executions(conn, workspace_id: UUID, limit: int = 50):
     return conn.execute(
         """
         select id, workspace_id, squad_id, pilar, squad_name, triggered_by,
-               status, input_data, output_data, token_usage, estimated_cost_cents,
-               execution_logs, started_at, completed_at
+               status, generation_mode, input_data, output_data, token_usage,
+               estimated_cost_cents, execution_logs, started_at, completed_at
         from workspace_squad_executions
         where workspace_id = %s
         order by started_at desc

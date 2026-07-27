@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { moduleLabels, statusLabel, toggleableModules } from "../lib/app-config";
 import { useCreateClient, useCreateDeliverable, useUpdateClient } from "../hooks/useBiomaApi";
-import type { ClientModule, ClientStatus } from "../lib/api";
+import { api, type ClientModule, type ClientStatus } from "../lib/api";
 
 // Módulos essenciais do núcleo (o hub é obrigatório e sempre ativo)
 const BASE_MODULES: ClientModule[] = ["hub"];
@@ -99,8 +99,35 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
         payload: { enabled_modules: allModules },
       });
 
-      // 3. Criar entregáveis de kickoff selecionados
-      const deliverablePromises = Array.from(onboarding).map((title) =>
+      // 3. Executar o onboarding assistido e incorporar as entregas sugeridas.
+      const deliverableTitles = new Set(onboarding);
+      if (useAiSetup) {
+        try {
+          const execution = await api.runSquad(clientId, {
+            pilar: "onboarding",
+            squad_slug: "client-onboarding",
+            squad_name: "Onboarding & Setup do Cliente",
+            input_data: {
+              company_name: organization.trim(),
+              client_name: name.trim(),
+              website: website.trim() || null,
+              enabled_modules: allModules,
+            },
+          });
+          const suggested = execution.output_data.initial_deliverables;
+          if (Array.isArray(suggested)) {
+            suggested
+              .filter((title): title is string => typeof title === "string" && title.trim().length > 1)
+              .forEach((title) => deliverableTitles.add(title.trim()));
+          }
+        } catch (squadError) {
+          const message = squadError instanceof Error ? squadError.message : "falha desconhecida";
+          window.alert(`Cliente criado, mas o onboarding assistido não foi executado: ${message}`);
+        }
+      }
+
+      // 4. Criar entregáveis de kickoff selecionados/sugeridos
+      const deliverablePromises = Array.from(deliverableTitles).map((title) =>
         createDeliverable.mutateAsync({
           clientId,
           payload: {
@@ -219,7 +246,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                     🤖 Disparar Squad IA de Onboarding & Setup
                   </strong>
                   <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
-                    A IA realizará a varredura do site, analisará o tom de voz e gerará o kickoff inicial automaticamente no Hub.
+                    Gera um diagnóstico assistido e incorpora sugestões de kickoff ao Hub. Sem chave de IA, a execução fica identificada como prévia local.
                   </span>
                 </div>
                 <span
