@@ -103,20 +103,36 @@ def create_issue_from_deliverable(
 
         if not settings.github_api_token:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="GITHUB_API_TOKEN não configurado.")
-
-        client = GitHubClient(settings.github_api_token, settings.github_api_base_url)
-        try:
-            issue = client.create_issue(
-                connection["repository_owner"], connection["repository_name"], deliverable["title"], payload.body,
+        if not github_repo.reserve_deliverable_issue(conn, deliverable_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A criação desta issue já está em andamento. Tente novamente em alguns minutos.",
             )
-        except GitHubWriteError as exc:
-            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
-        finally:
-            client.close()
+        owner = connection["repository_owner"]
+        repository_name = connection["repository_name"]
+        project_id = deliverable["project_id"]
+        organization_id = project["subject_organization_id"]
+        deliverable_title = deliverable["title"]
 
+    marker = f"[Bioma:{deliverable_id}]"
+    issue_title = f"{marker} {deliverable_title}"
+    issue_body = "\n".join(part for part in (payload.body, "", f"Rastreio: {marker}") if part is not None)
+    client = GitHubClient(settings.github_api_token, settings.github_api_base_url)
+    try:
+        issue = client.find_issue_by_title_prefix(owner, repository_name, marker)
+        if issue is None:
+            issue = client.create_issue(owner, repository_name, issue_title, issue_body)
+    except (GitHubReadError, GitHubWriteError) as exc:
+        with connect() as conn:
+            github_repo.fail_deliverable_issue(conn, deliverable_id, str(exc))
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    finally:
+        client.close()
+
+    with connect() as conn:
         github_repo.record_deliverable_issue(conn, deliverable_id, issue["number"], issue["url"])
-        github_repo.write_audit(conn, user.id, project["subject_organization_id"], "github.issue_created", {
-            "deliverable_id": str(deliverable_id), "project_id": str(deliverable["project_id"]),
+        github_repo.write_audit(conn, user.id, organization_id, "github.issue_created", {
+            "deliverable_id": str(deliverable_id), "project_id": str(project_id),
             "repository": repository, "issue_number": issue["number"],
         })
 

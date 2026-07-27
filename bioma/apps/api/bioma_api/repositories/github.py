@@ -41,9 +41,29 @@ def upsert_connection(conn, project_id: UUID, user_id: UUID, payload: dict[str, 
 def find_deliverable_for_issue(conn, deliverable_id: UUID):
     return conn.execute(
         """
-        select id, title, project_id, github_issue_number, github_issue_url
+        select id, title, project_id, github_issue_number, github_issue_url,
+          github_issue_write_status, github_issue_write_requested_at
         from deliverables
         where id = %s
+        """,
+        (deliverable_id,),
+    ).fetchone()
+
+
+def reserve_deliverable_issue(conn, deliverable_id: UUID):
+    return conn.execute(
+        """
+        update deliverables
+        set github_issue_write_status = 'pending',
+            github_issue_write_error = null,
+            github_issue_write_requested_at = now(),
+            updated_at = now()
+        where id = %s and github_issue_number is null
+          and (
+            github_issue_write_status in ('idle', 'failed')
+            or github_issue_write_requested_at < now() - interval '5 minutes'
+          )
+        returning id
         """,
         (deliverable_id,),
     ).fetchone()
@@ -53,10 +73,26 @@ def record_deliverable_issue(conn, deliverable_id: UUID, issue_number: int, issu
     conn.execute(
         """
         update deliverables
-        set github_issue_number = %s, github_issue_url = %s, updated_at = now()
+        set github_issue_number = %s, github_issue_url = %s,
+            github_issue_write_status = 'completed',
+            github_issue_write_error = null,
+            updated_at = now()
         where id = %s
         """,
         (issue_number, issue_url, deliverable_id),
+    )
+
+
+def fail_deliverable_issue(conn, deliverable_id: UUID, error_detail: str) -> None:
+    conn.execute(
+        """
+        update deliverables
+        set github_issue_write_status = 'failed',
+            github_issue_write_error = %s,
+            updated_at = now()
+        where id = %s and github_issue_number is null
+        """,
+        (error_detail[:1000], deliverable_id),
     )
 
 

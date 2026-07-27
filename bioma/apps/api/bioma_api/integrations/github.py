@@ -50,6 +50,16 @@ class GitHubClient:
             raise GitHubWriteError("Não foi possível criar a issue no GitHub.") from exc
         return {"number": payload["number"], "url": payload["html_url"]}
 
+    def find_issue_by_title_prefix(self, owner: str, repository: str, prefix: str) -> dict | None:
+        path = f"/repos/{owner}/{repository}/issues"
+        issues = self._get(path, params={"state": "all", "per_page": 100})
+        for issue in issues:
+            if "pull_request" in issue:
+                continue
+            if str(issue.get("title", "")).startswith(prefix):
+                return {"number": issue["number"], "url": issue["html_url"]}
+        return None
+
     def _get(self, path: str, params: dict) -> list[dict]:
         try:
             response = self._client.get(path, params=params)
