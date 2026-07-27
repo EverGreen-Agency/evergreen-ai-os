@@ -2717,6 +2717,7 @@
               "onboarding",
               "active",
               "paused",
+              "completed",
               "archived"
             ],
             "title": "Status",
@@ -2928,6 +2929,7 @@
               "onboarding",
               "active",
               "paused",
+              "completed",
               "archived"
             ],
             "title": "Status",
@@ -3004,6 +3006,7 @@
                   "onboarding",
                   "active",
                   "paused",
+                  "completed",
                   "archived"
                 ],
                 "type": "string"
@@ -4445,6 +4448,35 @@
         "title": "FinancialRecordUpdateRequest",
         "type": "object"
       },
+      "FreelancerProfileSyncRequest": {
+        "properties": {
+          "platform_key": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Key"
+          },
+          "profile_url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Profile Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_url"
+        ],
+        "title": "FreelancerProfileSyncRequest",
+        "type": "object"
+      },
       "Ga4AcquisitionSummary": {
         "properties": {
           "campaign": {
@@ -5533,6 +5565,18 @@
       },
       "KitPieceCreateRequest": {
         "properties": {
+          "image_url": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "metadata": {
             "additionalProperties": true,
             "title": "Metadata",
@@ -5596,6 +5640,17 @@
             "title": "Id",
             "type": "string"
           },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "metadata": {
             "additionalProperties": true,
             "title": "Metadata",
@@ -5652,6 +5707,18 @@
       },
       "KitPieceUpdateRequest": {
         "properties": {
+          "image_url": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "metadata": {
             "anyOf": [
               {
@@ -6781,6 +6848,319 @@
           "updated_at"
         ],
         "title": "OnboardingPlanSummary",
+        "type": "object"
+      },
+      "OpportunityIngestPayload": {
+        "properties": {
+          "budget_text": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Text"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "raw_payload": {
+            "additionalProperties": true,
+            "title": "Raw Payload",
+            "type": "object"
+          },
+          "source_platform": {
+            "maxLength": 50,
+            "minLength": 2,
+            "title": "Source Platform",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "source_platform",
+          "title"
+        ],
+        "title": "OpportunityIngestPayload",
+        "type": "object"
+      },
+      "OpportunityPlatformSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "monthly_cost_cents": {
+            "title": "Monthly Cost Cents",
+            "type": "integer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "platform_key": {
+            "title": "Platform Key",
+            "type": "string"
+          },
+          "platform_name": {
+            "title": "Platform Name",
+            "type": "string"
+          },
+          "rss_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rss Url"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "not_configured"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "platform_key",
+          "platform_name",
+          "status",
+          "monthly_cost_cents",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OpportunityPlatformSummary",
+        "type": "object"
+      },
+      "OpportunityPlatformUpdate": {
+        "properties": {
+          "monthly_cost_cents": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Monthly Cost Cents",
+            "type": "integer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "platform_name": {
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Platform Name",
+            "type": "string"
+          },
+          "rss_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rss Url"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "paused",
+              "not_configured"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform_name"
+        ],
+        "title": "OpportunityPlatformUpdate",
+        "type": "object"
+      },
+      "OpportunitySummary": {
+        "properties": {
+          "budget_text": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Text"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "fit_analysis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit Analysis"
+          },
+          "fit_score": {
+            "default": 0,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Fit Score",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "raw_payload": {
+            "additionalProperties": true,
+            "title": "Raw Payload",
+            "type": "object"
+          },
+          "source_platform": {
+            "maxLength": 50,
+            "minLength": 2,
+            "title": "Source Platform",
+            "type": "string"
+          },
+          "status": {
+            "default": "new",
+            "enum": [
+              "new",
+              "qualified",
+              "proposal_generated",
+              "rejected",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "source_platform",
+          "title",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OpportunitySummary",
         "type": "object"
       },
       "OrganizationSummary": {
@@ -9197,6 +9577,550 @@
         "title": "ProjectUpdateSummary",
         "type": "object"
       },
+      "ProposalCreatePayload": {
+        "properties": {
+          "attached_cases": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Attached Cases",
+            "type": "array"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "delivery_days": {
+            "default": 0,
+            "maximum": 730.0,
+            "minimum": 0.0,
+            "title": "Delivery Days",
+            "type": "integer"
+          },
+          "executive_summary": {
+            "title": "Executive Summary",
+            "type": "string"
+          },
+          "generation_mode": {
+            "default": "manual",
+            "enum": [
+              "live",
+              "preview",
+              "manual"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "opportunity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opportunity Id"
+          },
+          "pricing_cents": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Pricing Cents",
+            "type": "integer"
+          },
+          "scope_conversion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Conversion"
+          },
+          "scope_demand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Demand"
+          },
+          "scope_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Scope Items",
+            "type": "array"
+          },
+          "scope_offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Offer"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "approved",
+              "sent",
+              "won",
+              "lost"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_niche": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Niche"
+          },
+          "win_loss_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Loss Feedback"
+          }
+        },
+        "required": [
+          "client_name",
+          "executive_summary"
+        ],
+        "title": "ProposalCreatePayload",
+        "type": "object"
+      },
+      "ProposalSummary": {
+        "properties": {
+          "attached_cases": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Attached Cases",
+            "type": "array"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "delivery_days": {
+            "default": 0,
+            "maximum": 730.0,
+            "minimum": 0.0,
+            "title": "Delivery Days",
+            "type": "integer"
+          },
+          "executive_summary": {
+            "title": "Executive Summary",
+            "type": "string"
+          },
+          "generation_mode": {
+            "default": "manual",
+            "enum": [
+              "live",
+              "preview",
+              "manual"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "opportunity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opportunity Id"
+          },
+          "pricing_cents": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Pricing Cents",
+            "type": "integer"
+          },
+          "public_expires_at": {
+            "format": "date-time",
+            "title": "Public Expires At",
+            "type": "string"
+          },
+          "public_token": {
+            "title": "Public Token",
+            "type": "string"
+          },
+          "scope_conversion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Conversion"
+          },
+          "scope_demand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Demand"
+          },
+          "scope_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Scope Items",
+            "type": "array"
+          },
+          "scope_offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Offer"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "approved",
+              "sent",
+              "won",
+              "lost"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_niche": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Niche"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "win_loss_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Loss Feedback"
+          }
+        },
+        "required": [
+          "client_name",
+          "executive_summary",
+          "id",
+          "public_token",
+          "public_expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProposalSummary",
+        "type": "object"
+      },
+      "ProposalUpdatePayload": {
+        "properties": {
+          "client_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Name"
+          },
+          "delivery_days": {
+            "anyOf": [
+              {
+                "maximum": 730.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Days"
+          },
+          "executive_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executive Summary"
+          },
+          "pricing_cents": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Cents"
+          },
+          "scope_conversion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Conversion"
+          },
+          "scope_demand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Demand"
+          },
+          "scope_items": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Items"
+          },
+          "scope_offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Offer"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "approved",
+                  "sent",
+                  "won",
+                  "lost"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "target_niche": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Niche"
+          },
+          "win_loss_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Loss Feedback"
+          }
+        },
+        "title": "ProposalUpdatePayload",
+        "type": "object"
+      },
+      "PublicProposalResponse": {
+        "properties": {
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "delivery_days": {
+            "title": "Delivery Days",
+            "type": "integer"
+          },
+          "executive_summary": {
+            "title": "Executive Summary",
+            "type": "string"
+          },
+          "pricing_cents": {
+            "title": "Pricing Cents",
+            "type": "integer"
+          },
+          "scope_conversion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Conversion"
+          },
+          "scope_demand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Demand"
+          },
+          "scope_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Scope Items",
+            "type": "array"
+          },
+          "scope_offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Offer"
+          },
+          "target_niche": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Niche"
+          }
+        },
+        "required": [
+          "client_name",
+          "executive_summary",
+          "scope_items",
+          "pricing_cents",
+          "delivery_days",
+          "created_at"
+        ],
+        "title": "PublicProposalResponse",
+        "type": "object"
+      },
       "Role": {
         "enum": [
           "eg_admin",
@@ -9216,7 +10140,8 @@
             "enum": [
               "oferta",
               "demanda",
-              "conversao"
+              "conversao",
+              "onboarding"
             ],
             "title": "Pilar",
             "type": "string"
@@ -9900,7 +10825,8 @@
             "enum": [
               "oferta",
               "demanda",
-              "conversao"
+              "conversao",
+              "onboarding"
             ],
             "title": "Pilar",
             "type": "string"
@@ -9982,7 +10908,8 @@
             "enum": [
               "oferta",
               "demanda",
-              "conversao"
+              "conversao",
+              "onboarding"
             ],
             "title": "Pilar",
             "type": "string"
@@ -10064,6 +10991,15 @@
             "title": "Execution Logs",
             "type": "array"
           },
+          "generation_mode": {
+            "enum": [
+              "live",
+              "preview",
+              "manual"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -10083,7 +11019,8 @@
             "enum": [
               "oferta",
               "demanda",
-              "conversao"
+              "conversao",
+              "onboarding"
             ],
             "title": "Pilar",
             "type": "string"
@@ -10140,6 +11077,7 @@
           "squad_name",
           "triggered_by",
           "status",
+          "generation_mode",
           "input_data",
           "output_data",
           "token_usage",
@@ -13203,6 +14141,7 @@
                   "onboarding",
                   "active",
                   "paused",
+                  "completed",
                   "archived"
                 ],
                 "type": "string"
@@ -15276,6 +16215,553 @@
         "summary": "Update Shipment Status",
         "tags": [
           "logistics"
+        ]
+      }
+    },
+    "/backoffice/proposals": {
+      "get": {
+        "operationId": "list_proposals_backoffice_proposals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalSummary"
+                  },
+                  "title": "Response List Proposals Backoffice Proposals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Proposals",
+        "tags": [
+          "proposals"
+        ]
+      },
+      "post": {
+        "operationId": "create_proposal_backoffice_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalCreatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Proposal",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/analytics": {
+      "get": {
+        "operationId": "get_analytics_backoffice_proposals_analytics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Analytics",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/gaps": {
+      "get": {
+        "operationId": "list_gaps_backoffice_proposals_gaps_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Gaps",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/gaps/{gap_id}/resolve": {
+      "post": {
+        "operationId": "resolve_gap_backoffice_proposals_gaps__gap_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "gap_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Gap Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Gap",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/opportunities": {
+      "get": {
+        "operationId": "list_opportunities_backoffice_proposals_opportunities_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpportunitySummary"
+                  },
+                  "title": "Response List Opportunities Backoffice Proposals Opportunities Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Opportunities",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/opportunities/ingest": {
+      "post": {
+        "operationId": "ingest_opportunity_backoffice_proposals_opportunities_ingest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpportunityIngestPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunitySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Opportunity",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/opportunities/sync": {
+      "post": {
+        "operationId": "sync_opportunities_backoffice_proposals_opportunities_sync_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sync Opportunities",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/opportunities/{opp_id}/generate": {
+      "post": {
+        "operationId": "generate_proposal_backoffice_proposals_opportunities__opp_id__generate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opp_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Opp Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Proposal",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/platforms": {
+      "get": {
+        "operationId": "list_platforms_backoffice_proposals_platforms_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpportunityPlatformSummary"
+                  },
+                  "title": "Response List Platforms Backoffice Proposals Platforms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Platforms",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/platforms/{platform_key}": {
+      "put": {
+        "operationId": "update_platform_backoffice_proposals_platforms__platform_key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform_key",
+            "required": true,
+            "schema": {
+              "title": "Platform Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpportunityPlatformUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityPlatformSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Platform",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/profiles": {
+      "get": {
+        "operationId": "list_freelancer_profiles_backoffice_proposals_profiles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Freelancer Profiles",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/profiles/sync": {
+      "post": {
+        "operationId": "sync_freelancer_profile_backoffice_proposals_profiles_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FreelancerProfileSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync Freelancer Profile",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/profiles/{profile_id}": {
+      "delete": {
+        "operationId": "delete_freelancer_profile_backoffice_proposals_profiles__profile_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "profile_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Profile Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Freelancer Profile",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/skills": {
+      "get": {
+        "operationId": "list_skills_backoffice_proposals_skills_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Skills",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}": {
+      "patch": {
+        "operationId": "update_proposal_backoffice_proposals__proposal_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalUpdatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Proposal",
+        "tags": [
+          "proposals"
         ]
       }
     },
@@ -19546,6 +21032,48 @@
         "summary": "Create Project Update",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/proposals/public/{public_token}": {
+      "get": {
+        "operationId": "get_public_proposal_proposals_public__public_token__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_token",
+            "required": true,
+            "schema": {
+              "title": "Public Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Public Proposal",
+        "tags": [
+          "public-proposals"
         ]
       }
     },

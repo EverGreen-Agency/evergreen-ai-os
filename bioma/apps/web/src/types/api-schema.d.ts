@@ -708,6 +708,262 @@ export interface paths {
         patch: operations["update_shipment_status_backoffice_logistics_shipments__shipment_id__status_patch"];
         trace?: never;
     };
+    "/backoffice/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proposals */
+        get: operations["list_proposals_backoffice_proposals_get"];
+        put?: never;
+        /** Create Proposal */
+        post: operations["create_proposal_backoffice_proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Analytics */
+        get: operations["get_analytics_backoffice_proposals_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/gaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Gaps */
+        get: operations["list_gaps_backoffice_proposals_gaps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/gaps/{gap_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Gap */
+        post: operations["resolve_gap_backoffice_proposals_gaps__gap_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/opportunities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Opportunities */
+        get: operations["list_opportunities_backoffice_proposals_opportunities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/opportunities/ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest Opportunity */
+        post: operations["ingest_opportunity_backoffice_proposals_opportunities_ingest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/opportunities/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Opportunities */
+        post: operations["sync_opportunities_backoffice_proposals_opportunities_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/opportunities/{opp_id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Proposal */
+        post: operations["generate_proposal_backoffice_proposals_opportunities__opp_id__generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/platforms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Platforms */
+        get: operations["list_platforms_backoffice_proposals_platforms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/platforms/{platform_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Platform */
+        put: operations["update_platform_backoffice_proposals_platforms__platform_key__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Freelancer Profiles */
+        get: operations["list_freelancer_profiles_backoffice_proposals_profiles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/profiles/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Freelancer Profile */
+        post: operations["sync_freelancer_profile_backoffice_proposals_profiles_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/profiles/{profile_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Freelancer Profile */
+        delete: operations["delete_freelancer_profile_backoffice_proposals_profiles__profile_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Skills */
+        get: operations["list_skills_backoffice_proposals_skills_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Proposal */
+        patch: operations["update_proposal_backoffice_proposals__proposal_id__patch"];
+        trace?: never;
+    };
     "/backoffice/rh/managers/{manager_user_id}/portfolio": {
         parameters: {
             query?: never;
@@ -1798,6 +2054,23 @@ export interface paths {
         put?: never;
         /** Create Project Update */
         post: operations["create_project_update_projects__project_id__updates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proposals/public/{public_token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Public Proposal */
+        get: operations["get_public_proposal_proposals_public__public_token__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4534,6 +4807,16 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** FreelancerProfileSyncRequest */
+        FreelancerProfileSyncRequest: {
+            /** Platform Key */
+            platform_key?: string | null;
+            /**
+             * Profile Url
+             * Format: uri
+             */
+            profile_url: string;
+        };
         /** Ga4AcquisitionSummary */
         Ga4AcquisitionSummary: {
             /** Campaign */
@@ -4995,6 +5278,8 @@ export interface components {
         };
         /** KitPieceCreateRequest */
         KitPieceCreateRequest: {
+            /** Image Url */
+            image_url?: string | null;
             /** Metadata */
             metadata?: {
                 [key: string]: unknown;
@@ -5032,6 +5317,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Image Url */
+            image_url?: string | null;
             /** Metadata */
             metadata?: {
                 [key: string]: unknown;
@@ -5057,6 +5344,8 @@ export interface components {
         };
         /** KitPieceUpdateRequest */
         KitPieceUpdateRequest: {
+            /** Image Url */
+            image_url?: string | null;
             /** Metadata */
             metadata?: {
                 [key: string]: unknown;
@@ -5446,6 +5735,123 @@ export interface components {
             user_id: string;
             /** User Name */
             user_name: string;
+        };
+        /** OpportunityIngestPayload */
+        OpportunityIngestPayload: {
+            /** Budget Text */
+            budget_text?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Raw Payload */
+            raw_payload?: {
+                [key: string]: unknown;
+            };
+            /** Source Platform */
+            source_platform: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
+        /** OpportunityPlatformSummary */
+        OpportunityPlatformSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Monthly Cost Cents */
+            monthly_cost_cents: number;
+            /** Notes */
+            notes?: string | null;
+            /** Platform Key */
+            platform_key: string;
+            /** Platform Name */
+            platform_name: string;
+            /** Rss Url */
+            rss_url?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "paused" | "not_configured";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** OpportunityPlatformUpdate */
+        OpportunityPlatformUpdate: {
+            /**
+             * Monthly Cost Cents
+             * @default 0
+             */
+            monthly_cost_cents: number;
+            /** Notes */
+            notes?: string | null;
+            /** Platform Name */
+            platform_name: string;
+            /** Rss Url */
+            rss_url?: string | null;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "paused" | "not_configured";
+        };
+        /** OpportunitySummary */
+        OpportunitySummary: {
+            /** Budget Text */
+            budget_text?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Fit Analysis */
+            fit_analysis?: string | null;
+            /**
+             * Fit Score
+             * @default 0
+             */
+            fit_score: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Raw Payload */
+            raw_payload?: {
+                [key: string]: unknown;
+            };
+            /** Source Platform */
+            source_platform: string;
+            /**
+             * Status
+             * @default new
+             * @enum {string}
+             */
+            status: "new" | "qualified" | "proposal_generated" | "rejected" | "archived";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url?: string | null;
         };
         /** OrganizationSummary */
         OrganizationSummary: {
@@ -6336,6 +6742,183 @@ export interface components {
             /** Summary */
             summary: string;
         };
+        /** ProposalCreatePayload */
+        ProposalCreatePayload: {
+            /** Attached Cases */
+            attached_cases?: {
+                [key: string]: unknown;
+            }[];
+            /** Client Name */
+            client_name: string;
+            /**
+             * Delivery Days
+             * @default 0
+             */
+            delivery_days: number;
+            /** Executive Summary */
+            executive_summary: string;
+            /**
+             * Generation Mode
+             * @default manual
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /** Opportunity Id */
+            opportunity_id?: string | null;
+            /**
+             * Pricing Cents
+             * @default 0
+             */
+            pricing_cents: number;
+            /** Scope Conversion */
+            scope_conversion?: string | null;
+            /** Scope Demand */
+            scope_demand?: string | null;
+            /** Scope Items */
+            scope_items?: {
+                [key: string]: unknown;
+            }[];
+            /** Scope Offer */
+            scope_offer?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "sent" | "won" | "lost";
+            /** Target Niche */
+            target_niche?: string | null;
+            /** Win Loss Feedback */
+            win_loss_feedback?: string | null;
+        };
+        /** ProposalSummary */
+        ProposalSummary: {
+            /** Attached Cases */
+            attached_cases?: {
+                [key: string]: unknown;
+            }[];
+            /** Client Name */
+            client_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By User Id */
+            created_by_user_id?: string | null;
+            /**
+             * Delivery Days
+             * @default 0
+             */
+            delivery_days: number;
+            /** Executive Summary */
+            executive_summary: string;
+            /**
+             * Generation Mode
+             * @default manual
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Opportunity Id */
+            opportunity_id?: string | null;
+            /**
+             * Pricing Cents
+             * @default 0
+             */
+            pricing_cents: number;
+            /**
+             * Public Expires At
+             * Format: date-time
+             */
+            public_expires_at: string;
+            /** Public Token */
+            public_token: string;
+            /** Scope Conversion */
+            scope_conversion?: string | null;
+            /** Scope Demand */
+            scope_demand?: string | null;
+            /** Scope Items */
+            scope_items?: {
+                [key: string]: unknown;
+            }[];
+            /** Scope Offer */
+            scope_offer?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "sent" | "won" | "lost";
+            /** Target Niche */
+            target_niche?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Win Loss Feedback */
+            win_loss_feedback?: string | null;
+        };
+        /** ProposalUpdatePayload */
+        ProposalUpdatePayload: {
+            /** Client Name */
+            client_name?: string | null;
+            /** Delivery Days */
+            delivery_days?: number | null;
+            /** Executive Summary */
+            executive_summary?: string | null;
+            /** Pricing Cents */
+            pricing_cents?: number | null;
+            /** Scope Conversion */
+            scope_conversion?: string | null;
+            /** Scope Demand */
+            scope_demand?: string | null;
+            /** Scope Items */
+            scope_items?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Scope Offer */
+            scope_offer?: string | null;
+            /** Status */
+            status?: ("draft" | "approved" | "sent" | "won" | "lost") | null;
+            /** Target Niche */
+            target_niche?: string | null;
+            /** Win Loss Feedback */
+            win_loss_feedback?: string | null;
+        };
+        /** PublicProposalResponse */
+        PublicProposalResponse: {
+            /** Client Name */
+            client_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delivery Days */
+            delivery_days: number;
+            /** Executive Summary */
+            executive_summary: string;
+            /** Pricing Cents */
+            pricing_cents: number;
+            /** Scope Conversion */
+            scope_conversion?: string | null;
+            /** Scope Demand */
+            scope_demand?: string | null;
+            /** Scope Items */
+            scope_items: {
+                [key: string]: unknown;
+            }[];
+            /** Scope Offer */
+            scope_offer?: string | null;
+            /** Target Niche */
+            target_niche?: string | null;
+        };
         /**
          * Role
          * @enum {string}
@@ -6351,7 +6934,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
             /** Squad Name */
             squad_name: string;
             /** Squad Slug */
@@ -6604,7 +7187,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
             /** Pipeline Yaml */
             pipeline_yaml?: string | null;
             /** Squad Name */
@@ -6640,7 +7223,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
             /** Pipeline Yaml */
             pipeline_yaml?: string | null;
             /** Squad Name */
@@ -6674,6 +7257,11 @@ export interface components {
                 [key: string]: unknown;
             }[];
             /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /**
              * Id
              * Format: uuid
              */
@@ -6690,7 +7278,7 @@ export interface components {
              * Pilar
              * @enum {string}
              */
-            pilar: "oferta" | "demanda" | "conversao";
+            pilar: "oferta" | "demanda" | "conversao" | "onboarding";
             /** Squad Id */
             squad_id?: string | null;
             /** Squad Name */
@@ -9336,6 +9924,439 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KitShipmentSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_backoffice_proposals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummary"][];
+                };
+            };
+        };
+    };
+    create_proposal_backoffice_proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalCreatePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_analytics_backoffice_proposals_analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    list_gaps_backoffice_proposals_gaps_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    resolve_gap_backoffice_proposals_gaps__gap_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_opportunities_backoffice_proposals_opportunities_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunitySummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ingest_opportunity_backoffice_proposals_opportunities_ingest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpportunityIngestPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunitySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_opportunities_backoffice_proposals_opportunities_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    generate_proposal_backoffice_proposals_opportunities__opp_id__generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                opp_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platforms_backoffice_proposals_platforms_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityPlatformSummary"][];
+                };
+            };
+        };
+    };
+    update_platform_backoffice_proposals_platforms__platform_key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platform_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpportunityPlatformUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityPlatformSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_freelancer_profiles_backoffice_proposals_profiles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    sync_freelancer_profile_backoffice_proposals_profiles_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FreelancerProfileSyncRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_freelancer_profile_backoffice_proposals_profiles__profile_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_skills_backoffice_proposals_skills_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    update_proposal_backoffice_proposals__proposal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalUpdatePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummary"];
                 };
             };
             /** @description Validation Error */
@@ -12120,6 +13141,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_public_proposal_proposals_public__public_token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                public_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProposalResponse"];
                 };
             };
             /** @description Validation Error */
