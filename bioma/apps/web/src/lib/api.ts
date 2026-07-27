@@ -394,7 +394,7 @@ export type WhatsAppMessageLogSummary = {
   sent_at: string;
 };
 
-export type PilarType = "oferta" | "demanda" | "conversao" | "onboarding";
+export type PilarType = "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
 
 export type SquadDefinitionSummary = {
   id: string;
@@ -1064,6 +1064,13 @@ export type GitHubProjectActivity = {
   commits: Array<{ sha: string; message: string; url: string; author_name: string | null; authored_at: string | null }>;
 };
 
+export type GitHubIssueLink = {
+  deliverable_id: string;
+  repository: string;
+  issue_number: number;
+  issue_url: string;
+};
+
 export type ArtifactPayload = {
   title: string;
   kind: string;
@@ -1260,6 +1267,8 @@ export type ProjectDeliverable = {
   due_at: string | null;
   completed_at: string | null;
   approval_status: ApprovalStatus | null;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
   updated_at: string;
 };
 
@@ -1301,12 +1310,52 @@ export type ProjectUpdateEntry = {
   created_at: string;
 };
 
+export type ProjectPlanItem = {
+  id: string;
+  plan_id: string;
+  sequence: number;
+  source_scope_item_id: string | null;
+  phase_name: string;
+  title: string;
+  description: string | null;
+  item_kind: "milestone" | "deliverable" | "content" | "campaign" | "technical_task";
+  due_offset_days: number | null;
+  client_visible: boolean;
+  approval_required: boolean;
+  github_eligible: boolean;
+  metadata: Record<string, unknown>;
+  materialized_phase_id: string | null;
+  materialized_deliverable_id: string | null;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
+};
+
+export type ProjectPlan = {
+  id: string;
+  project_id: string;
+  source_contract_id: string | null;
+  version: number;
+  discipline: ProjectType;
+  source_kind: "contract" | "briefing" | "onboarding" | "manual";
+  status: "draft" | "approved" | "materialized" | "superseded";
+  generation_mode: "live" | "preview" | "manual";
+  title: string;
+  objective: string | null;
+  assumptions: string[];
+  approved_at: string | null;
+  materialized_at: string | null;
+  created_at: string;
+  updated_at: string;
+  items: ProjectPlanItem[];
+};
+
 export type ProjectDetail = ProjectSummary & {
   contracts: ProjectContract[];
   deliverables: ProjectDeliverable[];
   phases: ProjectPhase[];
   documents: ProjectDocument[];
   updates: ProjectUpdateEntry[];
+  plans: ProjectPlan[];
 };
 
 export type ProjectPayload = {
@@ -1533,6 +1582,30 @@ export const api = {
     request<ProjectDetail>(`/projects/${projectId}/documents`, { method: "POST", body: JSON.stringify(payload) }),
   createProjectUpdate: (projectId: string, payload: { phase_id?: string | null; kind?: ProjectUpdateEntry["kind"]; summary: string; detail?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/updates`, { method: "POST", body: JSON.stringify(payload) }),
+  generateProjectPlan: (
+    projectId: string,
+    payload: {
+      contract_id?: string | null;
+      source_kind?: ProjectPlan["source_kind"];
+      briefing?: string | null;
+      objective?: string | null;
+      social_approval_flow?: "adaptive" | "idea_before_production" | "after_production" | "final_only";
+    },
+  ) =>
+    request<ProjectPlan>(`/projects/${projectId}/plans/generate`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  approveProjectPlan: (planId: string) =>
+    request<ProjectPlan>(`/project-plans/${planId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    }),
+  materializeProjectPlan: (planId: string) =>
+    request<ProjectDetail>(`/project-plans/${planId}/materialize`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   createClient: (payload: ClientPayload) =>
@@ -1827,6 +1900,11 @@ export const api = {
     request<GitHubConnection>(`/integrations/github/projects/${projectId}`, { method: "PUT", body: JSON.stringify(payload) }),
   githubProjectActivity: (projectId: string, limit = 20) =>
     request<GitHubProjectActivity>(`/integrations/github/projects/${projectId}/activity?limit=${limit}`),
+  createGitHubIssue: (deliverableId: string, body?: string | null) =>
+    request<GitHubIssueLink>(`/integrations/github/deliverables/${deliverableId}/issue`, {
+      method: "POST",
+      body: JSON.stringify({ body: body || null, confirm: true }),
+    }),
   
   getKommoConfig: (organizationId: string) => 
     request<KommoConfigResponse>(`/integrations/${organizationId}/kommo`),

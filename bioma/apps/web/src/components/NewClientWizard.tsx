@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { moduleLabels, statusLabel, toggleableModules } from "../lib/app-config";
 import { useCreateClient, useCreateDeliverable, useUpdateClient } from "../hooks/useBiomaApi";
-import { api, type ClientModule, type ClientStatus } from "../lib/api";
+import { api, type ClientModule, type ClientStatus, type ProjectType } from "../lib/api";
 
 // Módulos essenciais do núcleo (o hub é obrigatório e sempre ativo)
 const BASE_MODULES: ClientModule[] = ["hub"];
@@ -28,6 +28,11 @@ const MODULE_DESCRIPTIONS: Record<ClientModule, string> = {
 };
 
 const STEPS = ["Identidade", "Módulos", "Entregas Iniciais"] as const;
+const PROJECT_TRACKS: Array<{ type: Exclude<ProjectType, "general">; label: string; description: string }> = [
+  { type: "tech", label: "Tech", description: "Roadmap técnico e candidatos a issues GitHub com HITL" },
+  { type: "growth", label: "Growth", description: "Campanhas, CRM, rotinas e ciclos de otimização" },
+  { type: "social", label: "Social Media", description: "Planejamento editorial e aprovação adaptativa" },
+];
 
 export function NewClientWizard({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
@@ -37,6 +42,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
@@ -48,8 +54,9 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
   // Por padrão ativamos os módulos recomendados para o novo cliente
   const [modules, setModules] = useState<Set<ClientModule>>(new Set(["content", "files", "commercial", "analytics"]));
   const [onboarding, setOnboarding] = useState<Set<string>>(new Set(ONBOARDING_TEMPLATE));
+  const [projectTracks, setProjectTracks] = useState<Set<Exclude<ProjectType, "general">>>(new Set());
 
-  const busy = createClient.isPending || updateClient.isPending;
+  const busy = submitting || createClient.isPending || updateClient.isPending;
   const identityValid = name.trim().length > 0 && organization.trim().length > 0;
 
   const toggleModule = (module: ClientModule) => {
@@ -68,6 +75,14 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
     });
   };
 
+  const toggleProjectTrack = (track: Exclude<ProjectType, "general">) => {
+    setProjectTracks((prev) => {
+      const next = new Set(prev);
+      next.has(track) ? next.delete(track) : next.add(track);
+      return next;
+    });
+  };
+
   const goNext = () => {
     if (step === 0 && !identityValid) return;
     setError("");
@@ -81,6 +96,7 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
 
   const handleCreate = async () => {
     setError("");
+    setSubmitting(true);
     try {
       // 1. Criar o cliente no banco
       const res = await createClient.mutateAsync({
@@ -138,10 +154,37 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
       );
       await Promise.all(deliverablePromises);
 
+      // 5. Criar frentes operacionais e seus planos em rascunho.
+      const planningResults = await Promise.allSettled(
+        Array.from(projectTracks).map(async (projectType) => {
+          const label = PROJECT_TRACKS.find((track) => track.type === projectType)?.label ?? projectType;
+          const project = await api.createProject(clientId, {
+            name: `${organization.trim()} — ${label}`,
+            project_type: projectType,
+            status: "planned",
+            client_visible: true,
+            objective: `Estruturar e acompanhar a frente de ${label} contratada pelo cliente.`,
+          });
+          if (useAiSetup) {
+            await api.generateProjectPlan(project.id, {
+              source_kind: "onboarding",
+              objective: project.objective,
+              social_approval_flow: "adaptive",
+            });
+          }
+        }),
+      );
+      const failedPlans = planningResults.filter((result) => result.status === "rejected").length;
+      if (failedPlans) {
+        window.alert(`Cliente criado. ${failedPlans} frente(s) operacional(is) não puderam ser planejadas e podem ser retomadas em Projetos.`);
+      }
+
       onClose();
       navigate(`/clientes/${clientId}`);
-    } catch (err: any) {
-      setError(err.message || "Erro ao criar cliente. Tente novamente.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao criar cliente. Tente novamente.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -432,11 +475,40 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
                 })}
               </div>
 
+              <div style={{ marginBottom: 18 }}>
+                <strong style={{ display: "block", fontSize: "0.82rem", marginBottom: 8 }}>Frentes operacionais iniciais</strong>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {PROJECT_TRACKS.map((track) => {
+                    const on = projectTracks.has(track.type);
+                    return (
+                      <button
+                        key={track.type}
+                        type="button"
+                        onClick={() => toggleProjectTrack(track.type)}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: 8,
+                          textAlign: "left",
+                          background: on ? "var(--surface)" : "var(--surface-sunken)",
+                          border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
+                          color: "var(--text)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <strong>{on ? "✓ " : ""}{track.label}</strong>
+                        <small style={{ display: "block", color: "var(--text-dim)", marginTop: 2 }}>{track.description}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="panel-footnote">O wizard cria somente projetos e planos em rascunho. Fases e entregas exigem aprovação posterior.</p>
+              </div>
+
               {/* Resumo do Cadastro */}
               <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.85rem" }}>
                 <strong style={{ color: "var(--brand-accent)" }}>{name || "—"}</strong> · {organization || "—"}<br />
                 <span style={{ color: "var(--text-dim)" }}>
-                  Status: <strong>{statusLabel[status]}</strong> • {1 + modules.size} Módulos Habilitados • {onboarding.size} Entregas Iniciais
+                  Status: <strong>{statusLabel[status]}</strong> • {1 + modules.size} Módulos • {onboarding.size} Entregas • {projectTracks.size} Frentes
                 </span>
               </div>
             </div>
