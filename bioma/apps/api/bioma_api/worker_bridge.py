@@ -39,3 +39,27 @@ def execute_squad_pipeline_safe(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return execute_squad_pipeline(pilar, squad_name, input_data, get_settings())
     except Exception as exc:
         raise RuntimeError("Falha ao executar o pipeline do squad.") from exc
+
+
+def refine_market_sector_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
+    try:
+        from bioma_worker.config import get_settings
+        from bioma_worker.market_research import refine_market_sector
+
+        return refine_market_sector(request, get_settings())
+    except Exception as exc:
+        raise RuntimeError("Falha ao refinar o setor para pesquisa.") from exc
+
+
+def generate_market_research_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
+    try:
+        from bioma_worker.config import get_settings
+        from bioma_worker.market_research import generate_market_research
+
+        return generate_market_research(request, get_settings())
+    except Exception as exc:
+        raise RuntimeError("Falha ao executar a pesquisa de mercado.") from exc

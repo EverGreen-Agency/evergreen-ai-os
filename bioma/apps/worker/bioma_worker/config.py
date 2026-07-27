@@ -16,6 +16,7 @@ class WorkerSettings(BaseSettings):
     linkedin_ads_api_version: str = "202504"
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
+    openai_research_model: str = "gpt-5.6-terra"
     openai_request_timeout_seconds: float = 120
     # QUEUE-001: o lease precisa ser maior que o job mais longo esperado
     # (sync de 30 dias em 4 providers), senão o reaper reenfileira job vivo.

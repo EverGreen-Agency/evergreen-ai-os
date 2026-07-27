@@ -17,6 +17,7 @@ from bioma_api.routers import (
     integrations,
     invites,
     kits,
+    market_research,
     oauth,
     passwords,
     performance,
@@ -88,6 +89,7 @@ app.include_router(health.router)
 app.include_router(admin.router)
 app.include_router(wiki.router)
 app.include_router(kits.router)
+app.include_router(market_research.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)

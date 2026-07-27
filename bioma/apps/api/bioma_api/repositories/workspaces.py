@@ -19,6 +19,7 @@ def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID
           o.name as organization_name,
           o.enabled_modules,
           w.id as workspace_id,
+          w.tenant_organization_id,
           w.kind as workspace_kind,
           access.role as access_role
         from clients c
