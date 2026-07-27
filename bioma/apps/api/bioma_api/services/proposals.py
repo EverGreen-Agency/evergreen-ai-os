@@ -2,43 +2,65 @@ from typing import Any
 from uuid import UUID
 from fastapi import HTTPException, status
 
+from bioma_api.access import require_platform_admin
 from bioma_api.db import connect
 from bioma_api.repositories import proposals as proposals_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
     OpportunityCreatePayload,
     OpportunityIngestPayload,
+    OpportunityPlatformSummary,
+    OpportunityPlatformUpdate,
     OpportunitySummary,
     ProposalCreatePayload,
     ProposalSummary,
     ProposalUpdatePayload,
     PublicProposalResponse,
 )
-from bioma_api.worker_bridge import execute_squad_pipeline_safe, get_whatsapp_provider_safe
+from bioma_api.worker_bridge import execute_squad_pipeline_safe
+
+
+def _require_admin(user: CurrentUserResponse) -> None:
+    require_platform_admin(user)
 
 
 def list_opportunities(user: CurrentUserResponse, status_filter: str | None = None) -> list[OpportunitySummary]:
+    _require_admin(user)
     with connect() as conn:
         rows = proposals_repo.list_opportunities(conn, status_filter=status_filter)
     return [OpportunitySummary(**r) for r in rows]
 
 
-def list_platform_configs(user: CurrentUserResponse) -> list[dict[str, Any]]:
+def list_platform_configs(user: CurrentUserResponse) -> list[OpportunityPlatformSummary]:
+    _require_admin(user)
     with connect() as conn:
-        return proposals_repo.list_platform_configs(conn)
+        rows = proposals_repo.list_platform_configs(conn)
+    return [OpportunityPlatformSummary(**row) for row in rows]
 
 
-def update_platform_config(platform_key: str, payload: dict[str, Any], user: CurrentUserResponse) -> dict[str, Any]:
+def update_platform_config(
+    platform_key: str,
+    payload: OpportunityPlatformUpdate,
+    user: CurrentUserResponse,
+) -> OpportunityPlatformSummary:
+    _require_admin(user)
     with connect() as conn:
-        return proposals_repo.upsert_platform_config(conn, platform_key, payload)
+        row = proposals_repo.upsert_platform_config(conn, platform_key, payload.model_dump(mode="json"))
+    return OpportunityPlatformSummary(**row)
 
 
 def list_freelancer_profiles(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    _require_admin(user)
     with connect() as conn:
         return proposals_repo.list_freelancer_profiles(conn)
 
 
-def sync_and_audit_freelancer_profile(profile_url: str, platform_key: str | None = None, user: CurrentUserResponse | None = None) -> dict[str, Any]:
+def sync_and_audit_freelancer_profile(
+    profile_url: str,
+    platform_key: str | None,
+    user: CurrentUserResponse,
+) -> dict[str, Any]:
+    _require_admin(user)
     from bioma_api.worker_bridge import _ensure_worker_in_path
     _ensure_worker_in_path()
 
@@ -46,36 +68,27 @@ def sync_and_audit_freelancer_profile(profile_url: str, platform_key: str | None
         from bioma_worker.scrapers.profile_auditor import fetch_and_audit_profile_url
         audit_data = fetch_and_audit_profile_url(profile_url, platform_key)
     except Exception as exc:
-        print(f"[Proposals Service] Erro na auditoria automatica: {exc}")
-        audit_data = {
-            "platform_key": platform_key or "other",
-            "profile_url": profile_url,
-            "profile_name": "Perfil Conectado",
-            "headline": "Especialista B2B",
-            "bio": f"Perfil monitorado via {profile_url}",
-            "audit_score": 75,
-            "audit_analysis": {
-                "strengths": ["Perfil registrado para auto-vigilância."],
-                "gaps": ["Falta ampliar depoimentos de clientes."],
-                "optimized_headline": "Especialista em Growth & Performance B2B",
-                "optimized_bio": "Ajudo empresas a escalarem suas vendas.",
-                "portfolio_tips": "Adicione 3 cases com painéis de métricas.",
-            },
-        }
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível auditar o perfil informado.",
+        ) from exc
 
     with connect() as conn:
         return proposals_repo.upsert_freelancer_profile(conn, audit_data)
 
 
 def delete_freelancer_profile(profile_id: UUID, user: CurrentUserResponse) -> dict[str, str]:
+    _require_admin(user)
     with connect() as conn:
-        proposals_repo.delete_freelancer_profile(conn, profile_id)
+        if not proposals_repo.delete_freelancer_profile(conn, profile_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Perfil não encontrado.")
     return {"status": "deleted"}
 
 
 
 
-def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse | None = None) -> OpportunitySummary:
+def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse) -> OpportunitySummary:
+    _require_admin(user)
     with connect() as conn:
         existing = proposals_repo.find_existing_opportunity(conn, payload.url, payload.source_platform, payload.title)
         if existing:
@@ -127,13 +140,11 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
         for missing in detected_gaps:
             proposals_repo.create_skill_gap(conn, opp_id, missing, payload.title, payload.url)
 
-        if fit_score >= 75:
-            _notify_high_fit_opportunity(created)
-
         return OpportunitySummary(**created)
 
 
 def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any]:
+    _require_admin(user)
     from bioma_api.worker_bridge import _ensure_worker_in_path
     _ensure_worker_in_path()
 
@@ -153,8 +164,10 @@ def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any
         from bioma_worker.scrapers.opportunities import fetch_rss_opportunities
         items = fetch_rss_opportunities(custom_sources=custom_sources)
     except Exception as exc:
-        print(f"[Proposals Service] Erro ao executar scrapers: {exc}")
-        items = []
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="O radar não conseguiu carregar as fontes configuradas.",
+        ) from exc
     new_count = 0
     skipped_count = 0
 
@@ -176,7 +189,7 @@ def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any
                 new_count += 1
 
     return {
-        "status": "ok",
+        "status": "completed",
         "scanned": len(items),
         "new": new_count,
         "skipped": skipped_count,
@@ -185,47 +198,56 @@ def sync_opportunities_from_scrapers(user: CurrentUserResponse) -> dict[str, Any
 
 
 def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -> ProposalSummary:
+    _require_admin(user)
     with connect() as conn:
-        opps = proposals_repo.list_opportunities(conn)
-        opp = next((o for o in opps if str(o["id"]) == str(opp_id)), None)
+        opp = proposals_repo.get_opportunity(conn, opp_id)
         if not opp:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Oportunidade não encontrada.")
 
-        # Executa Squad de Vendas para desenhar a proposta comercial
-        squad_result = execute_squad_pipeline_safe(
-            workspace_id="00000000-0000-0000-0000-000000000000",
+    input_context = {
+        "objective": opp["title"],
+        "project_title": opp["title"],
+        "project_description": opp.get("description", ""),
+        "budget_text": opp.get("budget_text", ""),
+        "source": opp["source_platform"],
+    }
+    pillar_results = {
+        pillar: execute_squad_pipeline_safe(
+            pilar=pillar,
             squad_key="growth_proposals",
-            input_context={
-                "project_title": opp["title"],
-                "project_description": opp.get("description", ""),
-                "budget_text": opp.get("budget_text", ""),
-                "source": opp["source_platform"],
-            },
+            input_context=input_context,
             requested_by_user_id=str(user.id),
         )
+        for pillar in ("oferta", "conversao", "demanda")
+    }
+    modes = {result["generation_mode"] for result in pillar_results.values()}
+    generation_mode = "live" if modes == {"live"} else "preview"
+    oferta = pillar_results["oferta"]["output_data"]
+    conversao = pillar_results["conversao"]["output_data"]
+    demanda = pillar_results["demanda"]["output_data"]
+    title = opp["title"]
 
-        title = opp["title"]
-        matched_cases = proposals_repo.find_matching_cases_for_opportunity(conn, title, opp.get("description"))
-
-        proposal_payload = {
+    proposal_payload = {
             "opportunity_id": str(opp_id),
             "client_name": f"Projeto: {title[:40]}",
             "target_niche": opp["source_platform"].capitalize(),
-            "executive_summary": f"Proposta comercial EverGreen para atuar no projeto '{title}'. Nossa abordagem combina auditoria, implementação e acompanhamento por squads especialistas.",
-            "scope_offer": "Definição e posicionamento da oferta principal, proposta de valor e precificação.",
-            "scope_conversion": "Construção/otimização da página de alta conversão, estrutura de vendas e rastreamento avançado.",
-            "scope_demand": "Escala de tráfego pago (Meta Ads / Google Ads), prospecção ativa e automação de acompanhamento.",
+            "executive_summary": oferta["headline"],
+            "scope_offer": oferta["mecanismo_unico"],
+            "scope_conversion": conversao["script_fechamento"],
+            "scope_demand": demanda["estrutura_campanha"],
             "scope_items": [
-                {"item": "Diagnóstico Inicial e Estratégia de Tração", "pilar": "Oferta", "prazo_dias": 3},
-                {"item": "Implementação da Estrutura de Conversão & Rastreamento", "pilar": "Conversão", "prazo_dias": 7},
-                {"item": "Otimização de Campanhas e Automação de Leads", "pilar": "Demanda", "prazo_dias": 5},
+                {"item": oferta["headline"], "pilar": "Oferta", "details": oferta},
+                {"item": conversao["script_fechamento"], "pilar": "Conversão", "details": conversao},
+                {"item": demanda["estrutura_campanha"], "pilar": "Demanda", "details": demanda},
             ],
-            "attached_cases": matched_cases,
-            "pricing_cents": 450000, # R$ 4.500,00 padrão
-            "delivery_days": 15,
+            "attached_cases": [],
+            "pricing_cents": 0,
+            "delivery_days": 0,
             "status": "draft",
+            "generation_mode": generation_mode,
         }
 
+    with connect() as conn:
         proposal = proposals_repo.create_proposal(conn, proposal_payload, user_id=user.id)
         proposals_repo.update_opportunity_status(conn, opp_id, status_val="proposal_generated")
 
@@ -233,20 +255,25 @@ def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -
 
 
 def list_proposals(user: CurrentUserResponse) -> list[ProposalSummary]:
+    _require_admin(user)
     with connect() as conn:
         rows = proposals_repo.list_proposals(conn)
     return [ProposalSummary(**r) for r in rows]
 
 
 def create_proposal(payload: ProposalCreatePayload, user: CurrentUserResponse) -> ProposalSummary:
+    _require_admin(user)
     with connect() as conn:
         row = proposals_repo.create_proposal(conn, payload.model_dump(), user_id=user.id)
     return ProposalSummary(**row)
 
 
 def update_proposal(proposal_id: UUID, payload: ProposalUpdatePayload, user: CurrentUserResponse) -> ProposalSummary:
+    _require_admin(user)
     with connect() as conn:
         row = proposals_repo.update_proposal(conn, proposal_id, payload.model_dump(exclude_unset=True))
+        if not row:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta não encontrada.")
     return ProposalSummary(**row)
 
 
@@ -259,31 +286,27 @@ def get_public_proposal(public_token: str) -> PublicProposalResponse:
 
 
 def list_tech_skills(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    _require_admin(user)
     with connect() as conn:
         return proposals_repo.list_tech_skills(conn)
 
 
 def list_skill_gaps(user: CurrentUserResponse) -> list[dict[str, Any]]:
+    _require_admin(user)
     with connect() as conn:
         return proposals_repo.list_skill_gaps(conn)
 
 
 def resolve_skill_gap(gap_id: UUID, user: CurrentUserResponse) -> dict[str, Any]:
+    _require_admin(user)
     with connect() as conn:
-        return proposals_repo.resolve_skill_gap(conn, gap_id)
+        row = proposals_repo.resolve_skill_gap(conn, gap_id)
+        if not row:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gap não encontrado.")
+        return row
 
 
 def get_proposal_analytics(user: CurrentUserResponse) -> dict[str, Any]:
+    _require_admin(user)
     with connect() as conn:
         return proposals_repo.get_proposal_analytics_metrics(conn)
-
-
-
-
-def _notify_high_fit_opportunity(opp: dict[str, Any]):
-    try:
-        provider = get_whatsapp_provider_safe("evolution", {"api_token": "simulated"})
-        msg = f"🔥 *Nova Oportunidade Quente encontrada no {opp['source_platform']}!*\n\n📌 *Projeto:* {opp['title']}\n💰 *Orçamento:* {opp.get('budget_text') or 'A combinar'}\n⭐ *Fit Score:* {opp['fit_score']}/100\n\n_Acesse o Bioma para gerar a proposta comercial em 1 clique!_"
-        provider.send_text_message("5511999999999", msg)
-    except Exception:
-        pass

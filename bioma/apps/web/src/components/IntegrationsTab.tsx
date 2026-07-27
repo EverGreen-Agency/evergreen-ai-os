@@ -103,7 +103,6 @@ export function IntegrationsTab({
   const [oppPlatforms, setOppPlatforms] = useState<OpportunityPlatformConfig[]>([]);
   const [editingPlatformKey, setEditingPlatformKey] = useState<string | null>(null);
   const [editRssUrl, setEditRssUrl] = useState("");
-  const [editApiKey, setEditApiKey] = useState("");
   const [editStatus, setEditStatus] = useState<"active" | "paused" | "not_configured">("active");
   const [editMonthlyCost, setEditMonthlyCost] = useState(0);
   const [savingPlatform, setSavingPlatform] = useState(false);
@@ -127,9 +126,11 @@ export function IntegrationsTab({
     setSavingPlatform(true);
     try {
       await api.updateOpportunityPlatform(editingPlatformKey, {
+        platform_name:
+          oppPlatforms.find((platform) => platform.platform_key === editingPlatformKey)?.platform_name
+          ?? editingPlatformKey,
         status: editStatus,
         rss_url: editRssUrl || null,
-        api_key_or_token: editApiKey || null,
         monthly_cost_cents: Math.round(Number(editMonthlyCost) * 100),
       });
       setEditingPlatformKey(null);
@@ -622,18 +623,7 @@ export function IntegrationsTab({
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>API Key / Token de Sessão (opcional)</label>
-                      <input
-                        type="password"
-                        value={editApiKey}
-                        onChange={(e) => setEditApiKey(e.target.value)}
-                        placeholder="Token ou Cookie de Autenticação"
-                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.8rem" }}
-                      />
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Custo Mensal do Plano (em R$) - Integra ao Financeiro</label>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Custo mensal observado (em R$)</label>
                       <input
                         type="number"
                         step="0.01"
@@ -646,7 +636,7 @@ export function IntegrationsTab({
 
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                       <button className="primary-button" type="submit" disabled={savingPlatform} style={{ flex: 1, padding: 6, fontSize: 12 }}>
-                        {savingPlatform ? "Salvando..." : "Salvar & Lançar Gastos"}
+                        {savingPlatform ? "Salvando..." : "Salvar configuração"}
                       </button>
                       <button className="ghost-button" type="button" onClick={() => setEditingPlatformKey(null)} style={{ padding: 6, fontSize: 12 }}>
                         Cancelar
@@ -660,13 +650,12 @@ export function IntegrationsTab({
                     onClick={() => {
                       setEditingPlatformKey(item.platform_key);
                       setEditRssUrl(item.rss_url || "");
-                      setEditApiKey(item.api_key_or_token || "");
                       setEditStatus(item.status);
                       setEditMonthlyCost(item.monthly_cost_cents / 100);
                     }}
                     style={{ marginTop: "auto" }}
                   >
-                    <PenLine size={13} /> Configurar Conexão & Gastos
+                    <PenLine size={13} /> Configurar RSS e custo
                   </button>
                 )}
               </article>

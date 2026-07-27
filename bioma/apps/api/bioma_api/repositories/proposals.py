@@ -3,79 +3,12 @@ from typing import Any
 from uuid import UUID
 from psycopg.rows import dict_row
 
-DEFAULT_PLATFORMS = [
-    {"platform_key": "freelancer_br", "platform_name": "Freelancer.com.br", "status": "active", "monthly_cost_cents": 0, "notes": "RSS Feed XML Nativo Gratuito"},
-    {"platform_key": "weworkremotely", "platform_name": "WeWorkRemotely", "status": "active", "monthly_cost_cents": 0, "notes": "Feed RSS Global de Vagas Remotas"},
-    {"platform_key": "99freela", "platform_name": "99freela", "status": "active", "monthly_cost_cents": 0, "notes": "Varredura Pública e Captura Manual por URL"},
-    {"platform_key": "workana", "platform_name": "Workana", "status": "paused", "monthly_cost_cents": 5990, "notes": "Subscrição Workana Pro / Token de Sessão"},
-    {"platform_key": "upwork", "platform_name": "UpWork", "status": "paused", "monthly_cost_cents": 11500, "notes": "Plano Freelancer Plus / API Key Developer"},
-    {"platform_key": "toptal", "platform_name": "Toptal & Ecossistema", "status": "not_configured", "monthly_cost_cents": 0, "notes": "Portal Privado / Ingestão por E-mail"},
-    {"platform_key": "contra", "platform_name": "Contra.com / Malt", "status": "active", "monthly_cost_cents": 0, "notes": "Ingestão por URL / Webhook"},
-    {"platform_key": "others", "platform_name": "Outras Plataformas", "status": "active", "monthly_cost_cents": 0, "notes": "Captura por Link / IA (Guru, Jobbers, etc)"},
-]
-
-def ensure_platform_configs_table(conn):
-    with conn.cursor() as cur:
-        cur.execute("""
-            create table if not exists opportunity_platform_configs (
-                id uuid primary key default gen_random_uuid(),
-                platform_key varchar(50) not null unique,
-                platform_name varchar(100) not null,
-                status varchar(20) not null default 'active',
-                rss_url text,
-                api_key_or_token text,
-                monthly_cost_cents bigint not null default 0,
-                notes text,
-                created_at timestamptz not null default now(),
-                updated_at timestamptz not null default now()
-            );
-            create table if not exists freelancer_profiles (
-                id uuid primary key default gen_random_uuid(),
-                platform_key varchar(50) not null,
-                profile_url text not null unique,
-                profile_name varchar(255),
-                headline text,
-                bio text,
-                skills jsonb default '[]'::jsonb,
-                portfolio_items jsonb default '[]'::jsonb,
-                audit_score integer default 0,
-                audit_analysis jsonb default '{}'::jsonb,
-                last_audited_at timestamptz,
-                created_at timestamptz not null default now(),
-                updated_at timestamptz not null default now()
-            );
-            create table if not exists tech_skill_inventory (
-                id uuid primary key default gen_random_uuid(),
-                skill_name varchar(100) not null unique,
-                category varchar(50) not null default 'general',
-                status varchar(20) not null default 'available',
-                case_count integer not null default 1,
-                notes text,
-                created_at timestamptz not null default now(),
-                updated_at timestamptz not null default now()
-            );
-            create table if not exists opportunity_skill_gaps (
-                id uuid primary key default gen_random_uuid(),
-                opportunity_id uuid references opportunity_radar(id) on delete cascade,
-                missing_skill varchar(100) not null,
-                impact_level varchar(20) not null default 'high',
-                opportunity_title text not null,
-                opportunity_url text,
-                status varchar(20) not null default 'open',
-                created_at timestamptz not null default now()
-            );
-            alter table commercial_proposals add column if not exists attached_cases jsonb default '[]'::jsonb;
-            alter table commercial_proposals add column if not exists win_loss_feedback text;
-        """)
-
 def list_tech_skills(conn) -> list[dict[str, Any]]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute("select * from tech_skill_inventory order by case_count desc, skill_name asc")
         return list(cur.fetchall())
 
 def upsert_tech_skill(conn, skill_name: str, category: str = "general", notes: str | None = None) -> dict[str, Any]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
@@ -93,13 +26,11 @@ def upsert_tech_skill(conn, skill_name: str, category: str = "general", notes: s
         return dict(cur.fetchone())
 
 def list_skill_gaps(conn, status_val: str = "open") -> list[dict[str, Any]]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute("select * from opportunity_skill_gaps where status = %s order by created_at desc", (status_val,))
         return list(cur.fetchall())
 
 def create_skill_gap(conn, opp_id: UUID | None, missing_skill: str, opp_title: str, opp_url: str | None = None) -> dict[str, Any]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
@@ -112,7 +43,6 @@ def create_skill_gap(conn, opp_id: UUID | None, missing_skill: str, opp_title: s
         return dict(cur.fetchone())
 
 def resolve_skill_gap(conn, gap_id: UUID) -> dict[str, Any]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute("update opportunity_skill_gaps set status = 'resolved' where id = %s returning *", (gap_id,))
         row = cur.fetchone()
@@ -122,39 +52,17 @@ def resolve_skill_gap(conn, gap_id: UUID) -> dict[str, Any]:
         return {}
 
 def find_matching_cases_for_opportunity(conn, opp_title: str, opp_description: str | None) -> list[dict[str, Any]]:
-    ensure_platform_configs_table(conn)
-    skills = list_tech_skills(conn)
-    matched_cases = []
-    text_search = (opp_title + " " + (opp_description or "")).lower()
-
-    for skill in skills:
-        if skill["status"] == "available" and skill["skill_name"].lower() in text_search:
-            matched_cases.append({
-                "case_title": f"Projeto de Sucesso com {skill['skill_name']}",
-                "description": skill.get("notes") or f"Case validado de implementação de {skill['skill_name']} para clientes B2B.",
-                "skill": skill["skill_name"],
-                "results_highlight": "+40% de conversão e redução de CPL",
-            })
-
-    if not matched_cases:
-        matched_cases.append({
-            "case_title": "Case Geral de Growth & Tração B2B EverGreen",
-            "description": "Estrutura completa de aquisição de clientes com tráfego pago, funil de vendas e automação de atendimento.",
-            "skill": "Growth B2B",
-            "results_highlight": "Arquitetura escalável de vendas e captação de leads",
-        })
-
-    return matched_cases[:3]
+    # O inventário de habilidades não é evidência de case. Enquanto não houver
+    # uma biblioteca de cases aprovada, nenhuma prova social é fabricada.
+    return []
 
 
 def list_freelancer_profiles(conn) -> list[dict[str, Any]]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute("select * from freelancer_profiles order by updated_at desc")
         return list(cur.fetchall())
 
 def upsert_freelancer_profile(conn, data: dict[str, Any]) -> dict[str, Any]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
@@ -186,73 +94,51 @@ def upsert_freelancer_profile(conn, data: dict[str, Any]) -> dict[str, Any]:
         return dict(cur.fetchone())
 
 def delete_freelancer_profile(conn, profile_id: UUID) -> bool:
-    ensure_platform_configs_table(conn)
     with conn.cursor() as cur:
         cur.execute("delete from freelancer_profiles where id = %s", (profile_id,))
         return cur.rowcount > 0
 
 
 def list_platform_configs(conn) -> list[dict[str, Any]]:
-    ensure_platform_configs_table(conn)
-    with conn.cursor(row_factory=dict_row) as cur:
-        cur.execute("select * from opportunity_platform_configs order by created_at asc")
-        existing = {r["platform_key"]: dict(r) for r in cur.fetchall()}
-        
-        # Seed defaults if not inserted
-        for p in DEFAULT_PLATFORMS:
-            if p["platform_key"] not in existing:
-                cur.execute(
-                    """
-                    insert into opportunity_platform_configs (platform_key, platform_name, status, monthly_cost_cents, notes)
-                    values (%s, %s, %s, %s, %s)
-                    returning *
-                    """,
-                    (p["platform_key"], p["platform_name"], p["status"], p["monthly_cost_cents"], p["notes"]),
-                )
-                existing[p["platform_key"]] = dict(cur.fetchone())
-        return list(existing.values())
-
-def upsert_platform_config(conn, platform_key: str, data: dict[str, Any]) -> dict[str, Any]:
-    ensure_platform_configs_table(conn)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
-            insert into opportunity_platform_configs (platform_key, platform_name, status, rss_url, api_key_or_token, monthly_cost_cents, notes)
-            values (%s, %s, %s, %s, %s, %s, %s)
+            select id, platform_key, platform_name, status, rss_url,
+                   monthly_cost_cents, notes, created_at, updated_at
+            from opportunity_platform_configs
+            order by created_at asc
+            """
+        )
+        return list(cur.fetchall())
+
+def upsert_platform_config(conn, platform_key: str, data: dict[str, Any]) -> dict[str, Any]:
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            insert into opportunity_platform_configs (
+                platform_key, platform_name, status, rss_url, monthly_cost_cents, notes
+            )
+            values (%s, %s, %s, %s, %s, %s)
             on conflict (platform_key) do update set
+                platform_name = excluded.platform_name,
                 status = excluded.status,
                 rss_url = excluded.rss_url,
-                api_key_or_token = excluded.api_key_or_token,
                 monthly_cost_cents = excluded.monthly_cost_cents,
                 notes = excluded.notes,
                 updated_at = now()
-            returning *
+            returning id, platform_key, platform_name, status, rss_url,
+                      monthly_cost_cents, notes, created_at, updated_at
             """,
             (
                 platform_key,
                 data.get("platform_name", platform_key.capitalize()),
                 data.get("status", "active"),
                 data.get("rss_url"),
-                data.get("api_key_or_token"),
                 data.get("monthly_cost_cents", 0),
                 data.get("notes"),
             ),
         )
-        result = dict(cur.fetchone())
-
-        # Registra despesa financeira se custo mensal for informado
-        cost = data.get("monthly_cost_cents", 0)
-        if cost > 0:
-            p_name = result["platform_name"]
-            cur.execute(
-                """
-                insert into financial_records (title, amount_cents, kind, status, due_date, notes)
-                values (%s, %s, 'expense', 'paid', current_date, %s)
-                """,
-                (f"Assinatura Plataforma: {p_name}", cost, f"Despesa recorrente de prospecção em {p_name}"),
-            )
-
-        return result
+        return dict(cur.fetchone())
 
 
 def list_opportunities(conn, status_filter: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
@@ -280,6 +166,13 @@ def find_existing_opportunity(conn, url: str | None, source_platform: str, title
             if row:
                 return dict(row)
         cur.execute("select * from opportunity_radar where source_platform = %s and title = %s limit 1", (source_platform, title))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_opportunity(conn, opportunity_id: UUID) -> dict[str, Any] | None:
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from opportunity_radar where id = %s", (opportunity_id,))
         row = cur.fetchone()
         return dict(row) if row else None
 
@@ -328,12 +221,16 @@ def list_proposals(conn, limit: int = 50) -> list[dict[str, Any]]:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
-            select id, opportunity_id, client_name, target_niche, executive_summary,
-                   scope_offer, scope_conversion, scope_demand, scope_items,
-                   pricing_cents, delivery_days, status, public_token,
-                   created_by_user_id, created_at, updated_at
-            from commercial_proposals
-            order by created_at desc
+            select cp.id, cp.opportunity_id, cp.client_name, cp.target_niche, cp.executive_summary,
+                   cp.scope_offer, cp.scope_conversion, cp.scope_demand, cp.scope_items,
+                   cp.attached_cases, cp.win_loss_feedback,
+                   cp.pricing_cents, cp.delivery_days, cp.status, cp.public_token,
+                   cp.generation_mode, cp.public_expires_at, cp.created_by_user_id,
+                   cp.created_at, cp.updated_at,
+                   coalesce(o.source_platform, cp.target_niche, 'Outros') as source_platform
+            from commercial_proposals cp
+            left join opportunity_radar o on o.id = cp.opportunity_id
+            order by cp.created_at desc
             limit %s
             """,
             (limit,),
@@ -353,8 +250,9 @@ def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> 
             insert into commercial_proposals (
                 opportunity_id, client_name, target_niche, executive_summary,
                 scope_offer, scope_conversion, scope_demand, scope_items,
-                pricing_cents, delivery_days, status, created_by_user_id
-            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                attached_cases, pricing_cents, delivery_days, status,
+                generation_mode, created_by_user_id
+            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             returning *
             """,
             (
@@ -366,9 +264,11 @@ def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> 
                 data.get("scope_conversion"),
                 data.get("scope_demand"),
                 json.dumps(data.get("scope_items", [])),
+                json.dumps(data.get("attached_cases", [])),
                 data.get("pricing_cents", 0),
-                data.get("delivery_days", 15),
+                data.get("delivery_days", 0),
                 data.get("status", "draft"),
+                data.get("generation_mode", "manual"),
                 valid_user_id,
             ),
         )
@@ -385,7 +285,8 @@ def update_proposal(conn, proposal_id: UUID, data: dict[str, Any]) -> dict[str, 
     if not fields:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute("select * from commercial_proposals where id = %s", (proposal_id,))
-            return dict(cur.fetchone())
+            row = cur.fetchone()
+            return dict(row) if row else {}
 
     fields.append("updated_at = now()")
     params.append(proposal_id)
@@ -393,12 +294,17 @@ def update_proposal(conn, proposal_id: UUID, data: dict[str, Any]) -> dict[str, 
 
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(query, params)
-        return dict(cur.fetchone())
+        row = cur.fetchone()
+        return dict(row) if row else {}
 
 def get_proposal_by_public_token(conn, public_token: str) -> dict[str, Any] | None:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
-            "select * from commercial_proposals where public_token = %s",
+            """
+            select *
+            from commercial_proposals
+            where public_token = %s and public_expires_at > now()
+            """,
             (public_token,),
         )
         row = cur.fetchone()
@@ -431,7 +337,7 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
         if st == "won":
             total_won_value_cents += price
 
-        platform = (prop.get("target_niche") or "Outros").capitalize()
+        platform = prop.get("source_platform") or "Outros"
         if platform not in platform_map:
             platform_map[platform] = {"total": 0, "won": 0, "lost": 0, "sent": 0, "total_value_cents": 0, "won_value_cents": 0}
             
@@ -445,13 +351,13 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
         elif st == "sent":
             platform_map[platform]["sent"] += 1
 
-    decided_proposals = status_counts["won"] + status_counts["lost"] + status_counts["sent"]
+    decided_proposals = status_counts["won"] + status_counts["lost"]
     win_rate = round((status_counts["won"] / decided_proposals * 100), 1) if decided_proposals > 0 else 0.0
     avg_won_ticket = round(total_won_value_cents / status_counts["won"]) if status_counts["won"] > 0 else 0
 
     total_platform_investment_cents = sum(c.get("monthly_cost_cents", 0) for c in configs)
     net_growth_profit_cents = total_won_value_cents - total_platform_investment_cents
-    overall_roi = round((net_growth_profit_cents / total_platform_investment_cents * 100), 1) if total_platform_investment_cents > 0 else (100.0 if total_won_value_cents > 0 else 0.0)
+    overall_roi = round((net_growth_profit_cents / total_platform_investment_cents * 100), 1) if total_platform_investment_cents > 0 else 0.0
 
     platform_performance = []
     for p_name, p_data in platform_map.items():
@@ -465,13 +371,13 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
         if m_cost == 0 and p_lower in cost_by_platform_name:
             m_cost = cost_by_platform_name[p_lower]
 
-        p_decided = p_data["won"] + p_data["lost"] + p_data["sent"]
+        p_decided = p_data["won"] + p_data["lost"]
         p_win_rate = round((p_data["won"] / p_decided * 100), 1) if p_decided > 0 else 0.0
         
         cpp_cents = round(m_cost / p_data["total"]) if p_data["total"] > 0 else 0
-        cac_cents = round(m_cost / p_data["won"]) if p_data["won"] > 0 else m_cost
+        cac_cents = round(m_cost / p_data["won"]) if p_data["won"] > 0 else 0
         net_profit_cents = p_data["won_value_cents"] - m_cost
-        p_roi = round((net_profit_cents / m_cost * 100), 1) if m_cost > 0 else (100.0 if p_data["won_value_cents"] > 0 else 0.0)
+        p_roi = round((net_profit_cents / m_cost * 100), 1) if m_cost > 0 else 0.0
 
         platform_performance.append({
             "platform_name": p_name,
@@ -501,5 +407,3 @@ def get_proposal_analytics_metrics(conn) -> dict[str, Any]:
         "overall_roi_percentage": overall_roi,
         "platform_performance": platform_performance,
     }
-
-

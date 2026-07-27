@@ -8,6 +8,7 @@ AGENT_NAME_BY_PILAR = {
     "oferta": "Oferta Copywriter & Strategist",
     "demanda": "Paid Media & Growth Agent",
     "conversao": "Sales Closer & Script Agent",
+    "onboarding": "Client Onboarding Strategist",
 }
 
 PILAR_INSTRUCTIONS = {
@@ -25,6 +26,11 @@ PILAR_INSTRUCTIONS = {
         "Você é o agente de Conversão (Sales Closer & Script) da EverGreen. Mapeie o pipeline comercial do "
         "briefing fornecido e produza um script de fechamento e uma sequência de follow-up via WhatsApp que "
         "quebre as objeções mais prováveis."
+    ),
+    "onboarding": (
+        "Você é o agente de onboarding da EverGreen. A partir da empresa, website e módulos contratados, "
+        "produza um diagnóstico inicial estritamente baseado no contexto recebido, descreva o tom de voz "
+        "apenas quando houver evidência e proponha entregas concretas para kickoff. Não invente fatos."
     ),
 }
 
@@ -85,10 +91,28 @@ OUTPUT_SCHEMA_CONVERSAO = {
     },
 }
 
+OUTPUT_SCHEMA_ONBOARDING = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "company_summary",
+        "tone_of_voice",
+        "kickoff_recommendations",
+        "initial_deliverables",
+    ],
+    "properties": {
+        "company_summary": {"type": "string"},
+        "tone_of_voice": {"type": "string"},
+        "kickoff_recommendations": {"type": "array", "items": {"type": "string"}},
+        "initial_deliverables": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
 OUTPUT_SCHEMA_BY_PILAR = {
     "oferta": OUTPUT_SCHEMA_OFERTA,
     "demanda": OUTPUT_SCHEMA_DEMANDA,
     "conversao": OUTPUT_SCHEMA_CONVERSAO,
+    "onboarding": OUTPUT_SCHEMA_ONBOARDING,
 }
 
 
@@ -114,6 +138,7 @@ def execute_squad_pipeline(
         logs.append(_log("FinOps Tracker", "Prévia local: 0 tokens, custo zero."))
         return {
             "output_data": output,
+            "generation_mode": "preview",
             "token_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
             "estimated_cost_cents": 0,
             "execution_logs": logs,
@@ -155,6 +180,7 @@ def execute_squad_pipeline(
 
     return {
         "output_data": output,
+        "generation_mode": "live",
         "token_usage": {
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
@@ -199,6 +225,22 @@ def _preview_output(pilar: str, squad_name: str, input_data: dict[str, Any]) -> 
             "publicos_alvo": ["Prévia local: públicos serão definidos pelo modelo em execução live."],
             "variacoes_ads": [{"hook": "Configure OPENAI_API_KEY para ganchos reais.", "format": "a definir"}],
             "orcamento_sugerido_diario_cents": 0,
+        }
+    if pilar == "onboarding":
+        company_name = input_data.get("company_name") or input_data.get("objective") or "novo cliente"
+        return {
+            "company_summary": f"Prévia local para {company_name}; nenhuma varredura externa foi executada.",
+            "tone_of_voice": "A confirmar no kickoff; configure OPENAI_API_KEY para análise assistida do contexto.",
+            "kickoff_recommendations": [
+                "Validar objetivos, responsáveis e critérios de aceite.",
+                "Confirmar acessos e documentos necessários.",
+            ],
+            "initial_deliverables": [
+                "Reunião de kickoff",
+                "Coletar acessos e credenciais",
+                "Briefing e diagnóstico inicial",
+                "Definir cronograma e escopo",
+            ],
         }
     return {
         "script_fechamento": f"Prévia local — script para: {objective}",

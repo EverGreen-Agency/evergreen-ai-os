@@ -1,28 +1,126 @@
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-from bioma_api.schemas.proposals import OpportunityIngestPayload
+
+import pytest
+from fastapi import HTTPException
+
+from bioma_api.repositories import proposals as proposals_repo
+from bioma_api.schemas.proposals import ProposalCreatePayload
 from bioma_api.services import proposals as proposals_service
 
-def test_proposals_flow(eg_admin):
-    # 1. Ingest opportunity
-    payload = OpportunityIngestPayload(
-        source_platform="workana",
-        title="Desenvolvimento de MVP React e FastAPI",
-        description="Buscamos especialista para construir plataforma B2B com automação e dashboards.",
-        budget_text="R$ 5.000,00",
+
+@contextmanager
+def _connection():
+    yield object()
+
+
+def test_proposals_backoffice_rejects_client_user_before_database(client_user_factory, monkeypatch):
+    def should_not_connect():
+        raise AssertionError("usuário sem permissão não pode alcançar o banco")
+
+    monkeypatch.setattr(proposals_service, "connect", should_not_connect)
+
+    with pytest.raises(HTTPException) as exc:
+        proposals_service.list_opportunities(client_user_factory())
+
+    assert exc.value.status_code == 403
+
+
+def test_proposal_generation_consumes_all_three_pillars(eg_admin, monkeypatch):
+    opportunity_id = uuid4()
+    proposal_id = uuid4()
+    now = datetime.now(timezone.utc)
+    opportunity = {
+        "id": opportunity_id,
+        "title": "Aplicativo veterinário com portal do cliente",
+        "description": "Evolução de produto React e FastAPI",
+        "budget_text": None,
+        "source_platform": "manual",
+    }
+    saved_payload = {}
+    called_pillars = []
+
+    outputs = {
+        "oferta": {"headline": "Evolução do aplicativo", "mecanismo_unico": "Escopo por fases"},
+        "conversao": {
+            "script_fechamento": "Validar escopo e critérios de aceite.",
+            "sequencia_whatsapp": [],
+            "quebra_objecoes": {"esta_caro": "", "preciso_pensar": ""},
+        },
+        "demanda": {
+            "estrutura_campanha": "Não aplicável ao projeto Tech.",
+            "publicos_alvo": [],
+            "variacoes_ads": [],
+            "orcamento_sugerido_diario_cents": 0,
+        },
+    }
+
+    def fake_execute(*, pilar, **_kwargs):
+        called_pillars.append(pilar)
+        return {
+            "output_data": outputs[pilar],
+            "generation_mode": "live",
+            "token_usage": {},
+            "estimated_cost_cents": 1,
+            "execution_logs": [],
+            "completed_at": now.isoformat(),
+        }
+
+    def fake_create(_conn, payload, user_id):
+        saved_payload.update(payload)
+        return {
+            **payload,
+            "id": proposal_id,
+            "public_token": "public-token",
+            "public_expires_at": now + timedelta(days=30),
+            "created_by_user_id": user_id,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    monkeypatch.setattr(proposals_service, "connect", _connection)
+    monkeypatch.setattr(proposals_service, "execute_squad_pipeline_safe", fake_execute)
+    monkeypatch.setattr(proposals_repo, "get_opportunity", lambda _conn, _id: opportunity)
+    monkeypatch.setattr(proposals_repo, "create_proposal", fake_create)
+    monkeypatch.setattr(proposals_repo, "update_opportunity_status", lambda *_args, **_kwargs: None)
+
+    proposal = proposals_service.generate_proposal_for_opportunity(opportunity_id, eg_admin)
+
+    assert called_pillars == ["oferta", "conversao", "demanda"]
+    assert proposal.executive_summary == outputs["oferta"]["headline"]
+    assert proposal.scope_conversion == outputs["conversao"]["script_fechamento"]
+    assert proposal.scope_demand == outputs["demanda"]["estrutura_campanha"]
+    assert proposal.pricing_cents == 0
+    assert proposal.delivery_days == 0
+    assert proposal.generation_mode == "live"
+    assert saved_payload["attached_cases"] == []
+
+
+def test_proposal_analytics_only_counts_decisions_and_never_invents_roi(monkeypatch):
+    monkeypatch.setattr(
+        proposals_repo,
+        "list_proposals",
+        lambda _conn, limit=500: [
+            {"status": "won", "pricing_cents": 100_000, "source_platform": "manual"},
+            {"status": "lost", "pricing_cents": 50_000, "source_platform": "manual"},
+            {"status": "sent", "pricing_cents": 75_000, "source_platform": "manual"},
+        ],
     )
-    opp = proposals_service.ingest_opportunity(payload, eg_admin)
-    assert opp.id is not None
-    assert opp.fit_score >= 50
+    monkeypatch.setattr(proposals_repo, "list_platform_configs", lambda _conn: [])
 
-    # 2. List opportunities
-    opps = proposals_service.list_opportunities(eg_admin)
-    assert len(opps) > 0
+    metrics = proposals_repo.get_proposal_analytics_metrics(object())
 
-    # 3. Generate proposal for opportunity
-    prop = proposals_service.generate_proposal_for_opportunity(opp.id, eg_admin)
-    assert prop.id is not None
-    assert "React" in prop.client_name or "MVP" in prop.client_name
+    assert metrics["win_rate_percentage"] == 50.0
+    assert metrics["overall_roi_percentage"] == 0.0
+    assert metrics["platform_performance"][0]["cac_cents"] == 0
 
-    # 4. List platform configs
-    platforms = proposals_service.list_platform_configs(eg_admin)
-    assert len(platforms) >= 5
+
+def test_manual_proposal_is_not_labeled_as_live():
+    payload = ProposalCreatePayload(
+        client_name="Cliente",
+        target_niche="Tech",
+        executive_summary="Escopo sujeito a validação humana.",
+    )
+
+    assert payload.generation_mode == "manual"

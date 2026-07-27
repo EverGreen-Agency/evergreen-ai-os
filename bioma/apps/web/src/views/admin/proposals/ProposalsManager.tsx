@@ -211,7 +211,7 @@ export function ProposalsManager() {
             <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-            Varredura contínua de freelas B2B, Big Data de ROI/CAC por plataforma, injeção de cases e auditoria por URL.
+            Radar manual e por feeds RSS, propostas assistidas pelos três pilares e métricas baseadas em decisões registradas.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -297,7 +297,7 @@ export function ProposalsManager() {
       >
         <Zap size={20} color="#10b981" />
         <div>
-          <strong style={{ color: "#10b981" }}>Varredura Automática Ativa:</strong> O <code>bioma_worker</code> está varrendo RSS Feeds e scrapers em segundo plano. Oportunidades quentes enviam alertas diretos no WhatsApp da EG.
+          <strong style={{ color: "#10b981" }}>Fontes verificáveis:</strong> use a varredura manual para consultar os feeds RSS públicos e as URLs configuradas. Falhas são exibidas; nenhum alerta externo é simulado.
         </div>
       </div>
 
@@ -467,7 +467,7 @@ export function ProposalsManager() {
                       style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "6px" }}
                     >
                       <Sparkles size={16} />
-                      {generatingOppId === opp.id ? "Squad elaborando proposta..." : "Gerar Proposta com IA"}
+                      {generatingOppId === opp.id ? "Squad elaborando proposta..." : "Gerar rascunho assistido"}
                     </button>
                   )}
                 </div>
@@ -530,7 +530,9 @@ export function ProposalsManager() {
                     </div>
 
                     <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--brand-accent)" }}>
-                      R$ {(prop.pricing_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      {prop.pricing_cents > 0
+                        ? `R$ ${(prop.pricing_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                        : "Preço a definir"}
                     </span>
                     <button
                       className="secondary-button"

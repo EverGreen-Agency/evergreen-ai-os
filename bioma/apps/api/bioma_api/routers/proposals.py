@@ -6,7 +6,10 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
     OpportunityCreatePayload,
     OpportunityIngestPayload,
+    OpportunityPlatformSummary,
+    OpportunityPlatformUpdate,
     OpportunitySummary,
+    FreelancerProfileSyncRequest,
     ProposalCreatePayload,
     ProposalSummary,
     ProposalUpdatePayload,
@@ -41,17 +44,17 @@ def sync_opportunities(
     return proposals_service.sync_opportunities_from_scrapers(user)
 
 
-@router.get("/platforms")
+@router.get("/platforms", response_model=list[OpportunityPlatformSummary])
 def list_platforms(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.list_platform_configs(user)
 
 
-@router.put("/platforms/{platform_key}")
+@router.put("/platforms/{platform_key}", response_model=OpportunityPlatformSummary)
 def update_platform(
     platform_key: str,
-    payload: dict,
+    payload: OpportunityPlatformUpdate,
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.update_platform_config(platform_key, payload, user)
@@ -66,14 +69,14 @@ def list_freelancer_profiles(
 
 @router.post("/profiles/sync")
 def sync_freelancer_profile(
-    payload: dict,
+    payload: FreelancerProfileSyncRequest,
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
-    url = payload.get("profile_url")
-    if not url:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="profile_url é obrigatório.")
-    platform_key = payload.get("platform_key")
-    return proposals_service.sync_and_audit_freelancer_profile(url, platform_key, user)
+    return proposals_service.sync_and_audit_freelancer_profile(
+        str(payload.profile_url),
+        payload.platform_key,
+        user,
+    )
 
 
 @router.delete("/profiles/{profile_id}")
