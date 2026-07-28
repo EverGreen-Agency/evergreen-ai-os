@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -18,6 +18,7 @@ export type ViewId =
   | "eg-rh"
   | "eg-kits"
   | "eg-propostas"
+  | "eg-planning"
   | "sales_copilot";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
@@ -35,6 +36,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
   { id: "eg-kits", label: "Logística Kits", icon: Package },
   { id: "eg-propostas", label: "Freelas e Propostas", icon: Target },
+  { id: "eg-planning", label: "Planejamentos", icon: ClipboardList },
   { id: "sales_copilot", label: "Copiloto de Vendas", icon: Headphones },
 ];
 
@@ -105,6 +107,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
   "eg-rh": "hub",
   "eg-kits": "hub",
   "eg-propostas": "hub",
+  "eg-planning": "hub",
   sales_copilot: "commercial",
 };
 

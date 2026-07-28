@@ -415,20 +415,6 @@ export function ProposalsManager() {
               <option value="low" style={{ background: "#182232", color: "#f8fafc" }}>Baixo Alinhamento (&lt; 50%)</option>
             </select>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-dim)", whiteSpace: "nowrap" }}>Por pág:</span>
-              <select
-                value={radarPageSize}
-                onChange={(e) => { setRadarPageSize(Number(e.target.value)); setRadarCurrentPage(1); }}
-                style={{ padding: "8px 10px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
-              >
-                <option value={10} style={{ background: "#182232", color: "#f8fafc" }}>10</option>
-                <option value={20} style={{ background: "#182232", color: "#f8fafc" }}>20</option>
-                <option value={50} style={{ background: "#182232", color: "#f8fafc" }}>50</option>
-                <option value={100} style={{ background: "#182232", color: "#f8fafc" }}>100</option>
-              </select>
-            </div>
-
             <button
               onClick={async () => {
                 setIsSyncing(true);
@@ -556,31 +542,43 @@ export function ProposalsManager() {
           )}
 
           {/* Paginação do Radar */}
-          {totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "12px" }}>
-              <button
-                className="secondary-button"
-                disabled={safeRadarPage <= 1}
-                onClick={() => setRadarCurrentPage((p) => Math.max(1, p - 1))}
-                style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
-              >
-                <ChevronLeft size={16} /> Anterior
-              </button>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
+            <button
+              className="secondary-button"
+              disabled={safeRadarPage <= 1}
+              onClick={() => setRadarCurrentPage((p) => Math.max(1, p - 1))}
+              style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
+            >
+              <ChevronLeft size={16} /> Anterior
+            </button>
 
-              <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--text-muted)" }}>
-                Página {safeRadarPage} de {totalPages}
-              </span>
+            <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--text-muted)" }}>
+              Página {safeRadarPage} de {totalPages}
+            </span>
 
-              <button
-                className="secondary-button"
-                disabled={safeRadarPage >= totalPages}
-                onClick={() => setRadarCurrentPage((p) => Math.min(totalPages, p + 1))}
-                style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
+            <button
+              className="secondary-button"
+              disabled={safeRadarPage >= totalPages}
+              onClick={() => setRadarCurrentPage((p) => Math.min(totalPages, p + 1))}
+              style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
+            >
+              Próxima <ChevronRight size={16} />
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "12px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", whiteSpace: "nowrap" }}>Exibir por pág:</span>
+              <select
+                value={radarPageSize}
+                onChange={(e) => { setRadarPageSize(Number(e.target.value)); setRadarCurrentPage(1); }}
+                style={{ padding: "6px 10px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
               >
-                Próxima <ChevronRight size={16} />
-              </button>
+                <option value={10} style={{ background: "#182232", color: "#f8fafc" }}>10 por pág.</option>
+                <option value={20} style={{ background: "#182232", color: "#f8fafc" }}>20 por pág.</option>
+                <option value={50} style={{ background: "#182232", color: "#f8fafc" }}>50 por pág.</option>
+                <option value={100} style={{ background: "#182232", color: "#f8fafc" }}>100 por pág.</option>
+              </select>
             </div>
-          )}
+          </div>
         </div>
       ) : activeTab === "proposals" ? (
         /* ABA 2: CENTRAL DE PROPOSTAS COMERCIAIS */
