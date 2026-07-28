@@ -33,6 +33,8 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
   const [documentKind, setDocumentKind] = useState<ProjectDocument["kind"]>("proposal");
   const [documentTitle, setDocumentTitle] = useState("");
   const [documentUrl, setDocumentUrl] = useState("");
+  const [documentContractId, setDocumentContractId] = useState("");
+  const [documentExcerpt, setDocumentExcerpt] = useState("");
   const [updateKind, setUpdateKind] = useState<"progress" | "blocker" | "testing" | "release" | "note">("progress");
   const [updateSummary, setUpdateSummary] = useState("");
   const [updatePhaseId, setUpdatePhaseId] = useState("");
@@ -61,8 +63,16 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
     onSuccess: async (next) => { setPhaseName(""); setPhaseSummary(""); await onChanged(next); },
   });
   const createDocument = useMutation({
-    mutationFn: () => api.createProjectDocument(project.id, { kind: documentKind, title: documentTitle.trim(), url: documentUrl.trim() }),
-    onSuccess: async (next) => { setDocumentTitle(""); setDocumentUrl(""); await onChanged(next); },
+    mutationFn: () => api.createProjectDocument(project.id, {
+      kind: documentKind,
+      title: documentTitle.trim(),
+      url: documentUrl.trim(),
+      contract_id: documentContractId || null,
+      planning_excerpt: documentExcerpt.trim() || null,
+    }),
+    onSuccess: async (next) => {
+      setDocumentTitle(""); setDocumentUrl(""); setDocumentContractId(""); setDocumentExcerpt(""); await onChanged(next);
+    },
   });
   const createUpdate = useMutation({
     mutationFn: () => api.createProjectUpdate(project.id, {
@@ -128,11 +138,13 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
       <div className="tech-documents">
         <h4><FileText size={15} /> Documentos do projeto</h4>
         {project.documents.length === 0 && <p className="panel-footnote">Vincule proposta, escopo e documento técnico para a equipe e o cliente encontrarem a referência correta.</p>}
-        {project.documents.map((document) => <a className="tech-document" href={document.url} key={document.id} target="_blank" rel="noreferrer"><span>{DOCUMENT_LABELS[document.kind]}</span>{document.title}</a>)}
+        {project.documents.map((document) => <div className="tech-document" key={document.id}><a href={document.url} target="_blank" rel="noreferrer"><span>{DOCUMENT_LABELS[document.kind]}</span>{document.title}</a>{document.contract_id && <small>Vinculado ao contrato</small>}{document.planning_excerpt && <small>Incluído no planejador</small>}</div>)}
         {canManage && <form className="project-inline-form tech-form" onSubmit={submitDocument}>
           <select value={documentKind} onChange={(event) => setDocumentKind(event.target.value as ProjectDocument["kind"])}>{Object.entries(DOCUMENT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+          <select value={documentContractId} onChange={(event) => setDocumentContractId(event.target.value)}><option value="">Referência geral do projeto</option>{project.contracts.map((contract) => <option key={contract.id} value={contract.id}>Contrato v{contract.version}: {contract.title}</option>)}</select>
           <input required minLength={2} value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} placeholder="Título do documento" />
           <input required type="url" value={documentUrl} onChange={(event) => setDocumentUrl(event.target.value)} placeholder="https://..." />
+          <textarea rows={3} value={documentExcerpt} onChange={(event) => setDocumentExcerpt(event.target.value)} placeholder="Trecho ou resumo confirmado para o planejador (opcional; não invente conteúdo do documento)." />
           <button className="mini-button" type="submit" disabled={createDocument.isPending}>Vincular</button>
         </form>}
       </div>

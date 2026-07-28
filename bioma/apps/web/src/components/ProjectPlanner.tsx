@@ -32,16 +32,19 @@ export function ProjectPlanner({
   const canManage = ["platform_admin", "tenant_admin", "workspace_manager", "operator"].includes(accessRole);
   const canApprove = ["platform_admin", "tenant_admin", "workspace_manager", "approver"].includes(accessRole);
   const [briefing, setBriefing] = useState("");
+  const [technicalContext, setTechnicalContext] = useState("");
+  const [contractId, setContractId] = useState("");
   const [approvalFlow, setApprovalFlow] = useState<keyof typeof APPROVAL_FLOW>("adaptive");
 
   const refresh = async () => onChanged(await api.project(project.id));
   const generate = useMutation({
     mutationFn: () => {
-      const contract = project.contracts[0];
+      const contract = project.contracts.find((item) => item.id === contractId) ?? project.contracts[0];
       return api.generateProjectPlan(project.id, {
         contract_id: contract?.id ?? null,
         source_kind: contract ? "contract" : briefing.trim() ? "briefing" : "onboarding",
         briefing: briefing.trim() || null,
+        technical_context: technicalContext.trim() || null,
         objective: project.objective,
         social_approval_flow: approvalFlow,
       });
@@ -82,6 +85,23 @@ export function ProjectPlanner({
               value={briefing}
               onChange={(event) => setBriefing(event.target.value)}
               placeholder="Briefing opcional. Sem contrato ou briefing, o plano parte do objetivo e do onboarding."
+            />
+          )}
+          {project.contracts.length > 1 && (
+            <label style={{ display: "grid", gap: 4 }}>
+              <span className="panel-footnote">Contrato de referência</span>
+              <select value={contractId} onChange={(event) => setContractId(event.target.value)}>
+                <option value="">Versão mais recente</option>
+                {project.contracts.map((contract) => <option value={contract.id} key={contract.id}>v{contract.version} · {contract.title}</option>)}
+              </select>
+            </label>
+          )}
+          {project.project_type === "tech" && (
+            <textarea
+              rows={4}
+              value={technicalContext}
+              onChange={(event) => setTechnicalContext(event.target.value)}
+              placeholder="Contexto técnico complementar: requisitos, integrações, restrições, critérios de teste ou trecho confirmado da especificação."
             />
           )}
           {project.project_type === "social" && (

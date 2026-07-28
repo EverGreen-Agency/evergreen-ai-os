@@ -1440,6 +1440,8 @@ export type ProjectDocument = {
   kind: "proposal" | "technical_spec" | "scope" | "acceptance" | "release_notes";
   title: string;
   url: string;
+  contract_id: string | null;
+  planning_excerpt: string | null;
   client_visible: boolean;
   created_at: string;
 };
@@ -1723,7 +1725,7 @@ export const api = {
     request<ProjectDetail>(`/projects/${projectId}/deliverables`, { method: "POST", body: JSON.stringify(payload) }),
   createProjectPhase: (projectId: string, payload: { sequence: number; name: string; description?: string | null; status?: ProjectPhaseStatus; client_summary?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/phases`, { method: "POST", body: JSON.stringify(payload) }),
-  createProjectDocument: (projectId: string, payload: { kind: ProjectDocument["kind"]; title: string; url: string; client_visible?: boolean }) =>
+  createProjectDocument: (projectId: string, payload: { kind: ProjectDocument["kind"]; title: string; url: string; contract_id?: string | null; planning_excerpt?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/documents`, { method: "POST", body: JSON.stringify(payload) }),
   createProjectUpdate: (projectId: string, payload: { phase_id?: string | null; kind?: ProjectUpdateEntry["kind"]; summary: string; detail?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/updates`, { method: "POST", body: JSON.stringify(payload) }),
@@ -1733,6 +1735,7 @@ export const api = {
       contract_id?: string | null;
       source_kind?: ProjectPlan["source_kind"];
       briefing?: string | null;
+      technical_context?: string | null;
       objective?: string | null;
       social_approval_flow?: "adaptive" | "idea_before_production" | "after_production" | "final_only";
     },
