@@ -2392,6 +2392,8 @@ export const api = {
     request<OpportunitySummary>("/backoffice/proposals/opportunities/ingest", { method: "POST", body: JSON.stringify(payload) }),
   syncOpportunities: () =>
     request<{ status: string; scanned: number; new: number; skipped: number }>("/backoffice/proposals/opportunities/sync", { method: "POST" }),
+  evaluateOpportunityWithAi: (oppId: string) =>
+    request<OpportunitySummary>(`/backoffice/proposals/opportunities/${oppId}/evaluate-ai`, { method: "POST" }),
   listOpportunityPlatforms: () =>
     request<OpportunityPlatformConfig[]>("/backoffice/proposals/platforms"),
   updateOpportunityPlatform: (platformKey: string, payload: Partial<OpportunityPlatformConfig>) =>

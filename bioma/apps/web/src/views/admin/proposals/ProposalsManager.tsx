@@ -13,6 +13,7 @@ import {
   Clock,
   Send,
   Zap,
+  Brain,
   RefreshCw,
   UserCheck,
   Award,
@@ -152,6 +153,8 @@ export function ProposalsManager() {
     }
   };
 
+  const [evaluatingOppId, setEvaluatingOppId] = useState<string | null>(null);
+
   const handleGenerateProposal = async (oppId: string) => {
     setGeneratingOppId(oppId);
     try {
@@ -162,6 +165,18 @@ export function ProposalsManager() {
       alert("Erro ao gerar proposta comercial: " + (err.message || "Erro desconhecido"));
     } finally {
       setGeneratingOppId(null);
+    }
+  };
+
+  const handleEvaluateAi = async (oppId: string) => {
+    setEvaluatingOppId(oppId);
+    try {
+      await api.evaluateOpportunityWithAi(oppId);
+      await loadData();
+    } catch (err: any) {
+      alert("Erro ao avaliar vaga com IA: " + (err.message || "Erro desconhecido"));
+    } finally {
+      setEvaluatingOppId(null);
     }
   };
 
@@ -521,21 +536,34 @@ export function ProposalsManager() {
                     Cadastrado em: {new Date(opp.created_at).toLocaleDateString("pt-BR")}
                   </span>
 
-                  {opp.status === "proposal_generated" ? (
-                    <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
-                      <CheckCircle2 size={16} /> Proposta Comercial Gerada
-                    </span>
-                  ) : (
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                     <button
-                      className="primary-button"
-                      onClick={() => handleGenerateProposal(opp.id)}
-                      disabled={generatingOppId === opp.id}
-                      style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "6px" }}
+                      className="ghost-button"
+                      onClick={() => handleEvaluateAi(opp.id)}
+                      disabled={evaluatingOppId === opp.id}
+                      style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: "var(--brand-accent)", border: "1px solid var(--border)" }}
+                      title="Analisar aderência com o banco de competências e contexto da Evergreen através de IA"
                     >
-                      <Sparkles size={16} />
-                      {generatingOppId === opp.id ? "Squad elaborando proposta..." : "Gerar rascunho assistido"}
+                      <Brain size={15} color="#a855f7" className={evaluatingOppId === opp.id ? "animate-spin" : ""} />
+                      {evaluatingOppId === opp.id ? "Analisando..." : "Avaliar com IA"}
                     </button>
-                  )}
+
+                    {opp.status === "proposal_generated" ? (
+                      <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+                        <CheckCircle2 size={16} /> Proposta Comercial Gerada
+                      </span>
+                    ) : (
+                      <button
+                        className="primary-button"
+                        onClick={() => handleGenerateProposal(opp.id)}
+                        disabled={generatingOppId === opp.id}
+                        style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <Sparkles size={16} />
+                        {generatingOppId === opp.id ? "Squad elaborando proposta..." : "Gerar rascunho assistido"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))

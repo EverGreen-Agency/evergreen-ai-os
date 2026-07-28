@@ -52,6 +52,14 @@ def sync_opportunities(
     return proposals_service.sync_opportunities_from_scrapers(user)
 
 
+@router.post("/opportunities/{opp_id}/evaluate-ai", response_model=OpportunitySummary)
+def evaluate_opportunity_ai(
+    opp_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.evaluate_opportunity_with_ai(opp_id, user)
+
+
 @router.get("/platforms", response_model=list[OpportunityPlatformSummary])
 def list_platforms(
     user: CurrentUserResponse = Depends(current_user_from_request),
