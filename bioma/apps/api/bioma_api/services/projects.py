@@ -8,6 +8,7 @@ from bioma_api.access import is_platform_admin, require_workspace_capability
 from bioma_api.db import connect
 from bioma_api.repositories import client_profiles as client_profile_repo
 from bioma_api.repositories import projects as project_repo
+from bioma_api.planning_intakes import RETAIL_SCHEMA_VERSION, form_definition, normalize_answers
 from bioma_api.services import client_profiles as client_profile_service
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
@@ -16,6 +17,7 @@ from bioma_api.schemas.projects import (
     ProjectPhaseCreate, ProjectPhaseSummary, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanAIOutput, ProjectPlanApproveRequest, ProjectPlanGenerateRequest,
     ProjectPlanItemSummary, ProjectPlanItemUpdate, ProjectPlanMaterializeRequest, ProjectPlanSummary,
+    ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate, ProjectPlanningIntakeWrite,
     ProjectUpdateCreate, ProjectUpdateSummary, ScopeItemCreate, ScopeItemSummary, ScopeItemUpdate,
 )
 from bioma_api.worker_bridge import execute_squad_pipeline_safe
@@ -234,6 +236,93 @@ def get_project_plan(plan_id: UUID, user: CurrentUserResponse) -> ProjectPlanSum
     return ProjectPlanSummary(**plan, items=items)
 
 
+def get_planning_intake_schema(project_id: UUID, schema_key: str, user: CurrentUserResponse) -> dict:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "view")
+        if project["access_role"] == "client_user":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Esquema de intake não encontrado.")
+    return form_definition(schema_key)
+
+
+def list_project_planning_intakes(project_id: UUID, user: CurrentUserResponse) -> list[ProjectPlanningIntakeSummary]:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "view")
+        if project["access_role"] == "client_user":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Intakes não encontradas.")
+        rows = project_repo.list_project_planning_intakes(conn, project_id)
+    return [ProjectPlanningIntakeSummary(**row) for row in rows]
+
+
+def create_project_planning_intake(
+    project_id: UUID,
+    payload: ProjectPlanningIntakeWrite,
+    user: CurrentUserResponse,
+) -> ProjectPlanningIntakeSummary:
+    answers, derived_context = normalize_answers(payload.schema_key, payload.answers, require_complete=False)
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        intake = project_repo.create_project_planning_intake(
+            conn,
+            project_id,
+            user.id,
+            {
+                "schema_key": payload.schema_key,
+                "schema_version": RETAIL_SCHEMA_VERSION,
+                "title": payload.title,
+                "objective": payload.objective,
+                "answers": answers,
+                "derived_context": derived_context,
+            },
+        )
+        project_repo.write_audit(
+            conn, user.id, project["organization_id"], "project.planning_intake_created",
+            {"project_id": str(project_id), "intake_id": str(intake["id"]), "schema_key": payload.schema_key},
+        )
+    return ProjectPlanningIntakeSummary(**intake)
+
+
+def update_project_planning_intake(
+    intake_id: UUID,
+    payload: ProjectPlanningIntakeUpdate,
+    user: CurrentUserResponse,
+) -> ProjectPlanningIntakeSummary:
+    updates = payload.model_dump(exclude_unset=True)
+    if not updates:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Informe ao menos um campo para atualizar.")
+    with connect() as conn:
+        intake = _planning_intake(conn, intake_id, user, "manage_work")
+        if intake["status"] != "draft":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Uma intake finalizada é imutável.")
+        answers, derived_context = normalize_answers(
+            intake["schema_key"], updates.get("answers", intake["answers"]), require_complete=False,
+        )
+        updates["answers"] = answers
+        updates["derived_context"] = derived_context
+        saved = project_repo.update_project_planning_intake(conn, intake_id, updates)
+        project_repo.write_audit(
+            conn, user.id, intake["organization_id"], "project.planning_intake_updated",
+            {"project_id": str(intake["project_id"]), "intake_id": str(intake_id), "changed_fields": sorted(payload.model_fields_set)},
+        )
+    return ProjectPlanningIntakeSummary(**saved)
+
+
+def finalize_project_planning_intake(intake_id: UUID, user: CurrentUserResponse) -> ProjectPlanningIntakeSummary:
+    with connect() as conn:
+        intake = _planning_intake(conn, intake_id, user, "manage_work")
+        if intake["status"] == "finalized":
+            return ProjectPlanningIntakeSummary(**intake)
+        answers, derived_context = normalize_answers(intake["schema_key"], intake["answers"], require_complete=True)
+        project_repo.update_project_planning_intake(
+            conn, intake_id, {"answers": answers, "derived_context": derived_context},
+        )
+        saved = project_repo.finalize_project_planning_intake(conn, intake_id, user.id)
+        project_repo.write_audit(
+            conn, user.id, intake["organization_id"], "project.planning_intake_finalized",
+            {"project_id": str(intake["project_id"]), "intake_id": str(intake_id), "schema_key": intake["schema_key"]},
+        )
+    return ProjectPlanningIntakeSummary(**saved)
+
+
 def generate_project_plan(
     project_id: UUID,
     payload: ProjectPlanGenerateRequest,
@@ -262,6 +351,24 @@ def generate_project_plan(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="O briefing é obrigatório para esta origem.",
             )
+        planning_intake = None
+        intake_snapshot = {}
+        if payload.planning_intake_id:
+            planning_intake = _planning_intake(conn, payload.planning_intake_id, user, "manage_work")
+            if planning_intake["project_id"] != project_id:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="A intake pertence a outro projeto.")
+            if planning_intake["status"] != "finalized":
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Finalize a intake antes de gerar o plano.")
+            intake_snapshot = {
+                "intake_id": str(planning_intake["id"]),
+                "schema_key": planning_intake["schema_key"],
+                "schema_version": planning_intake["schema_version"],
+                "title": planning_intake["title"],
+                "objective": planning_intake["objective"],
+                "answers": planning_intake["answers"],
+                "derived_context": planning_intake["derived_context"],
+                "finalized_at": planning_intake["finalized_at"].isoformat() if planning_intake["finalized_at"] else None,
+            }
 
         all_scope_items = project_repo.list_scope_items(conn, project_id, True)
         scope_items = [
@@ -279,7 +386,7 @@ def generate_project_plan(
         snapshot = {
             "project_name": project["name"],
             "discipline": project["project_type"],
-            "project_objective": payload.objective or project.get("objective"),
+            "project_objective": payload.objective or (planning_intake["objective"] if planning_intake else None) or project.get("objective"),
             "source_kind": payload.source_kind,
             "briefing": payload.briefing,
             "technical_context": payload.technical_context,
@@ -319,6 +426,7 @@ def generate_project_plan(
                 for item in planning_documents
             ],
             "client_context": client_profile,
+            "planning_intake": intake_snapshot or None,
         }
 
     result = execute_squad_pipeline_safe(
@@ -386,6 +494,7 @@ def generate_project_plan(
             user.id,
             {
                 "source_contract_id": contract["id"] if contract else None,
+                "planning_intake_id": planning_intake["id"] if planning_intake else None,
                 "version": version,
                 "discipline": current_project["project_type"],
                 "source_kind": payload.source_kind,
@@ -393,6 +502,7 @@ def generate_project_plan(
                 "title": output.plan_title,
                 "objective": output.objective,
                 "assumptions": output.assumptions,
+                "intake_snapshot": intake_snapshot,
             },
         )
         project_repo.create_project_plan_items(conn, plan["id"], normalized_items)
@@ -408,6 +518,7 @@ def generate_project_plan(
                 "discipline": current_project["project_type"],
                 "source_kind": payload.source_kind,
                 "generation_mode": result["generation_mode"],
+                "planning_intake_id": str(planning_intake["id"]) if planning_intake else None,
             },
         )
     return get_project_plan(plan["id"], user)
@@ -619,6 +730,14 @@ def _plan(conn, plan_id: UUID, user: CurrentUserResponse, capability: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plano não encontrado.")
     require_workspace_capability(plan, user, capability)
     return plan
+
+
+def _planning_intake(conn, intake_id: UUID, user: CurrentUserResponse, capability: str):
+    intake = project_repo.find_project_planning_intake(conn, intake_id, is_platform_admin(user), user.id)
+    if not intake:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Intake não encontrada.")
+    require_workspace_capability(intake, user, capability)
+    return intake
 
 
 def _validate_user(conn, workspace_id: UUID, user_id: UUID | None):

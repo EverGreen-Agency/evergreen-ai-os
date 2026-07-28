@@ -1974,6 +1974,40 @@ export interface paths {
         patch: operations["update_project_plan_item_project_plan_items__item_id__patch"];
         trace?: never;
     };
+    "/project-planning-intakes/{intake_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Planning Intake */
+        patch: operations["update_planning_intake_project_planning_intakes__intake_id__patch"];
+        trace?: never;
+    };
+    "/project-planning-intakes/{intake_id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finalize Planning Intake */
+        post: operations["finalize_planning_intake_project_planning_intakes__intake_id__finalize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/project-plans/{plan_id}": {
         parameters: {
             query?: never;
@@ -2105,6 +2139,41 @@ export interface paths {
         put?: never;
         /** Create Phase */
         post: operations["create_phase_projects__project_id__phases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{project_id}/planning-intake-schema/{schema_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Planning Intake Schema */
+        get: operations["get_planning_intake_schema_projects__project_id__planning_intake_schema__schema_key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{project_id}/planning-intakes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Planning Intakes */
+        get: operations["list_planning_intakes_projects__project_id__planning_intakes_get"];
+        put?: never;
+        /** Create Planning Intake */
+        post: operations["create_planning_intake_projects__project_id__planning_intakes_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7080,6 +7149,8 @@ export interface components {
             contract_id?: string | null;
             /** Objective */
             objective?: string | null;
+            /** Planning Intake Id */
+            planning_intake_id?: string | null;
             /**
              * Social Approval Flow
              * @default adaptive
@@ -7211,12 +7282,18 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Intake Snapshot */
+            intake_snapshot?: {
+                [key: string]: unknown;
+            };
             /** Items */
             items?: components["schemas"]["ProjectPlanItemSummary"][];
             /** Materialized At */
             materialized_at?: string | null;
             /** Objective */
             objective?: string | null;
+            /** Planning Intake Id */
+            planning_intake_id?: string | null;
             /**
              * Project Id
              * Format: uuid
@@ -7243,6 +7320,83 @@ export interface components {
             updated_at: string;
             /** Version */
             version: number;
+        };
+        /** ProjectPlanningIntakeSummary */
+        ProjectPlanningIntakeSummary: {
+            /** Answers */
+            answers?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Derived Context */
+            derived_context?: {
+                [key: string]: unknown;
+            };
+            /** Finalized At */
+            finalized_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Objective */
+            objective: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Schema Key
+             * @constant
+             */
+            schema_key: "retail_v1";
+            /** Schema Version */
+            schema_version: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "finalized";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ProjectPlanningIntakeUpdate */
+        ProjectPlanningIntakeUpdate: {
+            /** Answers */
+            answers?: {
+                [key: string]: unknown;
+            } | null;
+            /** Objective */
+            objective?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** ProjectPlanningIntakeWrite */
+        ProjectPlanningIntakeWrite: {
+            /** Answers */
+            answers?: {
+                [key: string]: unknown;
+            };
+            /** Objective */
+            objective: string;
+            /**
+             * Schema Key
+             * @default retail_v1
+             * @constant
+             */
+            schema_key: "retail_v1";
+            /** Title */
+            title: string;
         };
         /** ProjectSummary */
         ProjectSummary: {
@@ -13703,6 +13857,72 @@ export interface operations {
             };
         };
     };
+    update_planning_intake_project_planning_intakes__intake_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intake_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanningIntakeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanningIntakeSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finalize_planning_intake_project_planning_intakes__intake_id__finalize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intake_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanningIntakeSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_plan_project_plans__plan_id__get: {
         parameters: {
             query?: never;
@@ -13997,6 +14217,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_planning_intake_schema_projects__project_id__planning_intake_schema__schema_key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                schema_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_planning_intakes_projects__project_id__planning_intakes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanningIntakeSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_planning_intake_projects__project_id__planning_intakes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanningIntakeWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanningIntakeSummary"];
                 };
             };
             /** @description Validation Error */

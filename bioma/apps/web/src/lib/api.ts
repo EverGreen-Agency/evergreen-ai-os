@@ -1485,6 +1485,7 @@ export type ProjectPlan = {
   id: string;
   project_id: string;
   source_contract_id: string | null;
+  planning_intake_id: string | null;
   version: number;
   discipline: ProjectType;
   source_kind: "contract" | "briefing" | "onboarding" | "manual";
@@ -1493,11 +1494,37 @@ export type ProjectPlan = {
   title: string;
   objective: string | null;
   assumptions: string[];
+  intake_snapshot: Record<string, unknown>;
   approved_at: string | null;
   materialized_at: string | null;
   created_at: string;
   updated_at: string;
   items: ProjectPlanItem[];
+};
+
+export type ProjectPlanningIntake = {
+  id: string;
+  project_id: string;
+  schema_key: "retail_v1";
+  schema_version: number;
+  status: "draft" | "finalized";
+  title: string;
+  objective: string;
+  answers: Record<string, unknown>;
+  derived_context: Record<string, unknown>;
+  finalized_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlanningIntakeSchema = {
+  schema_key: "retail_v1";
+  schema_version: number;
+  required_fields: string[];
+  marketing_maturities: string[];
+  commercial_maturities: string[];
+  marketing_goals_by_maturity: Record<string, string[]>;
+  commercial_goals_by_maturity: Record<string, string[]>;
 };
 
 export type ProjectDetail = ProjectSummary & {
@@ -1737,6 +1764,7 @@ export const api = {
     projectId: string,
     payload: {
       contract_id?: string | null;
+      planning_intake_id?: string | null;
       source_kind?: ProjectPlan["source_kind"];
       briefing?: string | null;
       technical_context?: string | null;
@@ -1748,6 +1776,24 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  projectPlanningIntakeSchema: (projectId: string) =>
+    request<PlanningIntakeSchema>(`/projects/${projectId}/planning-intake-schema/retail_v1`),
+  projectPlanningIntakes: (projectId: string) =>
+    request<ProjectPlanningIntake[]>(`/projects/${projectId}/planning-intakes`),
+  createProjectPlanningIntake: (
+    projectId: string,
+    payload: { schema_key?: "retail_v1"; title: string; objective: string; answers: Record<string, unknown> },
+  ) => request<ProjectPlanningIntake>(`/projects/${projectId}/planning-intakes`, {
+    method: "POST", body: JSON.stringify(payload),
+  }),
+  updateProjectPlanningIntake: (
+    intakeId: string,
+    payload: { title?: string; objective?: string; answers?: Record<string, unknown> },
+  ) => request<ProjectPlanningIntake>(`/project-planning-intakes/${intakeId}`, {
+    method: "PATCH", body: JSON.stringify(payload),
+  }),
+  finalizeProjectPlanningIntake: (intakeId: string) =>
+    request<ProjectPlanningIntake>(`/project-planning-intakes/${intakeId}/finalize`, { method: "POST" }),
   approveProjectPlan: (planId: string) =>
     request<ProjectPlan>(`/project-plans/${planId}/approve`, {
       method: "POST",

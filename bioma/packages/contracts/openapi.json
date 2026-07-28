@@ -10348,6 +10348,18 @@
             ],
             "title": "Objective"
           },
+          "planning_intake_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planning Intake Id"
+          },
           "social_approval_flow": {
             "default": "adaptive",
             "enum": [
@@ -10767,6 +10779,11 @@
             "title": "Id",
             "type": "string"
           },
+          "intake_snapshot": {
+            "additionalProperties": true,
+            "title": "Intake Snapshot",
+            "type": "object"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ProjectPlanItemSummary"
@@ -10796,6 +10813,18 @@
               }
             ],
             "title": "Objective"
+          },
+          "planning_intake_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planning Intake Id"
           },
           "project_id": {
             "format": "uuid",
@@ -10861,6 +10890,167 @@
           "updated_at"
         ],
         "title": "ProjectPlanSummary",
+        "type": "object"
+      },
+      "ProjectPlanningIntakeSummary": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "title": "Answers",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "derived_context": {
+            "additionalProperties": true,
+            "title": "Derived Context",
+            "type": "object"
+          },
+          "finalized_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalized At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "schema_key": {
+            "const": "retail_v1",
+            "title": "Schema Key",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "finalized"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "schema_key",
+          "schema_version",
+          "status",
+          "title",
+          "objective",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectPlanningIntakeSummary",
+        "type": "object"
+      },
+      "ProjectPlanningIntakeUpdate": {
+        "properties": {
+          "answers": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answers"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 240,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "ProjectPlanningIntakeUpdate",
+        "type": "object"
+      },
+      "ProjectPlanningIntakeWrite": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "title": "Answers",
+            "type": "object"
+          },
+          "objective": {
+            "maxLength": 5000,
+            "minLength": 2,
+            "title": "Objective",
+            "type": "string"
+          },
+          "schema_key": {
+            "const": "retail_v1",
+            "default": "retail_v1",
+            "title": "Schema Key",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "objective"
+        ],
+        "title": "ProjectPlanningIntakeWrite",
         "type": "object"
       },
       "ProjectSummary": {
@@ -22763,6 +22953,102 @@
         ]
       }
     },
+    "/project-planning-intakes/{intake_id}": {
+      "patch": {
+        "operationId": "update_planning_intake_project_planning_intakes__intake_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intake_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intake Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPlanningIntakeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanningIntakeSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Planning Intake",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/project-planning-intakes/{intake_id}/finalize": {
+      "post": {
+        "operationId": "finalize_planning_intake_project_planning_intakes__intake_id__finalize_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intake_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intake Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanningIntakeSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Finalize Planning Intake",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/project-plans/{plan_id}": {
       "get": {
         "operationId": "get_project_plan_project_plans__plan_id__get",
@@ -23213,6 +23499,154 @@
           }
         },
         "summary": "Create Phase",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{project_id}/planning-intake-schema/{schema_key}": {
+      "get": {
+        "operationId": "get_planning_intake_schema_projects__project_id__planning_intake_schema__schema_key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "schema_key",
+            "required": true,
+            "schema": {
+              "title": "Schema Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Planning Intake Schema",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{project_id}/planning-intakes": {
+      "get": {
+        "operationId": "list_planning_intakes_projects__project_id__planning_intakes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectPlanningIntakeSummary"
+                  },
+                  "title": "Response List Planning Intakes Projects  Project Id  Planning Intakes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Planning Intakes",
+        "tags": [
+          "projects"
+        ]
+      },
+      "post": {
+        "operationId": "create_planning_intake_projects__project_id__planning_intakes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPlanningIntakeWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPlanningIntakeSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Planning Intake",
         "tags": [
           "projects"
         ]

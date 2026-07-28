@@ -21,6 +21,8 @@ No fluxo Tech, `project_documents` agora pode apontar para o contrato correspond
 
 O estágio intermediário do planejamento deixou de ser implícito: novos itens gerados são candidatos desmarcados. A equipe pode selecioná-los e editar fase, descrição, prazo, prioridade, definição de pronto e subtarefas enquanto o plano está em rascunho. A aprovação recusa listas vazias; a materialização idempotente cria fases/entregas somente para os escolhidos, e `client_user` não recebe candidatos descartados. A migration 0053 preserva planos anteriores como selecionados e também não foi aplicada ao banco local nesta frente.
 
+Em 27/07 foi incluída a camada anterior ao backlog: `project_planning_intakes`. Ela preserva a fotografia da descoberta por iniciativa, sem criar outro cliente nem misturar a pesquisa de mercado de prospecção com onboarding. `retail_v1` fornece campos comerciais e regras condicionais de maturidade/meta que a API valida. A intake finalizada é imutável e seu snapshot normalizado acompanha o plano gerado; cliente não recebe a intake estratégica. A migration 0054, tal como as anteriores, foi apenas versionada — não aplicada a este banco local.
+
 O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta o modo RSC; o frontend do Bioma é uma SPA Vite e não usa RSC. O npm só oferece correção automática forçada com mudança de versão incompatível para a faixa atual, portanto não foi aplicado upgrade automático nesta frente. O alerta deve permanecer visível até uma atualização compatível e testada do roteador.
 
 ## Adendo de remediação — 2026-07-23

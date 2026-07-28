@@ -334,8 +334,8 @@ def create_project_update(conn, project_id: UUID, user_id: UUID, payload: dict[s
 def list_project_plans(conn, project_id: UUID, include_internal: bool):
     return conn.execute(
         """
-        select id, project_id, source_contract_id, version, discipline, source_kind,
-          status, generation_mode, title, objective, assumptions, approved_at,
+        select id, project_id, source_contract_id, planning_intake_id, version, discipline, source_kind,
+          status, generation_mode, title, objective, assumptions, intake_snapshot, approved_at,
           materialized_at, created_at, updated_at
         from project_plans
         where project_id = %s
@@ -381,6 +381,70 @@ def find_plan_context(conn, plan_id: UUID, is_admin: bool, user_id: UUID):
     ).fetchone()
 
 
+def list_project_planning_intakes(conn, project_id: UUID):
+    return conn.execute(
+        """
+        select id, project_id, schema_key, schema_version, status, title, objective,
+          answers, derived_context, finalized_at, created_at, updated_at
+        from project_planning_intakes
+        where project_id = %s
+        order by updated_at desc
+        """,
+        (project_id,),
+    ).fetchall()
+
+
+def find_project_planning_intake(conn, intake_id: UUID):
+    return conn.execute(
+        """
+        select intake.*, project.workspace_id, project.organization_id, project.tenant_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(project.workspace_id, %s) end as access_role
+        from project_planning_intakes intake
+        join projects project on project.id = intake.project_id
+        where intake.id = %s
+          and (%s or workspace_access_role(project.workspace_id, %s) is not null)
+        """,
+        (is_admin, user_id, intake_id, is_admin, user_id),
+    ).fetchone()
+
+
+def create_project_planning_intake(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into project_planning_intakes (
+          project_id, schema_key, schema_version, title, objective, answers,
+          derived_context, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s)
+        returning *
+        """,
+        (
+            project_id, payload["schema_key"], payload["schema_version"], payload["title"],
+            payload["objective"], Jsonb(payload["answers"]), Jsonb(payload["derived_context"]), user_id,
+        ),
+    ).fetchone()
+
+
+def update_project_planning_intake(conn, intake_id: UUID, payload: dict[str, Any]):
+    assignments = ", ".join(f"{field} = %s" for field in payload)
+    values = [Jsonb(value) if field in {"answers", "derived_context"} else value for field, value in payload.items()]
+    return conn.execute(
+        f"update project_planning_intakes set {assignments}, updated_at = now() where id = %s returning *",
+        (*values, intake_id),
+    ).fetchone()
+
+
+def finalize_project_planning_intake(conn, intake_id: UUID, user_id: UUID):
+    return conn.execute(
+        """
+        update project_planning_intakes
+        set status = 'finalized', finalized_by = %s, finalized_at = now(), updated_at = now()
+        where id = %s
+        returning *
+        """,
+        (user_id, intake_id),
+    ).fetchone()
+
+
 def lock_project_plan(conn, plan_id: UUID) -> None:
     conn.execute("select id from project_plans where id = %s for update", (plan_id,)).fetchone()
 
@@ -397,14 +461,15 @@ def create_project_plan(conn, project_id: UUID, user_id: UUID, payload: dict[str
     return conn.execute(
         """
         insert into project_plans (
-          project_id, source_contract_id, version, discipline, source_kind,
-          status, generation_mode, title, objective, assumptions, created_by
-        ) values (%s, %s, %s, %s, %s, 'draft', %s, %s, %s, %s, %s)
+          project_id, source_contract_id, planning_intake_id, version, discipline, source_kind,
+          status, generation_mode, title, objective, assumptions, intake_snapshot, created_by
+        ) values (%s, %s, %s, %s, %s, %s, 'draft', %s, %s, %s, %s, %s, %s)
         returning *
         """,
         (
             project_id,
             payload.get("source_contract_id"),
+            payload.get("planning_intake_id"),
             payload["version"],
             payload["discipline"],
             payload["source_kind"],
@@ -412,6 +477,7 @@ def create_project_plan(conn, project_id: UUID, user_id: UUID, payload: dict[str
             payload["title"],
             payload.get("objective"),
             Jsonb(payload.get("assumptions", [])),
+            Jsonb(payload.get("intake_snapshot", {})),
             user_id,
         ),
     ).fetchone()

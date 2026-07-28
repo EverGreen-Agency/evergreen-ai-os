@@ -21,6 +21,8 @@ ProjectPlanGenerationMode = Literal["live", "preview", "manual"]
 ProjectPlanItemKind = Literal["milestone", "deliverable", "content", "campaign", "technical_task"]
 ProjectPlanItemPriority = Literal["low", "medium", "high", "critical"]
 SocialApprovalFlow = Literal["adaptive", "idea_before_production", "after_production", "final_only"]
+PlanningIntakeStatus = Literal["draft", "finalized"]
+PlanningIntakeSchemaKey = Literal["retail_v1"]
 ProjectPlanSubtask = Annotated[str, Field(min_length=2, max_length=500)]
 
 
@@ -176,11 +178,40 @@ class ProjectUpdateCreate(BaseModel):
 
 class ProjectPlanGenerateRequest(BaseModel):
     contract_id: UUID | None = None
+    planning_intake_id: UUID | None = None
     source_kind: ProjectPlanSourceKind = "contract"
     briefing: str | None = Field(default=None, max_length=20_000)
     technical_context: str | None = Field(default=None, max_length=20_000)
     objective: str | None = Field(default=None, max_length=5_000)
     social_approval_flow: SocialApprovalFlow = "adaptive"
+
+
+class ProjectPlanningIntakeWrite(BaseModel):
+    schema_key: PlanningIntakeSchemaKey = "retail_v1"
+    title: str = Field(min_length=2, max_length=240)
+    objective: str = Field(min_length=2, max_length=5_000)
+    answers: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProjectPlanningIntakeUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=240)
+    objective: str | None = Field(default=None, min_length=2, max_length=5_000)
+    answers: dict[str, Any] | None = None
+
+
+class ProjectPlanningIntakeSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    schema_key: PlanningIntakeSchemaKey
+    schema_version: int
+    status: PlanningIntakeStatus
+    title: str
+    objective: str
+    answers: dict[str, Any] = Field(default_factory=dict)
+    derived_context: dict[str, Any] = Field(default_factory=dict)
+    finalized_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class ProjectPlanItemDraft(BaseModel):
@@ -273,6 +304,7 @@ class ProjectPlanSummary(BaseModel):
     id: UUID
     project_id: UUID
     source_contract_id: UUID | None = None
+    planning_intake_id: UUID | None = None
     version: int
     discipline: ProjectType
     source_kind: ProjectPlanSourceKind
@@ -281,6 +313,7 @@ class ProjectPlanSummary(BaseModel):
     title: str
     objective: str | None = None
     assumptions: list[str] = Field(default_factory=list)
+    intake_snapshot: dict[str, Any] = Field(default_factory=dict)
     approved_at: datetime | None = None
     materialized_at: datetime | None = None
     created_at: datetime

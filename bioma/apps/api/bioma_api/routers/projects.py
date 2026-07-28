@@ -8,7 +8,8 @@ from bioma_api.schemas.projects import (
     ContractCreate, ContractUpdate, ProjectCreate, ProjectDeliverableCreate, ProjectDetail,
     ProjectDocumentCreate, ProjectPhaseCreate, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanApproveRequest, ProjectPlanGenerateRequest, ProjectPlanMaterializeRequest,
-    ProjectPlanItemUpdate, ProjectPlanSummary, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
+    ProjectPlanItemUpdate, ProjectPlanSummary, ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate,
+    ProjectPlanningIntakeWrite, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
 )
 from bioma_api.services import projects as project_service
 
@@ -94,6 +95,43 @@ def generate_project_plan(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return project_service.generate_project_plan(project_id, payload, user)
+
+
+@router.get("/projects/{project_id}/planning-intake-schema/{schema_key}")
+def get_planning_intake_schema(
+    project_id: UUID,
+    schema_key: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.get_planning_intake_schema(project_id, schema_key, user)
+
+
+@router.get("/projects/{project_id}/planning-intakes", response_model=list[ProjectPlanningIntakeSummary])
+def list_planning_intakes(project_id: UUID, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.list_project_planning_intakes(project_id, user)
+
+
+@router.post("/projects/{project_id}/planning-intakes", response_model=ProjectPlanningIntakeSummary, status_code=status.HTTP_201_CREATED)
+def create_planning_intake(
+    project_id: UUID,
+    payload: ProjectPlanningIntakeWrite,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.create_project_planning_intake(project_id, payload, user)
+
+
+@router.patch("/project-planning-intakes/{intake_id}", response_model=ProjectPlanningIntakeSummary)
+def update_planning_intake(
+    intake_id: UUID,
+    payload: ProjectPlanningIntakeUpdate,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.update_project_planning_intake(intake_id, payload, user)
+
+
+@router.post("/project-planning-intakes/{intake_id}/finalize", response_model=ProjectPlanningIntakeSummary)
+def finalize_planning_intake(intake_id: UUID, user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.finalize_project_planning_intake(intake_id, user)
 
 
 @router.post("/project-plans/{plan_id}/approve", response_model=ProjectPlanSummary)
