@@ -135,25 +135,37 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
 
         score = 50
         analysis_points = []
-        high_value_keywords = ["growth", "tráfego", "meta ads", "google ads", "crm", "n8n", "automação", "landing page", "funil", "react", "fastapi"]
+        high_value_keywords = [
+            "growth", "tráfego", "meta ads", "google ads", "crm", "n8n", "automação",
+            "landing page", "funil", "react", "fastapi", "python", "typescript", "figma",
+            "ui/ux", "copywriting", "seo", "hubspot", "analytics", "gestão", "full stack"
+        ]
+        matched_keywords = []
         for kw in high_value_keywords:
             if kw in full_text:
-                score += 8
-                analysis_points.append(f"Palavra-chave identificada: {kw}")
+                score += 7
+                matched_keywords.append(kw)
+        
+        if matched_keywords:
+            analysis_points.append(f"Palavras-chave alinhadas: {', '.join(matched_keywords[:4])}")
 
         # Detect technology gaps against EG inventory
         inventory_skills = [s["skill_name"].lower() for s in proposals_repo.list_tech_skills(conn) if s["status"] == "available"]
-        known_tech_keywords = ["hubspot", "marketo", "salesforce", "magento", "shopify", "webflow", "activecampaign", "klaviyo", "pipedrive"]
+        known_tech_keywords = ["marketo", "salesforce", "magento", "shopify", "activecampaign", "klaviyo", "pipedrive"]
         
         detected_gaps = []
         for tech in known_tech_keywords:
             if tech in full_text and tech not in inventory_skills:
                 detected_gaps.append(tech.capitalize())
                 score -= 10
-                analysis_points.append(f"⚠️ Gap de Tecnologia Identificado: Requer {tech.capitalize()}")
+                analysis_points.append(f"⚠️ Gap de Tecnologia: Requer {tech.capitalize()}")
 
-        fit_score = min(98, max(20, score))
-        fit_analysis = " | ".join(analysis_points) if analysis_points else "Alinhamento geral verificado."
+        # Dynamic variation if score remains base 50 (based on title complexity/length)
+        if score == 50 and len(title_lower) > 20:
+            score += (len(title_lower) % 15) - 5
+
+        fit_score = min(98, max(25, score))
+        fit_analysis = " | ".join(analysis_points) if analysis_points else "Alinhamento geral verificado com perfil padrão."
 
         data = {
             "source_platform": payload.source_platform,

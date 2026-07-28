@@ -30,7 +30,9 @@ import {
   ArrowUpRight,
   Printer,
   ClipboardList,
-  Mic2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { ExecutiveReportPdfModal } from "../../../components/ExecutiveReportPdfModal";
 import { ProposalWizard } from "./ProposalWizard";
@@ -82,6 +84,13 @@ export function ProposalsManager() {
   const [auditPlatform, setAuditPlatform] = useState("workana");
   const [isAuditing, setIsAuditing] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+
+  // Filtros e Paginação do Radar
+  const [radarSearch, setRadarSearch] = useState("");
+  const [radarPlatform, setRadarPlatform] = useState("all");
+  const [radarFitFilter, setRadarFitFilter] = useState("all");
+  const [radarPageSize, setRadarPageSize] = useState(20);
+  const [radarCurrentPage, setRadarCurrentPage] = useState(1);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -205,76 +214,46 @@ export function ProposalsManager() {
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) || profiles[0];
 
+  const filteredOpportunities = opportunities.filter((opp) => {
+    if (radarPlatform !== "all" && opp.source_platform.toLowerCase() !== radarPlatform.toLowerCase()) {
+      return false;
+    }
+    if (radarFitFilter === "high" && opp.fit_score < 70) return false;
+    if (radarFitFilter === "medium" && (opp.fit_score < 50 || opp.fit_score >= 70)) return false;
+    if (radarFitFilter === "low" && opp.fit_score >= 50) return false;
+
+    if (radarSearch.trim()) {
+      const q = radarSearch.toLowerCase().trim();
+      const titleMatch = opp.title.toLowerCase().includes(q);
+      const descMatch = (opp.description || "").toLowerCase().includes(q);
+      const platformMatch = opp.source_platform.toLowerCase().includes(q);
+      if (!titleMatch && !descMatch && !platformMatch) return false;
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredOpportunities.length / radarPageSize) || 1;
+  const safeRadarPage = Math.min(radarCurrentPage, totalPages);
+  const paginatedOpportunities = filteredOpportunities.slice(
+    (safeRadarPage - 1) * radarPageSize,
+    safeRadarPage * radarPageSize
+  );
+
+  const availablePlatforms = Array.from(
+    new Set(opportunities.map((o) => o.source_platform.toLowerCase()))
+  );
+
   return (
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto", color: "var(--text)" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+      {/* Header Limpo */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", margin: 0 }}>
             <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-            Radar manual e por feeds RSS, propostas assistidas pelos três pilares e métricas baseadas em decisões registradas.
+            Monitoramento de vagas remotas, geração assistida de propostas e métricas comerciais da agência.
           </p>
-        </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={() => setIsPdfModalOpen(true)}
-            style={{
-              padding: "10px 18px",
-              borderRadius: "8px",
-              background: "var(--brand-accent)",
-              border: "none",
-              color: "#000",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <Printer size={18} /> Exportar Relatório PDF
-          </button>
-          <button
-            onClick={async () => {
-              setIsSyncing(true);
-              setSyncFeedback(null);
-              try {
-                const res = await api.syncOpportunities();
-                setSyncFeedback(`Varredura concluída! ${res.scanned} projetos verificados (${res.new} novos adicionados, ${res.skipped} duplicados ignorados).`);
-                await loadData();
-              } catch (err: any) {
-                alert("Erro ao realizar varredura: " + (err.message || "Erro desconhecido"));
-              } finally {
-                setIsSyncing(false);
-              }
-            }}
-            disabled={isSyncing}
-            style={{
-              padding: "10px 18px",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              color: "var(--brand-accent)",
-              fontWeight: 600,
-              cursor: isSyncing ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              opacity: isSyncing ? 0.7 : 1,
-            }}
-          >
-            <RefreshCw size={18} className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? "Varrer Plataformas..." : "⚡ Varredura Instantânea"}
-          </button>
-
-          <button
-            className="primary-button"
-            onClick={() => setIsIngestModalOpen(true)}
-            style={{ padding: "10px 18px", display: "flex", alignItems: "center", gap: "8px" }}
-          >
-            <Plus size={18} /> Capturar Vaga Manualmente
-          </button>
         </div>
       </div>
 
@@ -418,12 +397,110 @@ export function ProposalsManager() {
       ) : activeTab === "radar" ? (
         /* ABA 1: RADAR DE OPORTUNIDADES */
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {opportunities.length === 0 ? (
+          {/* Toolbar de Filtros & Ações do Radar */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", background: "var(--surface)", padding: "14px 16px", borderRadius: "10px", border: "1px solid var(--border)" }}>
+            <div style={{ flex: 1, minWidth: "220px", display: "flex", alignItems: "center", gap: "8px", background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+              <Search size={16} color="var(--text-dim)" />
+              <input
+                type="text"
+                placeholder="Buscar por título, empresa ou tecnologia..."
+                value={radarSearch}
+                onChange={(e) => { setRadarSearch(e.target.value); setRadarCurrentPage(1); }}
+                style={{ background: "transparent", border: "none", color: "var(--text)", width: "100%", outline: "none", fontSize: "0.88rem" }}
+              />
+            </div>
+
+            <select
+              value={radarPlatform}
+              onChange={(e) => { setRadarPlatform(e.target.value); setRadarCurrentPage(1); }}
+              style={{ padding: "8px 12px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+            >
+              <option value="all">Todas Plataformas ({opportunities.length})</option>
+              {availablePlatforms.map((plat) => (
+                <option key={plat} value={plat}>{plat.toUpperCase()}</option>
+              ))}
+            </select>
+
+            <select
+              value={radarFitFilter}
+              onChange={(e) => { setRadarFitFilter(e.target.value); setRadarCurrentPage(1); }}
+              style={{ padding: "8px 12px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+            >
+              <option value="all">Qualquer Score</option>
+              <option value="high">Alto Alinhamento (Fit ≥ 70%)</option>
+              <option value="medium">Médio Alinhamento (50–69%)</option>
+              <option value="low">Baixo Alinhamento (&lt; 50%)</option>
+            </select>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "0.8rem", color: "var(--text-dim)", whiteSpace: "nowrap" }}>Por pág:</span>
+              <select
+                value={radarPageSize}
+                onChange={(e) => { setRadarPageSize(Number(e.target.value)); setRadarCurrentPage(1); }}
+                style={{ padding: "8px 10px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            <button
+              onClick={async () => {
+                setIsSyncing(true);
+                setSyncFeedback(null);
+                try {
+                  const res = await api.syncOpportunities();
+                  setSyncFeedback(`Varredura concluída! ${res.scanned} projetos verificados (${res.new} novos adicionados, ${res.skipped} duplicados ignorados).`);
+                  await loadData();
+                } catch (err: any) {
+                  alert("Erro ao realizar varredura: " + (err.message || "Erro desconhecido"));
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+              disabled={isSyncing}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "8px",
+                background: "var(--surface-sunken)",
+                border: "1px solid var(--border)",
+                color: "var(--brand-accent)",
+                fontWeight: 600,
+                cursor: isSyncing ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                whiteSpace: "nowrap",
+                opacity: isSyncing ? 0.7 : 1,
+              }}
+            >
+              <RefreshCw size={15} className={isSyncing ? "animate-spin" : ""} />
+              {isSyncing ? "Varrendo..." : "⚡ Varredura"}
+            </button>
+
+            <button
+              className="primary-button"
+              onClick={() => setIsIngestModalOpen(true)}
+              style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}
+            >
+              <Plus size={16} /> Capturar Vaga
+            </button>
+          </div>
+
+          {/* Quantidade Encontrada */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.84rem", color: "var(--text-dim)" }}>
+            <span>Exibindo {paginatedOpportunities.length} de {filteredOpportunities.length} vagas encontradas</span>
+            {totalPages > 1 && <span>Página {safeRadarPage} de {totalPages}</span>}
+          </div>
+
+          {paginatedOpportunities.length === 0 ? (
             <div style={{ padding: "40px", textAlign: "center", background: "var(--surface)", borderRadius: "12px", color: "var(--text-dim)" }}>
-              Nenhuma oportunidade varrida até o momento. Clique no botão acima para triar um projeto ou aguarde o worker.
+              Nenhuma vaga encontrada com os filtros selecionados.
             </div>
           ) : (
-            opportunities.map((opp) => (
+            paginatedOpportunities.map((opp) => (
               <div
                 key={opp.id}
                 style={{
@@ -453,7 +530,7 @@ export function ProposalsManager() {
                   </div>
 
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "1.1rem", fontWeight: 700, color: opp.fit_score >= 70 ? "#10b981" : "#f59e0b" }}>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 700, color: opp.fit_score >= 70 ? "#10b981" : opp.fit_score >= 50 ? "#f59e0b" : "#ef4444" }}>
                       Score de Fit: {opp.fit_score}/100
                     </div>
                     <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Orçamento: {opp.budget_text || "A combinar"}</span>
@@ -494,6 +571,33 @@ export function ProposalsManager() {
               </div>
             ))
           )}
+
+          {/* Paginação do Radar */}
+          {totalPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "12px" }}>
+              <button
+                className="secondary-button"
+                disabled={safeRadarPage <= 1}
+                onClick={() => setRadarCurrentPage((p) => Math.max(1, p - 1))}
+                style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
+              >
+                <ChevronLeft size={16} /> Anterior
+              </button>
+
+              <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--text-muted)" }}>
+                Página {safeRadarPage} de {totalPages}
+              </span>
+
+              <button
+                className="secondary-button"
+                disabled={safeRadarPage >= totalPages}
+                onClick={() => setRadarCurrentPage((p) => Math.min(totalPages, p + 1))}
+                style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "4px" }}
+              >
+                Próxima <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </div>
       ) : activeTab === "proposals" ? (
         /* ABA 2: CENTRAL DE PROPOSTAS COMERCIAIS */
@@ -505,9 +609,18 @@ export function ProposalsManager() {
                 Briefings ligados aos clientes da plataforma, com versão, escopo e contexto preservados.
               </p>
             </div>
-            <button className="primary-button" type="button" onClick={() => setIsProposalWizardOpen(true)}>
-              <Plus size={16} /> Nova proposta
-            </button>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <button
+                className="secondary-button"
+                onClick={() => setIsPdfModalOpen(true)}
+                style={{ padding: "8px 14px", display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <Printer size={16} /> Relatório Executivo PDF
+              </button>
+              <button className="primary-button" type="button" onClick={() => setIsProposalWizardOpen(true)}>
+                <Plus size={16} /> Nova proposta
+              </button>
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>

@@ -141,7 +141,7 @@ def upsert_platform_config(conn, platform_key: str, data: dict[str, Any]) -> dic
         return dict(cur.fetchone())
 
 
-def list_opportunities(conn, status_filter: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
+def list_opportunities(conn, status_filter: str | None = None, limit: int = 500) -> list[dict[str, Any]]:
     query = """
         select id, source_platform, external_id, title, url, description, budget_text,
                fit_score, fit_analysis, status, raw_payload, created_at, updated_at
