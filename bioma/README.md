@@ -209,7 +209,11 @@ O módulo de Propostas Comerciais (`/backoffice/proposals`) opera como a central
 6. **Inventário de Gaps Tecnológicos**: Identifica automaticamente ferramentas do mercado (HubSpot, Marketo, Salesforce, Shopify, etc.) exigidas em vagas triadas (`opportunity_skill_gaps`), permitindo a incorporação ao portfólio (`tech_skill_inventory`) com 1 clique.
 7. **Big Data, ROI & CAC por Plataforma**: Acompanhamento de conversão (Win Rate %), Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Receita Ganha, Lucro Líquido e ROI (%) por canal de prospecção.
 
-A migration 0055 somente versiona o modelo; não foi aplicada nem populou banco nesta implementação. Detalhe editável, revisões, PDF final, envio, negociação auditada, assinatura e conversão em projeto/contrato permanecem no próximo ciclo.
+A migration 0055 versiona o briefing estruturado. A migration 0056 acrescenta o lifecycle comercial, entregas, conversões e sessões do Copiloto; nenhuma delas é aplicada automaticamente.
+
+O ciclo local agora cobre detalhe editável em Markdown, revisão HITL de alegações, revisões, PDF canônico, transições/timeline auditadas, link público com aceite explícito, archive, coortes e conversão idempotente de proposta ganha em projeto/contrato/escopo. “Envio” só é marcado quando um humano confirma a ação externa; não há integração de e-mail ou assinatura eletrônica apresentada como ativa.
+
+O planejador usa intakes server-owned por disciplina (`retail_v1`, `tech_v1`, `growth_social_v1`) e mantém candidatos separados de entregas materializadas. O Copiloto de Vendas opera no modo preparação + notas/transcrição manual + pós-call; realtime continua não configurado.
 
 Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
 

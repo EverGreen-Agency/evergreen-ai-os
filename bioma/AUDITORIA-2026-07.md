@@ -164,3 +164,14 @@ Railway lançou **Railway Buckets**: object storage S3-compatible nativo, isolad
 ## Metodologia
 
 Revisão manual completa do código do backend (routers/services/repositories/schemas) e frontend (App, views, componentes, lib) já lidos integralmente durante o desenvolvimento desta sessão, cruzada com `ROADMAP-MVP.md`, `EXECUCAO-MVP.md`, `DEPLOY.md` e investigação ao vivo de Vercel (API + CLI) e GitHub Deployments API para Railway. Não rodei `/simplify` ou `/security-review` como skills automatizadas porque elas aplicam mudanças de código automaticamente no diff atual — preferi entregar primeiro a avaliação para vocês decidirem o que priorizar. Posso rodar qualquer uma das duas à parte se quiser um passe automatizado.
+
+## Adendo de implementação — 2026-07-28 (propostas, planejamentos e Copiloto)
+
+- O `PATCH` legado não altera mais status; a máquina de estados auditada exige claims aprovadas antes de aprovação/envio.
+- Consulta pública legada e lifecycle público exigem validade, revisão aprovada, proposta não arquivada e status compatível. O novo DTO público omite snapshots, autoria interna e e-mail do signatário.
+- A conversão `won → projeto + contrato + escopo` exige platform admin, confirmação HITL, cliente ativo e chave idempotente; conflito de chave é detectado antes das mutações.
+- Planejamentos Tech e Growth/Social foram separados do intake Retail e continuam rascunho/finalizado antes da geração do plano.
+- O Copiloto implementado é assíncrono/manual. Realtime, envio externo e assinatura permanecem explicitamente não configurados.
+- A migration 0056 foi criada, mas não aplicada nem usada para popular banco.
+- Validação até este ponto: pytest completo (88 testes), `npx.cmd tsc -b`, `npm.cmd run build`, import da API, `compileall`, regeneração OpenAPI/tipos e leitura sintática/textual do PDF gerado passaram. QA visual e smoke com banco após aplicar 0056 permanecem pendentes.
+- `npm.cmd audit --omit=dev` não ficou verde: reportou 2 achados high no `react-router` 7.18.1 (`GHSA-qwww-vcr4-c8h2`). O advisory limita o impacto às APIs RSC instáveis, que este SPA Vite não usa, mas a versão corrigida indicada é 8.3.0 e exige avaliação de upgrade major; nenhum `audit fix --force` foi aplicado.

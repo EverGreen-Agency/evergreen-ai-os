@@ -111,6 +111,15 @@ Regras invioláveis:
 6. **Carteira não é navegador de módulos.** A troca em escala acontece pelo navegador pesquisável do Topbar; a Sidebar e as tabs mostram apenas o contexto corrente.
 7. **DELETE de cliente significa archive.** Purge físico é uma operação separada de platform admin, exige o cliente já arquivado e confirmação exata do nome, remove objetos S3 antes do banco e preserva o evento de auditoria.
 
+## Ciclo comercial, planejamento e Copiloto
+
+- `commercial_proposals` continua sendo o agregado de proposta; a migration 0056 acrescenta conteúdo canônico, claims revisáveis, timestamps do funil e aceite.
+- `proposal_events`, `proposal_deliveries` e `proposal_conversions` separam auditoria, evidência de envio e efeito operacional. Status não pode ser alterado pelo `PATCH` genérico.
+- A superfície pública usa um DTO reduzido e só expõe proposta revisada, não arquivada, vigente e já enviada/em negociação/ganha.
+- A conversão de proposta ganha exige confirmação HITL e chave idempotente; cria projeto, contrato e itens de escopo numa transação. O refinamento do backlog continua no planejador versionado.
+- `project_planning_intakes` aceita variantes server-owned por disciplina: `retail_v1`, `tech_v1` e `growth_social_v1`. Respostas finalizadas ficam congeladas; planos continuam candidatos até aprovação/materialização.
+- O Copiloto persiste sessões e eventos internos. Preparação e pós-call usam o worker seguro; o modo atual recebe transcrição/notas manuais. Realtime é somente uma porta de adapter e permanece `not_configured` até haver provider, orçamento, consentimento e política de retenção.
+
 ## Protocolo de sessão (humano ou IA)
 
 1. `git status` antes de começar; uma frente por sessão.

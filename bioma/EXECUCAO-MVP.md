@@ -188,3 +188,21 @@ Se não houver tokens suficientes para concluir com validação e commit:
 2. Salve um handoff com comando exato de continuação.
 3. Não marque a tarefa como `DONE`.
 4. Se houver diff parcial, descreva cada arquivo e não permita que a próxima IA o reverta sem leitura.
+
+## Handoff ativo — 2026-07-28
+
+Estado: DONE no código local; PENDING para aplicar migration/validar com dados reais.
+O que foi implementado:
+- lifecycle completo de proposta com revisão de claims, máquina de estados auditada, versão, PDF, entrega registrada, aceite público e conversão HITL;
+- planejamentos server-owned para Retail, Tech e Growth/Social, com portfólio agregado da EG;
+- Copiloto de Vendas assíncrono: preparação contextual, transcrição/notas manuais, insights e resumo pós-call;
+- DTO público mínimo e bloqueio do `PATCH` legado de status.
+Limites declarados:
+- migration `0056_proposal_lifecycle_and_sales_copilot.sql` não foi aplicada;
+- não existe envio de e-mail, assinatura eletrônica nem transcrição/recomendação realtime sem provider futuro;
+- `share_link` e `manual_email` registram preparação/envio confirmado pelo humano; não simulam entrega externa.
+Próxima ação exata:
+1. aplicar 0056 em banco descartável;
+2. executar smoke do lifecycle com proposta sintética;
+3. fazer QA visual das abas Propostas, Planejamentos, Copiloto e do link público;
+4. somente depois selecionar adapters de e-mail/assinatura/realtime com custos, consentimento e retenção definidos.

@@ -454,6 +454,8 @@ Formato:
 
 ## Log de execução
 
+- 2026-07-28 - Codex - ciclo comercial implementado localmente: proposta canônica em Markdown/PDF, revisão HITL de alegações, transições e timeline auditadas, revisões, compartilhamento/registro de entrega, aceite público explícito, archive, coortes e conversão idempotente `won → projeto + contrato + escopo`; planejamentos ganharam variantes `retail_v1`, `tech_v1` e `growth_social_v1`, além do portfólio EG; Copiloto de Vendas ganhou preparação com contexto, transcrição/notas manuais e análise pós-reunião. Migration 0056 foi apenas versionada e não aplicada. Envio externo, assinatura eletrônica e áudio/recomendações realtime permanecem adapters não configurados, sem alegação de operação real.
+
 - 2026-07-09 - Codex - 4d3502d - Corrigido CORS local, responsividade e área de assets - build front, compile backend, preflight/login CORS - pendente QA visual completo.
 - 2026-07-09 - Codex - ver git log - CRUD mínimo de cliente/artefato/entrega, auditoria no portal, smoke API e UI revisada - compile backend, migrate, seed, smoke API, tsc, build frontend - pendente assets reais, ClickUp real, QA visual e staging.
 - 2026-07-09 - Codex - ver git log - Refatoração estrutural inicial do frontend: constantes, helpers, componentes comuns e CockpitView extraídos do App - tsc, build frontend, smoke API - pendente refatorar backend Client Hub e views restantes.

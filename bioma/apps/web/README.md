@@ -75,3 +75,15 @@ Ao remover um cliente na administração, a ação exposta é arquivamento e pre
 ## Tema e branding
 
 O app usa tema escuro Verde Musgo com tokens CSS definidos no topo de `src/styles.css` (`--bg`, `--surface`, `--text`, `--accent` etc.). Novos componentes devem consumir os tokens em vez de cores hardcoded. Assets de marca ficam em `public/assets/brand/` (EG) e `public/assets/clients/<cliente>/` (clientes); os SVGs atuais são placeholders até chegarem os vetores finais.
+
+## Propostas, planejamentos e Copiloto
+
+A área comercial da EG reúne:
+
+- wizard de proposta ligado ao cliente canônico;
+- drawer de lifecycle com proposta/Markdown, dados, claims, revisões, timeline, PDF, cópia, impressão, archive e conversão HITL;
+- página pública `/propostas/public/:token`, sem shell autenticado e com DTO mínimo;
+- portfólio de planejamentos Retail, Tech e Growth/Social;
+- Copiloto de Vendas assíncrono para preparação, notas/transcrição manual e resumo pós-call.
+
+O front não chama envio/assinatura/transcrição realtime fictícios. O registro manual de envio exige confirmação e o painel do Copiloto exibe o adapter realtime como não configurado.

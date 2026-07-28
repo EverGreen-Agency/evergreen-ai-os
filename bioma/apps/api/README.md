@@ -130,3 +130,18 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 - `GET /backoffice/proposals/analytics`: Retorna métricas de Big Data (Win Rate %, CPP, CAC, Lucro Líquido e ROI % por canal).
 
 `commercial_proposals.workspace_id` é opcional para compatibilidade com o radar externo, mas obrigatório no fluxo de briefing. A migration 0055 adiciona série/versão, campos estruturados e `intake_snapshot`; não é aplicada automaticamente. O repositório usa whitelist de colunas mutáveis, evitando que chaves arbitrárias do payload componham SQL dinâmico.
+
+### Lifecycle comercial e Copiloto
+
+- `GET /backoffice/proposals/{id}`: detalhe interno com revisões, eventos, entregas e conversão.
+- `PUT /backoffice/proposals/{id}/content` e `POST /claims-review`: edição em rascunho e revisão HITL.
+- `POST /backoffice/proposals/{id}/transition`: única entrada para transições explícitas de status.
+- `POST /revisions`, `POST /deliveries`, `DELETE /{id}`: nova versão, evidência de entrega e archive.
+- `GET /{id}/pdf`: PDF gerado somente após claims aprovadas.
+- `POST /{id}/convert`: conversão idempotente e confirmada em projeto, contrato e escopo.
+- `GET /backoffice/proposals/cohorts`: coortes por mês e tempos do funil.
+- `GET/POST /proposals/public/{token}/detail|accept`: visualização pública reduzida e aceite explícito.
+- `/backoffice/sales-copilot`: sessões, preparação, eventos manuais, conclusão e métricas; `/realtime-adapter` declara `not_configured`.
+- `GET /backoffice/planning-portfolio`: portfólio EG de intakes e planos por cliente/projeto.
+
+A migration 0056 cria essas estruturas e amplia o check de `project_planning_intakes`; ela deve ser aplicada explicitamente no ambiente escolhido.
