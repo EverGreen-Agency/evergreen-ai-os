@@ -4992,6 +4992,92 @@
         "title": "Ga4AcquisitionSummary",
         "type": "object"
       },
+      "GitHubActivitySyncRequest": {
+        "properties": {
+          "client_visible": {
+            "default": true,
+            "title": "Client Visible",
+            "type": "boolean"
+          },
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "summary_override": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Override"
+          }
+        },
+        "required": [
+          "confirm",
+          "idempotency_key"
+        ],
+        "title": "GitHubActivitySyncRequest",
+        "type": "object"
+      },
+      "GitHubActivitySyncResult": {
+        "properties": {
+          "client_visible": {
+            "title": "Client Visible",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_update_id": {
+            "format": "uuid",
+            "title": "Project Update Id",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "project_update_id",
+          "idempotency_key",
+          "repository",
+          "client_visible",
+          "created_at"
+        ],
+        "title": "GitHubActivitySyncResult",
+        "type": "object"
+      },
       "GitHubCommitSummary": {
         "properties": {
           "author_name": {
@@ -12092,6 +12178,11 @@
             "title": "Confirm",
             "type": "boolean"
           },
+          "generate_plan_draft": {
+            "default": true,
+            "title": "Generate Plan Draft",
+            "type": "boolean"
+          },
           "idempotency_key": {
             "maxLength": 255,
             "minLength": 8,
@@ -14133,6 +14224,28 @@
             },
             "title": "Supported Input",
             "type": "array"
+          },
+          "supported_meeting_providers": {
+            "items": {
+              "enum": [
+                "manual",
+                "google_meet",
+                "microsoft_teams"
+              ],
+              "type": "string"
+            },
+            "title": "Supported Meeting Providers",
+            "type": "array"
+          },
+          "transport": {
+            "default": "polling",
+            "enum": [
+              "polling",
+              "sse",
+              "websocket"
+            ],
+            "title": "Transport",
+            "type": "string"
           }
         },
         "required": [
@@ -14492,6 +14605,269 @@
         "title": "RunSquadPayload",
         "type": "object"
       },
+      "SalesCopilotAction": {
+        "properties": {
+          "action_type": {
+            "enum": [
+              "follow_up_task",
+              "proposal_revision",
+              "project_update"
+            ],
+            "title": "Action Type",
+            "type": "string"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 4,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "materialized_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Materialized At"
+          },
+          "materialized_ref": {
+            "additionalProperties": true,
+            "title": "Materialized Ref",
+            "type": "object"
+          },
+          "owner_hint": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Hint"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 50,
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "approved",
+              "materialized",
+              "dismissed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_type",
+          "title",
+          "id",
+          "session_id",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SalesCopilotAction",
+        "type": "object"
+      },
+      "SalesCopilotActionCreate": {
+        "properties": {
+          "action_type": {
+            "enum": [
+              "follow_up_task",
+              "proposal_revision",
+              "project_update"
+            ],
+            "title": "Action Type",
+            "type": "string"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 4,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "owner_hint": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Hint"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 50,
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_type",
+          "title"
+        ],
+        "title": "SalesCopilotActionCreate",
+        "type": "object"
+      },
+      "SalesCopilotActionMaterialize": {
+        "properties": {
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm",
+          "idempotency_key"
+        ],
+        "title": "SalesCopilotActionMaterialize",
+        "type": "object"
+      },
       "SalesCopilotCompleteRequest": {
         "properties": {
           "duration_seconds": {
@@ -14632,6 +15008,239 @@
         "title": "SalesCopilotEventCreate",
         "type": "object"
       },
+      "SalesCopilotIngestionAck": {
+        "properties": {
+          "accepted_segments": {
+            "title": "Accepted Segments",
+            "type": "integer"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "const": "accepted",
+            "default": "accepted",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "accepted_segments"
+        ],
+        "title": "SalesCopilotIngestionAck",
+        "type": "object"
+      },
+      "SalesCopilotIngestionCredential": {
+        "properties": {
+          "endpoint_path": {
+            "title": "Endpoint Path",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "ingest_token": {
+            "title": "Ingest Token",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "ingest_token",
+          "endpoint_path"
+        ],
+        "title": "SalesCopilotIngestionCredential",
+        "type": "object"
+      },
+      "SalesCopilotLiveAnalyzeRequest": {
+        "properties": {
+          "focus": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus"
+          },
+          "window_segments": {
+            "default": 12,
+            "maximum": 50.0,
+            "minimum": 3.0,
+            "title": "Window Segments",
+            "type": "integer"
+          }
+        },
+        "title": "SalesCopilotLiveAnalyzeRequest",
+        "type": "object"
+      },
+      "SalesCopilotLiveSuggestion": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "generation_mode": {
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "used",
+              "dismissed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggestion_type": {
+            "enum": [
+              "question",
+              "objection_response",
+              "risk",
+              "opportunity",
+              "next_step"
+            ],
+            "title": "Suggestion Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "suggestion_type",
+          "title",
+          "content",
+          "generation_mode",
+          "status",
+          "created_at"
+        ],
+        "title": "SalesCopilotLiveSuggestion",
+        "type": "object"
+      },
+      "SalesCopilotMeetingConfigure": {
+        "properties": {
+          "consent_granted": {
+            "title": "Consent Granted",
+            "type": "boolean"
+          },
+          "external_meeting_id": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Meeting Id"
+          },
+          "meeting_provider": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "google_meet",
+              "microsoft_teams"
+            ],
+            "title": "Meeting Provider",
+            "type": "string"
+          },
+          "meeting_url": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Url"
+          },
+          "retention_days": {
+            "default": 90,
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "consent_granted"
+        ],
+        "title": "SalesCopilotMeetingConfigure",
+        "type": "object"
+      },
       "SalesCopilotMetrics": {
         "properties": {
           "analyses_completed": {
@@ -14662,8 +15271,275 @@
         "title": "SalesCopilotMetrics",
         "type": "object"
       },
+      "SalesCopilotParticipant": {
+        "properties": {
+          "context_notes": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Notes"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "decision_role": {
+            "default": "unknown",
+            "enum": [
+              "champion",
+              "decision_maker",
+              "influencer",
+              "technical",
+              "user",
+              "unknown"
+            ],
+            "title": "Decision Role",
+            "type": "string"
+          },
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "external_speaker_id": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Speaker Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "organization_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Name"
+          },
+          "participant_group": {
+            "default": "unknown",
+            "enum": [
+              "eg_team",
+              "client",
+              "partner",
+              "unknown"
+            ],
+            "title": "Participant Group",
+            "type": "string"
+          },
+          "seniority": {
+            "default": "unknown",
+            "enum": [
+              "individual",
+              "manager",
+              "director",
+              "c_level",
+              "owner",
+              "unknown"
+            ],
+            "title": "Seniority",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "id",
+          "session_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SalesCopilotParticipant",
+        "type": "object"
+      },
+      "SalesCopilotParticipantCreate": {
+        "properties": {
+          "context_notes": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Notes"
+          },
+          "decision_role": {
+            "default": "unknown",
+            "enum": [
+              "champion",
+              "decision_maker",
+              "influencer",
+              "technical",
+              "user",
+              "unknown"
+            ],
+            "title": "Decision Role",
+            "type": "string"
+          },
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "external_speaker_id": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Speaker Id"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "organization_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Name"
+          },
+          "participant_group": {
+            "default": "unknown",
+            "enum": [
+              "eg_team",
+              "client",
+              "partner",
+              "unknown"
+            ],
+            "title": "Participant Group",
+            "type": "string"
+          },
+          "seniority": {
+            "default": "unknown",
+            "enum": [
+              "individual",
+              "manager",
+              "director",
+              "c_level",
+              "owner",
+              "unknown"
+            ],
+            "title": "Seniority",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name"
+        ],
+        "title": "SalesCopilotParticipantCreate",
+        "type": "object"
+      },
       "SalesCopilotSession": {
         "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
           "completed_at": {
             "anyOf": [
               {
@@ -14675,6 +15551,28 @@
               }
             ],
             "title": "Completed At"
+          },
+          "consent_recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Recorded At"
+          },
+          "consent_status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "granted",
+              "revoked"
+            ],
+            "title": "Consent Status",
+            "type": "string"
           },
           "created_at": {
             "format": "date-time",
@@ -14704,6 +15602,17 @@
             "title": "Events",
             "type": "array"
           },
+          "external_meeting_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Meeting Id"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -14717,6 +15626,32 @@
           "language": {
             "title": "Language",
             "type": "string"
+          },
+          "live_context": {
+            "additionalProperties": true,
+            "title": "Live Context",
+            "type": "object"
+          },
+          "meeting_provider": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "google_meet",
+              "microsoft_teams"
+            ],
+            "title": "Meeting Provider",
+            "type": "string"
+          },
+          "meeting_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Url"
           },
           "objective": {
             "anyOf": [
@@ -14739,6 +15674,13 @@
               }
             ],
             "title": "Participant Context"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotParticipant"
+            },
+            "title": "Participants",
+            "type": "array"
           },
           "preparation_brief": {
             "additionalProperties": true,
@@ -14766,6 +15708,25 @@
             ],
             "title": "Realtime Status",
             "type": "string"
+          },
+          "retention_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Until"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotTranscriptSegment"
+            },
+            "title": "Segments",
+            "type": "array"
           },
           "session_type": {
             "enum": [
@@ -14799,6 +15760,13 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotLiveSuggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
           },
           "summary": {
             "anyOf": [
@@ -14931,6 +15899,259 @@
           "title"
         ],
         "title": "SalesCopilotSessionCreate",
+        "type": "object"
+      },
+      "SalesCopilotTranscriptBatch": {
+        "properties": {
+          "analyze_after_ingest": {
+            "default": false,
+            "title": "Analyze After Ingest",
+            "type": "boolean"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotTranscriptSegmentCreate"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Segments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "segments"
+        ],
+        "title": "SalesCopilotTranscriptBatch",
+        "type": "object"
+      },
+      "SalesCopilotTranscriptSegment": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "end_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Ms"
+          },
+          "external_speaker_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Speaker Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "is_final": {
+            "title": "Is Final",
+            "type": "boolean"
+          },
+          "participant_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Id"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "speaker_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker Label"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "idempotency_key",
+          "source",
+          "start_ms",
+          "content",
+          "is_final",
+          "sequence",
+          "created_at"
+        ],
+        "title": "SalesCopilotTranscriptSegment",
+        "type": "object"
+      },
+      "SalesCopilotTranscriptSegmentCreate": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "content": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "end_ms": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Ms"
+          },
+          "external_speaker_id": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Speaker Id"
+          },
+          "idempotency_key": {
+            "maxLength": 255,
+            "minLength": 4,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "is_final": {
+            "default": true,
+            "title": "Is Final",
+            "type": "boolean"
+          },
+          "participant_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Id"
+          },
+          "source": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "upload",
+              "google_meet",
+              "microsoft_teams",
+              "provider_webhook"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "speaker_label": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker Label"
+          },
+          "start_ms": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Start Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "content"
+        ],
+        "title": "SalesCopilotTranscriptSegmentCreate",
         "type": "object"
       },
       "SatisfactionScoreCreateRequest": {
@@ -22523,6 +23744,121 @@
         ]
       }
     },
+    "/backoffice/sales-copilot/actions/{action_id}/materialize": {
+      "post": {
+        "operationId": "materialize_action_backoffice_sales_copilot_actions__action_id__materialize_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotActionMaterialize"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Materialize Action",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/ingest/{session_id}": {
+      "post": {
+        "operationId": "ingest_external_transcript_backoffice_sales_copilot_ingest__session_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-copilot-ingest-token",
+            "required": true,
+            "schema": {
+              "title": "X-Copilot-Ingest-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotTranscriptBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotIngestionAck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest External Transcript",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
     "/backoffice/sales-copilot/metrics": {
       "get": {
         "operationId": "get_metrics_backoffice_sales_copilot_metrics_get",
@@ -22603,6 +23939,112 @@
           }
         },
         "summary": "Get Session",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/actions": {
+      "post": {
+        "operationId": "add_action_backoffice_sales_copilot__session_id__actions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotActionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Action",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/analyze-live": {
+      "post": {
+        "operationId": "analyze_live_backoffice_sales_copilot__session_id__analyze_live_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotLiveAnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analyze Live",
         "tags": [
           "sales-copilot"
         ]
@@ -22714,6 +24156,155 @@
         ]
       }
     },
+    "/backoffice/sales-copilot/{session_id}/ingestion-credential": {
+      "post": {
+        "operationId": "issue_ingestion_credential_backoffice_sales_copilot__session_id__ingestion_credential_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotIngestionCredential"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue Ingestion Credential",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/meeting": {
+      "put": {
+        "operationId": "configure_meeting_backoffice_sales_copilot__session_id__meeting_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotMeetingConfigure"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Configure Meeting",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/participants": {
+      "post": {
+        "operationId": "add_participant_backoffice_sales_copilot__session_id__participants_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotParticipantCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Participant",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
     "/backoffice/sales-copilot/{session_id}/prepare": {
       "post": {
         "operationId": "prepare_session_backoffice_sales_copilot__session_id__prepare_post",
@@ -22752,6 +24343,59 @@
           }
         },
         "summary": "Prepare Session",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/transcript-segments": {
+      "post": {
+        "operationId": "ingest_transcript_backoffice_sales_copilot__session_id__transcript_segments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotTranscriptBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Transcript",
         "tags": [
           "sales-copilot"
         ]
@@ -26116,6 +27760,59 @@
           }
         },
         "summary": "Get Github Activity",
+        "tags": [
+          "integrations"
+        ]
+      }
+    },
+    "/integrations/github/projects/{project_id}/publish-update": {
+      "post": {
+        "operationId": "publish_github_activity_update_integrations_github_projects__project_id__publish_update_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubActivitySyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubActivitySyncResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish Github Activity Update",
         "tags": [
           "integrations"
         ]

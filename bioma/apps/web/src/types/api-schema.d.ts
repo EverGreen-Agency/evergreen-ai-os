@@ -1276,6 +1276,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/sales-copilot/actions/{action_id}/materialize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Materialize Action */
+        post: operations["materialize_action_backoffice_sales_copilot_actions__action_id__materialize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/ingest/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest External Transcript */
+        post: operations["ingest_external_transcript_backoffice_sales_copilot_ingest__session_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/sales-copilot/metrics": {
         parameters: {
             query?: never;
@@ -1327,6 +1361,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/sales-copilot/{session_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Action */
+        post: operations["add_action_backoffice_sales_copilot__session_id__actions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/analyze-live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Analyze Live */
+        post: operations["analyze_live_backoffice_sales_copilot__session_id__analyze_live_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/sales-copilot/{session_id}/complete": {
         parameters: {
             query?: never;
@@ -1361,6 +1429,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/sales-copilot/{session_id}/ingestion-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue Ingestion Credential */
+        post: operations["issue_ingestion_credential_backoffice_sales_copilot__session_id__ingestion_credential_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/meeting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Configure Meeting */
+        put: operations["configure_meeting_backoffice_sales_copilot__session_id__meeting_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Participant */
+        post: operations["add_participant_backoffice_sales_copilot__session_id__participants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/sales-copilot/{session_id}/prepare": {
         parameters: {
             query?: never;
@@ -1372,6 +1491,23 @@ export interface paths {
         put?: never;
         /** Prepare Session */
         post: operations["prepare_session_backoffice_sales_copilot__session_id__prepare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/transcript-segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest Transcript */
+        post: operations["ingest_transcript_backoffice_sales_copilot__session_id__transcript_segments_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2208,6 +2344,23 @@ export interface paths {
         get: operations["get_github_activity_integrations_github_projects__project_id__activity_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/github/projects/{project_id}/publish-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Github Activity Update */
+        post: operations["publish_github_activity_update_integrations_github_projects__project_id__publish_update_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5499,6 +5652,49 @@ export interface components {
             /** Total Users */
             total_users: number;
         };
+        /** GitHubActivitySyncRequest */
+        GitHubActivitySyncRequest: {
+            /**
+             * Client Visible
+             * @default true
+             */
+            client_visible: boolean;
+            /** Confirm */
+            confirm: boolean;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /** Summary Override */
+            summary_override?: string | null;
+        };
+        /** GitHubActivitySyncResult */
+        GitHubActivitySyncResult: {
+            /** Client Visible */
+            client_visible: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Project Update Id
+             * Format: uuid
+             */
+            project_update_id: string;
+            /** Repository */
+            repository: string;
+        };
         /** GitHubCommitSummary */
         GitHubCommitSummary: {
             /** Author Name */
@@ -8096,6 +8292,11 @@ export interface components {
         ProposalConversionCreate: {
             /** Confirm */
             confirm: boolean;
+            /**
+             * Generate Plan Draft
+             * @default true
+             */
+            generate_plan_draft: boolean;
             /** Idempotency Key */
             idempotency_key: string;
             /** Project Name */
@@ -8708,6 +8909,14 @@ export interface components {
             status: "not_configured" | "adapter_ready";
             /** Supported Input */
             supported_input?: string[];
+            /** Supported Meeting Providers */
+            supported_meeting_providers?: ("manual" | "google_meet" | "microsoft_teams")[];
+            /**
+             * Transport
+             * @default polling
+             * @enum {string}
+             */
+            transport: "polling" | "sse" | "websocket";
         };
         /** ResearchChallenge */
         ResearchChallenge: {
@@ -8832,6 +9041,92 @@ export interface components {
             /** Squad Slug */
             squad_slug: string;
         };
+        /** SalesCopilotAction */
+        SalesCopilotAction: {
+            /**
+             * Action Type
+             * @enum {string}
+             */
+            action_type: "follow_up_task" | "proposal_revision" | "project_update";
+            /** Approved By */
+            approved_by?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Detail */
+            detail?: string | null;
+            /** Due At */
+            due_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+            /** Materialized At */
+            materialized_at?: string | null;
+            /** Materialized Ref */
+            materialized_ref?: {
+                [key: string]: unknown;
+            };
+            /** Owner Hint */
+            owner_hint?: string | null;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "proposed" | "approved" | "materialized" | "dismissed" | "failed";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SalesCopilotActionCreate */
+        SalesCopilotActionCreate: {
+            /**
+             * Action Type
+             * @enum {string}
+             */
+            action_type: "follow_up_task" | "proposal_revision" | "project_update";
+            /** Detail */
+            detail?: string | null;
+            /** Due At */
+            due_at?: string | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+            /** Owner Hint */
+            owner_hint?: string | null;
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+            /** Title */
+            title: string;
+        };
+        /** SalesCopilotActionMaterialize */
+        SalesCopilotActionMaterialize: {
+            /** Confirm */
+            confirm: boolean;
+            /** Idempotency Key */
+            idempotency_key: string;
+        };
         /** SalesCopilotCompleteRequest */
         SalesCopilotCompleteRequest: {
             /**
@@ -8891,6 +9186,108 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** SalesCopilotIngestionAck */
+        SalesCopilotIngestionAck: {
+            /** Accepted Segments */
+            accepted_segments: number;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /**
+             * Status
+             * @default accepted
+             * @constant
+             */
+            status: "accepted";
+        };
+        /** SalesCopilotIngestionCredential */
+        SalesCopilotIngestionCredential: {
+            /** Endpoint Path */
+            endpoint_path: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Ingest Token */
+            ingest_token: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+        };
+        /** SalesCopilotLiveAnalyzeRequest */
+        SalesCopilotLiveAnalyzeRequest: {
+            /** Focus */
+            focus?: string | null;
+            /**
+             * Window Segments
+             * @default 12
+             */
+            window_segments: number;
+        };
+        /** SalesCopilotLiveSuggestion */
+        SalesCopilotLiveSuggestion: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Generation Mode */
+            generation_mode: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Rationale */
+            rationale?: string | null;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "used" | "dismissed";
+            /**
+             * Suggestion Type
+             * @enum {string}
+             */
+            suggestion_type: "question" | "objection_response" | "risk" | "opportunity" | "next_step";
+            /** Title */
+            title: string;
+        };
+        /** SalesCopilotMeetingConfigure */
+        SalesCopilotMeetingConfigure: {
+            /** Consent Granted */
+            consent_granted: boolean;
+            /** External Meeting Id */
+            external_meeting_id?: string | null;
+            /**
+             * Meeting Provider
+             * @default manual
+             * @enum {string}
+             */
+            meeting_provider: "manual" | "google_meet" | "microsoft_teams";
+            /** Meeting Url */
+            meeting_url?: string | null;
+            /**
+             * Retention Days
+             * @default 90
+             */
+            retention_days: number;
+        };
         /** SalesCopilotMetrics */
         SalesCopilotMetrics: {
             /** Analyses Completed */
@@ -8904,10 +9301,108 @@ export interface components {
             /** Total Sessions */
             total_sessions: number;
         };
+        /** SalesCopilotParticipant */
+        SalesCopilotParticipant: {
+            /** Context Notes */
+            context_notes?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Decision Role
+             * @default unknown
+             * @enum {string}
+             */
+            decision_role: "champion" | "decision_maker" | "influencer" | "technical" | "user" | "unknown";
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email?: string | null;
+            /** External Speaker Id */
+            external_speaker_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Job Title */
+            job_title?: string | null;
+            /** Organization Name */
+            organization_name?: string | null;
+            /**
+             * Participant Group
+             * @default unknown
+             * @enum {string}
+             */
+            participant_group: "eg_team" | "client" | "partner" | "unknown";
+            /**
+             * Seniority
+             * @default unknown
+             * @enum {string}
+             */
+            seniority: "individual" | "manager" | "director" | "c_level" | "owner" | "unknown";
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SalesCopilotParticipantCreate */
+        SalesCopilotParticipantCreate: {
+            /** Context Notes */
+            context_notes?: string | null;
+            /**
+             * Decision Role
+             * @default unknown
+             * @enum {string}
+             */
+            decision_role: "champion" | "decision_maker" | "influencer" | "technical" | "user" | "unknown";
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email?: string | null;
+            /** External Speaker Id */
+            external_speaker_id?: string | null;
+            /** Job Title */
+            job_title?: string | null;
+            /** Organization Name */
+            organization_name?: string | null;
+            /**
+             * Participant Group
+             * @default unknown
+             * @enum {string}
+             */
+            participant_group: "eg_team" | "client" | "partner" | "unknown";
+            /**
+             * Seniority
+             * @default unknown
+             * @enum {string}
+             */
+            seniority: "individual" | "manager" | "director" | "c_level" | "owner" | "unknown";
+        };
         /** SalesCopilotSession */
         SalesCopilotSession: {
+            /** Actions */
+            actions?: components["schemas"]["SalesCopilotAction"][];
             /** Completed At */
             completed_at?: string | null;
+            /** Consent Recorded At */
+            consent_recorded_at?: string | null;
+            /**
+             * Consent Status
+             * @default pending
+             * @enum {string}
+             */
+            consent_status: "pending" | "granted" | "revoked";
             /**
              * Created At
              * Format: date-time
@@ -8919,6 +9414,8 @@ export interface components {
             duration_seconds: number;
             /** Events */
             events?: components["schemas"]["SalesCopilotEvent"][];
+            /** External Meeting Id */
+            external_meeting_id?: string | null;
             /**
              * Id
              * Format: uuid
@@ -8930,10 +9427,24 @@ export interface components {
             };
             /** Language */
             language: string;
+            /** Live Context */
+            live_context?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Meeting Provider
+             * @default manual
+             * @enum {string}
+             */
+            meeting_provider: "manual" | "google_meet" | "microsoft_teams";
+            /** Meeting Url */
+            meeting_url?: string | null;
             /** Objective */
             objective?: string | null;
             /** Participant Context */
             participant_context?: string | null;
+            /** Participants */
+            participants?: components["schemas"]["SalesCopilotParticipant"][];
             /** Preparation Brief */
             preparation_brief?: {
                 [key: string]: unknown;
@@ -8945,6 +9456,10 @@ export interface components {
              * @enum {string}
              */
             realtime_status: "not_configured" | "adapter_ready" | "live" | "failed";
+            /** Retention Until */
+            retention_until?: string | null;
+            /** Segments */
+            segments?: components["schemas"]["SalesCopilotTranscriptSegment"][];
             /**
              * Session Type
              * @enum {string}
@@ -8957,6 +9472,8 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "prepared" | "active" | "completed" | "cancelled";
+            /** Suggestions */
+            suggestions?: components["schemas"]["SalesCopilotLiveSuggestion"][];
             /** Summary */
             summary?: string | null;
             /** Title */
@@ -8994,6 +9511,91 @@ export interface components {
             title: string;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /** SalesCopilotTranscriptBatch */
+        SalesCopilotTranscriptBatch: {
+            /**
+             * Analyze After Ingest
+             * @default false
+             */
+            analyze_after_ingest: boolean;
+            /** Segments */
+            segments: components["schemas"]["SalesCopilotTranscriptSegmentCreate"][];
+        };
+        /** SalesCopilotTranscriptSegment */
+        SalesCopilotTranscriptSegment: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** End Ms */
+            end_ms?: number | null;
+            /** External Speaker Id */
+            external_speaker_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Is Final */
+            is_final: boolean;
+            /** Participant Id */
+            participant_id?: string | null;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Source */
+            source: string;
+            /** Speaker Label */
+            speaker_label?: string | null;
+            /** Start Ms */
+            start_ms: number;
+        };
+        /** SalesCopilotTranscriptSegmentCreate */
+        SalesCopilotTranscriptSegmentCreate: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Content */
+            content: string;
+            /** End Ms */
+            end_ms?: number | null;
+            /** External Speaker Id */
+            external_speaker_id?: string | null;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Is Final
+             * @default true
+             */
+            is_final: boolean;
+            /** Participant Id */
+            participant_id?: string | null;
+            /**
+             * Source
+             * @default manual
+             * @enum {string}
+             */
+            source: "manual" | "upload" | "google_meet" | "microsoft_teams" | "provider_webhook";
+            /** Speaker Label */
+            speaker_label?: string | null;
+            /**
+             * Start Ms
+             * @default 0
+             */
+            start_ms: number;
         };
         /** SatisfactionScoreCreateRequest */
         SatisfactionScoreCreateRequest: {
@@ -13149,6 +13751,78 @@ export interface operations {
             };
         };
     };
+    materialize_action_backoffice_sales_copilot_actions__action_id__materialize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotActionMaterialize"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ingest_external_transcript_backoffice_sales_copilot_ingest__session_id__post: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-copilot-ingest-token": string;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotTranscriptBatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotIngestionAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_metrics_backoffice_sales_copilot_metrics_get: {
         parameters: {
             query?: never;
@@ -13199,6 +13873,76 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_action_backoffice_sales_copilot__session_id__actions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotActionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_live_backoffice_sales_copilot__session_id__analyze_live_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotLiveAnalyzeRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -13290,6 +14034,107 @@ export interface operations {
             };
         };
     };
+    issue_ingestion_credential_backoffice_sales_copilot__session_id__ingestion_credential_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotIngestionCredential"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    configure_meeting_backoffice_sales_copilot__session_id__meeting_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotMeetingConfigure"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_participant_backoffice_sales_copilot__session_id__participants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotParticipantCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     prepare_session_backoffice_sales_copilot__session_id__prepare_post: {
         parameters: {
             query?: never;
@@ -13300,6 +14145,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ingest_transcript_backoffice_sales_copilot__session_id__transcript_segments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotTranscriptBatch"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -15455,6 +16335,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GitHubProjectActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_github_activity_update_integrations_github_projects__project_id__publish_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubActivitySyncRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubActivitySyncResult"];
                 };
             };
             /** @description Validation Error */
