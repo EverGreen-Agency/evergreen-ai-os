@@ -546,12 +546,13 @@ export function IntegrationsTab({
         </section>
       )}
 
-      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) --- */}
-      <section className="section-card" style={{ marginTop: 24 }}>
-        <header className="section-header">
-          <Briefcase size={20} color="var(--brand-accent)" />
-          <div>
-            <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
+      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) - Apenas gestão interna EG --- */}
+      {scope !== "client" && (
+        <section className="section-card" style={{ marginTop: 24 }}>
+          <header className="section-header">
+            <Briefcase size={20} color="var(--brand-accent)" />
+            <div>
+              <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
             <p className="section-desc">
               Status das integrações, RSS customizados e lançamento automático de gastos (assinaturas SaaS) no Financeiro.
             </p>
@@ -663,6 +664,7 @@ export function IntegrationsTab({
           })}
         </div>
       </section>
+      )}
     </div>
   );
 }

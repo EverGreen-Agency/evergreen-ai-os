@@ -12,7 +12,7 @@ from bioma_api.domain.models import Role
 from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 
-CLIENT_MODULES = ("hub", "content", "files", "commercial", "analytics", "integrations", "engineering")
+CLIENT_MODULES = ("hub", "content", "files", "commercial", "finance", "analytics", "integrations", "engineering")
 DEFAULT_CLIENT_MODULES = ("hub", "content", "files")
 
 WORKSPACE_CAPABILITIES = {
@@ -30,6 +30,7 @@ MODULE_LABELS = {
     "content": "Conteúdo",
     "files": "Arquivos",
     "commercial": "Comercial",
+    "finance": "Financeiro",
     "analytics": "Analytics",
     "integrations": "Integrações",
     "engineering": "Engenharia",

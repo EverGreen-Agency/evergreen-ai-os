@@ -77,7 +77,7 @@ export function ClientWorkspaceView() {
   const enabledModules = new Set(client.enabled_modules ?? ["hub"]);
   enabledModules.add("hub");
   const visibleItems = clientHubNavItems.filter(
-    (item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin),
+    (item) => enabledModules.has(item.module),
   );
   const workspace = clientWorkspaceContext(client, persistedWorkspace);
   const items = visibleItems.map((item) => ({

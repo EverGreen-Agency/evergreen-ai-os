@@ -7,7 +7,7 @@ export type ApiHealth = {
   checked_at: string;
 };
 
-export type ClientModule = "hub" | "content" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
+export type ClientModule = "hub" | "content" | "files" | "commercial" | "finance" | "analytics" | "integrations" | "engineering";
 
 export type UserOrganization = {
   id: string;

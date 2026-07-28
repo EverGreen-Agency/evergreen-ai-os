@@ -100,7 +100,7 @@ export function Sidebar({
     
     const workspaceNav = clientHubNavItems
       .filter((item) => item.id !== "tasks") // Tarefas agora serão renderizadas como pastas
-      .filter((item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin));
+      .filter((item) => enabledModules.has(item.module));
 
     return (
       <>

@@ -52,7 +52,7 @@ export const clientHubNavItems: Array<{
   { id: "projects", label: "Projetos e contratos", path: "projetos", module: "hub", icon: BriefcaseBusiness },
   { id: "ai-content", label: "Estúdio IA", path: "conteudo-ia", module: "content", icon: Sparkles },
   { id: "crm", label: "CRM", path: "crm", module: "commercial", icon: Users },
-  { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
+  { id: "finance", label: "Financeiro", path: "financeiro", module: "finance", icon: WalletCards },
   { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
   { id: "files", label: "Documentos", path: "documentos", module: "files", icon: FolderOpen },
   { id: "tasks", label: "Tarefas", path: "tarefas", module: "hub", icon: LayoutDashboard },
@@ -93,7 +93,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
   operacao: "hub",
   clientes: "hub",
   crm: "commercial",
-  finance: "commercial",
+  finance: "finance",
   analytics: "analytics",
   engenharia: "engineering",
   // Rotas internas não devem depender de módulos de cliente,
@@ -112,18 +112,19 @@ export const viewModule: Record<ViewId, ClientModule> = {
 };
 
 export const moduleLabels: Record<ClientModule, string> = {
-  hub: "Hub do cliente",
-  content: "Conteúdo",
-  files: "Arquivos",
-  commercial: "Comercial",
-  analytics: "Analytics",
+  hub: "Visão geral do cliente",
+  content: "Estúdio IA",
+  files: "Arquivos e Documentos",
+  commercial: "CRM (Vendas)",
+  finance: "Financeiro",
+  analytics: "Métricas e Analytics",
   integrations: "Integrações",
   engineering: "Engenharia",
 };
 
 // Módulos que o EG admin pode ligar/desligar por cliente ("hub" é o núcleo,
 // sempre ativo — o backend força isso também).
-export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "analytics", "integrations"];
+export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "finance", "analytics", "integrations"];
 
 export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
   if (isEgAdmin) {
