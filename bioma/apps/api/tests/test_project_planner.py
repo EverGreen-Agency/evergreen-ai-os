@@ -56,6 +56,13 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
         "client_visible": True,
         "status": "active",
     }
+    document = {
+        "kind": "technical_spec",
+        "title": "Especificação confirmada",
+        "url": "https://docs.example/spec",
+        "contract_id": None,
+        "planning_excerpt": "Integrar agenda com prontuário e validar permissões por perfil.",
+    }
 
     def fake_execute(**kwargs):
         assert open_connections == 0
@@ -88,7 +95,7 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
     monkeypatch.setattr(project_service, "_project", lambda *_args, **_kwargs: project)
     monkeypatch.setattr(project_service.project_repo, "list_contracts", lambda *_args: [])
     monkeypatch.setattr(project_service.project_repo, "list_scope_items", lambda *_args: [scope])
-    monkeypatch.setattr(project_service.project_repo, "list_documents", lambda *_args: [])
+    monkeypatch.setattr(project_service.project_repo, "list_documents", lambda *_args: [document])
     monkeypatch.setattr(
         project_service.client_profile_repo,
         "get_profile_for_organization",
@@ -108,7 +115,11 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
 
     result = project_service.generate_project_plan(
         project_id,
-        ProjectPlanGenerateRequest(source_kind="onboarding", social_approval_flow="after_production"),
+        ProjectPlanGenerateRequest(
+            source_kind="onboarding",
+            social_approval_flow="after_production",
+            technical_context="Priorizar validação da integração antes de liberar a fase.",
+        ),
         eg_admin,
     )
 
@@ -119,6 +130,13 @@ def test_social_plan_never_creates_github_candidate_or_invented_deadline(eg_admi
     assert saved_items[0]["approval_required"] is True
     assert saved_items[0]["metadata"]["contract_cadence"] == "monthly"
     assert captured_context["client_context"] == {"sector": "Saúde", "primary_offer": "Clínica especializada"}
+    assert captured_context["technical_context"] == "Priorizar validação da integração antes de liberar a fase."
+    assert captured_context["documents"] == [{
+        "kind": "technical_spec",
+        "title": "Especificação confirmada",
+        "url": "https://docs.example/spec",
+        "planning_excerpt": "Integrar agenda com prontuário e validar permissões por perfil.",
+    }]
 
 
 def test_materialization_replay_does_not_duplicate_deliverables(eg_admin, monkeypatch):

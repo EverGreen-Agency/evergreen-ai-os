@@ -159,6 +159,8 @@ class ProjectDocumentCreate(BaseModel):
     kind: ProjectDocumentKind
     title: str = Field(min_length=2, max_length=240)
     url: str = Field(min_length=8, max_length=2_000)
+    contract_id: UUID | None = None
+    planning_excerpt: str | None = Field(default=None, max_length=20_000)
     client_visible: bool = True
 
 
@@ -174,6 +176,7 @@ class ProjectPlanGenerateRequest(BaseModel):
     contract_id: UUID | None = None
     source_kind: ProjectPlanSourceKind = "contract"
     briefing: str | None = Field(default=None, max_length=20_000)
+    technical_context: str | None = Field(default=None, max_length=20_000)
     objective: str | None = Field(default=None, max_length=5_000)
     social_approval_flow: SocialApprovalFlow = "adaptive"
 
@@ -316,6 +319,8 @@ class ProjectDocumentSummary(BaseModel):
     kind: ProjectDocumentKind
     title: str
     url: str
+    contract_id: UUID | None = None
+    planning_excerpt: str | None = None
     client_visible: bool
     created_at: datetime
 

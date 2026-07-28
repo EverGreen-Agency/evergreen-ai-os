@@ -284,7 +284,7 @@ def update_phase(conn, phase_id: UUID, updates: dict[str, Any]):
 def list_documents(conn, project_id: UUID, include_internal: bool):
     return conn.execute(
         """
-        select id, project_id, kind, title, url, client_visible, created_at
+        select id, project_id, kind, title, url, contract_id, planning_excerpt, client_visible, created_at
         from project_documents
         where project_id = %s and (%s or client_visible)
         order by created_at desc
@@ -296,10 +296,14 @@ def list_documents(conn, project_id: UUID, include_internal: bool):
 def create_document(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
     return conn.execute(
         """
-        insert into project_documents (project_id, kind, title, url, client_visible, created_by)
-        values (%s, %s, %s, %s, %s, %s) returning *
+        insert into project_documents (
+          project_id, kind, title, url, contract_id, planning_excerpt, client_visible, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s) returning *
         """,
-        (project_id, payload["kind"], payload["title"], payload["url"], payload["client_visible"], user_id),
+        (
+            project_id, payload["kind"], payload["title"], payload["url"], payload.get("contract_id"),
+            payload.get("planning_excerpt"), payload["client_visible"], user_id,
+        ),
     ).fetchone()
 
 

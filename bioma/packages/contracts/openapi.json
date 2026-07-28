@@ -9850,6 +9850,18 @@
             "title": "Client Visible",
             "type": "boolean"
           },
+          "contract_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
           "kind": {
             "enum": [
               "proposal",
@@ -9860,6 +9872,18 @@
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "planning_excerpt": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planning Excerpt"
           },
           "title": {
             "maxLength": 240,
@@ -9888,6 +9912,18 @@
             "title": "Client Visible",
             "type": "boolean"
           },
+          "contract_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -9908,6 +9944,17 @@
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "planning_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planning Excerpt"
           },
           "project_id": {
             "format": "uuid",
@@ -10322,6 +10369,18 @@
             ],
             "title": "Source Kind",
             "type": "string"
+          },
+          "technical_context": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Technical Context"
           }
         },
         "title": "ProjectPlanGenerateRequest",

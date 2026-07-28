@@ -192,6 +192,13 @@ def update_phase(phase_id: UUID, payload: ProjectPhaseUpdate, user: CurrentUserR
 def create_document(project_id: UUID, payload: ProjectDocumentCreate, user: CurrentUserResponse) -> ProjectDetail:
     with connect() as conn:
         project = _project(conn, project_id, user, "manage_work")
+        if payload.contract_id:
+            contract = _contract(conn, payload.contract_id, user, "manage_work")
+            if contract["project_id"] != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Contrato pertence a outro projeto.",
+                )
         row = project_repo.create_document(conn, project_id, user.id, payload.model_dump())
         project_repo.write_audit(conn, user.id, project["organization_id"], "project.document_linked", {
             "project_id": str(project_id), "document_id": str(row["id"]), "kind": row["kind"],
@@ -262,6 +269,10 @@ def generate_project_plan(
             if row["status"] == "active" and (not contract or row["contract_id"] == contract["id"])
         ]
         documents = project_repo.list_documents(conn, project_id, True)
+        planning_documents = [
+            item for item in documents
+            if not contract or item["contract_id"] in (None, contract["id"])
+        ]
         client_profile = client_profile_service.planning_context(
             client_profile_repo.get_profile_for_organization(conn, project["organization_id"])
         )
@@ -271,6 +282,7 @@ def generate_project_plan(
             "project_objective": payload.objective or project.get("objective"),
             "source_kind": payload.source_kind,
             "briefing": payload.briefing,
+            "technical_context": payload.technical_context,
             "social_approval_flow": payload.social_approval_flow,
             "contract": (
                 {
@@ -298,8 +310,13 @@ def generate_project_plan(
                 for item in scope_items
             ],
             "documents": [
-                {"kind": item["kind"], "title": item["title"], "url": item["url"]}
-                for item in documents
+                {
+                    "kind": item["kind"],
+                    "title": item["title"],
+                    "url": item["url"],
+                    "planning_excerpt": item["planning_excerpt"],
+                }
+                for item in planning_documents
             ],
             "client_context": client_profile,
         }

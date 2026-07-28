@@ -6911,11 +6911,15 @@ export interface components {
              * @default true
              */
             client_visible: boolean;
+            /** Contract Id */
+            contract_id?: string | null;
             /**
              * Kind
              * @enum {string}
              */
             kind: "proposal" | "technical_spec" | "scope" | "acceptance" | "release_notes";
+            /** Planning Excerpt */
+            planning_excerpt?: string | null;
             /** Title */
             title: string;
             /** Url */
@@ -6925,6 +6929,8 @@ export interface components {
         ProjectDocumentSummary: {
             /** Client Visible */
             client_visible: boolean;
+            /** Contract Id */
+            contract_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -6940,6 +6946,8 @@ export interface components {
              * @enum {string}
              */
             kind: "proposal" | "technical_spec" | "scope" | "acceptance" | "release_notes";
+            /** Planning Excerpt */
+            planning_excerpt?: string | null;
             /**
              * Project Id
              * Format: uuid
@@ -7067,6 +7075,8 @@ export interface components {
              * @enum {string}
              */
             source_kind: "contract" | "briefing" | "onboarding" | "manual";
+            /** Technical Context */
+            technical_context?: string | null;
         };
         /** ProjectPlanItemSummary */
         ProjectPlanItemSummary: {
