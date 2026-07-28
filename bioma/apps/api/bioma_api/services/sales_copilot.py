@@ -1,21 +1,40 @@
 from __future__ import annotations
 
+import hashlib
+import secrets
+from hmac import compare_digest
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
 
 from bioma_api.access import require_platform_admin
 from bioma_api.db import connect
+from bioma_api.repositories import projects as projects_repo
+from bioma_api.repositories import proposal_lifecycle as lifecycle_repo
 from bioma_api.repositories import sales_copilot as copilot_repo
+from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.sales_copilot import (
     RealtimeAdapterStatus,
+    SalesCopilotAction,
+    SalesCopilotActionCreate,
+    SalesCopilotActionMaterialize,
     SalesCopilotCompleteRequest,
     SalesCopilotEvent,
     SalesCopilotEventCreate,
+    SalesCopilotIngestionAck,
+    SalesCopilotIngestionCredential,
+    SalesCopilotLiveAnalyzeRequest,
+    SalesCopilotLiveSuggestion,
+    SalesCopilotMeetingConfigure,
     SalesCopilotMetrics,
+    SalesCopilotParticipant,
+    SalesCopilotParticipantCreate,
     SalesCopilotSession,
     SalesCopilotSessionCreate,
+    SalesCopilotTranscriptBatch,
+    SalesCopilotTranscriptSegment,
 )
 from bioma_api.worker_bridge import execute_squad_pipeline_safe
 
@@ -23,15 +42,13 @@ from bioma_api.worker_bridge import execute_squad_pipeline_safe
 def list_sessions(user: CurrentUserResponse) -> list[SalesCopilotSession]:
     require_platform_admin(user)
     with connect() as conn:
-        rows = copilot_repo.list_sessions(conn)
-        return [_session(conn, row) for row in rows]
+        return [_session(conn, row) for row in copilot_repo.list_sessions(conn)]
 
 
 def get_session(session_id: UUID, user: CurrentUserResponse) -> SalesCopilotSession:
     require_platform_admin(user)
     with connect() as conn:
-        row = _find(conn, session_id)
-        return _session(conn, row)
+        return _session(conn, _find(conn, session_id))
 
 
 def create_session(
@@ -42,8 +59,7 @@ def create_session(
     with connect() as conn:
         context = copilot_repo.get_knowledge_context(conn, payload.workspace_id, payload.proposal_id)
         _validate_context(payload.workspace_id, payload.proposal_id, context)
-        row = copilot_repo.create_session(conn, user.id, payload.model_dump())
-        return _session(conn, row)
+        return _session(conn, copilot_repo.create_session(conn, user.id, payload.model_dump()))
 
 
 def prepare_session(session_id: UUID, user: CurrentUserResponse) -> SalesCopilotSession:
@@ -51,6 +67,10 @@ def prepare_session(session_id: UUID, user: CurrentUserResponse) -> SalesCopilot
     with connect() as conn:
         row = _find(conn, session_id, for_update=True)
         context = copilot_repo.get_knowledge_context(conn, row["workspace_id"], row["proposal_id"])
+        participants = jsonable_encoder(
+            [dict(item) for item in copilot_repo.list_participants(conn, session_id)]
+        )
+        context = jsonable_encoder(context)
     ai_result = execute_squad_pipeline_safe(
         pilar="conversao",
         squad_key="sales_copilot",
@@ -58,6 +78,7 @@ def prepare_session(session_id: UUID, user: CurrentUserResponse) -> SalesCopilot
             "objective": row["objective"] or row["title"],
             "project_title": row["title"],
             "project_description": row["participant_context"] or "",
+            "participants": participants,
             "knowledge_context": context,
             "source": "sales_copilot_preparation",
         },
@@ -74,12 +95,20 @@ def prepare_session(session_id: UUID, user: CurrentUserResponse) -> SalesCopilot
             "Quem participa da decisão?",
             "Qual prazo real para resolver?",
         ],
+        "participant_roles": [
+            {
+                "name": item["display_name"],
+                "group": item["participant_group"],
+                "job_title": item["job_title"],
+                "decision_role": item["decision_role"],
+            }
+            for item in participants
+        ],
         "knowledge_used": sorted(context),
     }
     with connect() as conn:
         _find(conn, session_id, for_update=True)
-        prepared = copilot_repo.prepare_session(conn, session_id, context, brief)
-        return _session(conn, prepared)
+        return _session(conn, copilot_repo.prepare_session(conn, session_id, context, brief))
 
 
 def add_event(
@@ -89,12 +118,255 @@ def add_event(
 ) -> SalesCopilotSession:
     require_platform_admin(user)
     with connect() as conn:
-        session = _find(conn, session_id, for_update=True)
-        if session["status"] in {"completed", "cancelled"}:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A sessão já foi encerrada.")
-        copilot_repo.add_event(conn, session_id, user.id, payload.model_dump(mode="json"))
-        refreshed = _find(conn, session_id)
-        return _session(conn, refreshed)
+        session = _find_open_session(conn, session_id)
+        copilot_repo.add_event(conn, session["id"], user.id, payload.model_dump(mode="json"))
+        return _session(conn, _find(conn, session_id))
+
+
+def configure_meeting(
+    session_id: UUID,
+    payload: SalesCopilotMeetingConfigure,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    if payload.meeting_provider != "manual" and not payload.meeting_url:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Informe o link da reunião para Meet ou Teams.",
+        )
+    with connect() as conn:
+        _find_open_session(conn, session_id)
+        copilot_repo.configure_meeting(
+            conn,
+            session_id,
+            {
+                **payload.model_dump(mode="json"),
+                "consent_status": "granted" if payload.consent_granted else "pending",
+            },
+        )
+        return _session(conn, _find(conn, session_id))
+
+
+def add_participant(
+    session_id: UUID,
+    payload: SalesCopilotParticipantCreate,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    with connect() as conn:
+        _find_open_session(conn, session_id)
+        copilot_repo.add_participant(conn, session_id, user.id, payload.model_dump(mode="json"))
+        return _session(conn, _find(conn, session_id))
+
+
+def ingest_transcript(
+    session_id: UUID,
+    payload: SalesCopilotTranscriptBatch,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    with connect() as conn:
+        session = _find_open_session(conn, session_id)
+        non_manual = any(segment.source not in {"manual", "upload"} for segment in payload.segments)
+        if non_manual and session["consent_status"] != "granted":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A ingestão do Meet/Teams exige consentimento registrado.",
+            )
+        participant_ids = {participant["id"] for participant in copilot_repo.list_participants(conn, session_id)}
+        for segment in payload.segments:
+            if segment.participant_id and segment.participant_id not in participant_ids:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="O participante informado não pertence a esta sessão.",
+                )
+            if segment.end_ms is not None and segment.end_ms < segment.start_ms:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="O fim do segmento não pode ser anterior ao início.",
+                )
+            copilot_repo.add_segment(conn, session_id, user.id, segment.model_dump(mode="json"))
+        result = _session(conn, _find(conn, session_id))
+    if payload.analyze_after_ingest and len(result.segments) >= 3:
+        return analyze_live(session_id, SalesCopilotLiveAnalyzeRequest(), user)
+    return result
+
+
+def issue_ingestion_credential(
+    session_id: UUID,
+    user: CurrentUserResponse,
+) -> SalesCopilotIngestionCredential:
+    require_platform_admin(user)
+    token = secrets.token_urlsafe(36)
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    with connect() as conn:
+        session = _find_open_session(conn, session_id)
+        if session["consent_status"] != "granted":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Registre o consentimento antes de habilitar um adaptador externo.",
+            )
+        copilot_repo.set_ingest_token_hash(conn, session_id, token_hash)
+        copilot_repo.add_event(
+            conn,
+            session_id,
+            user.id,
+            {
+                "event_type": "note",
+                "content": "Credencial de ingestão rotacionada.",
+                "recommendation": "O token é exibido uma única vez e deve ficar no secret store do adaptador.",
+                "source_refs": [],
+            },
+        )
+    return SalesCopilotIngestionCredential(
+        session_id=session_id,
+        ingest_token=token,
+        endpoint_path=f"/backoffice/sales-copilot/ingest/{session_id}",
+    )
+
+
+def ingest_external_transcript(
+    session_id: UUID,
+    payload: SalesCopilotTranscriptBatch,
+    ingest_token: str,
+) -> SalesCopilotIngestionAck:
+    token_hash = hashlib.sha256(ingest_token.encode("utf-8")).hexdigest()
+    with connect() as conn:
+        session = _find_open_session(conn, session_id)
+        expected_hash = session.get("ingest_token_hash")
+        if not expected_hash or not compare_digest(expected_hash, token_hash):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credencial de ingestão inválida.")
+        if session["consent_status"] != "granted":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Consentimento ausente ou revogado.")
+        for segment in payload.segments:
+            if segment.source not in {"google_meet", "microsoft_teams", "provider_webhook"}:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="O adaptador externo só aceita segmentos de Meet, Teams ou webhook.",
+                )
+            copilot_repo.add_segment(conn, session_id, None, segment.model_dump(mode="json"))
+    return SalesCopilotIngestionAck(session_id=session_id, accepted_segments=len(payload.segments))
+
+
+def analyze_live(
+    session_id: UUID,
+    payload: SalesCopilotLiveAnalyzeRequest,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    with connect() as conn:
+        row = _find(conn, session_id)
+        segments = copilot_repo.list_segments(conn, session_id, payload.window_segments)
+        participants = copilot_repo.list_participants(conn, session_id)
+        context = row["knowledge_snapshot"] or copilot_repo.get_knowledge_context(
+            conn, row["workspace_id"], row["proposal_id"],
+        )
+        participants = jsonable_encoder([dict(item) for item in participants])
+        context = jsonable_encoder(context)
+    if not segments:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Inclua segmentos da conversa antes de solicitar uma sugestão.",
+        )
+    transcript_window = "\n".join(
+        f"{segment['speaker_label'] or 'Falante'}: {segment['content']}" for segment in segments
+    )
+    ai_result = execute_squad_pipeline_safe(
+        pilar="conversao",
+        squad_key="sales_copilot_live",
+        input_context={
+            "objective": payload.focus or row["objective"] or "Ajudar a conduzir a reunião",
+            "project_title": row["title"],
+            "project_description": transcript_window[-12_000:],
+            "participants": participants,
+            "knowledge_context": context,
+            "source": "sales_copilot_live_window",
+        },
+        requested_by_user_id=str(user.id),
+    )
+    output = ai_result["output_data"]
+    lowered = transcript_window.lower()
+    objection_markers = ("caro", "preço", "orçamento", "não consigo", "preciso falar", "mas ")
+    suggestion_type = "objection_response" if any(marker in lowered for marker in objection_markers) else "question"
+    recommendation = (
+        output.get("recommendation")
+        or output.get("script_fechamento")
+        or output.get("summary")
+        or (
+            "Valide o impacto, o responsável pela decisão e o próximo passo antes de avançar."
+            if suggestion_type == "question"
+            else "Reconheça a preocupação, confirme o critério por trás da objeção e conecte a resposta a uma evidência."
+        )
+    )
+    with connect() as conn:
+        _find(conn, session_id, for_update=True)
+        copilot_repo.add_suggestion(
+            conn,
+            session_id,
+            {
+                "suggestion_type": suggestion_type,
+                "title": "Próxima intervenção sugerida",
+                "content": str(recommendation),
+                "rationale": "Contexto recente cruzado com cliente, proposta e participantes.",
+                "confidence": None,
+                "source_refs": [
+                    {"kind": "transcript_segment", "id": str(segment["id"])}
+                    for segment in segments
+                ],
+                "generation_mode": ai_result["generation_mode"],
+            },
+        )
+        return _session(conn, _find(conn, session_id))
+
+
+def add_action(
+    session_id: UUID,
+    payload: SalesCopilotActionCreate,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    with connect() as conn:
+        _find(conn, session_id)
+        copilot_repo.add_action(conn, session_id, user.id, payload.model_dump(mode="json"))
+        return _session(conn, _find(conn, session_id))
+
+
+def materialize_action(
+    action_id: UUID,
+    payload: SalesCopilotActionMaterialize,
+    user: CurrentUserResponse,
+) -> SalesCopilotSession:
+    require_platform_admin(user)
+    if not payload.confirm:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Confirmação HITL obrigatória.")
+    with connect() as conn:
+        action = copilot_repo.get_action(conn, action_id, for_update=True)
+        if not action:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Compromisso não encontrado.")
+        session = _find(conn, action["session_id"], for_update=True)
+        if action["status"] == "materialized":
+            return _session(conn, session)
+        if action["idempotency_key"] and action["idempotency_key"] != payload.idempotency_key:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="O compromisso já foi reservado com outra chave.",
+            )
+        materialized_ref = _materialize_action_in_transaction(conn, session, action, user)
+        copilot_repo.mark_action_materialized(
+            conn, action_id, user.id, payload.idempotency_key, materialized_ref,
+        )
+        copilot_repo.add_event(
+            conn,
+            session["id"],
+            user.id,
+            {
+                "event_type": "action_item",
+                "content": action["title"],
+                "recommendation": f"Materializado em {action['action_type']}.",
+                "source_refs": [{"kind": "materialized_ref", **materialized_ref}],
+            },
+        )
+        return _session(conn, _find(conn, session["id"]))
 
 
 def complete_session(
@@ -108,6 +380,13 @@ def complete_session(
         if row["status"] == "completed":
             return _session(conn, row)
         transcript = row["transcript"].strip()
+        participants = jsonable_encoder(
+            [dict(item) for item in copilot_repo.list_participants(conn, session_id)]
+        )
+        context = row["knowledge_snapshot"] or copilot_repo.get_knowledge_context(
+            conn, row["workspace_id"], row["proposal_id"],
+        )
+        context = jsonable_encoder(context)
     if not transcript:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -120,6 +399,8 @@ def complete_session(
             "objective": f"Resumir reunião comercial: {row['title']}",
             "project_title": row["title"],
             "project_description": transcript[-20_000:],
+            "participants": participants,
+            "knowledge_context": context,
             "source": "sales_copilot_post_call",
         },
         requested_by_user_id=str(user.id),
@@ -132,23 +413,29 @@ def complete_session(
     )
     with connect() as conn:
         _find(conn, session_id, for_update=True)
-        completed = copilot_repo.complete_session(
-            conn,
-            session_id,
-            payload.duration_seconds,
-            summary,
-        )
+        completed = copilot_repo.complete_session(conn, session_id, payload.duration_seconds, str(summary))
         copilot_repo.add_event(
             conn,
             session_id,
             user.id,
             {
                 "event_type": "insight",
-                "content": summary,
-                "recommendation": "Revisar o resumo e registrar o próximo passo no CRM.",
+                "content": str(summary),
+                "recommendation": "Revisar os compromissos antes de materializá-los.",
                 "source_refs": [{"kind": "transcript", "generation_mode": ai_result["generation_mode"]}],
             },
         )
+        for index, item in enumerate(_action_candidates(output), start=1):
+            copilot_repo.add_action(
+                conn,
+                session_id,
+                user.id,
+                {
+                    **item,
+                    "idempotency_key": f"analysis-{session_id}-{index}",
+                    "source_refs": [{"kind": "transcript", "generation_mode": ai_result["generation_mode"]}],
+                },
+            )
         return _session(conn, completed)
 
 
@@ -161,13 +448,22 @@ def metrics(user: CurrentUserResponse) -> SalesCopilotMetrics:
 def realtime_adapter_status(user: CurrentUserResponse) -> RealtimeAdapterStatus:
     require_platform_admin(user)
     return RealtimeAdapterStatus(
-        available=False,
-        status="not_configured",
+        available=True,
+        status="adapter_ready",
         message=(
-            "Transcrição e recomendações em tempo real exigem provedor, orçamento, "
-            "consentimento e política de retenção. O modo atual aceita transcrição manual/assíncrona."
+            "Ingestão diarizada, contexto e sugestões ao vivo estão prontos. "
+            "A entrada automática no Meet/Teams ainda exige conectar um provedor de bot/transcrição."
         ),
-        supported_input=["manual_transcript", "meeting_notes", "post_call_analysis"],
+        supported_input=[
+            "manual_transcript",
+            "transcript_upload",
+            "diarized_segment_batch",
+            "meeting_notes",
+            "live_context_analysis",
+            "post_call_analysis",
+        ],
+        supported_meeting_providers=["manual", "google_meet", "microsoft_teams"],
+        transport="polling",
     )
 
 
@@ -178,11 +474,138 @@ def _find(conn, session_id: UUID, *, for_update: bool = False):
     return row
 
 
+def _find_open_session(conn, session_id: UUID):
+    session = _find(conn, session_id, for_update=True)
+    if session["status"] in {"completed", "cancelled"}:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A sessão já foi encerrada.")
+    return session
+
+
 def _session(conn, row) -> SalesCopilotSession:
     return SalesCopilotSession(
         **dict(row),
         events=[SalesCopilotEvent(**event) for event in copilot_repo.list_events(conn, row["id"])],
+        participants=[
+            SalesCopilotParticipant(**participant)
+            for participant in copilot_repo.list_participants(conn, row["id"])
+        ],
+        segments=[
+            SalesCopilotTranscriptSegment(**segment)
+            for segment in copilot_repo.list_segments(conn, row["id"])
+        ],
+        suggestions=[
+            SalesCopilotLiveSuggestion(**suggestion)
+            for suggestion in copilot_repo.list_suggestions(conn, row["id"])
+        ],
+        actions=[
+            SalesCopilotAction(**action)
+            for action in copilot_repo.list_actions(conn, row["id"])
+        ],
     )
+
+
+def _action_candidates(output: dict) -> list[dict]:
+    raw_items = output.get("action_items") or output.get("next_steps") or []
+    if not isinstance(raw_items, list):
+        return []
+    candidates = []
+    for item in raw_items[:20]:
+        if isinstance(item, str) and item.strip():
+            candidates.append({
+                "action_type": "follow_up_task",
+                "title": item.strip()[:500],
+                "detail": None,
+                "owner_hint": None,
+                "due_at": None,
+            })
+        elif isinstance(item, dict) and str(item.get("title") or "").strip():
+            action_type = item.get("action_type", "follow_up_task")
+            if action_type not in {"follow_up_task", "proposal_revision", "project_update"}:
+                action_type = "follow_up_task"
+            candidates.append({
+                "action_type": action_type,
+                "title": str(item["title"]).strip()[:500],
+                "detail": str(item.get("detail") or "")[:10_000] or None,
+                "owner_hint": str(item.get("owner") or "")[:255] or None,
+                "due_at": None,
+            })
+    return candidates
+
+
+def _materialize_action_in_transaction(conn, session, action, user: CurrentUserResponse) -> dict:
+    if action["action_type"] == "follow_up_task":
+        if not session["workspace_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Vincule a sessão a um cliente para criar o follow-up.",
+            )
+        task_list = conn.execute(
+            """
+            select id from eg_task_lists
+            where workspace_id = %s and type = 'general'
+            order by created_at
+            limit 1
+            """,
+            (session["workspace_id"],),
+        ).fetchone()
+        if not task_list:
+            task_list = tasks_repo.create_task_list(
+                conn, session["workspace_id"], "Follow-ups comerciais", "general",
+            )
+        task = tasks_repo.create_task(
+            conn,
+            task_list["id"],
+            {
+                "title": action["title"],
+                "description": action["detail"],
+                "status": "A fazer",
+                "group_status": "NOT_STARTED",
+                "priority": "Alta",
+                "due_date": action["due_at"],
+                "recurrence": "none",
+            },
+        )
+        return {"kind": "task", "id": str(task["id"]), "list_id": str(task_list["id"])}
+    if action["action_type"] == "proposal_revision":
+        if not session["proposal_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Vincule a sessão a uma proposta para criar uma revisão.",
+            )
+        revision = lifecycle_repo.create_revision(conn, session["proposal_id"])
+        if not revision:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta não encontrada.")
+        lifecycle_repo.record_event(
+            conn,
+            revision["id"],
+            "proposal.revision_from_meeting",
+            user.id,
+            {"session_id": str(session["id"]), "action_id": str(action["id"])},
+        )
+        return {"kind": "proposal_revision", "id": str(revision["id"]), "version": revision["version"]}
+    context = copilot_repo.get_knowledge_context(conn, session["workspace_id"], session["proposal_id"])
+    conversion = context.get("conversion")
+    if not conversion:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A proposta ainda não foi convertida em projeto.",
+        )
+    update = projects_repo.create_project_update(
+        conn,
+        conversion["project_id"],
+        user.id,
+        {
+            "kind": "progress",
+            "summary": action["title"],
+            "detail": action["detail"],
+            "client_visible": False,
+        },
+    )
+    return {
+        "kind": "project_update",
+        "id": str(update["id"]),
+        "project_id": str(conversion["project_id"]),
+    }
 
 
 def _validate_context(workspace_id: UUID | None, proposal_id: UUID | None, context: dict) -> None:

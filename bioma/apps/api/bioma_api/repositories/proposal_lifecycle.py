@@ -324,6 +324,18 @@ def insert_conversion(
     ).fetchone()
 
 
+def attach_conversion_plan(conn, conversion_id: UUID, plan_id: UUID):
+    return conn.execute(
+        """
+        update proposal_conversions
+        set plan_id = coalesce(plan_id, %s)
+        where id = %s
+        returning *
+        """,
+        (plan_id, conversion_id),
+    ).fetchone()
+
+
 def cohort_analytics(conn):
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(

@@ -60,6 +60,307 @@ def list_events(conn, session_id: UUID):
     ).fetchall()
 
 
+def list_participants(conn, session_id: UUID):
+    return conn.execute(
+        """
+        select *
+        from sales_copilot_participants
+        where session_id = %s
+        order by created_at, display_name
+        """,
+        (session_id,),
+    ).fetchall()
+
+
+def add_participant(conn, session_id: UUID, actor_user_id: UUID | None, data: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into sales_copilot_participants (
+          session_id, display_name, participant_group, organization_name, job_title,
+          seniority, decision_role, email, external_speaker_id, context_notes, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (session_id, external_speaker_id)
+        do update set
+          display_name = excluded.display_name,
+          participant_group = excluded.participant_group,
+          organization_name = excluded.organization_name,
+          job_title = excluded.job_title,
+          seniority = excluded.seniority,
+          decision_role = excluded.decision_role,
+          email = excluded.email,
+          context_notes = excluded.context_notes,
+          updated_at = now()
+        returning *
+        """,
+        (
+            session_id,
+            data["display_name"],
+            data["participant_group"],
+            data.get("organization_name"),
+            data.get("job_title"),
+            data["seniority"],
+            data["decision_role"],
+            data.get("email"),
+            data.get("external_speaker_id"),
+            data.get("context_notes"),
+            actor_user_id,
+        ),
+    ).fetchone()
+
+
+def configure_meeting(conn, session_id: UUID, data: dict[str, Any]):
+    return conn.execute(
+        """
+        update sales_copilot_sessions
+        set meeting_provider = %s,
+            meeting_url = %s,
+            external_meeting_id = %s,
+            consent_status = %s,
+            consent_recorded_at = case when %s = 'granted' then now() else consent_recorded_at end,
+            retention_until = now() + make_interval(days => %s),
+            realtime_status = case
+              when %s <> 'manual' and %s = 'granted' then 'adapter_ready'
+              else 'not_configured'
+            end,
+            updated_at = now()
+        where id = %s
+        returning *
+        """,
+        (
+            data["meeting_provider"],
+            data.get("meeting_url"),
+            data.get("external_meeting_id"),
+            data["consent_status"],
+            data["consent_status"],
+            data["retention_days"],
+            data["meeting_provider"],
+            data["consent_status"],
+            session_id,
+        ),
+    ).fetchone()
+
+
+def list_segments(conn, session_id: UUID, limit: int = 500):
+    return conn.execute(
+        """
+        select *
+        from sales_copilot_transcript_segments
+        where session_id = %s
+        order by sequence desc
+        limit %s
+        """,
+        (session_id, limit),
+    ).fetchall()[::-1]
+
+
+def add_segment(conn, session_id: UUID, actor_user_id: UUID | None, data: dict[str, Any]):
+    participant_id = data.get("participant_id")
+    if not participant_id and data.get("external_speaker_id"):
+        speaker = conn.execute(
+            """
+            select id from sales_copilot_participants
+            where session_id = %s and external_speaker_id = %s
+            """,
+            (session_id, data["external_speaker_id"]),
+        ).fetchone()
+        if speaker:
+            participant_id = speaker["id"]
+        else:
+            participant = add_participant(
+                conn,
+                session_id,
+                actor_user_id,
+                {
+                    "display_name": data.get("speaker_label") or data["external_speaker_id"],
+                    "participant_group": "unknown",
+                    "organization_name": None,
+                    "job_title": None,
+                    "seniority": "unknown",
+                    "decision_role": "unknown",
+                    "email": None,
+                    "external_speaker_id": data["external_speaker_id"],
+                    "context_notes": "Criado automaticamente pela diarização; classificar antes da análise final.",
+                },
+            )
+            participant_id = participant["id"]
+    sequence = conn.execute(
+        """
+        select coalesce(max(sequence), 0) + 1 as next_sequence
+        from sales_copilot_transcript_segments
+        where session_id = %s
+        """,
+        (session_id,),
+    ).fetchone()["next_sequence"]
+    segment = conn.execute(
+        """
+        insert into sales_copilot_transcript_segments (
+          session_id, participant_id, idempotency_key, source, external_speaker_id,
+          speaker_label, start_ms, end_ms, content, confidence, is_final, sequence, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (session_id, idempotency_key) do update set
+          participant_id = coalesce(excluded.participant_id, sales_copilot_transcript_segments.participant_id),
+          speaker_label = coalesce(excluded.speaker_label, sales_copilot_transcript_segments.speaker_label),
+          end_ms = excluded.end_ms,
+          content = excluded.content,
+          confidence = excluded.confidence,
+          is_final = excluded.is_final
+        returning *, (xmax = 0) as inserted
+        """,
+        (
+            session_id,
+            participant_id,
+            data["idempotency_key"],
+            data["source"],
+            data.get("external_speaker_id"),
+            data.get("speaker_label"),
+            data["start_ms"],
+            data.get("end_ms"),
+            data["content"],
+            data.get("confidence"),
+            data["is_final"],
+            sequence,
+            actor_user_id,
+        ),
+    ).fetchone()
+    if segment["is_final"] and segment["inserted"]:
+        label = segment["speaker_label"]
+        if participant_id:
+            participant = conn.execute(
+                "select display_name from sales_copilot_participants where id = %s and session_id = %s",
+                (participant_id, session_id),
+            ).fetchone()
+            label = participant["display_name"] if participant else label
+        rendered = f"{label}: {segment['content']}" if label else segment["content"]
+        conn.execute(
+            """
+            update sales_copilot_sessions
+            set transcript = concat_ws(E'\n', nullif(transcript, ''), %s),
+                status = case when status in ('draft', 'prepared') then 'active' else status end,
+                realtime_status = case when meeting_provider <> 'manual' then 'live' else realtime_status end,
+                started_at = coalesce(started_at, now()),
+                updated_at = now()
+            where id = %s
+            """,
+            (rendered, session_id),
+        )
+    return segment
+
+
+def set_ingest_token_hash(conn, session_id: UUID, token_hash: str):
+    return conn.execute(
+        """
+        update sales_copilot_sessions
+        set ingest_token_hash = %s, updated_at = now()
+        where id = %s
+        returning *
+        """,
+        (token_hash, session_id),
+    ).fetchone()
+
+
+def list_suggestions(conn, session_id: UUID, limit: int = 100):
+    return conn.execute(
+        """
+        select *
+        from sales_copilot_live_suggestions
+        where session_id = %s
+        order by created_at desc
+        limit %s
+        """,
+        (session_id, limit),
+    ).fetchall()
+
+
+def add_suggestion(conn, session_id: UUID, data: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into sales_copilot_live_suggestions (
+          session_id, suggestion_type, title, content, rationale, confidence,
+          source_refs, generation_mode
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s)
+        returning *
+        """,
+        (
+            session_id,
+            data["suggestion_type"],
+            data["title"],
+            data["content"],
+            data.get("rationale"),
+            data.get("confidence"),
+            Jsonb(data.get("source_refs", [])),
+            data.get("generation_mode", "preview"),
+        ),
+    ).fetchone()
+
+
+def list_actions(conn, session_id: UUID):
+    return conn.execute(
+        """
+        select *
+        from sales_copilot_actions
+        where session_id = %s
+        order by created_at, id
+        """,
+        (session_id,),
+    ).fetchall()
+
+
+def add_action(conn, session_id: UUID, actor_user_id: UUID, data: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into sales_copilot_actions (
+          session_id, action_type, title, detail, owner_hint, due_at, source_refs,
+          idempotency_key, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (session_id, idempotency_key)
+        do update set title = excluded.title
+        returning *
+        """,
+        (
+            session_id,
+            data["action_type"],
+            data["title"],
+            data.get("detail"),
+            data.get("owner_hint"),
+            data.get("due_at"),
+            Jsonb(data.get("source_refs", [])),
+            data.get("idempotency_key"),
+            actor_user_id,
+        ),
+    ).fetchone()
+
+
+def get_action(conn, action_id: UUID, *, for_update: bool = False):
+    suffix = " for update" if for_update else ""
+    return conn.execute(
+        f"select * from sales_copilot_actions where id = %s{suffix}",
+        (action_id,),
+    ).fetchone()
+
+
+def mark_action_materialized(
+    conn,
+    action_id: UUID,
+    actor_user_id: UUID,
+    idempotency_key: str,
+    materialized_ref: dict[str, Any],
+):
+    return conn.execute(
+        """
+        update sales_copilot_actions
+        set status = 'materialized',
+            idempotency_key = coalesce(idempotency_key, %s),
+            materialized_ref = %s,
+            approved_by = %s,
+            materialized_at = now(),
+            updated_at = now()
+        where id = %s
+        returning *
+        """,
+        (idempotency_key, Jsonb(materialized_ref), actor_user_id, action_id),
+    ).fetchone()
+
+
 def prepare_session(
     conn,
     session_id: UUID,
@@ -172,6 +473,30 @@ def get_knowledge_context(conn, workspace_id: UUID | None, proposal_id: UUID | N
         ).fetchone()
         if proposal:
             context["proposal"] = dict(proposal)
+            conversion = conn.execute(
+                """
+                select project_id, contract_id, plan_id
+                from proposal_conversions
+                where proposal_id = %s
+                """,
+                (proposal_id,),
+            ).fetchone()
+            if conversion:
+                context["conversion"] = dict(conversion)
+    if workspace_id:
+        market_research = conn.execute(
+            """
+            select id, sector, geographic_scope, objective, status, report,
+              generation_mode, updated_at
+            from market_researches
+            where workspace_id = %s and status = 'completed'
+            order by updated_at desc
+            limit 3
+            """,
+            (workspace_id,),
+        ).fetchall()
+        if market_research:
+            context["market_research"] = [dict(row) for row in market_research]
     return context
 
 

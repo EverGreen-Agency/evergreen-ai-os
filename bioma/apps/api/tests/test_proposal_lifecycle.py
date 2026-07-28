@@ -81,10 +81,11 @@ def test_conversion_uses_canonical_project_type():
         )
 
 
-def test_sales_copilot_realtime_is_explicitly_not_configured(eg_admin):
+def test_sales_copilot_realtime_exposes_ingestion_without_claiming_meeting_bot(eg_admin):
     adapter = sales_copilot.realtime_adapter_status(eg_admin)
 
-    assert adapter.available is False
-    assert adapter.status == "not_configured"
-    assert "consentimento" in adapter.message
+    assert adapter.available is True
+    assert adapter.status == "adapter_ready"
+    assert adapter.transport == "polling"
+    assert "ainda exige" in adapter.message
     assert "manual_transcript" in adapter.supported_input

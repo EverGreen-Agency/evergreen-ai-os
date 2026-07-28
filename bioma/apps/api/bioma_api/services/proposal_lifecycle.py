@@ -13,7 +13,12 @@ from bioma_api.proposal_documents import render_proposal_markdown, render_propos
 from bioma_api.repositories import projects as projects_repo
 from bioma_api.repositories import proposal_lifecycle as lifecycle_repo
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.projects import ContractCreate, ProjectCreate, ScopeItemCreate
+from bioma_api.schemas.projects import (
+    ContractCreate,
+    ProjectCreate,
+    ProjectPlanGenerateRequest,
+    ScopeItemCreate,
+)
 from bioma_api.schemas.proposal_lifecycle import (
     ProposalAcceptanceCreate,
     ProposalArchiveRequest,
@@ -299,9 +304,13 @@ def convert_to_project(
     require_platform_admin(user)
     if not payload.confirm:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Confirmação HITL obrigatória.")
+    conversion_for_plan = None
+    proposal_for_plan = None
     with connect() as conn:
         proposal = _proposal(conn, proposal_id, for_update=True)
         existing = lifecycle_repo.find_conversion(conn, proposal_id)
+        conversion_for_plan = existing
+        proposal_for_plan = dict(proposal)
         if not existing:
             key_owner = lifecycle_repo.find_conversion_by_idempotency_key(conn, payload.idempotency_key)
             if key_owner:
@@ -377,7 +386,62 @@ def convert_to_project(
                 user.id,
                 {"project_id": str(project["id"]), "contract_id": str(contract["id"])},
             )
+            conversion_for_plan = conversion
+    if (
+        payload.generate_plan_draft
+        and conversion_for_plan
+        and not conversion_for_plan["plan_id"]
+        and proposal_for_plan
+    ):
+        _generate_conversion_plan_draft(
+            proposal_id,
+            conversion_for_plan,
+            proposal_for_plan,
+            user,
+        )
     return get_detail(proposal_id, user)
+
+
+def _generate_conversion_plan_draft(
+    proposal_id: UUID,
+    conversion,
+    proposal: dict,
+    user: CurrentUserResponse,
+) -> None:
+    # A geração usa outra transação: nenhuma chamada ao worker mantém locks comerciais abertos.
+    from bioma_api.services import projects as project_service
+
+    try:
+        plan = project_service.generate_project_plan(
+            conversion["project_id"],
+            ProjectPlanGenerateRequest(
+                contract_id=conversion["contract_id"],
+                source_kind="contract",
+                objective=proposal.get("problem_summary") or proposal.get("executive_summary"),
+                briefing=proposal.get("content_markdown") or proposal.get("scope_offer"),
+                technical_context=proposal.get("special_requirements"),
+            ),
+            user,
+        )
+    except HTTPException as exc:
+        with connect() as conn:
+            lifecycle_repo.record_event(
+                conn,
+                proposal_id,
+                "proposal.plan_draft_failed",
+                user.id,
+                {"detail": str(exc.detail), "conversion_id": str(conversion["id"])},
+            )
+        return
+    with connect() as conn:
+        lifecycle_repo.attach_conversion_plan(conn, conversion["id"], plan.id)
+        lifecycle_repo.record_event(
+            conn,
+            proposal_id,
+            "proposal.plan_draft_created",
+            user.id,
+            {"plan_id": str(plan.id), "project_id": str(conversion["project_id"])},
+        )
 
 
 def cohort_analytics(user: CurrentUserResponse) -> ProposalCohortAnalytics:

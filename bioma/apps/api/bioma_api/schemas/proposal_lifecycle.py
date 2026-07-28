@@ -139,6 +139,7 @@ class ProposalConversionCreate(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=255)
     project_name: str | None = Field(default=None, min_length=2, max_length=255)
     project_type: Literal["tech", "growth", "social", "general"] = "general"
+    generate_plan_draft: bool = True
 
 
 class ProposalCohort(BaseModel):
