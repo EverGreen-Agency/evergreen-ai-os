@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from bioma_api.repositories import proposals as proposals_repo
-from bioma_api.schemas.proposals import ProposalCreatePayload
+from bioma_api.schemas.proposals import ProposalBriefCreatePayload, ProposalCreatePayload
 from bioma_api.services import proposals as proposals_service
 
 
@@ -124,3 +124,97 @@ def test_manual_proposal_is_not_labeled_as_live():
     )
 
     assert payload.generation_mode == "manual"
+
+
+def test_proposal_brief_rejects_unknown_service():
+    with pytest.raises(ValueError):
+        ProposalBriefCreatePayload(
+            workspace_id=uuid4(),
+            title="Evolução do aplicativo",
+            proposal_type="project",
+            contractor_name="Evergreen",
+            delivery_modality="project",
+            selected_services=["servico_inventado"],
+            estimated_budget="R$ 20.000",
+            payment_terms="50% no início e 50% na entrega",
+            urgency="high",
+            decision_maker="Diretoria",
+            problem_summary="Evoluir o produto com escopo e critérios de aceite claros.",
+        )
+
+
+def test_generate_proposal_from_brief_links_canonical_workspace(eg_admin, monkeypatch):
+    workspace_id = uuid4()
+    proposal_id = uuid4()
+    now = datetime.now(timezone.utc)
+    saved_payload = {}
+    payload = ProposalBriefCreatePayload(
+        workspace_id=workspace_id,
+        title="Fase 3 do aplicativo",
+        proposal_type="project",
+        contractor_name="Evergreen",
+        team_members=["Tech Lead", "Desenvolvedor"],
+        delivery_modality="sprint",
+        selected_services=["software_development", "systems_integration"],
+        estimated_budget="A definir após validação do escopo",
+        payment_terms="Conforme contrato",
+        urgency="high",
+        decision_maker="Diretoria da cliente",
+        problem_summary="Concluir a segunda evolução do aplicativo com rastreabilidade.",
+    )
+    outputs = {
+        "oferta": {"headline": "Evolução rastreável", "mecanismo_unico": "Entrega por fases"},
+        "conversao": {"script_fechamento": "Validar escopo.", "sequencia_whatsapp": []},
+        "demanda": {"estrutura_campanha": "Não aplicável.", "publicos_alvo": []},
+    }
+
+    def fake_execute(*, pilar, **_kwargs):
+        return {
+            "output_data": outputs[pilar],
+            "generation_mode": "preview",
+            "token_usage": {},
+            "estimated_cost_cents": 0,
+            "execution_logs": [],
+            "completed_at": now.isoformat(),
+        }
+
+    def fake_create(_conn, data, user_id):
+        saved_payload.update(data)
+        return {
+            **data,
+            "series_id": uuid4(),
+            "version": 1,
+            "id": proposal_id,
+            "public_token": "public-token",
+            "public_expires_at": now + timedelta(days=30),
+            "created_by_user_id": user_id,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    monkeypatch.setattr(proposals_service, "connect", _connection)
+    monkeypatch.setattr(proposals_service, "execute_squad_pipeline_safe", fake_execute)
+    monkeypatch.setattr(
+        proposals_repo,
+        "get_workspace_proposal_context",
+        lambda _conn, _id: {
+            "workspace_id": workspace_id,
+            "workspace_name": "Univet",
+            "workspace_slug": "univet",
+            "tenant_organization_id": uuid4(),
+            "subject_organization_id": uuid4(),
+            "organization_name": "Univet",
+            "sector": "Saúde veterinária",
+            "primary_offer": "Aplicativo",
+        },
+    )
+    monkeypatch.setattr(proposals_repo, "create_proposal", fake_create)
+
+    proposal = proposals_service.generate_proposal_from_brief(payload, eg_admin)
+
+    assert proposal.workspace_id == workspace_id
+    assert proposal.client_name == "Univet"
+    assert proposal.generation_mode == "preview"
+    assert saved_payload["intake_snapshot"]["schema_key"] == "commercial_proposal_v1"
+    assert saved_payload["selected_services"] == ["software_development", "systems_integration"]
+    assert saved_payload["scope_items"][0]["service_key"] == "software_development"

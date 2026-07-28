@@ -10,6 +10,7 @@ from bioma_api.schemas.proposals import (
     OpportunityPlatformUpdate,
     OpportunitySummary,
     FreelancerProfileSyncRequest,
+    ProposalBriefCreatePayload,
     ProposalCreatePayload,
     ProposalSummary,
     ProposalUpdatePayload,
@@ -19,6 +20,13 @@ from bioma_api.services import proposals as proposals_service
 
 router = APIRouter(prefix="/backoffice/proposals", tags=["proposals"])
 public_router = APIRouter(prefix="/proposals", tags=["public-proposals"])
+
+
+@router.get("/catalog")
+def get_proposal_catalog(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.get_proposal_catalog(user)
 
 
 @router.get("/opportunities", response_model=list[OpportunitySummary])
@@ -142,6 +150,14 @@ def create_proposal(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.create_proposal(payload, user)
+
+
+@router.post("/from-brief", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
+def create_proposal_from_brief(
+    payload: ProposalBriefCreatePayload,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.generate_proposal_from_brief(payload, user)
 
 
 @router.patch("/{proposal_id}", response_model=ProposalSummary)

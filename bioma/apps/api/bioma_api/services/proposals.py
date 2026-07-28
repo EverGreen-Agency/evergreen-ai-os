@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 
 from bioma_api.access import require_platform_admin
 from bioma_api.db import connect
+from bioma_api.proposal_catalog import SERVICE_GROUPS, proposal_catalog
 from bioma_api.repositories import proposals as proposals_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
@@ -12,6 +13,7 @@ from bioma_api.schemas.proposals import (
     OpportunityPlatformSummary,
     OpportunityPlatformUpdate,
     OpportunitySummary,
+    ProposalBriefCreatePayload,
     ProposalCreatePayload,
     ProposalSummary,
     ProposalUpdatePayload,
@@ -22,6 +24,37 @@ from bioma_api.worker_bridge import execute_squad_pipeline_safe
 
 def _require_admin(user: CurrentUserResponse) -> None:
     require_platform_admin(user)
+
+
+def _run_proposal_squads(input_context: dict, user: CurrentUserResponse) -> tuple[dict, str]:
+    pillar_results = {
+        pillar: execute_squad_pipeline_safe(
+            pilar=pillar,
+            squad_key="growth_proposals",
+            input_context=input_context,
+            requested_by_user_id=str(user.id),
+        )
+        for pillar in ("oferta", "conversao", "demanda")
+    }
+    modes = {result["generation_mode"] for result in pillar_results.values()}
+    return pillar_results, "live" if modes == {"live"} else "preview"
+
+
+def _service_scope_items(selected_services: list[str]) -> list[dict]:
+    labels = {
+        service["key"]: {"label": service["label"], "group": group["label"]}
+        for group in SERVICE_GROUPS
+        for service in group["services"]
+    }
+    return [
+        {"item": labels[key]["label"], "pilar": labels[key]["group"], "service_key": key}
+        for key in selected_services
+    ]
+
+
+def get_proposal_catalog(user: CurrentUserResponse) -> dict:
+    _require_admin(user)
+    return proposal_catalog()
 
 
 def list_opportunities(user: CurrentUserResponse, status_filter: str | None = None) -> list[OpportunitySummary]:
@@ -211,17 +244,7 @@ def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -
         "budget_text": opp.get("budget_text", ""),
         "source": opp["source_platform"],
     }
-    pillar_results = {
-        pillar: execute_squad_pipeline_safe(
-            pilar=pillar,
-            squad_key="growth_proposals",
-            input_context=input_context,
-            requested_by_user_id=str(user.id),
-        )
-        for pillar in ("oferta", "conversao", "demanda")
-    }
-    modes = {result["generation_mode"] for result in pillar_results.values()}
-    generation_mode = "live" if modes == {"live"} else "preview"
+    pillar_results, generation_mode = _run_proposal_squads(input_context, user)
     oferta = pillar_results["oferta"]["output_data"]
     conversao = pillar_results["conversao"]["output_data"]
     demanda = pillar_results["demanda"]["output_data"]
@@ -265,6 +288,84 @@ def create_proposal(payload: ProposalCreatePayload, user: CurrentUserResponse) -
     _require_admin(user)
     with connect() as conn:
         row = proposals_repo.create_proposal(conn, payload.model_dump(), user_id=user.id)
+    return ProposalSummary(**row)
+
+
+def generate_proposal_from_brief(
+    payload: ProposalBriefCreatePayload,
+    user: CurrentUserResponse,
+) -> ProposalSummary:
+    _require_admin(user)
+    with connect() as conn:
+        client = proposals_repo.get_workspace_proposal_context(conn, payload.workspace_id)
+        if not client:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cliente ativo não encontrado.",
+            )
+
+    brief = payload.model_dump(mode="json")
+    client_context = {
+        key: str(value) if isinstance(value, UUID) else value
+        for key, value in client.items()
+        if key not in {"tenant_organization_id", "subject_organization_id"} and value is not None
+    }
+    input_context = {
+        "objective": payload.problem_summary,
+        "project_title": payload.title,
+        "project_description": payload.additional_context or payload.problem_summary,
+        "budget_text": payload.estimated_budget,
+        "source": "bioma_commercial_brief",
+        "commercial_brief": brief,
+        "client_context": client_context,
+    }
+    pillar_results, generation_mode = _run_proposal_squads(input_context, user)
+    oferta = pillar_results["oferta"]["output_data"]
+    conversao = pillar_results["conversao"]["output_data"]
+    demanda = pillar_results["demanda"]["output_data"]
+
+    generated_items = [
+        {
+            "item": oferta.get("headline", payload.title),
+            "pilar": "Oferta",
+            "details": oferta,
+        },
+        {
+            "item": conversao.get("script_fechamento", "Estratégia comercial"),
+            "pilar": "Conversão",
+            "details": conversao,
+        },
+        {
+            "item": demanda.get("estrutura_campanha", "Estratégia de demanda"),
+            "pilar": "Demanda",
+            "details": demanda,
+        },
+    ]
+    proposal_payload = {
+        "workspace_id": str(payload.workspace_id),
+        "title": payload.title,
+        "client_name": client["organization_name"],
+        "target_niche": client.get("sector"),
+        "executive_summary": oferta.get("headline", payload.problem_summary),
+        "scope_offer": oferta.get("mecanismo_unico"),
+        "scope_conversion": conversao.get("script_fechamento"),
+        "scope_demand": demanda.get("estrutura_campanha"),
+        "scope_items": _service_scope_items(payload.selected_services) + generated_items,
+        "attached_cases": [],
+        "pricing_cents": 0,
+        "delivery_days": 0,
+        "status": "draft",
+        "generation_mode": generation_mode,
+        **brief,
+        "intake_snapshot": {
+            "schema_key": "commercial_proposal_v1",
+            "schema_version": 1,
+            "brief": brief,
+            "client_context": client_context,
+        },
+    }
+    with connect() as conn:
+        row = proposals_repo.create_proposal(conn, proposal_payload, user_id=user.id)
     return ProposalSummary(**row)
 
 

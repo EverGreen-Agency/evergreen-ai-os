@@ -217,15 +217,55 @@ def update_opportunity_status(conn, opp_id: UUID, status_val: str, fit_score: in
         cur.execute(query, params)
         return dict(cur.fetchone())
 
+_PROPOSAL_JSON_FIELDS = {
+    "scope_items",
+    "attached_cases",
+    "team_members",
+    "selected_services",
+    "intake_snapshot",
+}
+
+_PROPOSAL_MUTABLE_FIELDS = {
+    "title",
+    "client_name",
+    "target_niche",
+    "executive_summary",
+    "scope_offer",
+    "scope_conversion",
+    "scope_demand",
+    "scope_items",
+    "attached_cases",
+    "win_loss_feedback",
+    "pricing_cents",
+    "delivery_days",
+    "status",
+    "generation_mode",
+    "contractor_name",
+    "team_members",
+    "special_requirements",
+    "estimated_budget",
+    "payment_terms",
+    "urgency",
+    "decision_maker",
+    "problem_summary",
+    "additional_context",
+}
+
+
 def list_proposals(conn, limit: int = 50) -> list[dict[str, Any]]:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
-            select cp.id, cp.opportunity_id, cp.client_name, cp.target_niche, cp.executive_summary,
+            select cp.id, cp.opportunity_id, cp.workspace_id, cp.series_id, cp.version,
+                   cp.title, cp.client_name, cp.target_niche, cp.executive_summary,
                    cp.scope_offer, cp.scope_conversion, cp.scope_demand, cp.scope_items,
                    cp.attached_cases, cp.win_loss_feedback,
                    cp.pricing_cents, cp.delivery_days, cp.status, cp.public_token,
                    cp.generation_mode, cp.public_expires_at, cp.created_by_user_id,
+                   cp.proposal_type, cp.contractor_name, cp.team_members,
+                   cp.delivery_modality, cp.selected_services, cp.special_requirements,
+                   cp.estimated_budget, cp.payment_terms, cp.urgency, cp.decision_maker,
+                   cp.problem_summary, cp.additional_context, cp.intake_snapshot,
                    cp.created_at, cp.updated_at,
                    coalesce(o.source_platform, cp.target_niche, 'Outros') as source_platform
             from commercial_proposals cp
@@ -245,32 +285,52 @@ def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> 
             if cur.fetchone():
                 valid_user_id = user_id
 
+        values = {
+            "opportunity_id": data.get("opportunity_id"),
+            "workspace_id": data.get("workspace_id"),
+            "title": data.get("title") or data["client_name"],
+            "client_name": data["client_name"],
+            "target_niche": data.get("target_niche"),
+            "executive_summary": data["executive_summary"],
+            "scope_offer": data.get("scope_offer"),
+            "scope_conversion": data.get("scope_conversion"),
+            "scope_demand": data.get("scope_demand"),
+            "scope_items": data.get("scope_items", []),
+            "attached_cases": data.get("attached_cases", []),
+            "pricing_cents": data.get("pricing_cents", 0),
+            "delivery_days": data.get("delivery_days", 0),
+            "status": data.get("status", "draft"),
+            "generation_mode": data.get("generation_mode", "manual"),
+            "created_by_user_id": valid_user_id,
+            "proposal_type": data.get("proposal_type"),
+            "contractor_name": data.get("contractor_name"),
+            "team_members": data.get("team_members", []),
+            "delivery_modality": data.get("delivery_modality"),
+            "selected_services": data.get("selected_services", []),
+            "special_requirements": data.get("special_requirements"),
+            "estimated_budget": data.get("estimated_budget"),
+            "payment_terms": data.get("payment_terms"),
+            "urgency": data.get("urgency"),
+            "decision_maker": data.get("decision_maker"),
+            "problem_summary": data.get("problem_summary"),
+            "additional_context": data.get("additional_context"),
+            "intake_snapshot": data.get("intake_snapshot", {}),
+        }
+        if data.get("series_id"):
+            values["series_id"] = data["series_id"]
+        if data.get("version"):
+            values["version"] = data["version"]
+
+        columns = list(values)
+        params = [
+            json.dumps(values[column]) if column in _PROPOSAL_JSON_FIELDS else values[column]
+            for column in columns
+        ]
+        placeholders = ", ".join(["%s"] * len(columns))
         cur.execute(
-            """
-            insert into commercial_proposals (
-                opportunity_id, client_name, target_niche, executive_summary,
-                scope_offer, scope_conversion, scope_demand, scope_items,
-                attached_cases, pricing_cents, delivery_days, status,
-                generation_mode, created_by_user_id
-            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            returning *
-            """,
-            (
-                data.get("opportunity_id"),
-                data["client_name"],
-                data.get("target_niche"),
-                data["executive_summary"],
-                data.get("scope_offer"),
-                data.get("scope_conversion"),
-                data.get("scope_demand"),
-                json.dumps(data.get("scope_items", [])),
-                json.dumps(data.get("attached_cases", [])),
-                data.get("pricing_cents", 0),
-                data.get("delivery_days", 0),
-                data.get("status", "draft"),
-                data.get("generation_mode", "manual"),
-                valid_user_id,
-            ),
+            f"insert into commercial_proposals ({', '.join(columns)}) "
+            f"values ({placeholders}) returning *",
+            params,
         )
         return dict(cur.fetchone())
 
@@ -278,9 +338,9 @@ def update_proposal(conn, proposal_id: UUID, data: dict[str, Any]) -> dict[str, 
     fields = []
     params = []
     for key, val in data.items():
-        if val is not None and key not in ("id", "public_token", "created_at"):
+        if val is not None and key in _PROPOSAL_MUTABLE_FIELDS:
             fields.append(f"{key} = %s")
-            params.append(json.dumps(val) if isinstance(val, (dict, list)) else val)
+            params.append(json.dumps(val) if key in _PROPOSAL_JSON_FIELDS else val)
 
     if not fields:
         with conn.cursor(row_factory=dict_row) as cur:
@@ -296,6 +356,29 @@ def update_proposal(conn, proposal_id: UUID, data: dict[str, Any]) -> dict[str, 
         cur.execute(query, params)
         row = cur.fetchone()
         return dict(row) if row else {}
+
+
+def get_workspace_proposal_context(conn, workspace_id: UUID) -> dict[str, Any] | None:
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select w.id as workspace_id, w.name as workspace_name, w.slug as workspace_slug,
+                   w.tenant_organization_id, w.subject_organization_id,
+                   o.name as organization_name,
+                   p.sector, p.primary_offer, p.initial_objective, p.website,
+                   p.business_details, p.target_audience, p.competitors,
+                   p.marketing_objectives, p.marketing_history,
+                   p.challenges_opportunities, p.resources_budget,
+                   p.tone_of_voice, p.preferences_restrictions
+            from workspaces w
+            join organizations o on o.id = w.subject_organization_id
+            left join workspace_client_profiles p on p.workspace_id = w.id
+            where w.id = %s and w.kind = 'client' and w.status = 'active'
+            """,
+            (workspace_id,),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
 
 def get_proposal_by_public_token(conn, public_token: str) -> dict[str, Any] | None:
     with conn.cursor(row_factory=dict_row) as cur:

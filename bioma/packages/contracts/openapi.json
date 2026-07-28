@@ -11495,8 +11495,132 @@
         "title": "ProjectUpdateSummary",
         "type": "object"
       },
+      "ProposalBriefCreatePayload": {
+        "properties": {
+          "additional_context": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Context"
+          },
+          "contractor_name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Contractor Name",
+            "type": "string"
+          },
+          "decision_maker": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Decision Maker",
+            "type": "string"
+          },
+          "delivery_modality": {
+            "title": "Delivery Modality",
+            "type": "string"
+          },
+          "estimated_budget": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Estimated Budget",
+            "type": "string"
+          },
+          "payment_terms": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Payment Terms",
+            "type": "string"
+          },
+          "problem_summary": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Problem Summary",
+            "type": "string"
+          },
+          "proposal_type": {
+            "title": "Proposal Type",
+            "type": "string"
+          },
+          "selected_services": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Selected Services",
+            "type": "array"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements"
+          },
+          "team_members": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Team Members",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "urgency": {
+            "title": "Urgency",
+            "type": "string"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "title",
+          "proposal_type",
+          "contractor_name",
+          "delivery_modality",
+          "selected_services",
+          "estimated_budget",
+          "payment_terms",
+          "urgency",
+          "decision_maker",
+          "problem_summary"
+        ],
+        "title": "ProposalBriefCreatePayload",
+        "type": "object"
+      },
       "ProposalCreatePayload": {
         "properties": {
+          "additional_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Context"
+          },
           "attached_cases": {
             "items": {
               "additionalProperties": true,
@@ -11509,12 +11633,56 @@
             "title": "Client Name",
             "type": "string"
           },
+          "contractor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Name"
+          },
+          "decision_maker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Maker"
+          },
           "delivery_days": {
             "default": 0,
             "maximum": 730.0,
             "minimum": 0.0,
             "title": "Delivery Days",
             "type": "integer"
+          },
+          "delivery_modality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Modality"
+          },
+          "estimated_budget": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Budget"
           },
           "executive_summary": {
             "title": "Executive Summary",
@@ -11530,6 +11698,11 @@
             "title": "Generation Mode",
             "type": "string"
           },
+          "intake_snapshot": {
+            "additionalProperties": true,
+            "title": "Intake Snapshot",
+            "type": "object"
+          },
           "opportunity_id": {
             "anyOf": [
               {
@@ -11542,11 +11715,44 @@
             ],
             "title": "Opportunity Id"
           },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
           "pricing_cents": {
             "default": 0,
             "minimum": 0.0,
             "title": "Pricing Cents",
             "type": "integer"
+          },
+          "problem_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem Summary"
+          },
+          "proposal_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Type"
           },
           "scope_conversion": {
             "anyOf": [
@@ -11589,12 +11795,43 @@
             ],
             "title": "Scope Offer"
           },
+          "selected_services": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selected Services",
+            "type": "array"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements"
+          },
           "status": {
             "default": "draft",
             "enum": [
               "draft",
               "approved",
               "sent",
+              "negotiating",
               "won",
               "lost"
             ],
@@ -11612,6 +11849,43 @@
             ],
             "title": "Target Niche"
           },
+          "team_members": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Team Members",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          },
+          "version": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          },
           "win_loss_feedback": {
             "anyOf": [
               {
@@ -11623,6 +11897,18 @@
               }
             ],
             "title": "Win Loss Feedback"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
           }
         },
         "required": [
@@ -11634,6 +11920,17 @@
       },
       "ProposalSummary": {
         "properties": {
+          "additional_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Context"
+          },
           "attached_cases": {
             "items": {
               "additionalProperties": true,
@@ -11645,6 +11942,17 @@
           "client_name": {
             "title": "Client Name",
             "type": "string"
+          },
+          "contractor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Name"
           },
           "created_at": {
             "format": "date-time",
@@ -11663,12 +11971,45 @@
             ],
             "title": "Created By User Id"
           },
+          "decision_maker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Maker"
+          },
           "delivery_days": {
             "default": 0,
             "maximum": 730.0,
             "minimum": 0.0,
             "title": "Delivery Days",
             "type": "integer"
+          },
+          "delivery_modality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Modality"
+          },
+          "estimated_budget": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Budget"
           },
           "executive_summary": {
             "title": "Executive Summary",
@@ -11689,6 +12030,11 @@
             "title": "Id",
             "type": "string"
           },
+          "intake_snapshot": {
+            "additionalProperties": true,
+            "title": "Intake Snapshot",
+            "type": "object"
+          },
           "opportunity_id": {
             "anyOf": [
               {
@@ -11701,11 +12047,44 @@
             ],
             "title": "Opportunity Id"
           },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
           "pricing_cents": {
             "default": 0,
             "minimum": 0.0,
             "title": "Pricing Cents",
             "type": "integer"
+          },
+          "problem_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem Summary"
+          },
+          "proposal_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Type"
           },
           "public_expires_at": {
             "format": "date-time",
@@ -11757,12 +12136,43 @@
             ],
             "title": "Scope Offer"
           },
+          "selected_services": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selected Services",
+            "type": "array"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements"
+          },
           "status": {
             "default": "draft",
             "enum": [
               "draft",
               "approved",
               "sent",
+              "negotiating",
               "won",
               "lost"
             ],
@@ -11780,10 +12190,47 @@
             ],
             "title": "Target Niche"
           },
+          "team_members": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Team Members",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
           "updated_at": {
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          },
+          "version": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
           },
           "win_loss_feedback": {
             "anyOf": [
@@ -11796,6 +12243,18 @@
               }
             ],
             "title": "Win Loss Feedback"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
           }
         },
         "required": [
@@ -11812,6 +12271,18 @@
       },
       "ProposalUpdatePayload": {
         "properties": {
+          "additional_context": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Context"
+          },
           "client_name": {
             "anyOf": [
               {
@@ -11822,6 +12293,30 @@
               }
             ],
             "title": "Client Name"
+          },
+          "contractor_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Name"
+          },
+          "decision_maker": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Maker"
           },
           "delivery_days": {
             "anyOf": [
@@ -11836,6 +12331,18 @@
             ],
             "title": "Delivery Days"
           },
+          "estimated_budget": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Budget"
+          },
           "executive_summary": {
             "anyOf": [
               {
@@ -11846,6 +12353,18 @@
               }
             ],
             "title": "Executive Summary"
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
           },
           "pricing_cents": {
             "anyOf": [
@@ -11858,6 +12377,18 @@
               }
             ],
             "title": "Pricing Cents"
+          },
+          "problem_summary": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem Summary"
           },
           "scope_conversion": {
             "anyOf": [
@@ -11907,6 +12438,18 @@
             ],
             "title": "Scope Offer"
           },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements"
+          },
           "status": {
             "anyOf": [
               {
@@ -11914,6 +12457,7 @@
                   "draft",
                   "approved",
                   "sent",
+                  "negotiating",
                   "won",
                   "lost"
                 ],
@@ -11935,6 +12479,44 @@
               }
             ],
             "title": "Target Niche"
+          },
+          "team_members": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Members"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
           },
           "win_loss_feedback": {
             "anyOf": [
@@ -18520,6 +19102,66 @@
           }
         },
         "summary": "Get Analytics",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/catalog": {
+      "get": {
+        "operationId": "get_proposal_catalog_backoffice_proposals_catalog_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Proposal Catalog",
+        "tags": [
+          "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/from-brief": {
+      "post": {
+        "operationId": "create_proposal_from_brief_backoffice_proposals_from_brief_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalBriefCreatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Proposal From Brief",
         "tags": [
           "proposals"
         ]

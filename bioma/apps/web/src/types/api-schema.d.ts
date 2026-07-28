@@ -743,6 +743,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/proposals/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal Catalog */
+        get: operations["get_proposal_catalog_backoffice_proposals_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/from-brief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Proposal From Brief */
+        post: operations["create_proposal_from_brief_backoffice_proposals_from_brief_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/proposals/gaps": {
         parameters: {
             query?: never;
@@ -7549,19 +7583,63 @@ export interface components {
             /** Summary */
             summary: string;
         };
+        /** ProposalBriefCreatePayload */
+        ProposalBriefCreatePayload: {
+            /** Additional Context */
+            additional_context?: string | null;
+            /** Contractor Name */
+            contractor_name: string;
+            /** Decision Maker */
+            decision_maker: string;
+            /** Delivery Modality */
+            delivery_modality: string;
+            /** Estimated Budget */
+            estimated_budget: string;
+            /** Payment Terms */
+            payment_terms: string;
+            /** Problem Summary */
+            problem_summary: string;
+            /** Proposal Type */
+            proposal_type: string;
+            /** Selected Services */
+            selected_services: string[];
+            /** Special Requirements */
+            special_requirements?: string | null;
+            /** Team Members */
+            team_members?: string[];
+            /** Title */
+            title: string;
+            /** Urgency */
+            urgency: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** ProposalCreatePayload */
         ProposalCreatePayload: {
+            /** Additional Context */
+            additional_context?: string | null;
             /** Attached Cases */
             attached_cases?: {
                 [key: string]: unknown;
             }[];
             /** Client Name */
             client_name: string;
+            /** Contractor Name */
+            contractor_name?: string | null;
+            /** Decision Maker */
+            decision_maker?: string | null;
             /**
              * Delivery Days
              * @default 0
              */
             delivery_days: number;
+            /** Delivery Modality */
+            delivery_modality?: string | null;
+            /** Estimated Budget */
+            estimated_budget?: string | null;
             /** Executive Summary */
             executive_summary: string;
             /**
@@ -7570,13 +7648,23 @@ export interface components {
              * @enum {string}
              */
             generation_mode: "live" | "preview" | "manual";
+            /** Intake Snapshot */
+            intake_snapshot?: {
+                [key: string]: unknown;
+            };
             /** Opportunity Id */
             opportunity_id?: string | null;
+            /** Payment Terms */
+            payment_terms?: string | null;
             /**
              * Pricing Cents
              * @default 0
              */
             pricing_cents: number;
+            /** Problem Summary */
+            problem_summary?: string | null;
+            /** Proposal Type */
+            proposal_type?: string | null;
             /** Scope Conversion */
             scope_conversion?: string | null;
             /** Scope Demand */
@@ -7587,25 +7675,48 @@ export interface components {
             }[];
             /** Scope Offer */
             scope_offer?: string | null;
+            /** Selected Services */
+            selected_services?: string[];
+            /** Series Id */
+            series_id?: string | null;
+            /** Special Requirements */
+            special_requirements?: string | null;
             /**
              * Status
              * @default draft
              * @enum {string}
              */
-            status: "draft" | "approved" | "sent" | "won" | "lost";
+            status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
             /** Target Niche */
             target_niche?: string | null;
+            /** Team Members */
+            team_members?: string[];
+            /** Title */
+            title?: string | null;
+            /** Urgency */
+            urgency?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
         };
         /** ProposalSummary */
         ProposalSummary: {
+            /** Additional Context */
+            additional_context?: string | null;
             /** Attached Cases */
             attached_cases?: {
                 [key: string]: unknown;
             }[];
             /** Client Name */
             client_name: string;
+            /** Contractor Name */
+            contractor_name?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -7613,11 +7724,17 @@ export interface components {
             created_at: string;
             /** Created By User Id */
             created_by_user_id?: string | null;
+            /** Decision Maker */
+            decision_maker?: string | null;
             /**
              * Delivery Days
              * @default 0
              */
             delivery_days: number;
+            /** Delivery Modality */
+            delivery_modality?: string | null;
+            /** Estimated Budget */
+            estimated_budget?: string | null;
             /** Executive Summary */
             executive_summary: string;
             /**
@@ -7631,13 +7748,23 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Intake Snapshot */
+            intake_snapshot?: {
+                [key: string]: unknown;
+            };
             /** Opportunity Id */
             opportunity_id?: string | null;
+            /** Payment Terms */
+            payment_terms?: string | null;
             /**
              * Pricing Cents
              * @default 0
              */
             pricing_cents: number;
+            /** Problem Summary */
+            problem_summary?: string | null;
+            /** Proposal Type */
+            proposal_type?: string | null;
             /**
              * Public Expires At
              * Format: date-time
@@ -7655,32 +7782,63 @@ export interface components {
             }[];
             /** Scope Offer */
             scope_offer?: string | null;
+            /** Selected Services */
+            selected_services?: string[];
+            /** Series Id */
+            series_id?: string | null;
+            /** Special Requirements */
+            special_requirements?: string | null;
             /**
              * Status
              * @default draft
              * @enum {string}
              */
-            status: "draft" | "approved" | "sent" | "won" | "lost";
+            status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
             /** Target Niche */
             target_niche?: string | null;
+            /** Team Members */
+            team_members?: string[];
+            /** Title */
+            title?: string | null;
             /**
              * Updated At
              * Format: date-time
              */
             updated_at: string;
+            /** Urgency */
+            urgency?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
         };
         /** ProposalUpdatePayload */
         ProposalUpdatePayload: {
+            /** Additional Context */
+            additional_context?: string | null;
             /** Client Name */
             client_name?: string | null;
+            /** Contractor Name */
+            contractor_name?: string | null;
+            /** Decision Maker */
+            decision_maker?: string | null;
             /** Delivery Days */
             delivery_days?: number | null;
+            /** Estimated Budget */
+            estimated_budget?: string | null;
             /** Executive Summary */
             executive_summary?: string | null;
+            /** Payment Terms */
+            payment_terms?: string | null;
             /** Pricing Cents */
             pricing_cents?: number | null;
+            /** Problem Summary */
+            problem_summary?: string | null;
             /** Scope Conversion */
             scope_conversion?: string | null;
             /** Scope Demand */
@@ -7691,10 +7849,18 @@ export interface components {
             }[] | null;
             /** Scope Offer */
             scope_offer?: string | null;
+            /** Special Requirements */
+            special_requirements?: string | null;
             /** Status */
-            status?: ("draft" | "approved" | "sent" | "won" | "lost") | null;
+            status?: ("draft" | "approved" | "sent" | "negotiating" | "won" | "lost") | null;
             /** Target Niche */
             target_niche?: string | null;
+            /** Team Members */
+            team_members?: string[] | null;
+            /** Title */
+            title?: string | null;
+            /** Urgency */
+            urgency?: string | null;
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
         };
@@ -10915,6 +11081,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_proposal_catalog_backoffice_proposals_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    create_proposal_from_brief_backoffice_proposals_from_brief_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalBriefCreatePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
