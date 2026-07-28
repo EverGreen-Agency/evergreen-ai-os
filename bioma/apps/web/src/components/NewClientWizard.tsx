@@ -34,7 +34,15 @@ const PROJECT_TRACKS: Array<{ type: Exclude<ProjectType, "general">; label: stri
   { type: "social", label: "Social Media", description: "Planejamento editorial e aprovação adaptativa" },
 ];
 
-export function NewClientWizard({ onClose }: { onClose: () => void }) {
+export function NewClientWizard({
+  onClose,
+  onCreated,
+  navigateOnCreate = true,
+}: {
+  onClose: () => void;
+  onCreated?: (clientId: string) => void;
+  navigateOnCreate?: boolean;
+}) {
   const navigate = useNavigate();
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
@@ -192,8 +200,11 @@ export function NewClientWizard({ onClose }: { onClose: () => void }) {
         window.alert(`Cliente criado. ${failedPlans} frente(s) operacional(is) não puderam ser planejadas e podem ser retomadas em Projetos.`);
       }
 
+      onCreated?.(clientId);
       onClose();
-      navigate(`/clientes/${clientId}`);
+      if (navigateOnCreate) {
+        navigate(`/clientes/${clientId}`);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao criar cliente. Tente novamente.");
     } finally {

@@ -31,6 +31,7 @@ import {
   Printer,
 } from "lucide-react";
 import { ExecutiveReportPdfModal } from "../../../components/ExecutiveReportPdfModal";
+import { ProposalWizard } from "./ProposalWizard";
 import {
   api,
   type OpportunitySummary,
@@ -52,6 +53,7 @@ export function ProposalsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [isProposalWizardOpen, setIsProposalWizardOpen] = useState(false);
 
   // Form State para Ingestão Manual Rápida
   const [sourcePlatform, setSourcePlatform] = useState("99freelas");
@@ -478,9 +480,36 @@ export function ProposalsManager() {
       ) : activeTab === "proposals" ? (
         /* ABA 2: CENTRAL DE PROPOSTAS COMERCIAIS */
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+            <div>
+              <h2 style={{ margin: 0 }}>Propostas comerciais</h2>
+              <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.86rem" }}>
+                Briefings ligados aos clientes da plataforma, com versão, escopo e contexto preservados.
+              </p>
+            </div>
+            <button className="primary-button" type="button" onClick={() => setIsProposalWizardOpen(true)}>
+              <Plus size={16} /> Nova proposta
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
+            {[
+              ["Total", proposals.length],
+              ["Rascunhos", proposals.filter((proposal) => proposal.status === "draft").length],
+              ["Enviadas", proposals.filter((proposal) => proposal.status === "sent").length],
+              ["Em negociação", proposals.filter((proposal) => proposal.status === "negotiating").length],
+              ["Aprovadas/ganhas", proposals.filter((proposal) => proposal.status === "approved" || proposal.status === "won").length],
+            ].map(([label, value]) => (
+              <div key={label} style={{ padding: 14, border: "1px solid var(--border)", borderRadius: 9, background: "var(--surface)" }}>
+                <span style={{ display: "block", color: "var(--text-dim)", fontSize: "0.76rem" }}>{label}</span>
+                <strong style={{ fontSize: "1.35rem" }}>{value}</strong>
+              </div>
+            ))}
+          </div>
+
           {proposals.length === 0 ? (
             <div style={{ padding: "40px", textAlign: "center", background: "var(--surface)", borderRadius: "12px" }}>
-              Nenhuma proposta comercial gerada ainda. Acesse a aba "Radar de Vagas" para gerar propostas automáticas.
+              Nenhuma proposta comercial gerada. Crie um briefing ligado a um cliente ou gere a partir do radar.
             </div>
           ) : (
             proposals.map((prop) => (
@@ -501,7 +530,11 @@ export function ProposalsManager() {
                     <span style={{ fontSize: "0.75rem", background: "var(--bg-inset)", color: "var(--text-dim)", padding: "2px 8px", borderRadius: "4px" }}>
                       {prop.target_niche || "Proposta Geral"}
                     </span>
-                    <h2 style={{ margin: "4px 0 0", fontSize: "1.2rem", fontWeight: 600 }}>{prop.client_name}</h2>
+                    <h2 style={{ margin: "4px 0 0", fontSize: "1.2rem", fontWeight: 600 }}>{prop.title || prop.client_name}</h2>
+                    <span style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>
+                      {prop.client_name} · versão {prop.version}
+                      {prop.workspace_id ? " · cliente vinculado" : " · origem externa"}
+                    </span>
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -510,7 +543,7 @@ export function ProposalsManager() {
                       <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Status:</span>
                       <select
                         value={prop.status}
-                        onChange={(e) => handleUpdateProposalStatus(prop.id, e.target.value as any)}
+                        onChange={(e) => handleUpdateProposalStatus(prop.id, e.target.value as ProposalSummary["status"])}
                         style={{
                           background: "var(--surface)",
                           border: "1px solid var(--border)",
@@ -523,7 +556,9 @@ export function ProposalsManager() {
                         }}
                       >
                         <option value="draft">📝 Rascunho</option>
+                        <option value="approved">✓ Aprovada internamente</option>
                         <option value="sent">📤 Enviada</option>
+                        <option value="negotiating">🤝 Em negociação</option>
                         <option value="won">🏆 Ganha (Fechada)</option>
                         <option value="lost">❌ Perdida</option>
                       </select>
@@ -546,6 +581,14 @@ export function ProposalsManager() {
                 </div>
 
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-dim)" }}>{prop.executive_summary}</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7, fontSize: "0.76rem" }}>
+                  <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>
+                    IA: {prop.generation_mode === "live" ? "execução live" : prop.generation_mode === "preview" ? "prévia local" : "manual"}
+                  </span>
+                  {prop.delivery_modality && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>Modalidade: {prop.delivery_modality}</span>}
+                  {prop.selected_services.length > 0 && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>{prop.selected_services.length} serviço(s) no briefing</span>}
+                  {prop.estimated_budget && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>Orçamento: {prop.estimated_budget}</span>}
+                </div>
 
                 {/* Pilares da EG */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "4px" }}>
@@ -1057,6 +1100,17 @@ export function ProposalsManager() {
             ],
           }}
           onClose={() => setIsPdfModalOpen(false)}
+        />
+      )}
+
+      {isProposalWizardOpen && (
+        <ProposalWizard
+          onClose={() => setIsProposalWizardOpen(false)}
+          onCreated={(proposal) => {
+            setProposals((current) => [proposal, ...current.filter((item) => item.id !== proposal.id)]);
+            setIsProposalWizardOpen(false);
+            setActiveTab("proposals");
+          }}
         />
       )}
     </div>

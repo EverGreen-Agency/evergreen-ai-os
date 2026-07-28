@@ -2321,8 +2321,14 @@ export const api = {
     request<OpportunityPlatformConfig>(`/backoffice/proposals/platforms/${platformKey}`, { method: "PUT", body: JSON.stringify(payload) }),
   generateProposalForOpportunity: (oppId: string) =>
     request<ProposalSummary>(`/backoffice/proposals/opportunities/${oppId}/generate`, { method: "POST" }),
+  proposalCatalog: () => request<ProposalCatalog>("/backoffice/proposals/catalog"),
+  createProposalFromBrief: (payload: ProposalBriefPayload) =>
+    request<ProposalSummary>("/backoffice/proposals/from-brief", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   listProposals: () => request<ProposalSummary[]>("/backoffice/proposals"),
-  updateProposal: (proposalId: string, payload: Partial<ProposalSummary>) =>
+  updateProposal: (proposalId: string, payload: ProposalUpdatePayload) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   getPublicProposal: (token: string) => request<PublicProposalResponse>(`/proposals/public/${token}`),
   listFreelancerProfiles: () => request<FreelancerProfile[]>("/backoffice/proposals/profiles"),
@@ -2368,6 +2374,10 @@ export type OpportunitySummary = {
 export type ProposalSummary = {
   id: string;
   opportunity_id: string | null;
+  workspace_id: string | null;
+  series_id: string | null;
+  version: number;
+  title: string | null;
   client_name: string;
   target_niche: string | null;
   executive_summary: string;
@@ -2378,14 +2388,69 @@ export type ProposalSummary = {
   attached_cases?: Array<{ case_title: string; description: string; skill: string; results_highlight: string }>;
   pricing_cents: number;
   delivery_days: number;
-  status: "draft" | "approved" | "sent" | "won" | "lost";
+  status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
   public_token: string;
   public_expires_at: string;
   generation_mode: "live" | "preview" | "manual";
+  proposal_type: string | null;
+  contractor_name: string | null;
+  team_members: string[];
+  delivery_modality: string | null;
+  selected_services: string[];
+  special_requirements: string | null;
+  estimated_budget: string | null;
+  payment_terms: string | null;
+  urgency: string | null;
+  decision_maker: string | null;
+  problem_summary: string | null;
+  additional_context: string | null;
+  intake_snapshot: Record<string, unknown>;
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type ProposalCatalogOption = { key: string; label: string };
+
+export type ProposalCatalog = {
+  schema_key: "commercial_proposal_v1";
+  schema_version: number;
+  proposal_types: ProposalCatalogOption[];
+  delivery_modalities: ProposalCatalogOption[];
+  urgency_levels: ProposalCatalogOption[];
+  service_groups: Array<{
+    key: string;
+    label: string;
+    services: ProposalCatalogOption[];
+  }>;
+};
+
+export type ProposalBriefPayload = {
+  workspace_id: string;
+  title: string;
+  proposal_type: string;
+  contractor_name: string;
+  team_members: string[];
+  delivery_modality: string;
+  selected_services: string[];
+  special_requirements?: string | null;
+  estimated_budget: string;
+  payment_terms: string;
+  urgency: string;
+  decision_maker: string;
+  problem_summary: string;
+  additional_context?: string | null;
+};
+
+export type ProposalUpdatePayload = Partial<Pick<
+  ProposalSummary,
+  "title" | "client_name" | "target_niche" | "executive_summary" |
+  "scope_offer" | "scope_conversion" | "scope_demand" | "scope_items" |
+  "pricing_cents" | "delivery_days" | "status" | "contractor_name" |
+  "team_members" | "special_requirements" | "estimated_budget" |
+  "payment_terms" | "urgency" | "decision_maker" | "problem_summary" |
+  "additional_context"
+>>;
 
 export type PublicProposalResponse = {
   client_name: string;
