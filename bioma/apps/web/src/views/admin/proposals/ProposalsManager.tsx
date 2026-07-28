@@ -51,7 +51,7 @@ import {
 } from "../../../lib/api";
 
 export function ProposalsManager() {
-  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "planning" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
+  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
   const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
@@ -249,7 +249,7 @@ export function ProposalsManager() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "10px", margin: 0 }}>
-            <Target color="var(--brand-accent)" size={28} /> Radar de Oportunidades & Propostas IA
+            <Target color="var(--brand-accent)" size={28} /> Freelas e Propostas
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
             Monitoramento de vagas remotas, geração assistida de propostas e métricas comerciais da agência.
@@ -337,23 +337,6 @@ export function ProposalsManager() {
           <BarChart3 size={18} color="var(--brand-accent)" /> Big Data, ROI & CAC ({analytics?.overall_roi_percentage || 0}%)
         </button>
         <button
-          onClick={() => setActiveTab("planning")}
-          style={{
-            background: "none",
-            border: "none",
-            borderBottom: activeTab === "planning" ? "2px solid var(--brand-accent)" : "2px solid transparent",
-            color: activeTab === "planning" ? "var(--brand-accent)" : "var(--text-dim)",
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <ClipboardList size={18} /> Planejamentos
-        </button>
-        <button
           onClick={() => setActiveTab("profile_audit")}
           style={{
             background: "none",
@@ -413,23 +396,23 @@ export function ProposalsManager() {
             <select
               value={radarPlatform}
               onChange={(e) => { setRadarPlatform(e.target.value); setRadarCurrentPage(1); }}
-              style={{ padding: "8px 12px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+              style={{ padding: "8px 12px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
             >
-              <option value="all">Todas Plataformas ({opportunities.length})</option>
+              <option value="all" style={{ background: "#182232", color: "#f8fafc" }}>Todas Plataformas ({opportunities.length})</option>
               {availablePlatforms.map((plat) => (
-                <option key={plat} value={plat}>{plat.toUpperCase()}</option>
+                <option key={plat} value={plat} style={{ background: "#182232", color: "#f8fafc" }}>{plat.toUpperCase()}</option>
               ))}
             </select>
 
             <select
               value={radarFitFilter}
               onChange={(e) => { setRadarFitFilter(e.target.value); setRadarCurrentPage(1); }}
-              style={{ padding: "8px 12px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+              style={{ padding: "8px 12px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
             >
-              <option value="all">Qualquer Score</option>
-              <option value="high">Alto Alinhamento (Fit ≥ 70%)</option>
-              <option value="medium">Médio Alinhamento (50–69%)</option>
-              <option value="low">Baixo Alinhamento (&lt; 50%)</option>
+              <option value="all" style={{ background: "#182232", color: "#f8fafc" }}>Qualquer Score</option>
+              <option value="high" style={{ background: "#182232", color: "#f8fafc" }}>Alto Alinhamento (Fit ≥ 70%)</option>
+              <option value="medium" style={{ background: "#182232", color: "#f8fafc" }}>Médio Alinhamento (50–69%)</option>
+              <option value="low" style={{ background: "#182232", color: "#f8fafc" }}>Baixo Alinhamento (&lt; 50%)</option>
             </select>
 
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -437,12 +420,12 @@ export function ProposalsManager() {
               <select
                 value={radarPageSize}
                 onChange={(e) => { setRadarPageSize(Number(e.target.value)); setRadarCurrentPage(1); }}
-                style={{ padding: "8px 10px", background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--text)", fontSize: "0.85rem", cursor: "pointer" }}
+                style={{ padding: "8px 10px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
+                <option value={10} style={{ background: "#182232", color: "#f8fafc" }}>10</option>
+                <option value={20} style={{ background: "#182232", color: "#f8fafc" }}>20</option>
+                <option value={50} style={{ background: "#182232", color: "#f8fafc" }}>50</option>
+                <option value={100} style={{ background: "#182232", color: "#f8fafc" }}>100</option>
               </select>
             </div>
 
@@ -477,7 +460,7 @@ export function ProposalsManager() {
               }}
             >
               <RefreshCw size={15} className={isSyncing ? "animate-spin" : ""} />
-              {isSyncing ? "Varrendo..." : "⚡ Varredura"}
+              {isSyncing ? "Varrendo..." : "Varredura"}
             </button>
 
             <button
@@ -739,8 +722,6 @@ export function ProposalsManager() {
             ))
           )}
         </div>
-      ) : activeTab === "planning" ? (
-        <PlanningPortfolioPanel />
       ) : activeTab === "bigdata" ? (
         /* ABA 5: BIG DATA, ROI & CAC ANALYTICS */
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

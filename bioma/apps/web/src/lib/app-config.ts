@@ -34,7 +34,7 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
   { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
   { id: "eg-kits", label: "Logística Kits", icon: Package },
-  { id: "eg-propostas", label: "Radar & Propostas IA", icon: Target },
+  { id: "eg-propostas", label: "Freelas e Propostas", icon: Target },
   { id: "sales_copilot", label: "Copiloto de Vendas", icon: Headphones },
 ];
 
