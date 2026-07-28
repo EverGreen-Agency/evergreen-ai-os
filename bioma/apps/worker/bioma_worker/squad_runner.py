@@ -10,6 +10,7 @@ AGENT_NAME_BY_PILAR = {
     "conversao": "Sales Closer & Script Agent",
     "onboarding": "Client Onboarding Strategist",
     "planning": "Multi-discipline Project Planner",
+    "opportunity_fit": "Opportunity Fit Analyst",
 }
 
 PILAR_INSTRUCTIONS = {
@@ -40,6 +41,13 @@ PILAR_INSTRUCTIONS = {
         "Em Growth, diferencie entregas finitas de ciclos recorrentes, revisão e dependências. Em Social Media, "
         "trate 1 conteúdo como 1 entrega e respeite social_approval_flow, sem impor aprovação prévia da ideia "
         "quando o cliente só aprova depois da produção. Não invente escopo, preço, prazo ou evidência."
+    ),
+    "opportunity_fit": (
+        "Você avalia aderência de uma oportunidade de projeto/vaga ao inventário de competências e ao time da "
+        "EverGreen, estritamente a partir do contexto fornecido (título, descrição, orçamento, competências "
+        "disponíveis, perfis do time). Dê uma nota de 0 a 100 (fit_score) e explique o porquê em fit_analysis, "
+        "citando competências que casam (matched_skills) e gaps reais (skill_gaps). Não infira dados que não "
+        "estão no contexto e não infle a nota — uma vaga genérica ou com poucas evidências deve pontuar baixo."
     ),
 }
 
@@ -160,12 +168,26 @@ OUTPUT_SCHEMA_PLANNING = {
     },
 }
 
+OUTPUT_SCHEMA_OPPORTUNITY_FIT = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["fit_score", "fit_analysis", "matched_skills", "skill_gaps", "recommendation"],
+    "properties": {
+        "fit_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "fit_analysis": {"type": "string"},
+        "matched_skills": {"type": "array", "items": {"type": "string"}},
+        "skill_gaps": {"type": "array", "items": {"type": "string"}},
+        "recommendation": {"type": "string", "enum": ["prioritize", "review", "skip"]},
+    },
+}
+
 OUTPUT_SCHEMA_BY_PILAR = {
     "oferta": OUTPUT_SCHEMA_OFERTA,
     "demanda": OUTPUT_SCHEMA_DEMANDA,
     "conversao": OUTPUT_SCHEMA_CONVERSAO,
     "onboarding": OUTPUT_SCHEMA_ONBOARDING,
     "planning": OUTPUT_SCHEMA_PLANNING,
+    "opportunity_fit": OUTPUT_SCHEMA_OPPORTUNITY_FIT,
 }
 
 
@@ -361,6 +383,8 @@ def _preview_output(pilar: str, squad_name: str, input_data: dict[str, Any]) -> 
             "assumptions": assumptions,
             "items": items,
         }
+    if pilar == "opportunity_fit":
+        return _preview_opportunity_fit(input_data)
     return {
         "script_fechamento": f"Prévia local — script para: {objective}",
         "sequencia_whatsapp": [{"dia": 1, "mensagem": "Configure OPENAI_API_KEY para a sequência real."}],
@@ -368,4 +392,35 @@ def _preview_output(pilar: str, squad_name: str, input_data: dict[str, Any]) -> 
             "esta_caro": "Prévia local: resposta será gerada pelo modelo em execução live.",
             "preciso_pensar": "Prévia local: resposta será gerada pelo modelo em execução live.",
         },
+    }
+
+
+def _preview_opportunity_fit(input_data: dict[str, Any]) -> dict[str, Any]:
+    # Sem OPENAI_API_KEY, não fabricamos uma nota "alta por padrão" — aplicamos a
+    # mesma heurística transparente de palavras-chave já usada na ingestão
+    # (services/proposals.py), determinística e auditável, nunca enviesada pra cima.
+    title = str(input_data.get("opportunity_title") or "").lower()
+    description = str(input_data.get("opportunity_description") or "").lower()
+    full_text = f"{title} {description}"
+    inventory = [str(s).lower() for s in (input_data.get("agency_skills_inventory") or [])]
+
+    score = 50
+    matched_skills = [skill for skill in inventory if skill and skill in full_text]
+    score += len(matched_skills) * 7
+
+    known_tech_keywords = ["marketo", "salesforce", "magento", "shopify", "activecampaign", "klaviyo", "pipedrive"]
+    skill_gaps = [tech for tech in known_tech_keywords if tech in full_text and tech not in inventory]
+    score -= len(skill_gaps) * 10
+
+    fit_score = min(98, max(25, score))
+    recommendation = "prioritize" if fit_score >= 70 else "review" if fit_score >= 45 else "skip"
+    return {
+        "fit_score": fit_score,
+        "fit_analysis": (
+            "Prévia local (heurística de palavras-chave, não é avaliação de IA real — "
+            "configure OPENAI_API_KEY no worker para análise contextual genuína)."
+        ),
+        "matched_skills": matched_skills,
+        "skill_gaps": [gap.capitalize() for gap in skill_gaps],
+        "recommendation": recommendation,
     }
