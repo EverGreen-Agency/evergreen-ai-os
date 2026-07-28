@@ -202,11 +202,14 @@ Projetos Tech podem ser ligados a um repositório GitHub. O painel consulta issu
 O módulo de Propostas Comerciais (`/backoffice/proposals`) opera como a central de atração e conversão B2B da EverGreen:
 
 1. **Radar de Oportunidades & Plataformas B2B**: captura manual e consulta explícita de feeds RSS públicos de Freelancer.com.br, WeWorkRemotely e Remotive, além de feeds configurados pela EG. O scoring atual é determinístico por regras; o rascunho de proposta consome os runners dos três pilares (Oferta, Conversão e Demanda).
-2. **Integração Financeira de SaaS**: Custos mensais de assinaturas configurados por plataforma geram lançamentos automáticos de despesa recorrente no módulo **Financeiro (`financial_records`)**.
-3. **Auditoria por link de perfil (`profile_auditor.py`)**: o scraper tenta extrair informações públicas e retorna erro verificável quando a fonte bloqueia ou falha; o sistema não persiste score ou recomendações fictícias.
-4. **Cases e provas sociais**: `attached_cases` permanece vazio até existir uma biblioteca de cases aprovada com origem e resultados verificáveis; inventário de habilidades não é tratado como prova de case.
-5. **Inventário de Gaps Tecnológicos**: Identifica automaticamente ferramentas do mercado (HubSpot, Marketo, Salesforce, Shopify, etc.) exigidas em vagas triadas (`opportunity_skill_gaps`), permitindo a incorporação ao portfólio (`tech_skill_inventory`) com 1 clique.
-6. **Big Data, ROI & CAC por Plataforma**: Acompanhamento de conversão (Win Rate %), Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Receita Ganha, Lucro Líquido e ROI (%) por canal de prospecção.
+2. **Briefing de carteira**: o wizard seleciona ou cria o cliente pelo fluxo canônico, preserva título, tipo, contratada, equipe, modalidade, serviços e contexto comercial e usa o perfil já cadastrado na geração. O snapshot `commercial_proposal_v1` acompanha a proposta; nenhum cliente duplicado é criado.
+3. **Integração Financeira de SaaS**: Custos mensais de assinaturas configurados por plataforma geram lançamentos automáticos de despesa recorrente no módulo **Financeiro (`financial_records`)**.
+4. **Auditoria por link de perfil (`profile_auditor.py`)**: o scraper tenta extrair informações públicas e retorna erro verificável quando a fonte bloqueia ou falha; o sistema não persiste score ou recomendações fictícias.
+5. **Cases e provas sociais**: `attached_cases` permanece vazio até existir uma biblioteca de cases aprovada com origem e resultados verificáveis; inventário de habilidades não é tratado como prova de case.
+6. **Inventário de Gaps Tecnológicos**: Identifica automaticamente ferramentas do mercado (HubSpot, Marketo, Salesforce, Shopify, etc.) exigidas em vagas triadas (`opportunity_skill_gaps`), permitindo a incorporação ao portfólio (`tech_skill_inventory`) com 1 clique.
+7. **Big Data, ROI & CAC por Plataforma**: Acompanhamento de conversão (Win Rate %), Custo por Proposta (CPP), Custo de Aquisição de Cliente (CAC), Receita Ganha, Lucro Líquido e ROI (%) por canal de prospecção.
+
+A migration 0055 somente versiona o modelo; não foi aplicada nem populou banco nesta implementação. Detalhe editável, revisões, PDF final, envio, negociação auditada, assinatura e conversão em projeto/contrato permanecem no próximo ciclo.
 
 Excluir um cliente pela API cotidiana arquiva cliente e workspace. O purge físico é uma ação separada e confirmada, com limpeza S3 e auditoria preservada.
 

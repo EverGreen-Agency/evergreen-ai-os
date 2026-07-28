@@ -28,6 +28,8 @@ O domínio `client_profiles` persiste um único contexto estruturado por workspa
 
 O domínio interno `ai_operations` é o control plane dos fluxos da EG. Templates em código são instalados como definições versionadas; cada execução usa chave de idempotência, materializa etapas em ordem e volta a `pending_approval` nos checkpoints interativos. Completar uma etapa pode registrar uso/custo, mas o motor não executa escrita externa nem pula HITL. Os primeiros fluxos são proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
 
+Propostas comerciais não possuem um cadastro paralelo de cliente. `commercial_proposals.workspace_id` aponta para o mesmo workspace usado por perfil, projetos e contratos. O catálogo `commercial_proposal_v1` vive no servidor e valida tipo, modalidade, urgência e serviços; o briefing e o contexto do cliente são fotografados em `intake_snapshot`. A geração usa os três pilares e grava `generation_mode=live|preview`, mas não cria contrato, projeto, entrega nem envio externo. Essas transições pertencem ao ciclo de vida posterior e exigem confirmação HITL e idempotência.
+
 FinOps de IA separa três fatos: `ai_provider_subscriptions` representa compromisso financeiro; `ai_usage_events` representa consumo observado; `ai_quota_snapshots` representa uma medição de capacidade com origem declarada. Valores financeiros usam centavos. Moedas não são somadas entre si e uma execução não aceita custo de etapa em moeda diferente. Autenticação em Codex, Claude ou AntiGravity não é tratada como API de quota: sem dado oficial/configurado, o saldo permanece desconhecido.
 
 ## Modelo de produto e tenancy

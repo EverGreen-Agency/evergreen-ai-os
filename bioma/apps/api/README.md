@@ -119,10 +119,14 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 - `POST /backoffice/proposals/opportunities/ingest`: Triagem manual de vaga.
 - `POST /backoffice/proposals/opportunities/sync`: consulta as três fontes RSS públicas e feeds adicionais configurados.
 - `POST /backoffice/proposals/opportunities/{id}/generate`: Gera proposta em 3 pilares com injeção de cases.
-- `GET/POST/PATCH /backoffice/proposals`: Gerenciador de propostas comerciais (com seletor de status `draft`, `sent`, `won`, `lost`).
+- `GET /backoffice/proposals/catalog`: Catálogo server-owned `commercial_proposal_v1`.
+- `POST /backoffice/proposals/from-brief`: Valida cliente ativo, combina perfil + briefing, executa os três pilares e persiste snapshot e modo `live`/`preview`.
+- `GET/POST/PATCH /backoffice/proposals`: Gerenciador de propostas comerciais (status `draft`, `approved`, `sent`, `negotiating`, `won`, `lost`).
 - `GET /backoffice/proposals/platforms`: Lista e configura custos de assinaturas SaaS de plataformas.
 - `GET/POST/DELETE /backoffice/proposals/profiles`: Gerencia perfis para auto-vigilância.
 - `POST /backoffice/proposals/profiles/sync`: Raspa e audita perfil freelancer por URL pública.
 - `GET /backoffice/proposals/skills`: Lista competências e cases do acervo EG.
 - `GET /backoffice/proposals/gaps` e `POST /gaps/{gap_id}/resolve`: Gerencia e incorpora gaps tecnológicos ao acervo.
 - `GET /backoffice/proposals/analytics`: Retorna métricas de Big Data (Win Rate %, CPP, CAC, Lucro Líquido e ROI % por canal).
+
+`commercial_proposals.workspace_id` é opcional para compatibilidade com o radar externo, mas obrigatório no fluxo de briefing. A migration 0055 adiciona série/versão, campos estruturados e `intake_snapshot`; não é aplicada automaticamente. O repositório usa whitelist de colunas mutáveis, evitando que chaves arbitrárias do payload componham SQL dinâmico.

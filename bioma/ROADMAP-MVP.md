@@ -242,6 +242,9 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Implementar pesquisa de mercado interna e versionada para a Operação EG, com refinamento de foco, fontes verificáveis no modo live e relatório para prospecção/Growth/Social, sem publicação ou acoplamento automático ao Hub (MARKET-RESEARCH-001, 2026-07-27).
 - [x] Implementar contexto estruturado de cliente no Hub, com completude derivada, autorização `view`/`manage_work`, auditoria e inclusão no rascunho do planejador de projeto (CLIENT-PROFILE-001, 2026-07-27).
 - [~] Criar portfólio central de planejamentos por cliente/status e intake guiado reutilizando o workspace e o wizard canônicos; não duplicar cadastro de cliente. A primeira variante `retail_v1` foi implementada no projeto com rascunho persistido, finalização imutável, metas condicionais por maturidade e snapshot auditável no plano. Faltam o portfólio transversal e variantes `tech_v1`/`growth_social_v1`.
+- [x] Criar briefing comercial estruturado e versionado ligado ao workspace canônico, com catálogo server-owned, contexto do perfil do cliente, escopo selecionável e geração honesta `live`/`preview` nos três pilares (PROPOSAL-BRIEF-001, 2026-07-28).
+- [ ] Completar a central de propostas com detalhe/editoração, revisões da mesma série, comparação, aprovação interna, envio rastreado, negociação, PDF e aceite/assinatura via adapter.
+- [ ] Ligar proposta ganha ao contrato/projeto por ação HITL idempotente; gerar backlog candidato sem criar entregas automaticamente.
 - [ ] Definir arquitetura de VoIP para prospecção (provedor/SIP, números, consentimento, gravação, LGPD, discador, CRM e métricas) antes de escolher integração ou construir telefonia própria.
 - [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 
