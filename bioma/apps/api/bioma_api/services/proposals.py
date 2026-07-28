@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from bioma_api.access import require_platform_admin
 from bioma_api.db import connect
 from bioma_api.proposal_catalog import SERVICE_GROUPS, proposal_catalog
+from bioma_api.proposal_documents import render_proposal_markdown
 from bioma_api.repositories import proposals as proposals_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
@@ -270,6 +271,7 @@ def generate_proposal_for_opportunity(opp_id: UUID, user: CurrentUserResponse) -
             "generation_mode": generation_mode,
         }
 
+    proposal_payload["content_markdown"] = render_proposal_markdown(proposal_payload)
     with connect() as conn:
         proposal = proposals_repo.create_proposal(conn, proposal_payload, user_id=user.id)
         proposals_repo.update_opportunity_status(conn, opp_id, status_val="proposal_generated")
@@ -286,8 +288,10 @@ def list_proposals(user: CurrentUserResponse) -> list[ProposalSummary]:
 
 def create_proposal(payload: ProposalCreatePayload, user: CurrentUserResponse) -> ProposalSummary:
     _require_admin(user)
+    data = payload.model_dump()
+    data["content_markdown"] = render_proposal_markdown(data)
     with connect() as conn:
-        row = proposals_repo.create_proposal(conn, payload.model_dump(), user_id=user.id)
+        row = proposals_repo.create_proposal(conn, data, user_id=user.id)
     return ProposalSummary(**row)
 
 
@@ -364,6 +368,7 @@ def generate_proposal_from_brief(
             "client_context": client_context,
         },
     }
+    proposal_payload["content_markdown"] = render_proposal_markdown(proposal_payload)
     with connect() as conn:
         row = proposals_repo.create_proposal(conn, proposal_payload, user_id=user.id)
     return ProposalSummary(**row)
@@ -371,8 +376,14 @@ def generate_proposal_from_brief(
 
 def update_proposal(proposal_id: UUID, payload: ProposalUpdatePayload, user: CurrentUserResponse) -> ProposalSummary:
     _require_admin(user)
+    updates = payload.model_dump(exclude_unset=True)
+    if "status" in updates:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Use a transição auditada do ciclo de vida para alterar o status.",
+        )
     with connect() as conn:
-        row = proposals_repo.update_proposal(conn, proposal_id, payload.model_dump(exclude_unset=True))
+        row = proposals_repo.update_proposal(conn, proposal_id, updates)
         if not row:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta não encontrada.")
     return ProposalSummary(**row)

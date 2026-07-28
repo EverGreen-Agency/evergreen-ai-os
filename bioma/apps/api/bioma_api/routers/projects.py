@@ -8,7 +8,7 @@ from bioma_api.schemas.projects import (
     ContractCreate, ContractUpdate, ProjectCreate, ProjectDeliverableCreate, ProjectDetail,
     ProjectDocumentCreate, ProjectPhaseCreate, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanApproveRequest, ProjectPlanGenerateRequest, ProjectPlanMaterializeRequest,
-    ProjectPlanItemUpdate, ProjectPlanSummary, ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate,
+    PlanningPortfolioItem, ProjectPlanItemUpdate, ProjectPlanSummary, ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate,
     ProjectPlanningIntakeWrite, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
 )
 from bioma_api.services import projects as project_service
@@ -16,6 +16,11 @@ from bioma_api.services import projects as project_service
 
 workspace_router = APIRouter(prefix="/workspaces/{workspace_id}/projects", tags=["projects"])
 router = APIRouter(tags=["projects"])
+
+
+@router.get("/backoffice/planning-portfolio", response_model=list[PlanningPortfolioItem])
+def list_planning_portfolio(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return project_service.list_planning_portfolio(user)
 
 
 @workspace_router.get("", response_model=list[ProjectSummary])

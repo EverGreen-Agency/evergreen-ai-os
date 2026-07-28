@@ -9321,6 +9321,176 @@
         "title": "PipelineMetrics",
         "type": "object"
       },
+      "PlanningPortfolioItem": {
+        "properties": {
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "generation_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "live",
+                  "preview",
+                  "manual"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Mode"
+          },
+          "intake_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intake Id"
+          },
+          "intake_schema_key": {
+            "anyOf": [
+              {
+                "enum": [
+                  "retail_v1",
+                  "tech_v1",
+                  "growth_social_v1"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intake Schema Key"
+          },
+          "intake_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "finalized"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intake Status"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "plan_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "approved",
+                  "materialized",
+                  "superseded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Status"
+          },
+          "plan_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Title"
+          },
+          "plan_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Version"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_name": {
+            "title": "Project Name",
+            "type": "string"
+          },
+          "project_status": {
+            "enum": [
+              "planned",
+              "active",
+              "on_hold",
+              "completed",
+              "cancelled",
+              "archived"
+            ],
+            "title": "Project Status",
+            "type": "string"
+          },
+          "project_type": {
+            "enum": [
+              "social",
+              "growth",
+              "tech",
+              "general"
+            ],
+            "title": "Project Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "project_name",
+          "project_type",
+          "project_status",
+          "workspace_id",
+          "client_name",
+          "updated_at"
+        ],
+        "title": "PlanningPortfolioItem",
+        "type": "object"
+      },
       "ProjectCreate": {
         "properties": {
           "cadence_days": {
@@ -10936,7 +11106,11 @@
             "type": "string"
           },
           "schema_key": {
-            "const": "retail_v1",
+            "enum": [
+              "retail_v1",
+              "tech_v1",
+              "growth_social_v1"
+            ],
             "title": "Schema Key",
             "type": "string"
           },
@@ -11034,8 +11208,12 @@
             "type": "string"
           },
           "schema_key": {
-            "const": "retail_v1",
             "default": "retail_v1",
+            "enum": [
+              "retail_v1",
+              "tech_v1",
+              "growth_social_v1"
+            ],
             "title": "Schema Key",
             "type": "string"
           },
@@ -11495,6 +11673,63 @@
         "title": "ProjectUpdateSummary",
         "type": "object"
       },
+      "ProposalAcceptanceCreate": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "confirmation": {
+            "const": "ACEITO_OS_TERMOS_DA_PROPOSTA",
+            "title": "Confirmation",
+            "type": "string"
+          },
+          "signer_email": {
+            "format": "email",
+            "title": "Signer Email",
+            "type": "string"
+          },
+          "signer_name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Signer Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted",
+          "signer_name",
+          "signer_email",
+          "confirmation"
+        ],
+        "title": "ProposalAcceptanceCreate",
+        "type": "object"
+      },
+      "ProposalArchiveRequest": {
+        "properties": {
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "ProposalArchiveRequest",
+        "type": "object"
+      },
       "ProposalBriefCreatePayload": {
         "properties": {
           "additional_context": {
@@ -11606,6 +11841,293 @@
           "problem_summary"
         ],
         "title": "ProposalBriefCreatePayload",
+        "type": "object"
+      },
+      "ProposalClaim": {
+        "properties": {
+          "approved": {
+            "default": false,
+            "title": "Approved",
+            "type": "boolean"
+          },
+          "evidence_ref": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Ref"
+          },
+          "text": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ProposalClaim",
+        "type": "object"
+      },
+      "ProposalClaimsReview": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "enum": [
+              "approved",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ProposalClaimsReview",
+        "type": "object"
+      },
+      "ProposalCohort": {
+        "properties": {
+          "average_days_to_close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Days To Close"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "lost": {
+            "title": "Lost",
+            "type": "integer"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "sent": {
+            "title": "Sent",
+            "type": "integer"
+          },
+          "win_rate_percentage": {
+            "title": "Win Rate Percentage",
+            "type": "number"
+          },
+          "won": {
+            "title": "Won",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "created",
+          "sent",
+          "won",
+          "lost",
+          "win_rate_percentage"
+        ],
+        "title": "ProposalCohort",
+        "type": "object"
+      },
+      "ProposalCohortAnalytics": {
+        "properties": {
+          "cohorts": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalCohort"
+            },
+            "title": "Cohorts",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "median_days_to_close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Days To Close"
+          },
+          "median_days_to_first_send": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Days To First Send"
+          }
+        },
+        "required": [
+          "generated_at"
+        ],
+        "title": "ProposalCohortAnalytics",
+        "type": "object"
+      },
+      "ProposalContentUpdate": {
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalClaim"
+            },
+            "maxItems": 100,
+            "title": "Claims",
+            "type": "array"
+          },
+          "content_markdown": {
+            "maxLength": 100000,
+            "minLength": 20,
+            "title": "Content Markdown",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_markdown"
+        ],
+        "title": "ProposalContentUpdate",
+        "type": "object"
+      },
+      "ProposalConversion": {
+        "properties": {
+          "contract_id": {
+            "format": "uuid",
+            "title": "Contract Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "proposal_id",
+          "idempotency_key",
+          "project_id",
+          "contract_id",
+          "created_at"
+        ],
+        "title": "ProposalConversion",
+        "type": "object"
+      },
+      "ProposalConversionCreate": {
+        "properties": {
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "project_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Name"
+          },
+          "project_type": {
+            "default": "general",
+            "enum": [
+              "tech",
+              "growth",
+              "social",
+              "general"
+            ],
+            "title": "Project Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm",
+          "idempotency_key"
+        ],
+        "title": "ProposalConversionCreate",
         "type": "object"
       },
       "ProposalCreatePayload": {
@@ -11916,6 +12438,870 @@
           "executive_summary"
         ],
         "title": "ProposalCreatePayload",
+        "type": "object"
+      },
+      "ProposalDelivery": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "share_link",
+              "manual_email",
+              "signature_adapter"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered At"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "recipient_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Email"
+          },
+          "recipient_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Name"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "status": {
+            "enum": [
+              "prepared",
+              "sent",
+              "delivered",
+              "accepted",
+              "rejected",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "proposal_id",
+          "channel",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProposalDelivery",
+        "type": "object"
+      },
+      "ProposalDeliveryCreate": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "share_link",
+              "manual_email",
+              "signature_adapter"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "confirm_external_send": {
+            "default": false,
+            "title": "Confirm External Send",
+            "type": "boolean"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "recipient_email": {
+            "anyOf": [
+              {
+                "format": "email",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Email"
+          },
+          "recipient_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Name"
+          }
+        },
+        "required": [
+          "channel"
+        ],
+        "title": "ProposalDeliveryCreate",
+        "type": "object"
+      },
+      "ProposalDetailResponse": {
+        "properties": {
+          "conversion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProposalConversion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalDelivery"
+            },
+            "title": "Deliveries",
+            "type": "array"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/ProposalLifecycleRecord"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalLifecycleRecord"
+            },
+            "title": "Revisions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "proposal"
+        ],
+        "title": "ProposalDetailResponse",
+        "type": "object"
+      },
+      "ProposalEvent": {
+        "properties": {
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "proposal_id",
+          "event_type",
+          "created_at"
+        ],
+        "title": "ProposalEvent",
+        "type": "object"
+      },
+      "ProposalLifecycleRecord": {
+        "properties": {
+          "acceptance_status": {
+            "default": "not_requested",
+            "enum": [
+              "not_requested",
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Acceptance Status",
+            "type": "string"
+          },
+          "accepted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At"
+          },
+          "accepted_by_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted By Email"
+          },
+          "accepted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted By Name"
+          },
+          "additional_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Context"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "attached_cases": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Attached Cases",
+            "type": "array"
+          },
+          "claims": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "claims_review_status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "title": "Claims Review Status",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "content_markdown": {
+            "default": "",
+            "title": "Content Markdown",
+            "type": "string"
+          },
+          "content_sections": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Content Sections",
+            "type": "array"
+          },
+          "contractor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Name"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "decision_maker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Maker"
+          },
+          "delivery_days": {
+            "default": 0,
+            "maximum": 730.0,
+            "minimum": 0.0,
+            "title": "Delivery Days",
+            "type": "integer"
+          },
+          "delivery_modality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Modality"
+          },
+          "estimated_budget": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Budget"
+          },
+          "executive_summary": {
+            "title": "Executive Summary",
+            "type": "string"
+          },
+          "generation_mode": {
+            "default": "manual",
+            "enum": [
+              "live",
+              "preview",
+              "manual"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intake_snapshot": {
+            "additionalProperties": true,
+            "title": "Intake Snapshot",
+            "type": "object"
+          },
+          "lost_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lost At"
+          },
+          "negotiating_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negotiating At"
+          },
+          "opportunity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opportunity Id"
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
+          "pricing_cents": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Pricing Cents",
+            "type": "integer"
+          },
+          "problem_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem Summary"
+          },
+          "proposal_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Type"
+          },
+          "public_expires_at": {
+            "format": "date-time",
+            "title": "Public Expires At",
+            "type": "string"
+          },
+          "public_token": {
+            "title": "Public Token",
+            "type": "string"
+          },
+          "scope_conversion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Conversion"
+          },
+          "scope_demand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Demand"
+          },
+          "scope_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Scope Items",
+            "type": "array"
+          },
+          "scope_offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Offer"
+          },
+          "selected_services": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selected Services",
+            "type": "array"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id"
+          },
+          "special_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Requirements"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "approved",
+              "sent",
+              "negotiating",
+              "won",
+              "lost"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_niche": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Niche"
+          },
+          "team_members": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Team Members",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          },
+          "version": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          },
+          "viewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewed At"
+          },
+          "win_loss_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Loss Feedback"
+          },
+          "won_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Won At"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "client_name",
+          "executive_summary",
+          "id",
+          "public_token",
+          "public_expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProposalLifecycleRecord",
+        "type": "object"
+      },
+      "ProposalRevisionCreate": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "ProposalRevisionCreate",
+        "type": "object"
+      },
+      "ProposalStatusTransition": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "approved",
+              "sent",
+              "negotiating",
+              "won",
+              "lost"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ProposalStatusTransition",
         "type": "object"
       },
       "ProposalSummary": {
@@ -12534,6 +13920,108 @@
         "title": "ProposalUpdatePayload",
         "type": "object"
       },
+      "PublicProposalLifecycleRecord": {
+        "properties": {
+          "acceptance_status": {
+            "enum": [
+              "not_requested",
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Acceptance Status",
+            "type": "string"
+          },
+          "accepted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At"
+          },
+          "accepted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted By Name"
+          },
+          "claims_review_status": {
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "title": "Claims Review Status",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "content_markdown": {
+            "title": "Content Markdown",
+            "type": "string"
+          },
+          "contractor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Name"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "approved",
+              "sent",
+              "negotiating",
+              "won",
+              "lost"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "client_name",
+          "version",
+          "status",
+          "content_markdown",
+          "claims_review_status",
+          "acceptance_status"
+        ],
+        "title": "PublicProposalLifecycleRecord",
+        "type": "object"
+      },
       "PublicProposalResponse": {
         "properties": {
           "client_name": {
@@ -12619,6 +14107,40 @@
           "created_at"
         ],
         "title": "PublicProposalResponse",
+        "type": "object"
+      },
+      "RealtimeAdapterStatus": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_configured",
+              "adapter_ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "supported_input": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Input",
+            "type": "array"
+          }
+        },
+        "required": [
+          "available",
+          "status",
+          "message"
+        ],
+        "title": "RealtimeAdapterStatus",
         "type": "object"
       },
       "ResearchChallenge": {
@@ -12968,6 +14490,447 @@
           "squad_name"
         ],
         "title": "RunSquadPayload",
+        "type": "object"
+      },
+      "SalesCopilotCompleteRequest": {
+        "properties": {
+          "duration_seconds": {
+            "default": 0,
+            "maximum": 86400.0,
+            "minimum": 0.0,
+            "title": "Duration Seconds",
+            "type": "integer"
+          }
+        },
+        "title": "SalesCopilotCompleteRequest",
+        "type": "object"
+      },
+      "SalesCopilotEvent": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "event_type": {
+            "enum": [
+              "transcript_chunk",
+              "objection",
+              "insight",
+              "note",
+              "action_item"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "recommendation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Source Refs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "event_type",
+          "content",
+          "sequence",
+          "created_at"
+        ],
+        "title": "SalesCopilotEvent",
+        "type": "object"
+      },
+      "SalesCopilotEventCreate": {
+        "properties": {
+          "content": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "event_type": {
+            "enum": [
+              "transcript_chunk",
+              "objection",
+              "insight",
+              "note",
+              "action_item"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "recommendation": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 50,
+            "title": "Source Refs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "event_type",
+          "content"
+        ],
+        "title": "SalesCopilotEventCreate",
+        "type": "object"
+      },
+      "SalesCopilotMetrics": {
+        "properties": {
+          "analyses_completed": {
+            "title": "Analyses Completed",
+            "type": "integer"
+          },
+          "sessions_by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Sessions By Status",
+            "type": "object"
+          },
+          "total_duration_seconds": {
+            "title": "Total Duration Seconds",
+            "type": "integer"
+          },
+          "total_sessions": {
+            "title": "Total Sessions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_sessions",
+          "total_duration_seconds",
+          "analyses_completed"
+        ],
+        "title": "SalesCopilotMetrics",
+        "type": "object"
+      },
+      "SalesCopilotSession": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/SalesCopilotEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_snapshot": {
+            "additionalProperties": true,
+            "title": "Knowledge Snapshot",
+            "type": "object"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "participant_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Context"
+          },
+          "preparation_brief": {
+            "additionalProperties": true,
+            "title": "Preparation Brief",
+            "type": "object"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "realtime_status": {
+            "enum": [
+              "not_configured",
+              "adapter_ready",
+              "live",
+              "failed"
+            ],
+            "title": "Realtime Status",
+            "type": "string"
+          },
+          "session_type": {
+            "enum": [
+              "sales_call",
+              "discovery",
+              "proposal_review",
+              "follow_up"
+            ],
+            "title": "Session Type",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "prepared",
+              "active",
+              "completed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "transcript": {
+            "title": "Transcript",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "session_type",
+          "language",
+          "status",
+          "realtime_status",
+          "transcript",
+          "duration_seconds",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SalesCopilotSession",
+        "type": "object"
+      },
+      "SalesCopilotSessionCreate": {
+        "properties": {
+          "language": {
+            "default": "pt-BR",
+            "maxLength": 20,
+            "minLength": 2,
+            "title": "Language",
+            "type": "string"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "participant_context": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Context"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "session_type": {
+            "default": "sales_call",
+            "enum": [
+              "sales_call",
+              "discovery",
+              "proposal_review",
+              "follow_up"
+            ],
+            "title": "Session Type",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "SalesCopilotSessionCreate",
         "type": "object"
       },
       "SatisfactionScoreCreateRequest": {
@@ -19024,6 +20987,31 @@
         ]
       }
     },
+    "/backoffice/planning-portfolio": {
+      "get": {
+        "operationId": "list_planning_portfolio_backoffice_planning_portfolio_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlanningPortfolioItem"
+                  },
+                  "title": "Response List Planning Portfolio Backoffice Planning Portfolio Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Planning Portfolio",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/backoffice/proposals": {
       "get": {
         "operationId": "list_proposals_backoffice_proposals_get",
@@ -19123,6 +21111,27 @@
         "summary": "Get Proposal Catalog",
         "tags": [
           "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/cohorts": {
+      "get": {
+        "operationId": "get_cohorts_backoffice_proposals_cohorts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalCohortAnalytics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cohorts",
+        "tags": [
+          "proposal-lifecycle"
         ]
       }
     },
@@ -19579,6 +21588,91 @@
       }
     },
     "/backoffice/proposals/{proposal_id}": {
+      "delete": {
+        "operationId": "archive_proposal_backoffice_proposals__proposal_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalArchiveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive Proposal",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      },
+      "get": {
+        "operationId": "get_proposal_detail_backoffice_proposals__proposal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Proposal Detail",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      },
       "patch": {
         "operationId": "update_proposal_backoffice_proposals__proposal_id__patch",
         "parameters": [
@@ -19628,6 +21722,365 @@
         "summary": "Update Proposal",
         "tags": [
           "proposals"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/claims-review": {
+      "post": {
+        "operationId": "review_proposal_claims_backoffice_proposals__proposal_id__claims_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalClaimsReview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Proposal Claims",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/content": {
+      "put": {
+        "operationId": "update_proposal_content_backoffice_proposals__proposal_id__content_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalContentUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Proposal Content",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/convert": {
+      "post": {
+        "operationId": "convert_proposal_backoffice_proposals__proposal_id__convert_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalConversionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Convert Proposal",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/deliveries": {
+      "post": {
+        "operationId": "create_proposal_delivery_backoffice_proposals__proposal_id__deliveries_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalDeliveryCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Proposal Delivery",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/pdf": {
+      "get": {
+        "operationId": "export_proposal_pdf_backoffice_proposals__proposal_id__pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Proposal Pdf",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/revisions": {
+      "post": {
+        "operationId": "create_proposal_revision_backoffice_proposals__proposal_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalRevisionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Proposal Revision",
+        "tags": [
+          "proposal-lifecycle"
+        ]
+      }
+    },
+    "/backoffice/proposals/{proposal_id}/transition": {
+      "post": {
+        "operationId": "transition_proposal_backoffice_proposals__proposal_id__transition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalStatusTransition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Proposal",
+        "tags": [
+          "proposal-lifecycle"
         ]
       }
     },
@@ -20003,6 +22456,304 @@
         "summary": "Create Satisfaction Score",
         "tags": [
           "rh"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot": {
+      "get": {
+        "operationId": "list_sessions_backoffice_sales_copilot_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SalesCopilotSession"
+                  },
+                  "title": "Response List Sessions Backoffice Sales Copilot Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Sessions",
+        "tags": [
+          "sales-copilot"
+        ]
+      },
+      "post": {
+        "operationId": "create_session_backoffice_sales_copilot_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Session",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/metrics": {
+      "get": {
+        "operationId": "get_metrics_backoffice_sales_copilot_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotMetrics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Metrics",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/realtime-adapter": {
+      "get": {
+        "operationId": "get_realtime_adapter_backoffice_sales_copilot_realtime_adapter_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealtimeAdapterStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Realtime Adapter",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}": {
+      "get": {
+        "operationId": "get_session_backoffice_sales_copilot__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/complete": {
+      "post": {
+        "operationId": "complete_session_backoffice_sales_copilot__session_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Session",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/events": {
+      "post": {
+        "operationId": "add_event_backoffice_sales_copilot__session_id__events_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesCopilotEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Event",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/prepare": {
+      "post": {
+        "operationId": "prepare_session_backoffice_sales_copilot__session_id__prepare_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesCopilotSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Prepare Session",
+        "tags": [
+          "sales-copilot"
         ]
       }
     },
@@ -24439,6 +27190,100 @@
         "summary": "Get Public Proposal",
         "tags": [
           "public-proposals"
+        ]
+      }
+    },
+    "/proposals/public/{public_token}/accept": {
+      "post": {
+        "operationId": "accept_public_proposal_proposals_public__public_token__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_token",
+            "required": true,
+            "schema": {
+              "title": "Public Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalAcceptanceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProposalLifecycleRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Public Proposal",
+        "tags": [
+          "public-proposal-lifecycle"
+        ]
+      }
+    },
+    "/proposals/public/{public_token}/detail": {
+      "get": {
+        "operationId": "get_public_proposal_detail_proposals_public__public_token__detail_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_token",
+            "required": true,
+            "schema": {
+              "title": "Public Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProposalLifecycleRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Public Proposal Detail",
+        "tags": [
+          "public-proposal-lifecycle"
         ]
       }
     },

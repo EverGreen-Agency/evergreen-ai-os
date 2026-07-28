@@ -59,6 +59,60 @@ def test_retail_intake_requires_all_fields_only_when_finalized():
     assert "operating_channels" in exc.value.detail
 
 
+def test_tech_intake_normalizes_multi_value_fields():
+    answers = {
+        "product_stage": "evolution",
+        "repository_strategy": "existing",
+        "target_platforms": ["web", "mobile", "web"],
+        "architecture_context": "React, FastAPI e PostgreSQL.",
+        "environments": ["staging", "production"],
+        "integrations": ["GitHub", "S3"],
+        "data_strategy": "Migrações versionadas e rollback documentado.",
+        "security_requirements": "Tenant scope e trilha de auditoria.",
+        "acceptance_strategy": "Testes automatizados e aceite do cliente.",
+        "release_goal": "Staging antes de produção.",
+    }
+
+    normalized, derived = normalize_answers("tech_v1", answers, require_complete=True)
+
+    assert normalized["target_platforms"] == ["mobile", "web"]
+    assert normalized["integrations"] == ["GitHub", "S3"]
+    assert derived["schema_key"] == "tech_v1"
+    assert "acceptance_strategy" in derived["answered_fields"]
+
+
+def test_growth_social_intake_derives_adaptive_approval_flow():
+    answers = {
+        "channels": ["instagram", "linkedin"],
+        "audience": "Decisores B2B e comunidade da marca.",
+        "offer": "Estratégia, criação e distribuição de conteúdo.",
+        "content_pillars": ["educação", "prova"],
+        "cadence": "Três publicações por semana.",
+        "approval_flow": "adaptive",
+        "production_capacity": "Doze peças mensais.",
+        "current_metrics": "Leads qualificados, alcance e salvamentos.",
+        "campaign_goal": "Gerar demanda e fortalecer autoridade.",
+        "brand_constraints": "Tom técnico, humano e sem promessas absolutas.",
+    }
+
+    normalized, derived = normalize_answers("growth_social_v1", answers, require_complete=True)
+
+    assert normalized["channels"] == ["instagram", "linkedin"]
+    assert derived["social_approval_flow"] == "adaptive"
+
+
+def test_growth_social_intake_rejects_unknown_approval_flow():
+    with pytest.raises(HTTPException) as exc:
+        normalize_answers(
+            "growth_social_v1",
+            {"approval_flow": "automatic_without_review"},
+            require_complete=False,
+        )
+
+    assert exc.value.status_code == 422
+    assert "approval_flow" in exc.value.detail
+
+
 def test_client_user_cannot_list_internal_planning_intakes(client_user_factory, monkeypatch):
     @contextmanager
     def fake_connect():

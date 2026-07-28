@@ -424,6 +424,51 @@ def create_project_planning_intake(conn, project_id: UUID, user_id: UUID, payloa
     ).fetchone()
 
 
+def list_planning_portfolio(conn):
+    return conn.execute(
+        """
+        select
+          project.id as project_id,
+          project.name as project_name,
+          project.project_type,
+          project.status as project_status,
+          project.workspace_id,
+          organization.name as client_name,
+          intake.id as intake_id,
+          intake.schema_key as intake_schema_key,
+          intake.status as intake_status,
+          plan.id as plan_id,
+          plan.title as plan_title,
+          plan.version as plan_version,
+          plan.status as plan_status,
+          plan.generation_mode,
+          greatest(
+            project.updated_at,
+            coalesce(intake.updated_at, project.updated_at),
+            coalesce(plan.updated_at, project.updated_at)
+          ) as updated_at
+        from projects project
+        join workspaces workspace on workspace.id = project.workspace_id
+        join organizations organization on organization.id = workspace.subject_organization_id
+        left join lateral (
+          select *
+          from project_planning_intakes candidate
+          where candidate.project_id = project.id
+          order by candidate.updated_at desc
+          limit 1
+        ) intake on true
+        left join lateral (
+          select *
+          from project_plans candidate
+          where candidate.project_id = project.id
+          order by candidate.version desc
+          limit 1
+        ) plan on true
+        order by updated_at desc, project.name
+        """
+    ).fetchall()
+
+
 def update_project_planning_intake(conn, intake_id: UUID, payload: dict[str, Any]):
     assignments = ", ".join(f"{field} = %s" for field in payload)
     values = [Jsonb(value) if field in {"answers", "derived_context"} else value for field, value in payload.items()]

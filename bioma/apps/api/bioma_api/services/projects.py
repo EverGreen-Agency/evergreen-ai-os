@@ -4,11 +4,11 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from pydantic import ValidationError
 
-from bioma_api.access import is_platform_admin, require_workspace_capability
+from bioma_api.access import is_platform_admin, require_platform_admin, require_workspace_capability
 from bioma_api.db import connect
 from bioma_api.repositories import client_profiles as client_profile_repo
 from bioma_api.repositories import projects as project_repo
-from bioma_api.planning_intakes import RETAIL_SCHEMA_VERSION, form_definition, normalize_answers
+from bioma_api.planning_intakes import form_definition, normalize_answers, schema_version
 from bioma_api.services import client_profiles as client_profile_service
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
@@ -17,7 +17,7 @@ from bioma_api.schemas.projects import (
     ProjectPhaseCreate, ProjectPhaseSummary, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanAIOutput, ProjectPlanApproveRequest, ProjectPlanGenerateRequest,
     ProjectPlanItemSummary, ProjectPlanItemUpdate, ProjectPlanMaterializeRequest, ProjectPlanSummary,
-    ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate, ProjectPlanningIntakeWrite,
+    PlanningPortfolioItem, ProjectPlanningIntakeSummary, ProjectPlanningIntakeUpdate, ProjectPlanningIntakeWrite,
     ProjectUpdateCreate, ProjectUpdateSummary, ScopeItemCreate, ScopeItemSummary, ScopeItemUpdate,
 )
 from bioma_api.worker_bridge import execute_squad_pipeline_safe
@@ -28,6 +28,13 @@ def list_projects(workspace_id: UUID, user: CurrentUserResponse) -> list[Project
         context = _workspace(conn, workspace_id, user, "view")
         rows = project_repo.list_projects(conn, workspace_id, context["access_role"] != "client_user")
     return [_project_summary(row) for row in rows]
+
+
+def list_planning_portfolio(user: CurrentUserResponse) -> list[PlanningPortfolioItem]:
+    require_platform_admin(user)
+    with connect() as conn:
+        rows = project_repo.list_planning_portfolio(conn)
+    return [PlanningPortfolioItem(**row) for row in rows]
 
 
 def get_project(project_id: UUID, user: CurrentUserResponse) -> ProjectDetail:
@@ -267,7 +274,7 @@ def create_project_planning_intake(
             user.id,
             {
                 "schema_key": payload.schema_key,
-                "schema_version": RETAIL_SCHEMA_VERSION,
+                "schema_version": schema_version(payload.schema_key),
                 "title": payload.title,
                 "objective": payload.objective,
                 "answers": answers,

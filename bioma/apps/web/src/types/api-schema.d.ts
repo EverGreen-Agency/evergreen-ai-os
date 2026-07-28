@@ -708,6 +708,23 @@ export interface paths {
         patch: operations["update_shipment_status_backoffice_logistics_shipments__shipment_id__status_patch"];
         trace?: never;
     };
+    "/backoffice/planning-portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Planning Portfolio */
+        get: operations["list_planning_portfolio_backoffice_planning_portfolio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/proposals": {
         parameters: {
             query?: never;
@@ -752,6 +769,23 @@ export interface paths {
         };
         /** Get Proposal Catalog */
         get: operations["get_proposal_catalog_backoffice_proposals_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/cohorts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Cohorts */
+        get: operations["get_cohorts_backoffice_proposals_cohorts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -988,14 +1022,135 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get Proposal Detail */
+        get: operations["get_proposal_detail_backoffice_proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        /** Archive Proposal */
+        delete: operations["archive_proposal_backoffice_proposals__proposal_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Proposal */
+        patch: operations["update_proposal_backoffice_proposals__proposal_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/claims-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get?: never;
+        put?: never;
+        /** Review Proposal Claims */
+        post: operations["review_proposal_claims_backoffice_proposals__proposal_id__claims_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Proposal Content */
+        put: operations["update_proposal_content_backoffice_proposals__proposal_id__content_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Convert Proposal */
+        post: operations["convert_proposal_backoffice_proposals__proposal_id__convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Proposal Delivery */
+        post: operations["create_proposal_delivery_backoffice_proposals__proposal_id__deliveries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Proposal Pdf */
+        get: operations["export_proposal_pdf_backoffice_proposals__proposal_id__pdf_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update Proposal */
-        patch: operations["update_proposal_backoffice_proposals__proposal_id__patch"];
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Proposal Revision */
+        post: operations["create_proposal_revision_backoffice_proposals__proposal_id__revisions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transition Proposal */
+        post: operations["transition_proposal_backoffice_proposals__proposal_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/backoffice/rh/managers/{manager_user_id}/portfolio": {
@@ -1097,6 +1252,126 @@ export interface paths {
         put?: never;
         /** Create Satisfaction Score */
         post: operations["create_satisfaction_score_backoffice_rh_workspaces__workspace_id__satisfaction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sessions */
+        get: operations["list_sessions_backoffice_sales_copilot_get"];
+        put?: never;
+        /** Create Session */
+        post: operations["create_session_backoffice_sales_copilot_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Metrics */
+        get: operations["get_metrics_backoffice_sales_copilot_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/realtime-adapter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Realtime Adapter */
+        get: operations["get_realtime_adapter_backoffice_sales_copilot_realtime_adapter_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session */
+        get: operations["get_session_backoffice_sales_copilot__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Session */
+        post: operations["complete_session_backoffice_sales_copilot__session_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Event */
+        post: operations["add_event_backoffice_sales_copilot__session_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare Session */
+        post: operations["prepare_session_backoffice_sales_copilot__session_id__prepare_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2257,6 +2532,40 @@ export interface paths {
         };
         /** Get Public Proposal */
         get: operations["get_public_proposal_proposals_public__public_token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proposals/public/{public_token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Public Proposal */
+        post: operations["accept_public_proposal_proposals_public__public_token__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/proposals/public/{public_token}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Public Proposal Detail */
+        get: operations["get_public_proposal_detail_proposals_public__public_token__detail_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6845,6 +7154,54 @@ export interface components {
             /** Won Value */
             won_value: number;
         };
+        /** PlanningPortfolioItem */
+        PlanningPortfolioItem: {
+            /** Client Name */
+            client_name: string;
+            /** Generation Mode */
+            generation_mode?: ("live" | "preview" | "manual") | null;
+            /** Intake Id */
+            intake_id?: string | null;
+            /** Intake Schema Key */
+            intake_schema_key?: ("retail_v1" | "tech_v1" | "growth_social_v1") | null;
+            /** Intake Status */
+            intake_status?: ("draft" | "finalized") | null;
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Plan Status */
+            plan_status?: ("draft" | "approved" | "materialized" | "superseded") | null;
+            /** Plan Title */
+            plan_title?: string | null;
+            /** Plan Version */
+            plan_version?: number | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Project Name */
+            project_name: string;
+            /**
+             * Project Status
+             * @enum {string}
+             */
+            project_status: "planned" | "active" | "on_hold" | "completed" | "cancelled" | "archived";
+            /**
+             * Project Type
+             * @enum {string}
+             */
+            project_type: "social" | "growth" | "tech" | "general";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** ProjectCreate */
         ProjectCreate: {
             /** Cadence Days */
@@ -7386,9 +7743,9 @@ export interface components {
             project_id: string;
             /**
              * Schema Key
-             * @constant
+             * @enum {string}
              */
-            schema_key: "retail_v1";
+            schema_key: "retail_v1" | "tech_v1" | "growth_social_v1";
             /** Schema Version */
             schema_version: number;
             /**
@@ -7426,9 +7783,9 @@ export interface components {
             /**
              * Schema Key
              * @default retail_v1
-             * @constant
+             * @enum {string}
              */
-            schema_key: "retail_v1";
+            schema_key: "retail_v1" | "tech_v1" | "growth_social_v1";
             /** Title */
             title: string;
         };
@@ -7583,6 +7940,30 @@ export interface components {
             /** Summary */
             summary: string;
         };
+        /** ProposalAcceptanceCreate */
+        ProposalAcceptanceCreate: {
+            /** Accepted */
+            accepted: boolean;
+            /**
+             * Confirmation
+             * @constant
+             */
+            confirmation: "ACEITO_OS_TERMOS_DA_PROPOSTA";
+            /**
+             * Signer Email
+             * Format: email
+             */
+            signer_email: string;
+            /** Signer Name */
+            signer_name: string;
+        };
+        /** ProposalArchiveRequest */
+        ProposalArchiveRequest: {
+            /** Confirm */
+            confirm: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
         /** ProposalBriefCreatePayload */
         ProposalBriefCreatePayload: {
             /** Additional Context */
@@ -7616,6 +7997,115 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /** ProposalClaim */
+        ProposalClaim: {
+            /**
+             * Approved
+             * @default false
+             */
+            approved: boolean;
+            /** Evidence Ref */
+            evidence_ref?: string | null;
+            /** Text */
+            text: string;
+        };
+        /** ProposalClaimsReview */
+        ProposalClaimsReview: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "approved" | "rejected";
+        };
+        /** ProposalCohort */
+        ProposalCohort: {
+            /** Average Days To Close */
+            average_days_to_close?: number | null;
+            /** Created */
+            created: number;
+            /** Lost */
+            lost: number;
+            /** Month */
+            month: string;
+            /** Sent */
+            sent: number;
+            /** Win Rate Percentage */
+            win_rate_percentage: number;
+            /** Won */
+            won: number;
+        };
+        /** ProposalCohortAnalytics */
+        ProposalCohortAnalytics: {
+            /** Cohorts */
+            cohorts?: components["schemas"]["ProposalCohort"][];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Median Days To Close */
+            median_days_to_close?: number | null;
+            /** Median Days To First Send */
+            median_days_to_first_send?: number | null;
+        };
+        /** ProposalContentUpdate */
+        ProposalContentUpdate: {
+            /** Claims */
+            claims?: components["schemas"]["ProposalClaim"][];
+            /** Content Markdown */
+            content_markdown: string;
+        };
+        /** ProposalConversion */
+        ProposalConversion: {
+            /**
+             * Contract Id
+             * Format: uuid
+             */
+            contract_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Plan Id */
+            plan_id?: string | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+        };
+        /** ProposalConversionCreate */
+        ProposalConversionCreate: {
+            /** Confirm */
+            confirm: boolean;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Project Name */
+            project_name?: string | null;
+            /**
+             * Project Type
+             * @default general
+             * @enum {string}
+             */
+            project_type: "tech" | "growth" | "social" | "general";
         };
         /** ProposalCreatePayload */
         ProposalCreatePayload: {
@@ -7704,6 +8194,287 @@ export interface components {
             win_loss_feedback?: string | null;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /** ProposalDelivery */
+        ProposalDelivery: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "share_link" | "manual_email" | "signature_adapter";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Delivered At */
+            delivered_at?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Provider */
+            provider?: string | null;
+            /** Recipient Email */
+            recipient_email?: string | null;
+            /** Recipient Name */
+            recipient_name?: string | null;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "prepared" | "sent" | "delivered" | "accepted" | "rejected" | "failed";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ProposalDeliveryCreate */
+        ProposalDeliveryCreate: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "share_link" | "manual_email" | "signature_adapter";
+            /**
+             * Confirm External Send
+             * @default false
+             */
+            confirm_external_send: boolean;
+            /** External Id */
+            external_id?: string | null;
+            /** Provider */
+            provider?: string | null;
+            /** Recipient Email */
+            recipient_email?: string | null;
+            /** Recipient Name */
+            recipient_name?: string | null;
+        };
+        /** ProposalDetailResponse */
+        ProposalDetailResponse: {
+            conversion?: components["schemas"]["ProposalConversion"] | null;
+            /** Deliveries */
+            deliveries?: components["schemas"]["ProposalDelivery"][];
+            /** Events */
+            events?: components["schemas"]["ProposalEvent"][];
+            proposal: components["schemas"]["ProposalLifecycleRecord"];
+            /** Revisions */
+            revisions?: components["schemas"]["ProposalLifecycleRecord"][];
+        };
+        /** ProposalEvent */
+        ProposalEvent: {
+            /** Actor User Id */
+            actor_user_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Event Type */
+            event_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+        };
+        /** ProposalLifecycleRecord */
+        ProposalLifecycleRecord: {
+            /**
+             * Acceptance Status
+             * @default not_requested
+             * @enum {string}
+             */
+            acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+            /** Accepted At */
+            accepted_at?: string | null;
+            /** Accepted By Email */
+            accepted_by_email?: string | null;
+            /** Accepted By Name */
+            accepted_by_name?: string | null;
+            /** Additional Context */
+            additional_context?: string | null;
+            /** Approved At */
+            approved_at?: string | null;
+            /** Archived At */
+            archived_at?: string | null;
+            /** Attached Cases */
+            attached_cases?: {
+                [key: string]: unknown;
+            }[];
+            /** Claims */
+            claims?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Claims Review Status
+             * @default pending
+             * @enum {string}
+             */
+            claims_review_status: "pending" | "approved" | "rejected";
+            /** Client Name */
+            client_name: string;
+            /**
+             * Content Markdown
+             * @default
+             */
+            content_markdown: string;
+            /** Content Sections */
+            content_sections?: {
+                [key: string]: unknown;
+            }[];
+            /** Contractor Name */
+            contractor_name?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By User Id */
+            created_by_user_id?: string | null;
+            /** Decision Maker */
+            decision_maker?: string | null;
+            /**
+             * Delivery Days
+             * @default 0
+             */
+            delivery_days: number;
+            /** Delivery Modality */
+            delivery_modality?: string | null;
+            /** Estimated Budget */
+            estimated_budget?: string | null;
+            /** Executive Summary */
+            executive_summary: string;
+            /**
+             * Generation Mode
+             * @default manual
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview" | "manual";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Intake Snapshot */
+            intake_snapshot?: {
+                [key: string]: unknown;
+            };
+            /** Lost At */
+            lost_at?: string | null;
+            /** Negotiating At */
+            negotiating_at?: string | null;
+            /** Opportunity Id */
+            opportunity_id?: string | null;
+            /** Payment Terms */
+            payment_terms?: string | null;
+            /**
+             * Pricing Cents
+             * @default 0
+             */
+            pricing_cents: number;
+            /** Problem Summary */
+            problem_summary?: string | null;
+            /** Proposal Type */
+            proposal_type?: string | null;
+            /**
+             * Public Expires At
+             * Format: date-time
+             */
+            public_expires_at: string;
+            /** Public Token */
+            public_token: string;
+            /** Scope Conversion */
+            scope_conversion?: string | null;
+            /** Scope Demand */
+            scope_demand?: string | null;
+            /** Scope Items */
+            scope_items?: {
+                [key: string]: unknown;
+            }[];
+            /** Scope Offer */
+            scope_offer?: string | null;
+            /** Selected Services */
+            selected_services?: string[];
+            /** Sent At */
+            sent_at?: string | null;
+            /** Series Id */
+            series_id?: string | null;
+            /** Special Requirements */
+            special_requirements?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
+            /** Target Niche */
+            target_niche?: string | null;
+            /** Team Members */
+            team_members?: string[];
+            /** Title */
+            title?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Urgency */
+            urgency?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /** Viewed At */
+            viewed_at?: string | null;
+            /** Win Loss Feedback */
+            win_loss_feedback?: string | null;
+            /** Won At */
+            won_at?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** ProposalRevisionCreate */
+        ProposalRevisionCreate: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /** ProposalStatusTransition */
+        ProposalStatusTransition: {
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
         };
         /** ProposalSummary */
         ProposalSummary: {
@@ -7864,6 +8635,38 @@ export interface components {
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
         };
+        /** PublicProposalLifecycleRecord */
+        PublicProposalLifecycleRecord: {
+            /**
+             * Acceptance Status
+             * @enum {string}
+             */
+            acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+            /** Accepted At */
+            accepted_at?: string | null;
+            /** Accepted By Name */
+            accepted_by_name?: string | null;
+            /**
+             * Claims Review Status
+             * @enum {string}
+             */
+            claims_review_status: "pending" | "approved" | "rejected";
+            /** Client Name */
+            client_name: string;
+            /** Content Markdown */
+            content_markdown: string;
+            /** Contractor Name */
+            contractor_name?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
+            /** Title */
+            title?: string | null;
+            /** Version */
+            version: number;
+        };
         /** PublicProposalResponse */
         PublicProposalResponse: {
             /** Client Name */
@@ -7891,6 +8694,20 @@ export interface components {
             scope_offer?: string | null;
             /** Target Niche */
             target_niche?: string | null;
+        };
+        /** RealtimeAdapterStatus */
+        RealtimeAdapterStatus: {
+            /** Available */
+            available: boolean;
+            /** Message */
+            message: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_configured" | "adapter_ready";
+            /** Supported Input */
+            supported_input?: string[];
         };
         /** ResearchChallenge */
         ResearchChallenge: {
@@ -8014,6 +8831,169 @@ export interface components {
             squad_name: string;
             /** Squad Slug */
             squad_slug: string;
+        };
+        /** SalesCopilotCompleteRequest */
+        SalesCopilotCompleteRequest: {
+            /**
+             * Duration Seconds
+             * @default 0
+             */
+            duration_seconds: number;
+        };
+        /** SalesCopilotEvent */
+        SalesCopilotEvent: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "transcript_chunk" | "objection" | "insight" | "note" | "action_item";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Recommendation */
+            recommendation?: string | null;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** SalesCopilotEventCreate */
+        SalesCopilotEventCreate: {
+            /** Content */
+            content: string;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "transcript_chunk" | "objection" | "insight" | "note" | "action_item";
+            /** Recommendation */
+            recommendation?: string | null;
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** SalesCopilotMetrics */
+        SalesCopilotMetrics: {
+            /** Analyses Completed */
+            analyses_completed: number;
+            /** Sessions By Status */
+            sessions_by_status?: {
+                [key: string]: number;
+            };
+            /** Total Duration Seconds */
+            total_duration_seconds: number;
+            /** Total Sessions */
+            total_sessions: number;
+        };
+        /** SalesCopilotSession */
+        SalesCopilotSession: {
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Events */
+            events?: components["schemas"]["SalesCopilotEvent"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Knowledge Snapshot */
+            knowledge_snapshot?: {
+                [key: string]: unknown;
+            };
+            /** Language */
+            language: string;
+            /** Objective */
+            objective?: string | null;
+            /** Participant Context */
+            participant_context?: string | null;
+            /** Preparation Brief */
+            preparation_brief?: {
+                [key: string]: unknown;
+            };
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /**
+             * Realtime Status
+             * @enum {string}
+             */
+            realtime_status: "not_configured" | "adapter_ready" | "live" | "failed";
+            /**
+             * Session Type
+             * @enum {string}
+             */
+            session_type: "sales_call" | "discovery" | "proposal_review" | "follow_up";
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "prepared" | "active" | "completed" | "cancelled";
+            /** Summary */
+            summary?: string | null;
+            /** Title */
+            title: string;
+            /** Transcript */
+            transcript: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** SalesCopilotSessionCreate */
+        SalesCopilotSessionCreate: {
+            /**
+             * Language
+             * @default pt-BR
+             */
+            language: string;
+            /** Objective */
+            objective?: string | null;
+            /** Participant Context */
+            participant_context?: string | null;
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /**
+             * Session Type
+             * @default sales_call
+             * @enum {string}
+             */
+            session_type: "sales_call" | "discovery" | "proposal_review" | "follow_up";
+            /** Title */
+            title: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
         };
         /** SatisfactionScoreCreateRequest */
         SatisfactionScoreCreateRequest: {
@@ -11012,6 +11992,26 @@ export interface operations {
             };
         };
     };
+    list_planning_portfolio_backoffice_planning_portfolio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanningPortfolioItem"][];
+                };
+            };
+        };
+    };
     list_proposals_backoffice_proposals_get: {
         parameters: {
             query?: never;
@@ -11101,6 +12101,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_cohorts_backoffice_proposals_cohorts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalCohortAnalytics"];
                 };
             };
         };
@@ -11463,6 +12483,70 @@ export interface operations {
             };
         };
     };
+    get_proposal_detail_backoffice_proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_proposal_backoffice_proposals__proposal_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalArchiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_proposal_backoffice_proposals__proposal_id__patch: {
         parameters: {
             query?: never;
@@ -11485,6 +12569,247 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProposalSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_proposal_claims_backoffice_proposals__proposal_id__claims_review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalClaimsReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_proposal_content_backoffice_proposals__proposal_id__content_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalContentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    convert_proposal_backoffice_proposals__proposal_id__convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalConversionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_proposal_delivery_backoffice_proposals__proposal_id__deliveries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalDeliveryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_proposal_pdf_backoffice_proposals__proposal_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_proposal_revision_backoffice_proposals__proposal_id__revisions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalRevisionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transition_proposal_backoffice_proposals__proposal_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalStatusTransition"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDetailResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11758,6 +13083,231 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SatisfactionScoreSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sessions_backoffice_sales_copilot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"][];
+                };
+            };
+        };
+    };
+    create_session_backoffice_sales_copilot_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotSessionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_metrics_backoffice_sales_copilot_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotMetrics"];
+                };
+            };
+        };
+    };
+    get_realtime_adapter_backoffice_sales_copilot_realtime_adapter_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealtimeAdapterStatus"];
+                };
+            };
+        };
+    };
+    get_session_backoffice_sales_copilot__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_session_backoffice_sales_copilot__session_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_event_backoffice_sales_copilot__session_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesCopilotEventCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prepare_session_backoffice_sales_copilot__session_id__prepare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesCopilotSession"];
                 };
             };
             /** @description Validation Error */
@@ -14635,6 +16185,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicProposalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_public_proposal_proposals_public__public_token__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                public_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalAcceptanceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProposalLifecycleRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_public_proposal_detail_proposals_public__public_token__detail_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                public_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProposalLifecycleRecord"];
                 };
             };
             /** @description Validation Error */

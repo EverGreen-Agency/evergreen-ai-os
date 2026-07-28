@@ -223,6 +223,8 @@ _PROPOSAL_JSON_FIELDS = {
     "team_members",
     "selected_services",
     "intake_snapshot",
+    "content_sections",
+    "claims",
 }
 
 _PROPOSAL_MUTABLE_FIELDS = {
@@ -238,7 +240,6 @@ _PROPOSAL_MUTABLE_FIELDS = {
     "win_loss_feedback",
     "pricing_cents",
     "delivery_days",
-    "status",
     "generation_mode",
     "contractor_name",
     "team_members",
@@ -249,6 +250,10 @@ _PROPOSAL_MUTABLE_FIELDS = {
     "decision_maker",
     "problem_summary",
     "additional_context",
+    "content_markdown",
+    "content_sections",
+    "claims",
+    "claims_review_status",
 }
 
 
@@ -270,6 +275,7 @@ def list_proposals(conn, limit: int = 50) -> list[dict[str, Any]]:
                    coalesce(o.source_platform, cp.target_niche, 'Outros') as source_platform
             from commercial_proposals cp
             left join opportunity_radar o on o.id = cp.opportunity_id
+            where cp.archived_at is null
             order by cp.created_at desc
             limit %s
             """,
@@ -315,6 +321,10 @@ def create_proposal(conn, data: dict[str, Any], user_id: UUID | None = None) -> 
             "problem_summary": data.get("problem_summary"),
             "additional_context": data.get("additional_context"),
             "intake_snapshot": data.get("intake_snapshot", {}),
+            "content_markdown": data.get("content_markdown", ""),
+            "content_sections": data.get("content_sections", []),
+            "claims": data.get("claims", []),
+            "claims_review_status": data.get("claims_review_status", "pending"),
         }
         if data.get("series_id"):
             values["series_id"] = data["series_id"]
@@ -386,7 +396,11 @@ def get_proposal_by_public_token(conn, public_token: str) -> dict[str, Any] | No
             """
             select *
             from commercial_proposals
-            where public_token = %s and public_expires_at > now()
+            where public_token = %s
+              and public_expires_at > now()
+              and archived_at is null
+              and claims_review_status = 'approved'
+              and status in ('sent', 'negotiating', 'won')
             """,
             (public_token,),
         )

@@ -22,7 +22,7 @@ ProjectPlanItemKind = Literal["milestone", "deliverable", "content", "campaign",
 ProjectPlanItemPriority = Literal["low", "medium", "high", "critical"]
 SocialApprovalFlow = Literal["adaptive", "idea_before_production", "after_production", "final_only"]
 PlanningIntakeStatus = Literal["draft", "finalized"]
-PlanningIntakeSchemaKey = Literal["retail_v1"]
+PlanningIntakeSchemaKey = Literal["retail_v1", "tech_v1", "growth_social_v1"]
 ProjectPlanSubtask = Annotated[str, Field(min_length=2, max_length=500)]
 
 
@@ -211,6 +211,24 @@ class ProjectPlanningIntakeSummary(BaseModel):
     derived_context: dict[str, Any] = Field(default_factory=dict)
     finalized_at: datetime | None = None
     created_at: datetime
+    updated_at: datetime
+
+
+class PlanningPortfolioItem(BaseModel):
+    project_id: UUID
+    project_name: str
+    project_type: ProjectType
+    project_status: ProjectStatus
+    workspace_id: UUID
+    client_name: str
+    intake_id: UUID | None = None
+    intake_schema_key: PlanningIntakeSchemaKey | None = None
+    intake_status: PlanningIntakeStatus | None = None
+    plan_id: UUID | None = None
+    plan_title: str | None = None
+    plan_version: int | None = None
+    plan_status: ProjectPlanStatus | None = None
+    generation_mode: ProjectPlanGenerationMode | None = None
     updated_at: datetime
 
 
