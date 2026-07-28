@@ -2096,6 +2096,11 @@ h3 {
   background: rgba(255, 244, 199, 0.1);
 }
 
+.status-pill.danger {
+  color: var(--danger-soft);
+  background: rgba(242, 160, 142, 0.18);
+}
+
 .hub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));

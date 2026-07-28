@@ -1,16 +1,12 @@
 import { FormEvent, useState } from "react";
 import {
   Activity,
-  BarChart3,
   Cloud,
   KeyRound,
   PenLine,
   Plus,
   RefreshCw,
-  Search,
   Server,
-  Tags,
-  TrendingUp,
   Briefcase,
 } from "lucide-react";
 import { useUiStore } from "../store/uiStore";
@@ -29,10 +25,20 @@ import type { PerformanceConnection, PerformanceProvider, OpportunityPlatformCon
 import { api } from "../lib/api";
 import { useEffect } from "react";
 import { WhatsAppManager } from "./WhatsAppManager";
+import { StatusPill } from "./StatusPill";
+import {
+  Ga4Icon,
+  GoogleAdsIcon,
+  GtmIcon,
+  KommoIcon,
+  LinkedInAdsIcon,
+  MetaAdsIcon,
+  SearchConsoleIcon,
+} from "./icons/BrandIcons";
 
 const PROVIDER_META: Record<PerformanceProvider, {
   label: string;
-  icon: typeof BarChart3;
+  icon: typeof GoogleAdsIcon;
   accountLabel: string;
   accountPlaceholder: string;
   parentLabel?: string;
@@ -40,7 +46,7 @@ const PROVIDER_META: Record<PerformanceProvider, {
 }> = {
   google_ads: {
     label: "Google Ads",
-    icon: BarChart3,
+    icon: GoogleAdsIcon,
     accountLabel: "Customer ID",
     accountPlaceholder: "123-456-7890",
     parentLabel: "MCC (login customer id) — opcional",
@@ -48,39 +54,53 @@ const PROVIDER_META: Record<PerformanceProvider, {
   },
   ga4: {
     label: "Google Analytics 4",
-    icon: TrendingUp,
+    icon: Ga4Icon,
     accountLabel: "Property ID",
     accountPlaceholder: "123456789",
   },
   search_console: {
     label: "Search Console",
-    icon: Search,
+    icon: SearchConsoleIcon,
     accountLabel: "Propriedade",
     accountPlaceholder: "sc-domain:evergreenmkt.com.br",
   },
   gtm: {
     label: "Google Tag Manager",
-    icon: Tags,
+    icon: GtmIcon,
     accountLabel: "Container ID",
     accountPlaceholder: "GTM-XXXXXXX",
     parentLabel: "Account ID",
     parentPlaceholder: "6000000000",
+  },
+  meta_ads: {
+    label: "Meta Ads",
+    icon: MetaAdsIcon,
+    accountLabel: "Ad Account ID",
+    accountPlaceholder: "act_1234567890",
+  },
+  linkedin_ads: {
+    label: "LinkedIn Ads",
+    icon: LinkedInAdsIcon,
+    accountLabel: "Sponsored Account ID",
+    accountPlaceholder: "123456789",
   },
 };
 
 const PROVIDERS = Object.keys(PROVIDER_META) as PerformanceProvider[];
 
 function EnvStatusPill({ configured }: { configured: boolean }) {
-  return configured
-    ? <span className="status-pill open">Configurado</span>
-    : <span className="status-pill draft">Não configurado</span>;
+  return (
+    <StatusPill variant={configured ? "connected" : "not_configured"}>
+      {configured ? "Configurado" : "Não configurado"}
+    </StatusPill>
+  );
 }
 
 function ConnectionStatusPill({ connection }: { connection: PerformanceConnection | null }) {
-  if (!connection) return <span className="status-pill draft">Sem conexão</span>;
-  if (connection.status === "error") return <span className="status-pill cancelled">Erro</span>;
-  if (connection.status === "inactive") return <span className="status-pill paused">Inativa</span>;
-  return <span className="status-pill open">Ativa</span>;
+  if (!connection) return <StatusPill variant="not_configured">Sem conexão</StatusPill>;
+  if (connection.status === "error") return <StatusPill variant="error">Erro</StatusPill>;
+  if (connection.status === "inactive") return <StatusPill variant="paused">Inativa</StatusPill>;
+  return <StatusPill variant="connected">Ativa</StatusPill>;
 }
 
 export function IntegrationsTab({
@@ -282,12 +302,12 @@ export function IntegrationsTab({
             <div className="health-row">
               <Cloud size={18} />
               <span>Storage de arquivos (S3) <small style={{ color: "var(--text-faint, #64748B)" }}>· STORAGE_S3_*</small></span>
-              {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <span className="status-pill draft">...</span>}
+              {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
             <div className="health-row">
               <KeyRound size={18} />
               <span>Login com Google (OAuth) <small style={{ color: "var(--text-faint, #64748B)" }}>· GOOGLE_OAUTH_*</small></span>
-              {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <span className="status-pill draft">...</span>}
+              {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
           </div>
         </section>
@@ -335,12 +355,12 @@ export function IntegrationsTab({
                 <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <Briefcase size={20} color={kommoConfig?.configured ? "var(--brand-accent, #3B82F6)" : "var(--text-dim, #64748B)"} />
+                      <KommoIcon size={20} />
                       <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>Kommo CRM</h4>
                     </div>
-                    {kommoConfig?.configured
-                      ? <span className="status-pill open">Configurado</span>
-                      : <span className="status-pill draft">Não configurado</span>}
+                    <StatusPill variant={kommoConfig?.configured ? "connected" : "not_configured"}>
+                      {kommoConfig?.configured ? "Configurado" : "Não configurado"}
+                    </StatusPill>
                   </div>
 
                   {loadingKommo && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
@@ -432,7 +452,9 @@ export function IntegrationsTab({
                     <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                          <Icon size={20} color={connection?.status === "active" ? "var(--brand-accent, #3B82F6)" : "var(--text-dim, #64748B)"} />
+                          <span style={{ display: "inline-flex", opacity: connection?.status === "active" ? 1 : 0.5 }}>
+                            <Icon size={20} />
+                          </span>
                           <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>{meta.label}</h4>
                         </div>
                         <ConnectionStatusPill connection={connection} />
@@ -566,7 +588,7 @@ export function IntegrationsTab({
               ? (item.monthly_cost_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
               : "Gratuito";
 
-            const statusPillClass = item.status === "active" ? "open" : item.status === "paused" ? "paused" : "draft";
+            const statusVariant = item.status === "active" ? "connected" : item.status === "paused" ? "paused" : "not_configured";
             const statusLabelText = item.status === "active" ? "Varredura Ativa" : item.status === "paused" ? "Requer Assinatura / Token" : "Não Configurado";
 
             return (
@@ -587,7 +609,7 @@ export function IntegrationsTab({
                     <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{item.platform_name}</h4>
                     <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>{item.notes || "Plataforma B2B"}</span>
                   </div>
-                  <span className={`status-pill ${statusPillClass}`}>{statusLabelText}</span>
+                  <StatusPill variant={statusVariant}>{statusLabelText}</StatusPill>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8rem", color: "var(--text-dim)" }}>

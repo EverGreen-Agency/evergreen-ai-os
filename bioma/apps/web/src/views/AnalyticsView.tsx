@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  BarChart3,
   Bot,
-  Briefcase,
-  Globe,
+  BarChart3,
   LineChart,
   RefreshCw,
-  Search,
-  Share2,
   Sparkles,
-  Tags,
   Target,
   TrendingUp,
   Printer,
@@ -18,6 +13,15 @@ import {
 import { EmptyState, SectionHeader } from "../components/shared";
 import { ExecutiveReportPdfModal } from "../components/ExecutiveReportPdfModal";
 import { TrendChart, type TrendPoint } from "../components/bi/TrendChart";
+import {
+  Ga4Icon,
+  GoogleAdsIcon,
+  GtmIcon,
+  KommoIcon,
+  LinkedInAdsIcon,
+  MetaAdsIcon,
+  SearchConsoleIcon,
+} from "../components/icons/BrandIcons";
 import {
   api,
   type AdsCampaignSummary,
@@ -30,9 +34,11 @@ import {
 import {
   useClients,
   useKommoAnalytics,
+  useKommoConfig,
   useLinkedInAdsDaily,
   useMetaAdsDaily,
   usePerformanceAiSummary,
+  usePerformanceConnections,
 } from "../hooks/useBiomaApi";
 
 function formatNumber(value: number) {
@@ -65,16 +71,18 @@ function providerLabel(provider: string) {
 
 type PerformanceTab = "overview" | "ai_summary" | "kommo" | "google_ads" | "meta_ads" | "linkedin_ads" | "ga4" | "search_console" | "gtm";
 
-const performanceTabs: Array<{ id: PerformanceTab; label: string; icon: typeof BarChart3 }> = [
+type PerformanceTabIcon = typeof BarChart3 | typeof GoogleAdsIcon;
+
+const performanceTabs: Array<{ id: PerformanceTab; label: string; icon: PerformanceTabIcon }> = [
   { id: "overview", label: "Visão geral", icon: LineChart },
   { id: "ai_summary", label: "IA Insight Multicanal", icon: Bot },
-  { id: "kommo", label: "Kommo CRM", icon: Briefcase },
-  { id: "google_ads", label: "Google Ads", icon: BarChart3 },
-  { id: "meta_ads", label: "Meta Ads", icon: Share2 },
-  { id: "linkedin_ads", label: "LinkedIn Ads", icon: Globe },
-  { id: "ga4", label: "GA4", icon: TrendingUp },
-  { id: "search_console", label: "Search Console", icon: Search },
-  { id: "gtm", label: "GTM", icon: Tags },
+  { id: "kommo", label: "Kommo CRM", icon: KommoIcon },
+  { id: "google_ads", label: "Google Ads", icon: GoogleAdsIcon },
+  { id: "meta_ads", label: "Meta Ads", icon: MetaAdsIcon },
+  { id: "linkedin_ads", label: "LinkedIn Ads", icon: LinkedInAdsIcon },
+  { id: "ga4", label: "GA4", icon: Ga4Icon },
+  { id: "search_console", label: "Search Console", icon: SearchConsoleIcon },
+  { id: "gtm", label: "GTM", icon: GtmIcon },
 ];
 
 type FreshnessEntry = PerformanceOverview["freshness"][number];
@@ -162,7 +170,7 @@ function MetaAdsTab({ clientId }: { clientId: string }) {
   return (
     <div className="performance-tab-panel">
       <article className="surface">
-        <SectionHeader eyebrow="Meta Ads (Instagram / Facebook)" title="Desempenho Diário" icon={Share2} />
+        <SectionHeader eyebrow="Meta Ads (Instagram / Facebook)" title="Desempenho Diário" icon={MetaAdsIcon} />
         {!metrics || metrics.length === 0 ? (
           <EmptyState compact text="Nenhum dado de Meta Ads encontrado para este workspace." />
         ) : (
@@ -192,7 +200,7 @@ function LinkedInAdsTab({ clientId }: { clientId: string }) {
   return (
     <div className="performance-tab-panel">
       <article className="surface">
-        <SectionHeader eyebrow="LinkedIn Ads (B2B Lead Gen)" title="Desempenho Diário" icon={Globe} />
+        <SectionHeader eyebrow="LinkedIn Ads (B2B Lead Gen)" title="Desempenho Diário" icon={LinkedInAdsIcon} />
         {!metrics || metrics.length === 0 ? (
           <EmptyState compact text="Nenhum dado de LinkedIn Ads encontrado para este workspace." />
         ) : (
@@ -234,7 +242,7 @@ function GoogleAdsTab({ clientId, freshness }: { clientId: string; freshness: Fr
       <FreshnessBanner freshness={freshness} />
       {error && <div className="notice error">{error}</div>}
       <article className="surface">
-        <SectionHeader eyebrow="Google Ads" title="Campanhas detalhadas" icon={BarChart3} />
+        <SectionHeader eyebrow="Google Ads" title="Campanhas detalhadas" icon={GoogleAdsIcon} />
         {loading ? (
           <EmptyState compact text="Carregando campanhas..." />
         ) : campaigns.length === 0 ? (
@@ -278,7 +286,7 @@ function Ga4Tab({ clientId, freshness }: { clientId: string; freshness: Freshnes
       <FreshnessBanner freshness={freshness} />
       {error && <div className="notice error">{error}</div>}
       <article className="surface">
-        <SectionHeader eyebrow="GA4" title="Aquisição por origem/mídia" icon={TrendingUp} />
+        <SectionHeader eyebrow="GA4" title="Aquisição por origem/mídia" icon={Ga4Icon} />
         {loading ? (
           <EmptyState compact text="Carregando aquisição do GA4..." />
         ) : rows.length === 0 ? (
@@ -322,7 +330,7 @@ function GscTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
       <FreshnessBanner freshness={freshness} />
       {error && <div className="notice error">{error}</div>}
       <article className="surface">
-        <SectionHeader eyebrow="Search Console" title="Consultas orgânicas" icon={Search} />
+        <SectionHeader eyebrow="Search Console" title="Consultas orgânicas" icon={SearchConsoleIcon} />
         {loading ? (
           <EmptyState compact text="Carregando consultas do Search Console..." />
         ) : rows.length === 0 ? (
@@ -374,7 +382,7 @@ function GtmTab({ clientId, freshness }: { clientId: string; freshness: Freshnes
       <FreshnessBanner freshness={freshness} />
       {error && <div className="notice error">{error}</div>}
       <article className="surface">
-        <SectionHeader eyebrow="Google Tag Manager" title="Snapshots do container" icon={Tags} />
+        <SectionHeader eyebrow="Google Tag Manager" title="Snapshots do container" icon={GtmIcon} />
         {loading ? (
           <EmptyState compact text="Carregando snapshots do GTM..." />
         ) : snapshots.length === 0 ? (
@@ -422,7 +430,7 @@ function KommoTab({ organizationId }: { organizationId: string }) {
       {error && <div className="notice error">{error.message || "Não foi possível carregar os dados do Kommo."}</div>}
       
       <article className="surface">
-        <SectionHeader eyebrow="Kommo CRM" title="Métricas de Pipeline" icon={Briefcase} />
+        <SectionHeader eyebrow="Kommo CRM" title="Métricas de Pipeline" icon={KommoIcon} />
         
         {isLoading ? (
           <EmptyState compact text="Carregando dados do Kommo..." />
@@ -495,15 +503,38 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
   const clients = clientsData ?? [];
   const selectedClient = clients.find((client) => client.id === clientId) ?? null;
   const effectiveClientId = selectedClient?.id ?? "";
+  const { data: connections = [] } = usePerformanceConnections(effectiveClientId || null);
+  const { data: kommoConfig } = useKommoConfig(selectedClient?.organization_id ?? null);
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [campaigns, setCampaigns] = useState<AdsCampaignSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<PerformanceTab>("overview");
 
+  const connectedProviders = useMemo(
+    () => new Set(connections.map((connection) => connection.provider)),
+    [connections],
+  );
+
+  const visibleTabs = useMemo(
+    () =>
+      performanceTabs.filter((item) => {
+        if (item.id === "overview" || item.id === "ai_summary") return true;
+        if (item.id === "kommo") return Boolean(kommoConfig?.configured);
+        return connectedProviders.has(item.id as PerformanceProvider);
+      }),
+    [connectedProviders, kommoConfig],
+  );
+
   useEffect(() => {
     setTab("overview");
   }, [effectiveClientId]);
+
+  useEffect(() => {
+    if (!visibleTabs.some((item) => item.id === tab)) {
+      setTab("overview");
+    }
+  }, [visibleTabs, tab]);
 
   useEffect(() => {
     if (!effectiveClientId) {
@@ -629,7 +660,7 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
       )}
 
       <div className="performance-tabs" role="tablist">
-        {performanceTabs.map((item) => {
+        {visibleTabs.map((item) => {
           const Icon = item.icon;
           return (
             <button
@@ -715,7 +746,7 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
           </div>
 
           <article className="surface">
-            <SectionHeader eyebrow="Google Ads" title="Campanhas" icon={BarChart3} />
+            <SectionHeader eyebrow="Google Ads" title="Campanhas" icon={GoogleAdsIcon} />
             <div className="table-list">
               {campaigns.map((campaign) => (
                 <div className="table-row" key={campaign.campaign_id}>

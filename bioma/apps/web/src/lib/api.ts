@@ -279,7 +279,7 @@ export type FinancialRecordPayload = {
   notes?: string | null;
 };
 
-export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm";
+export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
 
 export type PerformanceOverview = {
   workspace_id: string;

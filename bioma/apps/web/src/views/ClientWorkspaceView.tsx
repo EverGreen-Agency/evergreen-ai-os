@@ -3,7 +3,6 @@ import { Building2 } from "lucide-react";
 import { Navigate, Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
-import { WorkspaceShell } from "../components/WorkspaceShell";
 import { clientHubNavItems } from "../lib/app-config";
 import type { ClientModule, ClientSummary } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
@@ -89,11 +88,11 @@ export function ClientWorkspaceView() {
   }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-      <div className="workspace-shell-content" style={{ flex: 1, overflow: "auto", position: "relative" }}>
+    <section className="workspace-shell">
+      <div className="workspace-shell-content">
         <Outlet context={{ client, workspace, isEgAdmin } satisfies ClientWorkspaceOutletContext} />
       </div>
-    </div>
+    </section>
   );
 }
 
