@@ -1470,6 +1470,10 @@ export type ProjectPlanItem = {
   client_visible: boolean;
   approval_required: boolean;
   github_eligible: boolean;
+  selected: boolean;
+  priority: "low" | "medium" | "high" | "critical";
+  definition_of_done: string | null;
+  subtasks: string[];
   metadata: Record<string, unknown>;
   materialized_phase_id: string | null;
   materialized_deliverable_id: string | null;
@@ -1748,6 +1752,18 @@ export const api = {
     request<ProjectPlan>(`/project-plans/${planId}/approve`, {
       method: "POST",
       body: JSON.stringify({ confirm: true }),
+    }),
+  updateProjectPlanItem: (
+    itemId: string,
+    payload: Partial<Pick<
+      ProjectPlanItem,
+      "selected" | "phase_name" | "title" | "description" | "due_offset_days" |
+      "client_visible" | "approval_required" | "priority" | "definition_of_done" | "subtasks"
+    >>,
+  ) =>
+    request<ProjectPlan>(`/project-plan-items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
     }),
   materializeProjectPlan: (planId: string) =>
     request<ProjectDetail>(`/project-plans/${planId}/materialize`, {
