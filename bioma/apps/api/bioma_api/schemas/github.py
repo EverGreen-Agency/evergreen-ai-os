@@ -86,3 +86,27 @@ class GitHubIssueLinkSummary(BaseModel):
     repository: str
     issue_number: int
     issue_url: str
+
+
+class GitHubActivitySyncRequest(BaseModel):
+    confirm: bool
+    idempotency_key: str = Field(min_length=8, max_length=255)
+    client_visible: bool = True
+    summary_override: str | None = Field(default=None, min_length=3, max_length=1_000)
+    limit: int = Field(default=20, ge=1, le=100)
+
+    @field_validator("confirm")
+    @classmethod
+    def must_confirm_sync(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("Confirmação HITL obrigatória para publicar a atualização no projeto.")
+        return value
+
+
+class GitHubActivitySyncResult(BaseModel):
+    project_id: UUID
+    project_update_id: UUID
+    idempotency_key: str
+    repository: str
+    client_visible: bool
+    created_at: datetime

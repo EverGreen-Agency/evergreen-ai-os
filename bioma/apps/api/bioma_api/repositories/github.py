@@ -101,3 +101,36 @@ def write_audit(conn, actor_user_id: UUID, organization_id: UUID, event_type: st
         "insert into audit_logs (actor_user_id, organization_id, event_type, metadata) values (%s, %s, %s, %s)",
         (actor_user_id, organization_id, event_type, Jsonb(metadata)),
     )
+
+
+def find_activity_sync(conn, idempotency_key: str):
+    return conn.execute(
+        """
+        select sync.*, connection.repository_owner, connection.repository_name,
+          update.client_visible
+        from project_github_activity_syncs sync
+        join project_github_connections connection on connection.project_id = sync.project_id
+        join project_updates update on update.id = sync.project_update_id
+        where sync.idempotency_key = %s
+        """,
+        (idempotency_key,),
+    ).fetchone()
+
+
+def create_activity_sync(
+    conn,
+    project_id: UUID,
+    idempotency_key: str,
+    snapshot: dict[str, Any],
+    project_update_id: UUID,
+    actor_user_id: UUID,
+):
+    return conn.execute(
+        """
+        insert into project_github_activity_syncs (
+          project_id, idempotency_key, snapshot, project_update_id, created_by
+        ) values (%s, %s, %s, %s, %s)
+        returning *
+        """,
+        (project_id, idempotency_key, Jsonb(snapshot), project_update_id, actor_user_id),
+    ).fetchone()

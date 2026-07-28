@@ -91,6 +91,12 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
       await githubConnection.refetch();
     },
   });
+  const publishGitHubUpdate = useMutation({
+    mutationFn: () => api.publishGitHubProjectUpdate(project.id, true),
+    onSuccess: async () => {
+      await onChanged(await api.project(project.id));
+    },
+  });
 
   function submitPhase(event: FormEvent) { event.preventDefault(); createPhase.mutate(); }
   function submitDocument(event: FormEvent) { event.preventDefault(); createDocument.mutate(); }
@@ -118,6 +124,17 @@ export function TechProjectTracking({ project, accessRole, onChanged }: {
           <article className="tech-phase internal_testing"><div><strong>{githubActivity.data.pull_requests.length} pull requests</strong><span><GitPullRequest size={13} /> Revisões</span></div>{githubActivity.data.pull_requests.slice(0, 3).map((pull) => <a key={pull.number} href={pull.url} target="_blank" rel="noreferrer">#{pull.number} {pull.title}</a>)}</article>
           <article className="tech-phase released"><div><strong>{githubActivity.data.commits.length} commits recentes</strong><span>Branch</span></div>{githubActivity.data.commits.slice(0, 3).map((commit) => <a key={commit.sha} href={commit.url} target="_blank" rel="noreferrer">{commit.sha.slice(0, 7)} {commit.message}</a>)}</article>
         </div>}
+        {githubActivity.data && canManage && (
+          <button
+            className="mini-button"
+            type="button"
+            disabled={publishGitHubUpdate.isPending}
+            onClick={() => publishGitHubUpdate.mutate()}
+          >
+            Publicar snapshot no hub do cliente
+          </button>
+        )}
+        {publishGitHubUpdate.error && <p className="form-error">{publishGitHubUpdate.error.message}</p>}
       </div>
 
       <div className="tech-phase-list">

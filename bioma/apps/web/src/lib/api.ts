@@ -2187,6 +2187,23 @@ export const api = {
     request<GitHubConnection>(`/integrations/github/projects/${projectId}`, { method: "PUT", body: JSON.stringify(payload) }),
   githubProjectActivity: (projectId: string, limit = 20) =>
     request<GitHubProjectActivity>(`/integrations/github/projects/${projectId}/activity?limit=${limit}`),
+  publishGitHubProjectUpdate: (projectId: string, clientVisible = true) =>
+    request<{
+      project_id: string;
+      project_update_id: string;
+      idempotency_key: string;
+      repository: string;
+      client_visible: boolean;
+      created_at: string;
+    }>(`/integrations/github/projects/${projectId}/publish-update`, {
+      method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+        idempotency_key: `github-${projectId}-${crypto.randomUUID()}`,
+        client_visible: clientVisible,
+        limit: 20,
+      }),
+    }),
   createGitHubIssue: (deliverableId: string, body?: string | null) =>
     request<GitHubIssueLink>(`/integrations/github/deliverables/${deliverableId}/issue`, {
       method: "POST",

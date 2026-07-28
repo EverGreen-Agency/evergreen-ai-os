@@ -12,6 +12,8 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.github import (
     GitHubConnectionInput,
     GitHubConnectionSummary,
+    GitHubActivitySyncRequest,
+    GitHubActivitySyncResult,
     GitHubIssueCreateRequest,
     GitHubIssueLinkSummary,
     GitHubProjectActivity,
@@ -138,6 +140,119 @@ def create_issue_from_deliverable(
 
     return GitHubIssueLinkSummary(
         deliverable_id=deliverable_id, repository=repository, issue_number=issue["number"], issue_url=issue["url"],
+    )
+
+
+def publish_activity_update(
+    project_id: UUID,
+    payload: GitHubActivitySyncRequest,
+    user: CurrentUserResponse,
+) -> GitHubActivitySyncResult:
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        existing = github_repo.find_activity_sync(conn, payload.idempotency_key)
+        if existing:
+            if existing["project_id"] != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="A chave de idempotência já foi usada em outro projeto.",
+                )
+            return _activity_sync_result(existing)
+
+    activity = get_activity(project_id, user, payload.limit)
+    snapshot = activity.model_dump(mode="json")
+    summary = payload.summary_override or _activity_summary(activity)
+    detail = _activity_detail(activity)
+
+    with connect() as conn:
+        project = _project(conn, project_id, user, "manage_work")
+        project_repo.lock_project(conn, project_id)
+        existing = github_repo.find_activity_sync(conn, payload.idempotency_key)
+        if existing:
+            return _activity_sync_result(existing)
+        update = project_repo.create_project_update(
+            conn,
+            project_id,
+            user.id,
+            {
+                "kind": "progress",
+                "summary": summary,
+                "detail": detail,
+                "client_visible": payload.client_visible,
+            },
+        )
+        sync = github_repo.create_activity_sync(
+            conn,
+            project_id,
+            payload.idempotency_key,
+            snapshot,
+            update["id"],
+            user.id,
+        )
+        github_repo.write_audit(
+            conn,
+            user.id,
+            project["subject_organization_id"],
+            "github.activity_published_to_project",
+            {
+                "project_id": str(project_id),
+                "project_update_id": str(update["id"]),
+                "repository": activity.repository,
+                "client_visible": payload.client_visible,
+            },
+        )
+        row = {
+            **dict(sync),
+            "repository_owner": activity.repository.split("/", 1)[0],
+            "repository_name": activity.repository.split("/", 1)[1],
+            "client_visible": payload.client_visible,
+        }
+        return _activity_sync_result(row)
+
+
+def _activity_summary(activity: GitHubProjectActivity) -> str:
+    open_issues = sum(1 for issue in activity.issues if issue.state == "open")
+    open_pulls = sum(1 for pull in activity.pull_requests if pull.state == "open")
+    return (
+        f"Atualização Tech: {len(activity.commits)} commits recentes, "
+        f"{open_pulls} PRs abertos e {open_issues} issues abertas."
+    )
+
+
+def _activity_detail(activity: GitHubProjectActivity) -> str:
+    sections = [f"Repositório: {activity.repository}"]
+    if activity.pull_requests:
+        sections.append(
+            "Pull requests: " + "; ".join(
+                f"#{item.number} {item.title} ({item.state})"
+                for item in activity.pull_requests[:10]
+            )
+        )
+    if activity.commits:
+        sections.append(
+            "Commits: " + "; ".join(
+                f"{item.sha[:7]} {item.message}"
+                for item in activity.commits[:10]
+            )
+        )
+    if activity.issues:
+        sections.append(
+            "Issues: " + "; ".join(
+                f"#{item.number} {item.title} ({item.state})"
+                for item in activity.issues[:10]
+            )
+        )
+    return "\n".join(sections)
+
+
+def _activity_sync_result(row) -> GitHubActivitySyncResult:
+    return GitHubActivitySyncResult(
+        project_id=row["project_id"],
+        project_update_id=row["project_update_id"],
+        idempotency_key=row["idempotency_key"],
+        repository=f"{row['repository_owner']}/{row['repository_name']}",
+        client_visible=row["client_visible"],
+        created_at=row["created_at"],
     )
 
 
