@@ -6,18 +6,22 @@ import { GoogleIcon } from "../components/shared";
 export function LoginView({
   email,
   password,
+  rememberMe = true,
   loginError,
   apiOnline,
   onEmailChange,
   onPasswordChange,
+  onRememberMeChange,
   onSubmit,
 }: {
   email: string;
   password: string;
+  rememberMe?: boolean;
   loginError: string;
   apiOnline: boolean;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
+  onRememberMeChange?: (value: boolean) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -167,13 +171,22 @@ export function LoginView({
 
             {loginError && <span className="form-error">{loginError}</span>}
 
-            <div className="login-actions-row">
-              <span />
+            <div className="login-actions-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", width: "100%" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", color: "var(--text-dim)", cursor: "pointer", userSelect: "none" }}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => onRememberMeChange?.(e.target.checked)}
+                  style={{ accentColor: "var(--brand-accent)", width: "15px", height: "15px", cursor: "pointer" }}
+                />
+                Lembrar deste dispositivo
+              </label>
               <a
                 href={forgotPasswordUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="forgot-password"
+                style={{ fontSize: "0.82rem" }}
               >
                 Esqueci minha senha
               </a>

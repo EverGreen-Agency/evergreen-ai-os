@@ -70,6 +70,7 @@ export function App() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [loginError, setLoginError] = useState("");
   
   const { data: healthData } = useApiHealth();
@@ -156,7 +157,7 @@ export function App() {
     event.preventDefault();
     setLoginError("");
     login.mutate(
-      { email, password },
+      { email, password, remember_me: rememberMe },
       {
         onSuccess: () => {
           setPassword("");
@@ -222,10 +223,12 @@ export function App() {
             <LoginView
               email={email}
               password={password}
+              rememberMe={rememberMe}
               loginError={loginError}
               apiOnline={apiOnline}
               onEmailChange={setEmail}
               onPasswordChange={setPassword}
+              onRememberMeChange={setRememberMe}
               onSubmit={handleLogin}
             />
           }

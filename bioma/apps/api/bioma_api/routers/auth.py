@@ -46,7 +46,8 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
     with connect() as conn:
         token = new_session_token()
         token_hash = hash_session_token(token)
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.session_ttl_hours)
+        ttl_hours = 30 * 24 if payload.remember_me else settings.session_ttl_hours
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=ttl_hours)
 
         conn.execute(
             """

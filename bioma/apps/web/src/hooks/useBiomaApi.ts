@@ -182,7 +182,8 @@ export function useArchiveClient() {
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => api.login(email, password),
+    mutationFn: ({ email, password, remember_me }: { email: string; password: string; remember_me?: boolean }) =>
+      api.login(email, password, remember_me),
     onSuccess: (data) => {
       queryClient.setQueryData(["user"], data.user);
     },

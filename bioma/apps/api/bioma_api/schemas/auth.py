@@ -9,6 +9,7 @@ from bioma_api.domain.models import Role
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    remember_me: bool = True
 
 
 class OrganizationSummary(BaseModel):

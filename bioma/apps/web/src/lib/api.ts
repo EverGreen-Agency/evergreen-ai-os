@@ -1686,10 +1686,10 @@ async function requestText(path: string): Promise<string> {
 export const api = {
   health: () => request<ApiHealth>("/health"),
   me: () => request<CurrentUser>("/auth/me"),
-  login: (email: string, password: string) =>
+  login: (email: string, password: string, remember_me: boolean = true) =>
     request<{ user: CurrentUser; expires_at: string }>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember_me }),
     }),
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
