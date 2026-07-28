@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
@@ -19,7 +19,9 @@ ProjectPlanStatus = Literal["draft", "approved", "materialized", "superseded"]
 ProjectPlanSourceKind = Literal["contract", "briefing", "onboarding", "manual"]
 ProjectPlanGenerationMode = Literal["live", "preview", "manual"]
 ProjectPlanItemKind = Literal["milestone", "deliverable", "content", "campaign", "technical_task"]
+ProjectPlanItemPriority = Literal["low", "medium", "high", "critical"]
 SocialApprovalFlow = Literal["adaptive", "idea_before_production", "after_production", "final_only"]
+ProjectPlanSubtask = Annotated[str, Field(min_length=2, max_length=500)]
 
 
 class ProjectCreate(BaseModel):
@@ -191,6 +193,9 @@ class ProjectPlanItemDraft(BaseModel):
     client_visible: bool = True
     approval_required: bool = True
     github_eligible: bool = False
+    priority: ProjectPlanItemPriority = "medium"
+    definition_of_done: str | None = Field(default=None, max_length=5_000)
+    subtasks: list[ProjectPlanSubtask] = Field(default_factory=list, max_length=50)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -209,6 +214,37 @@ class ProjectPlanMaterializeRequest(BaseModel):
     confirm: Literal[True]
 
 
+class ProjectPlanItemUpdate(BaseModel):
+    selected: bool | None = None
+    phase_name: str | None = Field(default=None, min_length=2, max_length=240)
+    title: str | None = Field(default=None, min_length=2, max_length=240)
+    description: str | None = Field(default=None, max_length=5_000)
+    due_offset_days: int | None = Field(default=None, ge=0, le=730)
+    client_visible: bool | None = None
+    approval_required: bool | None = None
+    priority: ProjectPlanItemPriority | None = None
+    definition_of_done: str | None = Field(default=None, max_length=5_000)
+    subtasks: list[ProjectPlanSubtask] | None = Field(default=None, max_length=50)
+
+    @model_validator(mode="after")
+    def valid_patch(self):
+        if not self.model_fields_set:
+            raise ValueError("Informe ao menos um campo para alterar.")
+        non_nullable = {
+            "selected",
+            "phase_name",
+            "title",
+            "client_visible",
+            "approval_required",
+            "priority",
+            "subtasks",
+        }
+        invalid = sorted(field for field in self.model_fields_set if field in non_nullable and getattr(self, field) is None)
+        if invalid:
+            raise ValueError(f"Os campos não aceitam valor nulo: {', '.join(invalid)}.")
+        return self
+
+
 class ProjectPlanItemSummary(BaseModel):
     id: UUID
     plan_id: UUID
@@ -222,6 +258,10 @@ class ProjectPlanItemSummary(BaseModel):
     client_visible: bool
     approval_required: bool
     github_eligible: bool
+    selected: bool
+    priority: ProjectPlanItemPriority
+    definition_of_done: str | None = None
+    subtasks: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     materialized_phase_id: UUID | None = None
     materialized_deliverable_id: UUID | None = None

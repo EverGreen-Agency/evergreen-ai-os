@@ -352,12 +352,13 @@ def list_project_plan_items(conn, plan_id: UUID, include_internal: bool):
         select item.id, item.plan_id, item.sequence, item.source_scope_item_id,
           item.phase_name, item.title,
           item.description, item.item_kind, item.due_offset_days, item.client_visible,
-          item.approval_required, item.github_eligible, item.metadata,
+          item.approval_required, item.github_eligible, item.selected, item.priority,
+          item.definition_of_done, item.subtasks, item.metadata,
           item.materialized_phase_id, item.materialized_deliverable_id,
           deliverable.github_issue_number, deliverable.github_issue_url
         from project_plan_items item
         left join deliverables deliverable on deliverable.id = item.materialized_deliverable_id
-        where item.plan_id = %s and (%s or item.client_visible)
+        where item.plan_id = %s and (%s or (item.client_visible and item.selected))
         order by item.sequence
         """,
         (plan_id, include_internal),
@@ -422,8 +423,9 @@ def create_project_plan_items(conn, plan_id: UUID, items: list[dict[str, Any]]) 
             """
             insert into project_plan_items (
               plan_id, sequence, source_scope_item_id, phase_name, title, description, item_kind,
-              due_offset_days, client_visible, approval_required, github_eligible, metadata
-            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+              due_offset_days, client_visible, approval_required, github_eligible, selected,
+              priority, definition_of_done, subtasks, metadata
+            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 plan_id,
@@ -437,9 +439,52 @@ def create_project_plan_items(conn, plan_id: UUID, items: list[dict[str, Any]]) 
                 item["client_visible"],
                 item["approval_required"],
                 item["github_eligible"],
+                item.get("selected", False),
+                item.get("priority", "medium"),
+                item.get("definition_of_done"),
+                Jsonb(item.get("subtasks", [])),
                 Jsonb(item.get("metadata", {})),
             ),
         )
+
+
+def find_project_plan_item(conn, item_id: UUID):
+    return conn.execute(
+        "select * from project_plan_items where id = %s",
+        (item_id,),
+    ).fetchone()
+
+
+def update_project_plan_item(conn, item_id: UUID, updates: dict[str, Any]) -> None:
+    allowed = {
+        "selected",
+        "phase_name",
+        "title",
+        "description",
+        "due_offset_days",
+        "client_visible",
+        "approval_required",
+        "priority",
+        "definition_of_done",
+        "subtasks",
+    }
+    fields = [field for field in updates if field in allowed]
+    if not fields:
+        return
+    values = [Jsonb(updates[field]) if field == "subtasks" else updates[field] for field in fields]
+    assignments = ", ".join(f"{field} = %s" for field in fields)
+    conn.execute(
+        f"update project_plan_items set {assignments}, updated_at = now() where id = %s",
+        (*values, item_id),
+    )
+
+
+def count_selected_plan_items(conn, plan_id: UUID) -> int:
+    row = conn.execute(
+        "select count(*) as total from project_plan_items where plan_id = %s and selected",
+        (plan_id,),
+    ).fetchone()
+    return row["total"]
 
 
 def approve_project_plan(conn, plan_id: UUID, project_id: UUID, user_id: UUID):

@@ -15,7 +15,7 @@ from bioma_api.schemas.projects import (
     ProjectDeliverableSummary, ProjectDetail, ProjectDocumentCreate, ProjectDocumentSummary,
     ProjectPhaseCreate, ProjectPhaseSummary, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanAIOutput, ProjectPlanApproveRequest, ProjectPlanGenerateRequest,
-    ProjectPlanItemSummary, ProjectPlanMaterializeRequest, ProjectPlanSummary,
+    ProjectPlanItemSummary, ProjectPlanItemUpdate, ProjectPlanMaterializeRequest, ProjectPlanSummary,
     ProjectUpdateCreate, ProjectUpdateSummary, ScopeItemCreate, ScopeItemSummary, ScopeItemUpdate,
 )
 from bioma_api.worker_bridge import execute_squad_pipeline_safe
@@ -346,6 +346,7 @@ def generate_project_plan(
     normalized_items = []
     for item in output.items:
         item_data = item.model_dump()
+        item_data["selected"] = False
         if item.source_scope_item_id not in allowed_scope_ids:
             item_data["source_scope_item_id"] = None
         else:
@@ -427,6 +428,11 @@ def approve_project_plan(
         if plan["status"] not in ("draft", "approved", "materialized"):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Plano não pode mais ser aprovado.")
         if plan["status"] == "draft":
+            if project_repo.count_selected_plan_items(conn, plan_id) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Selecione ao menos um item do backlog antes de aprovar o plano.",
+                )
             updated = project_repo.approve_project_plan(conn, plan_id, plan["project_id"], user.id)
             if not updated:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Plano já foi alterado.")
@@ -438,6 +444,38 @@ def approve_project_plan(
                 {"project_id": str(plan["project_id"]), "plan_id": str(plan_id), "version": plan["version"]},
             )
     return get_project_plan(plan_id, user)
+
+
+def update_project_plan_item(
+    item_id: UUID,
+    payload: ProjectPlanItemUpdate,
+    user: CurrentUserResponse,
+) -> ProjectPlanSummary:
+    with connect() as conn:
+        item = project_repo.find_project_plan_item(conn, item_id)
+        if not item:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item do plano não encontrado.")
+        plan = _plan(conn, item["plan_id"], user, "manage_work")
+        if plan["status"] != "draft":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Somente itens de um plano em rascunho podem ser alterados.",
+            )
+        updates = payload.model_dump(exclude_unset=True)
+        project_repo.update_project_plan_item(conn, item_id, updates)
+        project_repo.write_audit(
+            conn,
+            user.id,
+            plan["organization_id"],
+            "project.plan_item_updated",
+            {
+                "project_id": str(plan["project_id"]),
+                "plan_id": str(plan["id"]),
+                "item_id": str(item_id),
+                "changed_fields": sorted(updates),
+            },
+        )
+    return get_project_plan(plan["id"], user)
 
 
 def materialize_project_plan(
@@ -454,7 +492,10 @@ def materialize_project_plan(
                 detail="Aprove o plano antes de criar fases e entregas.",
             )
         project = _project(conn, plan["project_id"], user, "manage_work")
-        items = project_repo.list_project_plan_items(conn, plan_id, True)
+        items = [
+            item for item in project_repo.list_project_plan_items(conn, plan_id, True)
+            if item["selected"]
+        ]
         phase_ids = {
             (item["phase_name"], item["client_visible"]): item["materialized_phase_id"]
             for item in items if item["materialized_phase_id"]

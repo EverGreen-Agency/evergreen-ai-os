@@ -1957,6 +1957,23 @@ export interface paths {
         patch: operations["update_phase_project_phases__phase_id__patch"];
         trace?: never;
     };
+    "/project-plan-items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Project Plan Item */
+        patch: operations["update_project_plan_item_project_plan_items__item_id__patch"];
+        trace?: never;
+    };
     "/project-plans/{plan_id}": {
         parameters: {
             query?: never;
@@ -7084,6 +7101,8 @@ export interface components {
             approval_required: boolean;
             /** Client Visible */
             client_visible: boolean;
+            /** Definition Of Done */
+            definition_of_done?: string | null;
             /** Description */
             description?: string | null;
             /** Due Offset Days */
@@ -7119,12 +7138,44 @@ export interface components {
              * Format: uuid
              */
             plan_id: string;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "low" | "medium" | "high" | "critical";
+            /** Selected */
+            selected: boolean;
             /** Sequence */
             sequence: number;
             /** Source Scope Item Id */
             source_scope_item_id?: string | null;
+            /** Subtasks */
+            subtasks?: string[];
             /** Title */
             title: string;
+        };
+        /** ProjectPlanItemUpdate */
+        ProjectPlanItemUpdate: {
+            /** Approval Required */
+            approval_required?: boolean | null;
+            /** Client Visible */
+            client_visible?: boolean | null;
+            /** Definition Of Done */
+            definition_of_done?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Due Offset Days */
+            due_offset_days?: number | null;
+            /** Phase Name */
+            phase_name?: string | null;
+            /** Priority */
+            priority?: ("low" | "medium" | "high" | "critical") | null;
+            /** Selected */
+            selected?: boolean | null;
+            /** Subtasks */
+            subtasks?: string[] | null;
+            /** Title */
+            title?: string | null;
         };
         /** ProjectPlanMaterializeRequest */
         ProjectPlanMaterializeRequest: {
@@ -13604,6 +13655,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_plan_item_project_plan_items__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectPlanItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPlanSummary"];
                 };
             };
             /** @description Validation Error */

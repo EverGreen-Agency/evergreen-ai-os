@@ -8,7 +8,7 @@ from bioma_api.schemas.projects import (
     ContractCreate, ContractUpdate, ProjectCreate, ProjectDeliverableCreate, ProjectDetail,
     ProjectDocumentCreate, ProjectPhaseCreate, ProjectPhaseUpdate, ProjectSummary, ProjectUpdate,
     ProjectPlanApproveRequest, ProjectPlanGenerateRequest, ProjectPlanMaterializeRequest,
-    ProjectPlanSummary, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
+    ProjectPlanItemUpdate, ProjectPlanSummary, ProjectUpdateCreate, ScopeItemCreate, ScopeItemUpdate,
 )
 from bioma_api.services import projects as project_service
 
@@ -103,6 +103,15 @@ def approve_project_plan(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return project_service.approve_project_plan(plan_id, payload, user)
+
+
+@router.patch("/project-plan-items/{item_id}", response_model=ProjectPlanSummary)
+def update_project_plan_item(
+    item_id: UUID,
+    payload: ProjectPlanItemUpdate,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return project_service.update_project_plan_item(item_id, payload, user)
 
 
 @router.post("/project-plans/{plan_id}/materialize", response_model=ProjectDetail)
