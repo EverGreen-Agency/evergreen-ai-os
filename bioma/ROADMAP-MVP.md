@@ -237,9 +237,11 @@ Decisões alinhadas com Eduardo após revisar a escala por carteiras, times e wh
 - [x] Integrar projetos Tech ao GitHub em leitura (repositório, issues, PRs e commits, com BOLA por workspace e configuração auditada).
 - [x] Implementar escrita GitHub idempotente e auditada com confirmação HITL para criação/alteração externa (PROJECT-GH-002, 2026-07-24).
 - [x] Implementar planejador compartilhado e versionado para Tech/Growth/Social, com origem em contrato/briefing/onboarding, aprovação antes da materialização e vínculo de itens ao escopo (PROJECT-PLAN-001, 2026-07-27).
+- [x] Transformar a saída do planejador em backlog candidato com seleção humana, edição de prioridade/descrição/definição de pronto/subtarefas e materialização exclusiva dos itens escolhidos (PROJECT-PLAN-CANDIDATES-001, 2026-07-27).
 - [x] Vincular proposta/especificação ao contrato do projeto e incluir somente resumo técnico confirmado e contexto técnico explícito no rascunho de plano; URLs privadas permanecem referências, não extração automática (PROJECT-TECH-CONTEXT-001, 2026-07-27).
 - [x] Implementar pesquisa de mercado interna e versionada para a Operação EG, com refinamento de foco, fontes verificáveis no modo live e relatório para prospecção/Growth/Social, sem publicação ou acoplamento automático ao Hub (MARKET-RESEARCH-001, 2026-07-27).
 - [x] Implementar contexto estruturado de cliente no Hub, com completude derivada, autorização `view`/`manage_work`, auditoria e inclusão no rascunho do planejador de projeto (CLIENT-PROFILE-001, 2026-07-27).
+- [ ] Criar portfólio central de planejamentos por cliente/status e intake guiado reutilizando o workspace e o wizard canônicos; não duplicar cadastro de cliente. O questionário por disciplina será fechado após receber o fluxo de criação de referência.
 - [ ] Definir arquitetura de VoIP para prospecção (provedor/SIP, números, consentimento, gravação, LGPD, discador, CRM e métricas) antes de escolher integração ou construir telefonia própria.
 - [x] Evoluir IA: imagens, brand book versionado, metodologia e score do cliente (cluster Onda 5, 2026-07-24).
 
