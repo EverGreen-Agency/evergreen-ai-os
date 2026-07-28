@@ -19,7 +19,7 @@ export function ClientHubView() {
   const { setSelectedClientId } = useUiStore();
 
   const { data: user, isLoading: loadingUser } = useCurrentUser();
-  const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
+  const isEgAdmin = !loadingUser && (user?.organizations.some((org: { role: string }) => org.role === "eg_admin") ?? false);
 
   const { data: clientsData } = useClients();
   const clients = externalClients(clientsData ?? []);

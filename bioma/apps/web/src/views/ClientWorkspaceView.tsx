@@ -46,7 +46,7 @@ export function ClientWorkspaceView() {
     (workspace) => workspace.kind === "client" && workspace.client_id === client?.id,
   ) ?? null;
   const isEgAdmin = user?.organizations.some(
-    (organization) => organization.slug === "eg" && organization.role === "eg_admin",
+    (organization: { slug: string; role: string }) => organization.slug === "eg" && organization.role === "eg_admin",
   ) ?? false;
 
   useEffect(() => {

@@ -17,6 +17,14 @@ export function useCurrentUser() {
     queryKey: ["user"],
     queryFn: api.me,
     retry: false,
+    initialData: () => {
+      try {
+        const raw = localStorage.getItem("bioma_user_cache");
+        return raw ? JSON.parse(raw) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
   });
 }
 
@@ -195,7 +203,35 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
+      try { localStorage.removeItem("bioma_user_cache"); } catch {}
       queryClient.clear();
+    },
+  });
+}
+
+export function useSessions() {
+  return useQuery({
+    queryKey: ["sessions"],
+    queryFn: api.sessions,
+  });
+}
+
+export function useRevokeSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => api.revokeSession(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+export function useRevokeOtherSessions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.revokeOtherSessions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
 }

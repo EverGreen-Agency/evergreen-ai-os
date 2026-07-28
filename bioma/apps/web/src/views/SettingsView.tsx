@@ -1,9 +1,9 @@
 import { FormEvent, Suspense, lazy, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X } from "lucide-react";
+import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X, Laptop, ShieldCheck, Trash2 } from "lucide-react";
 import { api, apiUrl } from "../lib/api";
-import { useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
+import { useCurrentUser, useWorkspaces, useSessions, useRevokeSession, useRevokeOtherSessions } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
@@ -126,7 +126,7 @@ export function SettingsView() {
   if (!user) return null;
 
   const initials = user.display_name.substring(0, 2).toUpperCase();
-  const isEgAdmin = user.organizations.some(org => org.role === "eg_admin");
+  const isEgAdmin = user.organizations.some((org: { role: string }) => org.role === "eg_admin");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -212,7 +212,7 @@ export function SettingsView() {
                 EG Admin
               </span>
             )}
-            {!isEgAdmin && user.organizations.map(org => (
+            {!isEgAdmin && user.organizations.map((org: { id: string; role: string }) => (
               <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
                 {org.role}
               </span>
@@ -444,6 +444,9 @@ export function SettingsView() {
               </div>
             </form>
           </article>
+
+          {/* Dispositivos & Sessões Ativas */}
+          <SessionsManagerCard />
         </div>
       )}
 
@@ -542,5 +545,91 @@ export function SettingsView() {
         </div>
       )}
     </section>
+  );
+}
+
+function SessionsManagerCard() {
+  const { data: sessions = [], isLoading } = useSessions();
+  const revokeSession = useRevokeSession();
+  const revokeOther = useRevokeOtherSessions();
+
+  return (
+    <article className="surface profile-section" style={{ marginTop: "24px" }}>
+      <div className="surface-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Laptop size={18} />
+          <h3 style={{ margin: 0 }}>Dispositivos & Sessões Ativas</h3>
+        </div>
+        {sessions.filter((s) => !s.is_current).length > 0 && (
+          <button
+            className="ghost-button danger"
+            type="button"
+            style={{ fontSize: "0.8rem" }}
+            onClick={() => revokeOther.mutate()}
+            disabled={revokeOther.isPending}
+          >
+            <Trash2 size={14} /> Desconectar outros dispositivos
+          </button>
+        )}
+      </div>
+
+      <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", margin: "0 0 16px" }}>
+        Estes são os navegadores e dispositivos atualmente autorizados na sua conta.
+      </p>
+
+      {isLoading && <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Carregando sessões...</p>}
+
+      {!isLoading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {sessions.map((session) => {
+            const createdDate = session.created_at ? new Date(session.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Desconhecido";
+            const expiresDate = session.expires_at ? new Date(session.expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "30 dias";
+            return (
+              <div
+                key={session.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 16px",
+                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--surface-sunken)",
+                  border: `1px solid ${session.is_current ? "rgba(58, 201, 123, 0.3)" : "var(--border)"}`,
+                  borderRadius: "8px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <Laptop size={20} color={session.is_current ? "var(--brand-accent)" : "var(--text-dim)"} />
+                  <div>
+                    <strong style={{ fontSize: "0.9rem", color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
+                      Navegador / Dispositivo Web
+                      {session.is_current && (
+                        <span style={{ fontSize: "0.72rem", background: "rgba(58, 201, 123, 0.2)", color: "var(--mint)", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                          ESTE DISPOSITIVO (SESSÃO ATUAL)
+                        </span>
+                      )}
+                    </strong>
+                    <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
+                      Conectado em: {createdDate} • Válido até: {expiresDate}
+                    </span>
+                  </div>
+                </div>
+
+                {!session.is_current && (
+                  <button
+                    className="ghost-button danger"
+                    type="button"
+                    style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                    onClick={() => revokeSession.mutate(session.id)}
+                    disabled={revokeSession.isPending}
+                  >
+                    Encerrar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </article>
   );
 }

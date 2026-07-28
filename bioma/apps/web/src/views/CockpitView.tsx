@@ -28,7 +28,7 @@ export function CockpitView() {
   const { data: myDeliverablesData } = useMyDeliverables();
   const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(selectedClientId);
 
-  const isEgAdmin = user?.organizations.some(org => org.role === "eg_admin");
+  const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
 
   // Client data
   const clients = externalClients(clientsData ?? []);

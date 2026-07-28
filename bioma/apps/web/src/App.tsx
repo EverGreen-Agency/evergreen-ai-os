@@ -1,6 +1,7 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { enabledModulesFor, navItems, viewModule, type ViewId } from "./lib/app-config";
+import type { UserOrganization } from "./lib/api";
 import { externalClients } from "./lib/client-scope";
 import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
@@ -111,7 +112,7 @@ export function App() {
 
   const apiOnline = healthData?.status === "ok";
   const isEgAdmin = user
-    ? user.organizations.some((org) => org.role === "eg_admin" || org.slug === "eg") ||
+    ? user.organizations.some((org: UserOrganization) => org.role === "eg_admin" || org.slug === "eg") ||
       user.email.endsWith("@evergreengrowth.com.br")
     : false;
 

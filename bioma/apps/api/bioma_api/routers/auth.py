@@ -95,6 +95,85 @@ def me(user: CurrentUserResponse = Depends(current_user_from_request)) -> Curren
     return user
 
 
+@router.get("/sessions")
+def list_sessions(
+    request: Request,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[dict[str, object]]:
+    settings = get_settings()
+    current_token = request.cookies.get(settings.session_cookie_name)
+    current_hash = hash_session_token(current_token) if current_token else None
+
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            select id, created_at, expires_at, token_hash
+            from sessions
+            where user_id = %s
+              and revoked_at is null
+              and expires_at > now()
+            order by created_at desc
+            """,
+            (user.id,),
+        ).fetchall()
+
+    return [
+        {
+            "id": str(row["id"]),
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+            "is_current": current_hash is not None and row["token_hash"] == current_hash,
+        }
+        for row in rows
+    ]
+
+
+@router.delete("/sessions/other")
+def revoke_other_sessions(
+    request: Request,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    settings = get_settings()
+    current_token = request.cookies.get(settings.session_cookie_name)
+    current_hash = hash_session_token(current_token) if current_token else None
+
+    with connect() as conn:
+        if current_hash:
+            conn.execute(
+                """
+                update sessions
+                set revoked_at = now()
+                where user_id = %s
+                  and token_hash != %s
+                  and revoked_at is null
+                """,
+                (user.id, current_hash),
+            )
+        else:
+            conn.execute(
+                "update sessions set revoked_at = now() where user_id = %s and revoked_at is null",
+                (user.id,),
+            )
+    return {"status": "ok"}
+
+
+@router.delete("/sessions/{session_id}")
+def revoke_session(
+    session_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    with connect() as conn:
+        conn.execute(
+            """
+            update sessions
+            set revoked_at = now()
+            where id = %s::uuid and user_id = %s and revoked_at is null
+            """,
+            (session_id, user.id),
+        )
+    return {"status": "ok"}
+
+
 class _request_from_token:
     def __init__(self, cookie_name: str, token: str) -> None:
         self.cookies = {cookie_name: token}

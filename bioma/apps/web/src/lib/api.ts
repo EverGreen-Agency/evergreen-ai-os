@@ -9,18 +9,20 @@ export type ApiHealth = {
 
 export type ClientModule = "hub" | "content" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
 
+export type UserOrganization = {
+  id: string;
+  name: string;
+  slug: string;
+  role: "eg_admin" | "client_user";
+  enabled_modules: ClientModule[];
+};
+
 export type CurrentUser = {
   id: string;
   email: string;
   display_name: string;
   has_password: boolean;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    role: "eg_admin" | "client_user";
-    enabled_modules: ClientModule[];
-  }>;
+  organizations: UserOrganization[];
 };
 
 export type ClientStatus = "onboarding" | "active" | "paused" | "completed" | "archived";
@@ -1685,13 +1687,26 @@ async function requestText(path: string): Promise<string> {
 
 export const api = {
   health: () => request<ApiHealth>("/health"),
-  me: () => request<CurrentUser>("/auth/me"),
-  login: (email: string, password: string, remember_me: boolean = true) =>
-    request<{ user: CurrentUser; expires_at: string }>("/auth/login", {
+  me: async () => {
+    const user = await request<CurrentUser>("/auth/me");
+    try { localStorage.setItem("bioma_user_cache", JSON.stringify(user)); } catch {}
+    return user;
+  },
+  login: async (email: string, password: string, remember_me: boolean = true) => {
+    const res = await request<{ user: CurrentUser; expires_at: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password, remember_me }),
-    }),
-  logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+    });
+    try { localStorage.setItem("bioma_user_cache", JSON.stringify(res.user)); } catch {}
+    return res;
+  },
+  logout: async () => {
+    try { localStorage.removeItem("bioma_user_cache"); } catch {}
+    return request<{ status: string }>("/auth/logout", { method: "POST" });
+  },
+  sessions: () => request<Array<{ id: string; created_at: string; expires_at: string; is_current: boolean }>>("/auth/sessions"),
+  revokeSession: (sessionId: string) => request<{ status: string }>(`/auth/sessions/${sessionId}`, { method: "DELETE" }),
+  revokeOtherSessions: () => request<{ status: string }>("/auth/sessions/other", { method: "DELETE" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   teams: (tenantOrganizationId: string) =>
     request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),

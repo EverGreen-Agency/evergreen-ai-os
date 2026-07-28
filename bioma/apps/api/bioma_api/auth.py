@@ -33,6 +33,16 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
         if not session:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão inválida.")
 
+        # Rolling session: se a sessão restar menos de 15 dias de validade, renova por +30 dias automaticamente
+        expires_at = session["expires_at"]
+        if expires_at and (expires_at.tzinfo is None or expires_at.tzinfo != timezone.utc):
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at and (expires_at - datetime.now(timezone.utc)).total_seconds() < 15 * 86400:
+            conn.execute(
+                "update sessions set expires_at = now() + interval '30 days' where token_hash = %s",
+                (token_hash,),
+            )
+
         memberships = conn.execute(
             """
             select o.id, o.name, o.slug, m.role, o.enabled_modules
