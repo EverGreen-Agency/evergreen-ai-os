@@ -496,3 +496,13 @@ Formato:
 - 2026-07-25 - Antigravity - af524a8 - primeira versão visual de radar, custos e métricas. Auditoria posterior identificou três fontes RSS reais, persistência indevida de token, integração financeira incompatível e geração que ignorava a saída do squad; o item voltou a `IN_PROGRESS`.
 - 2026-07-26 - Antigravity - 307f86c - Motor financeiro de ROI, CAC e custo por proposta por plataforma integrado ao Big Data e ao Repositório de Propostas - `npx tsc --noEmit` + 51/51 pytest sem erros.
 
+## Avanço 2026-07-28 — reuniões e visibilidade Tech
+
+- **COPILOT-MEETING-001 — DONE (código):** sessão com Meet/Teams/manual, consentimento, retenção, participantes, cargo, senioridade, papel decisório, segmentos diarizados e replay por chave idempotente.
+- **COPILOT-LIVE-001 — DONE (base funcional):** janela de conversa + contexto de cliente/proposta/pesquisa gera sugestão persistida. Transporte atual é polling; WebSocket/SSE não é anunciado.
+- **COPILOT-ADAPTER-001 — DONE (contrato):** credencial rotacionável exibida uma vez, somente hash persistido e endpoint autenticado para lotes de Meet/Teams. A entrada de um bot real na reunião continua dependente da escolha do provedor.
+- **COPILOT-ACTION-001 — DONE:** compromissos pós-reunião viram tarefa, revisão de proposta ou atualização interna de projeto somente após confirmação HITL.
+- **PROPOSAL-PLAN-001 — DONE:** proposta ganha e convertida tenta gerar plano em rascunho após o commit comercial; falha do planejador é auditada e não desfaz projeto/contrato.
+- **TECH-GITHUB-UPDATE-001 — DONE:** atividade GitHub lida externamente pode ser publicada como snapshot idempotente e auditado no hub do cliente, mediante confirmação.
+- **Pendente operacional:** aplicar migrations 0056–0058 em ambiente descartável, conectar provedor de bot/transcrição, provar diarização/latência/custo com reunião autorizada e executar QA visual.
+

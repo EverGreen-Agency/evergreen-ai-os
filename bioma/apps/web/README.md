@@ -87,3 +87,7 @@ A área comercial da EG reúne:
 - Copiloto de Vendas assíncrono para preparação, notas/transcrição manual e resumo pós-call.
 
 O front não chama envio/assinatura/transcrição realtime fictícios. O registro manual de envio exige confirmação e o painel do Copiloto exibe o adapter realtime como não configurado.
+
+Desde 2026-07-28 o painel do Copiloto opera participantes, cargo/papel decisório, consentimento, Meet/Teams como origem, transcrição diarizada, sugestões por polling e compromissos HITL. Ele também emite a credencial do adaptador uma única vez e a remove da memória da tela após 60 segundos. A UI continua explícita: o contrato está pronto, mas nenhum bot entra em Meet/Teams até um provedor ser conectado.
+
+Em projetos Tech, a atividade GitHub consultada pode ser publicada no hub pelo operador. O botão cria um snapshot auditado; não interpreta automaticamente commit como avanço e não escreve no GitHub.

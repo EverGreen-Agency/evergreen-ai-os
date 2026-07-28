@@ -227,3 +227,9 @@ GraphQL pode entrar depois como BFF ou camada de consulta se surgirem telas com 
 ## Observação
 
 `bioma-legacy/` permanece como referência histórica, mas não dita stack, arquitetura ou UX deste MVP.
+
+## Reuniões comerciais e Tech
+
+O backoffice possui um Copiloto de reuniões: prepara contexto, registra participantes e papéis, recebe transcrição diarizada manual ou por adaptador, sugere intervenções e converte compromissos confirmados em trabalho. Meet/Teams são origens suportadas pelo contrato de ingestão; ainda não há alegação de que um bot esteja conectado a essas plataformas sem provedor configurado.
+
+Projetos Tech podem publicar um snapshot confirmado da atividade GitHub como atualização compreensível no hub do cliente. A leitura não vira progresso automaticamente.

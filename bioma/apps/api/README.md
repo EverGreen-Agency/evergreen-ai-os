@@ -145,3 +145,21 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 - `GET /backoffice/planning-portfolio`: portfólio EG de intakes e planos por cliente/projeto.
 
 A migration 0056 cria essas estruturas e amplia o check de `project_planning_intakes`; ela deve ser aplicada explicitamente no ambiente escolhido.
+
+### Migrations 0057 e 0058
+
+- `0057_sales_copilot_meeting_intelligence.sql`: configuração de reunião, consentimento/retenção, token de ingestão com hash, participantes, segmentos diarizados, sugestões e ações HITL.
+- `0058_github_activity_project_updates.sql`: snapshots idempotentes de atividade GitHub publicados como `project_updates`.
+
+Rotas adicionais do Copiloto:
+
+- `PUT /backoffice/sales-copilot/{id}/meeting`;
+- `POST /backoffice/sales-copilot/{id}/participants`;
+- `POST /backoffice/sales-copilot/{id}/transcript-segments`;
+- `POST /backoffice/sales-copilot/{id}/analyze-live`;
+- `POST /backoffice/sales-copilot/{id}/actions`;
+- `POST /backoffice/sales-copilot/actions/{action_id}/materialize`;
+- `POST /backoffice/sales-copilot/{id}/ingestion-credential`;
+- `POST /backoffice/sales-copilot/ingest/{id}` com `X-Copilot-Ingest-Token`.
+
+O último endpoint não usa sessão de usuário: autentica o adaptador por token rotacionável, exige consentimento e nunca retorna o conteúdo da sessão. O bot/STT é externo e ainda precisa ser selecionado.

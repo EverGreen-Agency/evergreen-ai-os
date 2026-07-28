@@ -129,3 +129,16 @@ Regras invioláveis:
 4. Commit pequeno por marco, mensagem em PT, sem co-author de IA.
 5. Decisões de escopo vão para `ROADMAP-MVP.md`; fila operacional em
    `EXECUCAO-MVP.md`.
+
+## Inteligência de reunião
+
+O Copiloto separa quatro responsabilidades:
+
+1. **adaptador de reunião:** Meet/Teams ou upload envia segmentos por contrato autenticado; o Bioma não assume um fornecedor;
+2. **diarização:** `external_speaker_id` preserva a identidade técnica e pode ser associado a participante, organização, cargo, senioridade e papel decisório;
+3. **assistência:** uma janela limitada da conversa é cruzada com snapshot versionado de cliente, proposta e pesquisa, gerando sugestões com referências aos segmentos;
+4. **execução:** resumo e compromissos permanecem propostas internas até confirmação HITL; só então criam tarefa, revisão ou atualização de projeto.
+
+O token de ingestão é retornado uma vez e somente seu SHA-256 é persistido. Ingestão externa requer consentimento concedido. O transporte web atual é polling; a entrada automática de bot e o STT são adapters externos ainda não escolhidos.
+
+Na conversão comercial, o projeto/contrato é confirmado primeiro. A geração do plano ocorre depois do commit, em outra transação; indisponibilidade do worker gera evento de falha sem corromper ou reverter o contrato.

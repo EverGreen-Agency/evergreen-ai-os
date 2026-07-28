@@ -206,3 +206,15 @@ Próxima ação exata:
 2. executar smoke do lifecycle com proposta sintética;
 3. fazer QA visual das abas Propostas, Planejamentos, Copiloto e do link público;
 4. somente depois selecionar adapters de e-mail/assinatura/realtime com custos, consentimento e retenção definidos.
+
+## Frente atual — 2026-07-28
+
+Implementado sem popular banco:
+
+1. proposta ganha → projeto/contrato/escopo → plano em rascunho, com separação transacional e auditoria de falha;
+2. Copiloto de reuniões com participantes, papéis, consentimento, retenção, diarização e sugestões sobre janela recente;
+3. contrato seguro para adaptador Meet/Teams, com token rotacionável armazenado apenas como hash;
+4. compromissos materializáveis com HITL;
+5. snapshot GitHub → atualização Tech no hub, idempotente e confirmado.
+
+Validação externa deixada para a etapa de ambiente: migrations 0056–0058, bot real em Meet/Teams, STT/diarização, latência, custo, QA visual e fluxo GitHub com token.

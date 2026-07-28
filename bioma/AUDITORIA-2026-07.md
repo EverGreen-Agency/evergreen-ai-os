@@ -175,3 +175,15 @@ Revisão manual completa do código do backend (routers/services/repositories/sc
 - A migration 0056 foi criada, mas não aplicada nem usada para popular banco.
 - Validação até este ponto: pytest completo (88 testes), `npx.cmd tsc -b`, `npm.cmd run build`, import da API, `compileall`, regeneração OpenAPI/tipos e leitura sintática/textual do PDF gerado passaram. QA visual e smoke com banco após aplicar 0056 permanecem pendentes.
 - `npm.cmd audit --omit=dev` não ficou verde: reportou 2 achados high no `react-router` 7.18.1 (`GHSA-qwww-vcr4-c8h2`). O advisory limita o impacto às APIs RSC instáveis, que este SPA Vite não usa, mas a versão corrigida indicada é 8.3.0 e exige avaliação de upgrade major; nenhum `audit fix --force` foi aplicado.
+
+## Adendo de implementação — 2026-07-28 (Copiloto de reuniões e Tech)
+
+- O Copiloto deixou de ser apenas um textarea pós-call: modela participantes, equipe/cliente/parceiro, cargo, senioridade, papel decisório, consentimento, retenção e segmentos diarizados.
+- Meet/Teams têm um contrato de ingestão autenticado. O token é mostrado uma vez e somente o hash é guardado. Não há bot ou STT contratado/configurado; portanto entrada automática, acurácia de diarização e latência continuam sem prova operacional.
+- Sugestões ao vivo são persistidas com referências aos segmentos e modo de geração. A UI usa polling de quatro segundos; não existe alegação de WebSocket.
+- Compromissos exigem confirmação para criar tarefa, revisão de proposta ou atualização interna de projeto; replay não materializa novamente.
+- Conversão comercial gera projeto/contrato antes de chamar o planejador. O plano fica rascunho e não cria entregas sem seleção/aprovação/materialização já existentes.
+- Atividade GitHub pode virar atualização visível no hub somente por ação humana, com snapshot, idempotência e auditoria.
+- Provas executadas: pytest completo da API no estado final (97/97), testes focados posteriores (10/10), `compileall`, `npx.cmd tsc -b`, build Vite e `git diff --check`.
+- `npm.cmd audit --omit=dev` continua não verde: 2 achados high no modo RSC do `react-router`; esta SPA Vite não usa RSC e nenhum `audit fix --force` ou downgrade potencialmente incompatível foi aplicado.
+- Não executado: migrations 0056–0058 em banco, smoke com Postgres, QA visual humano, reunião Meet/Teams real e snapshot GitHub contra API real.
