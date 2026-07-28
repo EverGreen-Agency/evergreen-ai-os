@@ -29,9 +29,14 @@ import {
   Wallet,
   ArrowUpRight,
   Printer,
+  ClipboardList,
+  Mic2,
 } from "lucide-react";
 import { ExecutiveReportPdfModal } from "../../../components/ExecutiveReportPdfModal";
 import { ProposalWizard } from "./ProposalWizard";
+import { PlanningPortfolioPanel } from "./PlanningPortfolioPanel";
+import { ProposalLifecycleDrawer } from "./ProposalLifecycleDrawer";
+import { SalesCopilotPanel } from "./SalesCopilotPanel";
 import {
   api,
   type OpportunitySummary,
@@ -40,20 +45,23 @@ import {
   type TechSkill,
   type OpportunitySkillGap,
   type ProposalAnalytics,
+  type ProposalCohortAnalytics,
 } from "../../../lib/api";
 
 export function ProposalsManager() {
-  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
+  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "planning" | "copilot" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
   const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
   const [skills, setSkills] = useState<TechSkill[]>([]);
   const [gaps, setGaps] = useState<OpportunitySkillGap[]>([]);
   const [analytics, setAnalytics] = useState<ProposalAnalytics | null>(null);
+  const [cohorts, setCohorts] = useState<ProposalCohortAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [isProposalWizardOpen, setIsProposalWizardOpen] = useState(false);
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
 
   // Form State para Ingestão Manual Rápida
   const [sourcePlatform, setSourcePlatform] = useState("99freelas");
@@ -78,13 +86,14 @@ export function ProposalsManager() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [oppsRes, propsRes, profilesRes, skillsRes, gapsRes, analyticsRes] = await Promise.all([
+      const [oppsRes, propsRes, profilesRes, skillsRes, gapsRes, analyticsRes, cohortRes] = await Promise.all([
         api.listOpportunities(),
         api.listProposals(),
         api.listFreelancerProfiles(),
         api.listTechSkills(),
         api.listSkillGaps(),
         api.getProposalAnalytics(),
+        api.proposalCohorts(),
       ]);
       setOpportunities(oppsRes);
       setProposals(propsRes);
@@ -92,6 +101,7 @@ export function ProposalsManager() {
       setSkills(skillsRes);
       setGaps(gapsRes);
       setAnalytics(analyticsRes);
+      setCohorts(cohortRes);
       if (profilesRes.length > 0 && !selectedProfileId) {
         setSelectedProfileId(profilesRes[0].id);
       }
@@ -190,15 +200,6 @@ export function ProposalsManager() {
       await loadData();
     } catch (err: any) {
       alert("Erro ao incorporar competência: " + (err.message || "Erro desconhecido"));
-    }
-  };
-
-  const handleUpdateProposalStatus = async (proposalId: string, newStatus: ProposalSummary["status"]) => {
-    try {
-      await api.updateProposal(proposalId, { status: newStatus });
-      await loadData();
-    } catch (err: any) {
-      alert("Erro ao atualizar status da proposta: " + (err.message || "Erro desconhecido"));
     }
   };
 
@@ -355,6 +356,40 @@ export function ProposalsManager() {
           }}
         >
           <BarChart3 size={18} color="var(--brand-accent)" /> Big Data, ROI & CAC ({analytics?.overall_roi_percentage || 0}%)
+        </button>
+        <button
+          onClick={() => setActiveTab("planning")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "planning" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "planning" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <ClipboardList size={18} /> Planejamentos
+        </button>
+        <button
+          onClick={() => setActiveTab("copilot")}
+          style={{
+            background: "none",
+            border: "none",
+            borderBottom: activeTab === "copilot" ? "2px solid var(--brand-accent)" : "2px solid transparent",
+            color: activeTab === "copilot" ? "var(--brand-accent)" : "var(--text-dim)",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <Mic2 size={18} /> Copiloto de vendas
         </button>
         <button
           onClick={() => setActiveTab("profile_audit")}
@@ -538,31 +573,7 @@ export function ProposalsManager() {
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    {/* Seletor Interativo de Status para Big Data */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "var(--surface-sunken)", padding: "4px 8px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                      <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Status:</span>
-                      <select
-                        value={prop.status}
-                        onChange={(e) => handleUpdateProposalStatus(prop.id, e.target.value as ProposalSummary["status"])}
-                        style={{
-                          background: "var(--surface)",
-                          border: "1px solid var(--border)",
-                          color: prop.status === "won" ? "#10b981" : prop.status === "lost" ? "#ef4444" : prop.status === "sent" ? "#3b82f6" : "var(--text)",
-                          fontWeight: 700,
-                          padding: "4px 8px",
-                          borderRadius: "6px",
-                          fontSize: "0.82rem",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <option value="draft">📝 Rascunho</option>
-                        <option value="approved">✓ Aprovada internamente</option>
-                        <option value="sent">📤 Enviada</option>
-                        <option value="negotiating">🤝 Em negociação</option>
-                        <option value="won">🏆 Ganha (Fechada)</option>
-                        <option value="lost">❌ Perdida</option>
-                      </select>
-                    </div>
+                    <span className="status-badge">{prop.status}</span>
 
                     <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--brand-accent)" }}>
                       {prop.pricing_cents > 0
@@ -576,6 +587,13 @@ export function ProposalsManager() {
                     >
                       <Copy size={16} />
                       {copiedProposalId === prop.id ? "Link Copiado!" : "Copiar Link Público"}
+                    </button>
+                    <button
+                      className="primary-button"
+                      onClick={() => setSelectedProposalId(prop.id)}
+                      style={{ padding: "8px 12px" }}
+                    >
+                      Abrir proposta
                     </button>
                   </div>
                 </div>
@@ -625,9 +643,29 @@ export function ProposalsManager() {
             ))
           )}
         </div>
+      ) : activeTab === "planning" ? (
+        <PlanningPortfolioPanel />
+      ) : activeTab === "copilot" ? (
+        <SalesCopilotPanel proposals={proposals} />
       ) : activeTab === "bigdata" ? (
         /* ABA 5: BIG DATA, ROI & CAC ANALYTICS */
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div className="surface" style={{ padding: 18, overflowX: "auto" }}>
+            <h3 style={{ marginTop: 0 }}>Coortes comerciais por mês de criação</h3>
+            <p style={{ color: "var(--text-dim)", fontSize: "0.82rem" }}>
+              Medianas: primeiro envio {cohorts?.median_days_to_first_send?.toFixed(1) ?? "—"} dias · fechamento {cohorts?.median_days_to_close?.toFixed(1) ?? "—"} dias.
+            </p>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>{["Mês", "Criadas", "Enviadas", "Ganhas", "Perdidas", "Win rate", "Dias para fechar"].map((label) => <th key={label} style={{ padding: 8, textAlign: "left" }}>{label}</th>)}</tr></thead>
+              <tbody>{cohorts?.cohorts.map((cohort) => (
+                <tr key={cohort.month} style={{ borderTop: "1px solid var(--border)" }}>
+                  <td style={{ padding: 8 }}>{cohort.month}</td><td>{cohort.created}</td><td>{cohort.sent}</td>
+                  <td>{cohort.won}</td><td>{cohort.lost}</td><td>{cohort.win_rate_percentage.toFixed(1)}%</td>
+                  <td>{cohort.average_days_to_close?.toFixed(1) ?? "—"}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
           {/* KPI Cards Big Data & Financeiro */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
             <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px" }}>
@@ -1111,6 +1149,13 @@ export function ProposalsManager() {
             setIsProposalWizardOpen(false);
             setActiveTab("proposals");
           }}
+        />
+      )}
+      {selectedProposalId && (
+        <ProposalLifecycleDrawer
+          proposalId={selectedProposalId}
+          onClose={() => setSelectedProposalId(null)}
+          onChanged={loadData}
         />
       )}
     </div>

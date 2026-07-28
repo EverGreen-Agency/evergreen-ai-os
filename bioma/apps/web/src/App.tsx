@@ -8,6 +8,7 @@ import { LoginView } from "./views/LoginView";
 import { InviteView } from "./views/InviteView";
 import { ResetPasswordView } from "./views/ResetPasswordView";
 import { PrivacyView } from "./views/PrivacyView";
+import { PublicProposalView } from "./views/PublicProposalView";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -214,6 +215,7 @@ export function App() {
         <Route path="/convite/:token" element={<InviteView />} />
         <Route path="/redefinir/:token" element={<ResetPasswordView />} />
         <Route path="/privacidade" element={<PrivacyView />} />
+        <Route path="/propostas/public/:token" element={<PublicProposalView />} />
         <Route
           path="*"
           element={
@@ -365,6 +367,7 @@ export function App() {
           <Route path="/convite/:token" element={<InviteView />} />
           <Route path="/redefinir/:token" element={<ResetPasswordView />} />
           <Route path="/privacidade" element={<PrivacyView />} />
+          <Route path="/propostas/public/:token" element={<PublicProposalView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>

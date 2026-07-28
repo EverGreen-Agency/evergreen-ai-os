@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ChevronDown, ExternalLink, GitBranch, ListTree, Pencil, Save, Sparkles } from "lucide-react";
 
-import { api, type ProjectDetail, type ProjectPlan, type ProjectPlanItem, type ProjectPlanningIntake, type WorkspaceSummary } from "../lib/api";
+import { api, type PlanningIntakeSchemaKey, type ProjectDetail, type ProjectPlan, type ProjectPlanItem, type ProjectPlanningIntake, type WorkspaceSummary } from "../lib/api";
 
 type AccessRole = WorkspaceSummary["access_role"];
 
@@ -70,6 +70,11 @@ export function ProjectPlanner({
 }) {
   const canManage = ["platform_admin", "tenant_admin", "workspace_manager", "operator"].includes(accessRole);
   const canApprove = ["platform_admin", "tenant_admin", "workspace_manager", "approver"].includes(accessRole);
+  const intakeSchemaKey: PlanningIntakeSchemaKey = project.project_type === "tech"
+    ? "tech_v1"
+    : project.project_type === "growth" || project.project_type === "social"
+      ? "growth_social_v1"
+      : "retail_v1";
   const [briefing, setBriefing] = useState("");
   const [technicalContext, setTechnicalContext] = useState("");
   const [contractId, setContractId] = useState("");
@@ -77,12 +82,16 @@ export function ProjectPlanner({
   const [intakeId, setIntakeId] = useState<string | null>(null);
   const [intakeTitle, setIntakeTitle] = useState(project.name);
   const [intakeObjective, setIntakeObjective] = useState(project.objective ?? "");
-  const [intakeAnswers, setIntakeAnswers] = useState<Record<string, unknown>>({
-    product_categories: [], upsell_cross_sell: "", operating_channels: [],
-    has_loyalty_program: false, campaign_types: "", has_customer_system: false,
-    marketing_maturity: "none", marketing_goal: "positioning_basics",
-    commercial_maturity: "unstructured", commercial_goal: "define_sales_process",
-  });
+  const [intakeAnswers, setIntakeAnswers] = useState<Record<string, unknown>>(() =>
+    intakeSchemaKey === "retail_v1"
+      ? {
+          product_categories: [], upsell_cross_sell: "", operating_channels: [],
+          has_loyalty_program: false, campaign_types: "", has_customer_system: false,
+          marketing_maturity: "none", marketing_goal: "positioning_basics",
+          commercial_maturity: "unstructured", commercial_goal: "define_sales_process",
+        }
+      : {},
+  );
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [candidateDraft, setCandidateDraft] = useState<CandidateDraft | null>(null);
   const clientProfile = useQuery({
@@ -90,8 +99,8 @@ export function ProjectPlanner({
     queryFn: () => api.clientProfile(project.workspace_id),
   });
   const intakeSchema = useQuery({
-    queryKey: ["project-planning-intake-schema", project.id],
-    queryFn: () => api.projectPlanningIntakeSchema(project.id),
+    queryKey: ["project-planning-intake-schema", project.id, intakeSchemaKey],
+    queryFn: () => api.projectPlanningIntakeSchema(project.id, intakeSchemaKey),
     enabled: canManage,
   });
   const intakes = useQuery({
@@ -101,13 +110,13 @@ export function ProjectPlanner({
   });
 
   useEffect(() => {
-    const draft = intakes.data?.find((item) => item.status === "draft");
+    const draft = intakes.data?.find((item) => item.status === "draft" && item.schema_key === intakeSchemaKey);
     if (!draft) return;
     setIntakeId(draft.id);
     setIntakeTitle(draft.title);
     setIntakeObjective(draft.objective);
     setIntakeAnswers(draft.answers);
-  }, [intakes.data]);
+  }, [intakeSchemaKey, intakes.data]);
 
   const refresh = async () => onChanged(await api.project(project.id));
   const generate = useMutation({
@@ -158,7 +167,7 @@ export function ProjectPlanner({
   });
   const saveIntake = useMutation({
     mutationFn: () => {
-      const payload = { title: intakeTitle.trim(), objective: intakeObjective.trim(), answers: intakeAnswers };
+      const payload = { schema_key: intakeSchemaKey, title: intakeTitle.trim(), objective: intakeObjective.trim(), answers: intakeAnswers };
       return intakeId
         ? api.updateProjectPlanningIntake(intakeId, payload)
         : api.createProjectPlanningIntake(project.id, payload);
@@ -172,7 +181,7 @@ export function ProjectPlanner({
     mutationFn: async () => {
       const saved = intakeId
         ? await api.updateProjectPlanningIntake(intakeId, { title: intakeTitle.trim(), objective: intakeObjective.trim(), answers: intakeAnswers })
-        : await api.createProjectPlanningIntake(project.id, { title: intakeTitle.trim(), objective: intakeObjective.trim(), answers: intakeAnswers });
+        : await api.createProjectPlanningIntake(project.id, { schema_key: intakeSchemaKey, title: intakeTitle.trim(), objective: intakeObjective.trim(), answers: intakeAnswers });
       setIntakeId(saved.id);
       return api.finalizeProjectPlanningIntake(saved.id);
     },
@@ -224,6 +233,9 @@ export function ProjectPlanner({
               <p className="panel-footnote" style={{ margin: 0 }}>O contexto é salvo no projeto e congelado ao finalizar. Ele não altera o perfil permanente do cliente.</p>
               <input value={intakeTitle} onChange={(event) => setIntakeTitle(event.target.value)} placeholder="Título do planejamento" />
               <textarea rows={3} value={intakeObjective} onChange={(event) => setIntakeObjective(event.target.value)} placeholder="Objetivo principal" />
+              <span className="status-badge">{intakeSchema.data?.label ?? intakeSchemaKey}</span>
+              {intakeSchemaKey === "retail_v1" ? (
+                <>
               <label>Produtos ou categorias (separados por vírgula)
                 <input value={(intakeAnswers.product_categories as string[] ?? []).join(", ")} onChange={(event) => setIntakeAnswers({ ...intakeAnswers, product_categories: event.target.value.split(",").map((item) => item.trim()).filter(Boolean) })} />
               </label>
@@ -269,6 +281,27 @@ export function ProjectPlanner({
                   {(intakeSchema.data?.commercial_goals_by_maturity[String(intakeAnswers.commercial_maturity)] ?? []).map((value) => <option key={value} value={value}>{GOAL_LABEL[value] ?? value}</option>)}
                 </select>
               </label>
+                </>
+              ) : (
+                <>
+                  {(intakeSchema.data?.fields ?? []).map((field) => (
+                    <label key={field.key}>{field.label}
+                      {field.type === "select" ? (
+                        <select value={String(intakeAnswers[field.key] ?? "")} onChange={(event) => setIntakeAnswers({ ...intakeAnswers, [field.key]: event.target.value })}>
+                          <option value="">Selecione</option>
+                          {(field.options ?? []).map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}
+                        </select>
+                      ) : field.type === "textarea" ? (
+                        <textarea rows={3} value={String(intakeAnswers[field.key] ?? "")} onChange={(event) => setIntakeAnswers({ ...intakeAnswers, [field.key]: event.target.value })} />
+                      ) : field.type === "multi_text" ? (
+                        <input value={((intakeAnswers[field.key] as string[] | undefined) ?? []).join(", ")} onChange={(event) => setIntakeAnswers({ ...intakeAnswers, [field.key]: event.target.value.split(",").map((item) => item.trim()).filter(Boolean) })} placeholder="Separe por vírgulas" />
+                      ) : (
+                        <input value={String(intakeAnswers[field.key] ?? "")} onChange={(event) => setIntakeAnswers({ ...intakeAnswers, [field.key]: event.target.value })} />
+                      )}
+                    </label>
+                  ))}
+                </>
+              )}
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="mini-button" type="button" disabled={saveIntake.isPending || finalizeIntake.isPending} onClick={() => saveIntake.mutate()}><Save size={14} /> Salvar rascunho</button>
                 <button className="mini-button" type="button" disabled={finalizeIntake.isPending || intakeSchema.isLoading} onClick={() => finalizeIntake.mutate()}><CheckCircle2 size={14} /> Finalizar intake</button>

@@ -1505,7 +1505,7 @@ export type ProjectPlan = {
 export type ProjectPlanningIntake = {
   id: string;
   project_id: string;
-  schema_key: "retail_v1";
+  schema_key: PlanningIntakeSchemaKey;
   schema_version: number;
   status: "draft" | "finalized";
   title: string;
@@ -1517,14 +1517,43 @@ export type ProjectPlanningIntake = {
   updated_at: string;
 };
 
+export type PlanningIntakeSchemaKey = "retail_v1" | "tech_v1" | "growth_social_v1";
+
+export type PlanningIntakeField = {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "select" | "multi_text";
+  options?: string[];
+};
+
 export type PlanningIntakeSchema = {
-  schema_key: "retail_v1";
+  schema_key: PlanningIntakeSchemaKey;
   schema_version: number;
+  label: string;
   required_fields: string[];
+  fields: PlanningIntakeField[];
   marketing_maturities: string[];
   commercial_maturities: string[];
   marketing_goals_by_maturity: Record<string, string[]>;
   commercial_goals_by_maturity: Record<string, string[]>;
+};
+
+export type PlanningPortfolioItem = {
+  project_id: string;
+  project_name: string;
+  project_type: ProjectSummary["project_type"];
+  project_status: ProjectSummary["status"];
+  workspace_id: string;
+  client_name: string;
+  intake_id: string | null;
+  intake_schema_key: PlanningIntakeSchemaKey | null;
+  intake_status: "draft" | "finalized" | null;
+  plan_id: string | null;
+  plan_title: string | null;
+  plan_version: number | null;
+  plan_status: ProjectPlan["status"] | null;
+  generation_mode: ProjectPlan["generation_mode"] | null;
+  updated_at: string;
 };
 
 export type ProjectDetail = ProjectSummary & {
@@ -1623,6 +1652,21 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   const body = await response.text();
   return body ? JSON.parse(body) as T : undefined as T;
+}
+
+async function requestBlob(path: string): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { credentials: "include" });
+  if (!response.ok) {
+    let message = "Falha ao baixar o arquivo.";
+    try {
+      const body = await response.json();
+      message = body.detail ?? message;
+    } catch {
+      // Keep the generic message for non-JSON failures.
+    }
+    throw new Error(message);
+  }
+  return response.blob();
 }
 
 async function requestText(path: string): Promise<string> {
@@ -1776,13 +1820,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  projectPlanningIntakeSchema: (projectId: string) =>
-    request<PlanningIntakeSchema>(`/projects/${projectId}/planning-intake-schema/retail_v1`),
+  projectPlanningIntakeSchema: (projectId: string, schemaKey: PlanningIntakeSchemaKey = "retail_v1") =>
+    request<PlanningIntakeSchema>(`/projects/${projectId}/planning-intake-schema/${schemaKey}`),
+  planningPortfolio: () => request<PlanningPortfolioItem[]>("/backoffice/planning-portfolio"),
   projectPlanningIntakes: (projectId: string) =>
     request<ProjectPlanningIntake[]>(`/projects/${projectId}/planning-intakes`),
   createProjectPlanningIntake: (
     projectId: string,
-    payload: { schema_key?: "retail_v1"; title: string; objective: string; answers: Record<string, unknown> },
+    payload: { schema_key?: PlanningIntakeSchemaKey; title: string; objective: string; answers: Record<string, unknown> },
   ) => request<ProjectPlanningIntake>(`/projects/${projectId}/planning-intakes`, {
     method: "POST", body: JSON.stringify(payload),
   }),
@@ -2328,9 +2373,84 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   listProposals: () => request<ProposalSummary[]>("/backoffice/proposals"),
+  proposalDetail: (proposalId: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}`),
+  proposalCohorts: () => request<ProposalCohortAnalytics>("/backoffice/proposals/cohorts"),
+  saveProposalContent: (proposalId: string, contentMarkdown: string, claims: ProposalClaim[]) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/content`, {
+      method: "PUT",
+      body: JSON.stringify({ content_markdown: contentMarkdown, claims }),
+    }),
+  reviewProposalClaims: (proposalId: string, status: "approved" | "rejected", note?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/claims-review`, {
+      method: "POST",
+      body: JSON.stringify({ status, note: note || null }),
+    }),
+  transitionProposal: (proposalId: string, status: ProposalSummary["status"], reason?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/transition`, {
+      method: "POST",
+      body: JSON.stringify({ status, reason: reason || null }),
+    }),
+  createProposalRevision: (proposalId: string, reason?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/revisions`, {
+      method: "POST",
+      body: JSON.stringify({ reason: reason || null }),
+    }),
+  createProposalDelivery: (proposalId: string, payload: ProposalDeliveryPayload) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/deliveries`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  convertProposal: (proposalId: string, payload: ProposalConversionPayload) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/convert`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  archiveProposal: (proposalId: string, reason?: string) =>
+    request<void>(`/backoffice/proposals/${proposalId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirm: true, reason: reason || null }),
+    }),
+  downloadProposalPdf: (proposalId: string) =>
+    requestBlob(`/backoffice/proposals/${proposalId}/pdf`),
+  salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
+  salesCopilotMetrics: () => request<SalesCopilotMetrics>("/backoffice/sales-copilot/metrics"),
+  salesCopilotRealtimeStatus: () =>
+    request<SalesCopilotRealtimeStatus>("/backoffice/sales-copilot/realtime-adapter"),
+  createSalesCopilotSession: (payload: SalesCopilotSessionPayload) =>
+    request<SalesCopilotSession>("/backoffice/sales-copilot", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  prepareSalesCopilotSession: (sessionId: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/prepare`, { method: "POST" }),
+  addSalesCopilotEvent: (
+    sessionId: string,
+    payload: { event_type: SalesCopilotEvent["event_type"]; content: string; recommendation?: string | null; source_refs?: Record<string, unknown>[] },
+  ) => request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/events`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  completeSalesCopilotSession: (sessionId: string, durationSeconds: number) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/complete`, {
+      method: "POST",
+      body: JSON.stringify({ duration_seconds: durationSeconds }),
+    }),
   updateProposal: (proposalId: string, payload: ProposalUpdatePayload) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   getPublicProposal: (token: string) => request<PublicProposalResponse>(`/proposals/public/${token}`),
+  getPublicProposalDetail: (token: string) =>
+    request<PublicProposalLifecycleRecord>(`/proposals/public/${token}/detail`),
+  acceptPublicProposal: (token: string, signerName: string, signerEmail: string) =>
+    request<PublicProposalLifecycleRecord>(`/proposals/public/${token}/accept`, {
+      method: "POST",
+      body: JSON.stringify({
+        accepted: true,
+        signer_name: signerName,
+        signer_email: signerEmail,
+        confirmation: "ACEITO_OS_TERMOS_DA_PROPOSTA",
+      }),
+    }),
   listFreelancerProfiles: () => request<FreelancerProfile[]>("/backoffice/proposals/profiles"),
   syncFreelancerProfile: (payload: { profile_url: string; platform_key?: string }) =>
     request<FreelancerProfile>("/backoffice/proposals/profiles/sync", { method: "POST", body: JSON.stringify(payload) }),
@@ -2410,6 +2530,179 @@ export type ProposalSummary = {
   updated_at: string;
 };
 
+export type ProposalClaim = {
+  text: string;
+  evidence_ref: string | null;
+  approved: boolean;
+};
+
+export type ProposalLifecycleRecord = ProposalSummary & {
+  content_markdown: string;
+  content_sections: Record<string, unknown>[];
+  claims: ProposalClaim[];
+  claims_review_status: "pending" | "approved" | "rejected";
+  archived_at: string | null;
+  viewed_at: string | null;
+  approved_at: string | null;
+  sent_at: string | null;
+  negotiating_at: string | null;
+  won_at: string | null;
+  lost_at: string | null;
+  acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+  accepted_at: string | null;
+  accepted_by_name: string | null;
+  accepted_by_email: string | null;
+};
+
+export type PublicProposalLifecycleRecord = {
+  title: string | null;
+  client_name: string;
+  contractor_name: string | null;
+  version: number;
+  status: ProposalSummary["status"];
+  content_markdown: string;
+  claims_review_status: "pending" | "approved" | "rejected";
+  acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+  accepted_at: string | null;
+  accepted_by_name: string | null;
+};
+
+export type ProposalEvent = {
+  id: string;
+  proposal_id: string;
+  event_type: string;
+  actor_user_id: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type ProposalDelivery = {
+  id: string;
+  proposal_id: string;
+  channel: "share_link" | "manual_email" | "signature_adapter";
+  recipient_name: string | null;
+  recipient_email: string | null;
+  provider: string | null;
+  external_id: string | null;
+  status: "prepared" | "sent" | "delivered" | "accepted" | "rejected" | "failed";
+  metadata: Record<string, unknown>;
+  sent_at: string | null;
+  delivered_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProposalConversion = {
+  id: string;
+  proposal_id: string;
+  idempotency_key: string;
+  project_id: string;
+  contract_id: string;
+  plan_id: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type ProposalDetail = {
+  proposal: ProposalLifecycleRecord;
+  revisions: ProposalLifecycleRecord[];
+  events: ProposalEvent[];
+  deliveries: ProposalDelivery[];
+  conversion: ProposalConversion | null;
+};
+
+export type ProposalDeliveryPayload = {
+  channel: ProposalDelivery["channel"];
+  recipient_name?: string | null;
+  recipient_email?: string | null;
+  provider?: string | null;
+  external_id?: string | null;
+  confirm_external_send?: boolean;
+};
+
+export type ProposalConversionPayload = {
+  confirm: boolean;
+  idempotency_key: string;
+  project_name?: string | null;
+  project_type: "tech" | "growth" | "social" | "general";
+};
+
+export type ProposalCohortAnalytics = {
+  cohorts: Array<{
+    month: string;
+    created: number;
+    sent: number;
+    won: number;
+    lost: number;
+    win_rate_percentage: number;
+    average_days_to_close: number | null;
+  }>;
+  median_days_to_first_send: number | null;
+  median_days_to_close: number | null;
+  generated_at: string;
+};
+
+export type SalesCopilotEvent = {
+  id: string;
+  session_id: string;
+  event_type: "transcript_chunk" | "objection" | "insight" | "note" | "action_item";
+  content: string;
+  recommendation: string | null;
+  source_refs: Record<string, unknown>[];
+  sequence: number;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type SalesCopilotSession = {
+  id: string;
+  workspace_id: string | null;
+  proposal_id: string | null;
+  title: string;
+  session_type: "sales_call" | "discovery" | "proposal_review" | "follow_up";
+  language: string;
+  status: "draft" | "prepared" | "active" | "completed" | "cancelled";
+  realtime_status: "not_configured" | "adapter_ready" | "live" | "failed";
+  objective: string | null;
+  participant_context: string | null;
+  knowledge_snapshot: Record<string, unknown>;
+  preparation_brief: Record<string, unknown>;
+  transcript: string;
+  summary: string | null;
+  duration_seconds: number;
+  created_by: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  events: SalesCopilotEvent[];
+};
+
+export type SalesCopilotSessionPayload = {
+  workspace_id?: string | null;
+  proposal_id?: string | null;
+  title: string;
+  session_type: SalesCopilotSession["session_type"];
+  language?: string;
+  objective?: string | null;
+  participant_context?: string | null;
+};
+
+export type SalesCopilotMetrics = {
+  total_sessions: number;
+  total_duration_seconds: number;
+  analyses_completed: number;
+  sessions_by_status: Record<string, number>;
+};
+
+export type SalesCopilotRealtimeStatus = {
+  available: boolean;
+  status: "not_configured" | "adapter_ready";
+  message: string;
+  supported_input: string[];
+};
+
 export type ProposalCatalogOption = { key: string; label: string };
 
 export type ProposalCatalog = {
@@ -2446,7 +2739,7 @@ export type ProposalUpdatePayload = Partial<Pick<
   ProposalSummary,
   "title" | "client_name" | "target_niche" | "executive_summary" |
   "scope_offer" | "scope_conversion" | "scope_demand" | "scope_items" |
-  "pricing_cents" | "delivery_days" | "status" | "contractor_name" |
+  "pricing_cents" | "delivery_days" | "contractor_name" |
   "team_members" | "special_requirements" | "estimated_budget" |
   "payment_terms" | "urgency" | "decision_maker" | "problem_summary" |
   "additional_context"
