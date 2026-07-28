@@ -49,7 +49,7 @@ import {
 } from "../../../lib/api";
 
 export function ProposalsManager() {
-  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "planning" | "copilot" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
+  const [activeTab, setActiveTab] = useState<"radar" | "proposals" | "planning" | "profile_audit" | "skills_gaps" | "bigdata">("radar");
   const [opportunities, setOpportunities] = useState<OpportunitySummary[]>([]);
   const [proposals, setProposals] = useState<ProposalSummary[]>([]);
   const [profiles, setProfiles] = useState<FreelancerProfile[]>([]);
@@ -375,23 +375,6 @@ export function ProposalsManager() {
           <ClipboardList size={18} /> Planejamentos
         </button>
         <button
-          onClick={() => setActiveTab("copilot")}
-          style={{
-            background: "none",
-            border: "none",
-            borderBottom: activeTab === "copilot" ? "2px solid var(--brand-accent)" : "2px solid transparent",
-            color: activeTab === "copilot" ? "var(--brand-accent)" : "var(--text-dim)",
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <Mic2 size={18} /> Copiloto de vendas
-        </button>
-        <button
           onClick={() => setActiveTab("profile_audit")}
           style={{
             background: "none",
@@ -645,8 +628,6 @@ export function ProposalsManager() {
         </div>
       ) : activeTab === "planning" ? (
         <PlanningPortfolioPanel />
-      ) : activeTab === "copilot" ? (
-        <SalesCopilotPanel proposals={proposals} />
       ) : activeTab === "bigdata" ? (
         /* ABA 5: BIG DATA, ROI & CAC ANALYTICS */
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

@@ -60,6 +60,9 @@ const KitsManagerView = lazy(() =>
 const ProposalsManagerView = lazy(() =>
   import("./views/admin/proposals/ProposalsManager").then((module) => ({ default: module.ProposalsManager })),
 );
+const SalesCopilotView = lazy(() =>
+  import("./views/admin/proposals/SalesCopilotView").then((module) => ({ default: module.SalesCopilotView })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -365,6 +368,11 @@ export function App() {
           <Route path="/eg-propostas" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <ProposalsManagerView />
+            </Suspense>,
+          )} />
+          <Route path="/sales_copilot" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <SalesCopilotView />
             </Suspense>,
           )} />
 
