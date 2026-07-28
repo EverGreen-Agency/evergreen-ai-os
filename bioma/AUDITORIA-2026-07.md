@@ -17,6 +17,8 @@ O primeiro módulo de referência da ferramenta Spalla foi absorvido como domín
 
 O contexto de cliente foi absorvido como domínio separado de onboarding, em vez de reutilizar indevidamente a pesquisa de mercado. `workspace_client_profiles` guarda um perfil por workspace de cliente, com dados básicos, contato, negócio, marketing e recursos/preferências. A completude é calculada a partir de campos reais; leitura requer `view`, escrita requer `manage_work` e é auditada. O planejador recebe esse contexto apenas ao criar o seu rascunho aprovado internamente. Nenhum cliente, perfil ou dado demonstrativo foi criado nesta frente.
 
+No fluxo Tech, `project_documents` agora pode apontar para o contrato correspondente e guardar um resumo/trecho confirmado para planejamento. O serviço recusa contratos de outro projeto e filtra o snapshot pelo contrato selecionado. Isso permite transformar proposta, especificação e escopo em rascunho de fases/entregas sem alegar que uma URL privada foi lida automaticamente. Nenhuma migration foi aplicada e nenhum projeto ou documento local foi criado nesta frente.
+
 O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta o modo RSC; o frontend do Bioma é uma SPA Vite e não usa RSC. O npm só oferece correção automática forçada com mudança de versão incompatível para a faixa atual, portanto não foi aplicado upgrade automático nesta frente. O alerta deve permanecer visível até uma atualização compatível e testada do roteador.
 
 ## Adendo de remediação — 2026-07-23
