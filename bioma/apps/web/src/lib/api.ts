@@ -2414,6 +2414,8 @@ export const api = {
   downloadProposalPdf: (proposalId: string) =>
     requestBlob(`/backoffice/proposals/${proposalId}/pdf`),
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
+  salesCopilotSession: (sessionId: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
   salesCopilotMetrics: () => request<SalesCopilotMetrics>("/backoffice/sales-copilot/metrics"),
   salesCopilotRealtimeStatus: () =>
     request<SalesCopilotRealtimeStatus>("/backoffice/sales-copilot/realtime-adapter"),
@@ -2435,6 +2437,41 @@ export const api = {
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/complete`, {
       method: "POST",
       body: JSON.stringify({ duration_seconds: durationSeconds }),
+    }),
+  configureSalesCopilotMeeting: (sessionId: string, payload: SalesCopilotMeetingPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/meeting`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  issueSalesCopilotIngestionCredential: (sessionId: string) =>
+    request<SalesCopilotIngestionCredential>(
+      `/backoffice/sales-copilot/${sessionId}/ingestion-credential`,
+      { method: "POST" },
+    ),
+  addSalesCopilotParticipant: (sessionId: string, payload: SalesCopilotParticipantPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/participants`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  ingestSalesCopilotSegments: (sessionId: string, payload: SalesCopilotTranscriptBatchPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/transcript-segments`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  analyzeSalesCopilotLive: (sessionId: string, focus?: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/analyze-live`, {
+      method: "POST",
+      body: JSON.stringify({ window_segments: 12, focus: focus || null }),
+    }),
+  addSalesCopilotAction: (sessionId: string, payload: SalesCopilotActionPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/actions`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  materializeSalesCopilotAction: (actionId: string, idempotencyKey: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/actions/${actionId}/materialize`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true, idempotency_key: idempotencyKey }),
     }),
   updateProposal: (proposalId: string, payload: ProposalUpdatePayload) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
@@ -2655,6 +2692,74 @@ export type SalesCopilotEvent = {
   created_at: string;
 };
 
+export type SalesCopilotParticipant = {
+  id: string;
+  session_id: string;
+  display_name: string;
+  participant_group: "eg_team" | "client" | "partner" | "unknown";
+  organization_name: string | null;
+  job_title: string | null;
+  seniority: "individual" | "manager" | "director" | "c_level" | "owner" | "unknown";
+  decision_role: "champion" | "decision_maker" | "influencer" | "technical" | "user" | "unknown";
+  email: string | null;
+  external_speaker_id: string | null;
+  context_notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SalesCopilotTranscriptSegment = {
+  id: string;
+  session_id: string;
+  participant_id: string | null;
+  idempotency_key: string;
+  source: string;
+  external_speaker_id: string | null;
+  speaker_label: string | null;
+  start_ms: number;
+  end_ms: number | null;
+  content: string;
+  confidence: number | null;
+  is_final: boolean;
+  sequence: number;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type SalesCopilotLiveSuggestion = {
+  id: string;
+  session_id: string;
+  suggestion_type: "question" | "objection_response" | "risk" | "opportunity" | "next_step";
+  title: string;
+  content: string;
+  rationale: string | null;
+  confidence: number | null;
+  source_refs: Record<string, unknown>[];
+  generation_mode: string;
+  status: "active" | "used" | "dismissed";
+  created_at: string;
+};
+
+export type SalesCopilotAction = {
+  id: string;
+  session_id: string;
+  action_type: "follow_up_task" | "proposal_revision" | "project_update";
+  title: string;
+  detail: string | null;
+  owner_hint: string | null;
+  due_at: string | null;
+  source_refs: Record<string, unknown>[];
+  idempotency_key: string | null;
+  status: "proposed" | "approved" | "materialized" | "dismissed" | "failed";
+  materialized_ref: Record<string, unknown>;
+  created_by: string | null;
+  approved_by: string | null;
+  materialized_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SalesCopilotSession = {
   id: string;
   workspace_id: string | null;
@@ -2666,6 +2771,13 @@ export type SalesCopilotSession = {
   realtime_status: "not_configured" | "adapter_ready" | "live" | "failed";
   objective: string | null;
   participant_context: string | null;
+  meeting_provider: "manual" | "google_meet" | "microsoft_teams";
+  meeting_url: string | null;
+  external_meeting_id: string | null;
+  consent_status: "pending" | "granted" | "revoked";
+  consent_recorded_at: string | null;
+  retention_until: string | null;
+  live_context: Record<string, unknown>;
   knowledge_snapshot: Record<string, unknown>;
   preparation_brief: Record<string, unknown>;
   transcript: string;
@@ -2677,6 +2789,10 @@ export type SalesCopilotSession = {
   created_at: string;
   updated_at: string;
   events: SalesCopilotEvent[];
+  participants: SalesCopilotParticipant[];
+  segments: SalesCopilotTranscriptSegment[];
+  suggestions: SalesCopilotLiveSuggestion[];
+  actions: SalesCopilotAction[];
 };
 
 export type SalesCopilotSessionPayload = {
@@ -2701,6 +2817,61 @@ export type SalesCopilotRealtimeStatus = {
   status: "not_configured" | "adapter_ready";
   message: string;
   supported_input: string[];
+  supported_meeting_providers: Array<"manual" | "google_meet" | "microsoft_teams">;
+  transport: "polling" | "sse" | "websocket";
+};
+
+export type SalesCopilotMeetingPayload = {
+  meeting_provider: SalesCopilotSession["meeting_provider"];
+  meeting_url?: string | null;
+  external_meeting_id?: string | null;
+  consent_granted: boolean;
+  retention_days?: number;
+};
+
+export type SalesCopilotIngestionCredential = {
+  session_id: string;
+  ingest_token: string;
+  endpoint_path: string;
+  expires_at: string | null;
+};
+
+export type SalesCopilotParticipantPayload = {
+  display_name: string;
+  participant_group: SalesCopilotParticipant["participant_group"];
+  organization_name?: string | null;
+  job_title?: string | null;
+  seniority?: SalesCopilotParticipant["seniority"];
+  decision_role?: SalesCopilotParticipant["decision_role"];
+  email?: string | null;
+  external_speaker_id?: string | null;
+  context_notes?: string | null;
+};
+
+export type SalesCopilotTranscriptBatchPayload = {
+  segments: Array<{
+    idempotency_key: string;
+    participant_id?: string | null;
+    source: "manual" | "upload" | "google_meet" | "microsoft_teams" | "provider_webhook";
+    external_speaker_id?: string | null;
+    speaker_label?: string | null;
+    start_ms?: number;
+    end_ms?: number | null;
+    content: string;
+    confidence?: number | null;
+    is_final?: boolean;
+  }>;
+  analyze_after_ingest?: boolean;
+};
+
+export type SalesCopilotActionPayload = {
+  action_type: SalesCopilotAction["action_type"];
+  title: string;
+  detail?: string | null;
+  owner_hint?: string | null;
+  due_at?: string | null;
+  source_refs?: Record<string, unknown>[];
+  idempotency_key?: string | null;
 };
 
 export type ProposalCatalogOption = { key: string; label: string };
