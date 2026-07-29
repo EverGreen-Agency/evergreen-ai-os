@@ -6,6 +6,7 @@ from bioma_api.routers import (
     admin,
     ai_content,
     ai_operations,
+    ai_routing,
     analytics,
     auth,
     benchmark,
@@ -81,6 +82,7 @@ app.include_router(teams.router)
 app.include_router(vault.router)
 app.include_router(ai_content.router)
 app.include_router(ai_operations.router)
+app.include_router(ai_routing.router)
 app.include_router(client_hub.workspace_router)
 app.include_router(invites.admin_router)
 app.include_router(invites.workspace_admin_router)

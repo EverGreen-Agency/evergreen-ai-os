@@ -4,6 +4,9 @@ from typing import Any
 from bioma_worker.config import get_settings
 from bioma_worker.db import connect
 from bioma_worker.ai_content import generate_content
+from bioma_worker.ai_providers import execute_candidate
+from bioma_worker.ai_routing import rank_candidates
+from bioma_worker.quota_collectors import collect_codex_rate_limits
 from bioma_worker import storage
 
 
@@ -29,6 +32,10 @@ def run_next_job() -> dict[str, Any] | None:
         return run_next_ai_content()
     if job_type == "performance":
         return run_next_sync()
+    if job_type == "ai_workflow":
+        return run_next_ai_workflow()
+    if job_type == "ai_quota":
+        return run_next_ai_quota_collection()
     return None
 
 
@@ -54,6 +61,96 @@ def run_next_ai_content() -> dict[str, Any] | None:
         with connect() as conn:
             storage.fail_ai_content(conn, request, message)
         return {"job": "ai_content", "id": str(request["id"]), "status": "error", "error": message}
+
+
+def run_next_ai_workflow() -> dict[str, Any] | None:
+    with connect() as conn:
+        job = storage.claim_next_ai_workflow(conn)
+    if not job:
+        return None
+    with connect() as conn:
+        candidates = rank_candidates(job, storage.list_ai_route_candidates(conn, job))
+    eligible = [candidate for candidate in candidates if candidate["eligible"]]
+    if not eligible:
+        message = "Nenhum provider/modelo elegível. Configure conta, catálogo, política e cota no control plane."
+        with connect() as conn:
+            storage.fail_ai_workflow_step(conn, job, message)
+        return {
+            "job": "ai_workflow",
+            "id": str(job["run_id"]),
+            "step": job["step_key"],
+            "status": "failed",
+            "error": message,
+        }
+
+    failures: list[str] = []
+    for candidate in eligible:
+        with connect() as conn:
+            attempt = storage.start_ai_execution_attempt(conn, job, candidate)
+        try:
+            result = execute_candidate(candidate, job, get_settings())
+            with connect() as conn:
+                storage.complete_ai_workflow_step(conn, job, candidate, attempt["id"], result)
+            return {
+                "job": "ai_workflow",
+                "id": str(job["run_id"]),
+                "step": job["step_key"],
+                "status": "waiting_approval" if job["interactive"] else "completed",
+                "provider": candidate["provider"],
+                "channel": candidate["channel"],
+                "model": candidate["model_id"],
+                "attempt": attempt["attempt_number"],
+            }
+        except Exception as exc:  # noqa: BLE001 - fallback must persist each provider failure
+            message = _safe_error(exc)
+            failures.append(f"{candidate['channel']}/{candidate['model_id']}: {message}")
+            with connect() as conn:
+                storage.fail_ai_execution_attempt(conn, attempt["id"], message)
+            if candidate.get("allow_fallback") is False:
+                break
+
+    final_message = "Todos os candidatos elegíveis falharam: " + " | ".join(failures)
+    with connect() as conn:
+        storage.fail_ai_workflow_step(conn, job, final_message)
+    return {
+        "job": "ai_workflow",
+        "id": str(job["run_id"]),
+        "step": job["step_key"],
+        "status": "failed",
+        "error": final_message[:2000],
+    }
+
+
+def run_next_ai_quota_collection() -> dict[str, Any] | None:
+    with connect() as conn:
+        job = storage.claim_next_ai_quota_collection(conn)
+    if not job:
+        return None
+    try:
+        if job["collector"] != "codex_app_server":
+            raise RuntimeError(f"Coletor não suportado: {job['collector']}")
+        binary = (job.get("settings") or {}).get("binary_path") or get_settings().codex_cli_path
+        buckets = collect_codex_rate_limits(binary)
+        with connect() as conn:
+            storage.complete_ai_quota_collection(conn, job, buckets)
+        return {
+            "job": "ai_quota",
+            "id": str(job["id"]),
+            "account_id": str(job["account_id"]),
+            "status": "completed",
+            "buckets_recorded": len(buckets),
+        }
+    except Exception as exc:  # noqa: BLE001 - probe failure must be visible in control plane
+        message = _safe_error(exc)
+        with connect() as conn:
+            storage.fail_ai_quota_collection(conn, job, message)
+        return {
+            "job": "ai_quota",
+            "id": str(job["id"]),
+            "account_id": str(job["account_id"]),
+            "status": "failed",
+            "error": message,
+        }
 
 
 def run_next_sync() -> dict[str, Any] | None:

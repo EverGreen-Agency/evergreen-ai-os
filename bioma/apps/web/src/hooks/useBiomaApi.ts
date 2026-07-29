@@ -724,7 +724,7 @@ export function useInstallAiWorkflowTemplate() {
 }
 
 export function useAiWorkflowRuns() {
-  return useQuery({ queryKey: ["ai-workflow-runs"], queryFn: api.aiWorkflowRuns });
+  return useQuery({ queryKey: ["ai-workflow-runs"], queryFn: api.aiWorkflowRuns, refetchInterval: 4000 });
 }
 
 export function useCreateAiWorkflowRun() {
@@ -741,6 +741,49 @@ export function useApproveAiWorkflowRun() {
     mutationFn: (runId: string) => api.approveAiWorkflowRun(runId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-workflow-runs"] }),
   });
+}
+
+export function useAiRoutingControlPlane() {
+  return useQuery({
+    queryKey: ["ai-routing-control-plane"],
+    queryFn: api.aiRoutingControlPlane,
+    refetchInterval: 10000,
+  });
+}
+
+function useControlPlaneMutation<T>(mutationFn: (payload: T) => Promise<Awaited<ReturnType<typeof api.aiRoutingControlPlane>>>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (data) => queryClient.setQueryData(["ai-routing-control-plane"], data),
+  });
+}
+
+export function useCreateAiProviderAccount() {
+  return useControlPlaneMutation<Parameters<typeof api.createAiProviderAccount>[0]>(api.createAiProviderAccount);
+}
+
+export function useBootstrapAiModels() {
+  return useControlPlaneMutation<string>(api.bootstrapAiModels);
+}
+
+export function useRecordAiQuotaBucket() {
+  return useControlPlaneMutation<{
+    accountId: string;
+    payload: Parameters<typeof api.recordAiQuotaBucket>[1];
+  }>(({ accountId, payload }) => api.recordAiQuotaBucket(accountId, payload));
+}
+
+export function useCollectAiQuota() {
+  return useControlPlaneMutation<string>(api.collectAiQuota);
+}
+
+export function useBootstrapAiRoutingPolicies() {
+  return useControlPlaneMutation<void>(() => api.bootstrapAiRoutingPolicies());
+}
+
+export function usePreviewAiRoute() {
+  return useMutation({ mutationFn: api.previewAiRoute });
 }
 
 // Task Management Hooks

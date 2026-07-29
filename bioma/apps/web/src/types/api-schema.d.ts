@@ -345,6 +345,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/ai-operations/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Account */
+        post: operations["create_account_backoffice_ai_operations_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Account */
+        patch: operations["update_account_backoffice_ai_operations_accounts__account_id__patch"];
+        trace?: never;
+    };
+    "/backoffice/ai-operations/accounts/{account_id}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Upsert Model */
+        put: operations["upsert_model_backoffice_ai_operations_accounts__account_id__models_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/accounts/{account_id}/models/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bootstrap Models */
+        post: operations["bootstrap_models_backoffice_ai_operations_accounts__account_id__models_bootstrap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/accounts/{account_id}/quota-buckets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Quota */
+        post: operations["record_quota_backoffice_ai_operations_accounts__account_id__quota_buckets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/accounts/{account_id}/quota-collection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Collect Quota */
+        post: operations["collect_quota_backoffice_ai_operations_accounts__account_id__quota_collection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/control-plane": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Control Plane */
+        get: operations["get_control_plane_backoffice_ai_operations_control_plane_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/ai-operations/finops": {
         parameters: {
             query?: never;
@@ -356,6 +475,57 @@ export interface paths {
         get: operations["get_finops_backoffice_ai_operations_finops_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/route-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Route */
+        post: operations["preview_route_backoffice_ai_operations_route_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/routing-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Upsert Policy */
+        put: operations["upsert_policy_backoffice_ai_operations_routing_policies_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/ai-operations/routing-policies/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bootstrap Policies */
+        post: operations["bootstrap_policies_backoffice_ai_operations_routing_policies_bootstrap_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4648,6 +4818,20 @@ export interface components {
             /** Used Units */
             used_units?: string | null;
         };
+        /** AiRoutingControlPlane */
+        AiRoutingControlPlane: {
+            /** Accounts */
+            accounts: components["schemas"]["ProviderAccountSummary"][];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Policies */
+            policies: components["schemas"]["RoutingPolicySummary"][];
+            /** Quota Collection Jobs */
+            quota_collection_jobs?: components["schemas"]["QuotaCollectionJobSummary"][];
+        };
         /** AiSubscriptionCreate */
         AiSubscriptionCreate: {
             /**
@@ -7275,6 +7459,108 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** ModelCatalogSummary */
+        ModelCatalogSummary: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Capabilities */
+            capabilities: string[];
+            /**
+             * Capability Tier
+             * @enum {string}
+             */
+            capability_tier: "economy" | "balanced" | "frontier" | "specialist";
+            /** Context Window */
+            context_window?: number | null;
+            /** Cost Score */
+            cost_score: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Discovered At */
+            discovered_at?: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Family */
+            family?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Latency Score */
+            latency_score: number;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Model Id */
+            model_id: string;
+            /** Priority */
+            priority: number;
+            /** Quality Score */
+            quality_score: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ModelCatalogUpsert */
+        ModelCatalogUpsert: {
+            /** Capabilities */
+            capabilities?: string[];
+            /**
+             * Capability Tier
+             * @default balanced
+             * @enum {string}
+             */
+            capability_tier: "economy" | "balanced" | "frontier" | "specialist";
+            /** Context Window */
+            context_window?: number | null;
+            /**
+             * Cost Score
+             * @default 50
+             */
+            cost_score: number;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Family */
+            family?: string | null;
+            /**
+             * Latency Score
+             * @default 50
+             */
+            latency_score: number;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Model Id */
+            model_id: string;
+            /**
+             * Priority
+             * @default 100
+             */
+            priority: number;
+            /**
+             * Quality Score
+             * @default 50
+             */
+            quality_score: number;
+        };
         /** OnboardingMilestoneEntry */
         OnboardingMilestoneEntry: {
             /** Completed At */
@@ -9406,6 +9692,134 @@ export interface components {
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
         };
+        /** ProviderAccountCreate */
+        ProviderAccountCreate: {
+            /**
+             * Auth Mode
+             * @enum {string}
+             */
+            auth_mode: "chatgpt" | "claude_subscription" | "google_subscription" | "api_key" | "vertex_adc" | "service_account";
+            /** Auth Ref */
+            auth_ref?: string | null;
+            /** Capabilities */
+            capabilities?: string[];
+            /** Channel */
+            channel: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Execution Mode
+             * @enum {string}
+             */
+            execution_mode: "app_server" | "local_cli" | "sdk" | "api" | "manual_handoff";
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "openai" | "anthropic" | "google";
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "degraded" | "unavailable" | "paused";
+            /** Subscription Id */
+            subscription_id?: string | null;
+        };
+        /** ProviderAccountSummary */
+        ProviderAccountSummary: {
+            /**
+             * Auth Mode
+             * @enum {string}
+             */
+            auth_mode: "chatgpt" | "claude_subscription" | "google_subscription" | "api_key" | "vertex_adc" | "service_account";
+            /** Auth Ref */
+            auth_ref?: string | null;
+            /** Capabilities */
+            capabilities: string[];
+            /** Channel */
+            channel: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Execution Mode
+             * @enum {string}
+             */
+            execution_mode: "app_server" | "local_cli" | "sdk" | "api" | "manual_handoff";
+            /** Health Detail */
+            health_detail?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Default */
+            is_default: boolean;
+            /** Last Probe At */
+            last_probe_at?: string | null;
+            /** Models */
+            models: components["schemas"]["ModelCatalogSummary"][];
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "openai" | "anthropic" | "google";
+            /** Quota Buckets */
+            quota_buckets: components["schemas"]["QuotaBucketSummary"][];
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "degraded" | "unavailable" | "paused";
+            /** Subscription Id */
+            subscription_id?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ProviderAccountUpdate */
+        ProviderAccountUpdate: {
+            /** Auth Mode */
+            auth_mode?: ("chatgpt" | "claude_subscription" | "google_subscription" | "api_key" | "vertex_adc" | "service_account") | null;
+            /** Auth Ref */
+            auth_ref?: string | null;
+            /** Capabilities */
+            capabilities?: string[] | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Execution Mode */
+            execution_mode?: ("app_server" | "local_cli" | "sdk" | "api" | "manual_handoff") | null;
+            /** Is Default */
+            is_default?: boolean | null;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status?: ("active" | "degraded" | "unavailable" | "paused") | null;
+            /** Subscription Id */
+            subscription_id?: string | null;
+        };
         /** ProviderTokenRequest */
         ProviderTokenRequest: {
             /** Token */
@@ -9470,6 +9884,140 @@ export interface components {
             scope_offer?: string | null;
             /** Target Niche */
             target_niche?: string | null;
+        };
+        /** QuotaBucketCreate */
+        QuotaBucketCreate: {
+            /** Bucket Key */
+            bucket_key: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "authoritative" | "measured" | "manual" | "unavailable";
+            /** Measured At */
+            measured_at?: string | null;
+            /** Model Id */
+            model_id?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Raw Metadata */
+            raw_metadata?: {
+                [key: string]: unknown;
+            };
+            /** Remaining Percent */
+            remaining_percent?: number | string | null;
+            /** Resets At */
+            resets_at?: string | null;
+            /**
+             * Scope
+             * @default account
+             * @enum {string}
+             */
+            scope: "account" | "workspace" | "model" | "model_family" | "credits";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "provider_api" | "provider_cli" | "provider_ui" | "bioma_metered" | "configured" | "unavailable";
+            /** Total Units */
+            total_units?: number | string | null;
+            /**
+             * Unit
+             * @default percent
+             */
+            unit: string;
+            /** Used Percent */
+            used_percent?: number | string | null;
+            /** Used Units */
+            used_units?: number | string | null;
+            /** Window Duration Minutes */
+            window_duration_minutes?: number | null;
+        };
+        /** QuotaBucketSummary */
+        QuotaBucketSummary: {
+            /** Bucket Key */
+            bucket_key: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "authoritative" | "measured" | "manual" | "unavailable";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Measured At
+             * Format: date-time
+             */
+            measured_at: string;
+            /** Model Id */
+            model_id?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Raw Metadata */
+            raw_metadata: {
+                [key: string]: unknown;
+            };
+            /** Remaining Percent */
+            remaining_percent?: string | null;
+            /** Resets At */
+            resets_at?: string | null;
+            /** Scope */
+            scope: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "provider_api" | "provider_cli" | "provider_ui" | "bioma_metered" | "configured" | "unavailable";
+            /** Total Units */
+            total_units?: string | null;
+            /** Unit */
+            unit: string;
+            /** Used Percent */
+            used_percent?: string | null;
+            /** Used Units */
+            used_units?: string | null;
+            /** Window Duration Minutes */
+            window_duration_minutes?: number | null;
+        };
+        /** QuotaCollectionJobSummary */
+        QuotaCollectionJobSummary: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Attempts */
+            attempts: number;
+            /** Collector */
+            collector: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Message */
+            error_message?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed";
         };
         /** RealtimeAdapterStatus */
         RealtimeAdapterStatus: {
@@ -9600,6 +10148,192 @@ export interface components {
          * @enum {string}
          */
         Role: "eg_admin" | "client_user";
+        /** RouteCandidate */
+        RouteCandidate: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Channel */
+            channel: string;
+            /** Display Name */
+            display_name: string;
+            /** Eligible */
+            eligible: boolean;
+            /**
+             * Model Catalog Id
+             * Format: uuid
+             */
+            model_catalog_id: string;
+            /** Model Id */
+            model_id: string;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "openai" | "anthropic" | "google";
+            /** Quota Headroom */
+            quota_headroom?: string | null;
+            /** Reasons */
+            reasons: string[];
+            /** Score */
+            score: string;
+        };
+        /** RoutePreview */
+        RoutePreview: {
+            /** Candidates */
+            candidates: components["schemas"]["RouteCandidate"][];
+            /** Policy Id */
+            policy_id?: string | null;
+            selected?: components["schemas"]["RouteCandidate"] | null;
+            /** Task Kind */
+            task_kind: string;
+        };
+        /** RoutePreviewRequest */
+        RoutePreviewRequest: {
+            /** Capability */
+            capability?: string | null;
+            /** Task Kind */
+            task_kind: string;
+        };
+        /** RoutingPolicySummary */
+        RoutingPolicySummary: {
+            /**
+             * Allow Fallback
+             * @default true
+             */
+            allow_fallback: boolean;
+            /** Allowed Channels */
+            allowed_channels?: string[];
+            /** Allowed Models */
+            allowed_models?: string[];
+            /** Capability */
+            capability: string;
+            /**
+             * Cost Weight
+             * @default 20
+             */
+            cost_weight: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Latency Weight
+             * @default 10
+             */
+            latency_weight: number;
+            /**
+             * Minimum Quota Headroom
+             * @default 10
+             */
+            minimum_quota_headroom: string;
+            /** Name */
+            name: string;
+            /** Preferred Tiers */
+            preferred_tiers?: ("economy" | "balanced" | "frontier" | "specialist")[];
+            /**
+             * Quality Weight
+             * @default 35
+             */
+            quality_weight: number;
+            /**
+             * Quota Weight
+             * @default 25
+             */
+            quota_weight: number;
+            /**
+             * Reliability Weight
+             * @default 10
+             */
+            reliability_weight: number;
+            /**
+             * Requires Human Approval
+             * @default true
+             */
+            requires_human_approval: boolean;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "draft" | "active" | "retired";
+            /** Task Kind */
+            task_kind: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** RoutingPolicyUpsert */
+        RoutingPolicyUpsert: {
+            /**
+             * Allow Fallback
+             * @default true
+             */
+            allow_fallback: boolean;
+            /** Allowed Channels */
+            allowed_channels?: string[];
+            /** Allowed Models */
+            allowed_models?: string[];
+            /** Capability */
+            capability: string;
+            /**
+             * Cost Weight
+             * @default 20
+             */
+            cost_weight: number;
+            /**
+             * Latency Weight
+             * @default 10
+             */
+            latency_weight: number;
+            /**
+             * Minimum Quota Headroom
+             * @default 10
+             */
+            minimum_quota_headroom: number | string;
+            /** Name */
+            name: string;
+            /** Preferred Tiers */
+            preferred_tiers?: ("economy" | "balanced" | "frontier" | "specialist")[];
+            /**
+             * Quality Weight
+             * @default 35
+             */
+            quality_weight: number;
+            /**
+             * Quota Weight
+             * @default 25
+             */
+            quota_weight: number;
+            /**
+             * Reliability Weight
+             * @default 10
+             */
+            reliability_weight: number;
+            /**
+             * Requires Human Approval
+             * @default true
+             */
+            requires_human_approval: boolean;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "draft" | "active" | "retired";
+            /** Task Kind */
+            task_kind: string;
+        };
         /** RunSquadPayload */
         RunSquadPayload: {
             /** Input Data */
@@ -11531,8 +12265,11 @@ export interface components {
         };
         /** WorkflowStepDefinition */
         WorkflowStepDefinition: {
-            /** Capability */
-            capability?: string | null;
+            /**
+             * Capability
+             * @default content
+             */
+            capability: string;
             /** Description */
             description: string;
             /**
@@ -11544,11 +12281,27 @@ export interface components {
             key: string;
             /** Name */
             name: string;
+            /**
+             * Task Kind
+             * @default content_draft
+             */
+            task_kind: string;
         };
         /** WorkflowStepRunSummary */
         WorkflowStepRunSummary: {
+            /** Account Id */
+            account_id?: string | null;
+            /**
+             * Attempts
+             * @default 0
+             */
+            attempts: number;
+            /** Capability */
+            capability?: string | null;
             /** Cost Cents */
             cost_cents?: number | null;
+            /** Description */
+            description?: string | null;
             /** Finished At */
             finished_at?: string | null;
             /**
@@ -11560,6 +12313,8 @@ export interface components {
             interactive: boolean;
             /** Model */
             model?: string | null;
+            /** Model Catalog Id */
+            model_catalog_id?: string | null;
             /** Name */
             name: string;
             /** Output */
@@ -11570,6 +12325,10 @@ export interface components {
             position: number;
             /** Provider */
             provider?: string | null;
+            /** Selection Reason */
+            selection_reason?: {
+                [key: string]: unknown;
+            };
             /** Started At */
             started_at?: string | null;
             /**
@@ -11579,6 +12338,8 @@ export interface components {
             status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "skipped";
             /** Step Key */
             step_key: string;
+            /** Task Kind */
+            task_kind?: string | null;
         };
         /** WorkflowTemplateSummary */
         WorkflowTemplateSummary: {
@@ -12364,6 +13125,226 @@ export interface operations {
             };
         };
     };
+    create_account_backoffice_ai_operations_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_account_backoffice_ai_operations_accounts__account_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderAccountUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_model_backoffice_ai_operations_accounts__account_id__models_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelCatalogUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bootstrap_models_backoffice_ai_operations_accounts__account_id__models_bootstrap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_quota_backoffice_ai_operations_accounts__account_id__quota_buckets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuotaBucketCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    collect_quota_backoffice_ai_operations_accounts__account_id__quota_collection_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_control_plane_backoffice_ai_operations_control_plane_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+        };
+    };
     get_finops_backoffice_ai_operations_finops_get: {
         parameters: {
             query?: never;
@@ -12380,6 +13361,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiFinOpsDashboard"];
+                };
+            };
+        };
+    };
+    preview_route_backoffice_ai_operations_route_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutePreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutePreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_policy_backoffice_ai_operations_routing_policies_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutingPolicyUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bootstrap_policies_backoffice_ai_operations_routing_policies_bootstrap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRoutingControlPlane"];
                 };
             };
         };

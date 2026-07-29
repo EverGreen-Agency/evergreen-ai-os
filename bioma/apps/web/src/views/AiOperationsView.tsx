@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { Bot, CheckCircle2, Download, Play, ShieldCheck, Workflow } from "lucide-react";
 
 import { EmptyState, SectionHeader } from "../components/shared";
+import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
   useAiWorkflowRuns,
@@ -13,7 +14,7 @@ import {
 
 const runStatusLabel = {
   pending_approval: "Aguardando aprovação",
-  ready: "Aprovado",
+  ready: "Na fila do worker",
   running: "Em execução",
   completed: "Concluído",
   failed: "Falhou",
@@ -57,6 +58,8 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="operations-layout fade-in">
       {error && <div className="notice error">{error.message}</div>}
+
+      <AiControlPlanePanel />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">
@@ -149,17 +152,27 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
               <Bot size={16} />
               <div>
                 <strong>{run.definition_name} · v{run.definition_version}</strong>
-                <small>{runStatusLabel[run.status]}{run.current_step_key ? ` · próxima: ${run.current_step_key}` : ""}</small>
+                <small>{runStatusLabel[run.status]}{run.current_step_key ? ` · etapa atual: ${run.current_step_key}` : ""}</small>
                 <small>
-                  {run.steps.map((step) => `${step.name}: ${step.status}`).join(" · ")}
+                  {run.steps.map((step) => `${step.name}: ${step.status}${step.model ? ` (${step.provider}/${step.model})` : ""}`).join(" · ")}
                 </small>
+                {run.steps.filter((step) => step.output?.text).map((step) => (
+                  <details key={step.id} style={{ marginTop: 8 }}>
+                    <summary>{step.name} · ver entrega</summary>
+                    <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 13 }}>
+                      {String(step.output?.text)}
+                    </pre>
+                  </details>
+                ))}
               </div>
               <div className="row-tail">
                 <span className={`status-pill ${run.status}`}>{runStatusLabel[run.status]}</span>
                 {run.status === "pending_approval" && (
                   <button className="primary-button" type="button" disabled={approveRun.isPending} onClick={() => approveRun.mutate(run.id)}>
                     <ShieldCheck size={15} />
-                    Aprovar
+                    {run.steps.some((step) => step.step_key === run.current_step_key && step.status === "waiting_approval")
+                      ? "Aprovar entrega e continuar"
+                      : "Aprovar início"}
                   </button>
                 )}
               </div>

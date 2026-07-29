@@ -1231,7 +1231,8 @@ export type AiWorkflowStepDefinition = {
   name: string;
   description: string;
   interactive: boolean;
-  capability: string | null;
+  task_kind: string;
+  capability: string;
 };
 
 export type AiWorkflowTemplate = {
@@ -1274,15 +1275,142 @@ export type AiWorkflowRun = {
     step_key: string;
     position: number;
     name: string;
+    description: string | null;
     interactive: boolean;
     status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "skipped";
+    task_kind: string | null;
+    capability: string | null;
     provider: string | null;
     model: string | null;
+    account_id: string | null;
+    model_catalog_id: string | null;
+    selection_reason: Record<string, unknown>;
+    attempts: number;
     output: Record<string, unknown> | null;
     cost_cents: number | null;
     started_at: string | null;
     finished_at: string | null;
   }>;
+};
+
+export type AiProviderChannel =
+  | "codex_chatgpt"
+  | "claude_code"
+  | "antigravity_cli"
+  | "antigravity_sdk"
+  | "gemini_api"
+  | "vertex";
+
+export type AiQuotaBucket = {
+  id: string;
+  bucket_key: string;
+  scope: string;
+  model_id: string | null;
+  total_units: number | string | null;
+  used_units: number | string | null;
+  used_percent: number | string | null;
+  remaining_percent: number | string | null;
+  unit: string;
+  window_duration_minutes: number | null;
+  resets_at: string | null;
+  source: string;
+  confidence: string;
+  measured_at: string;
+  raw_metadata: Record<string, unknown>;
+  notes: string | null;
+};
+
+export type AiModelCatalogItem = {
+  id: string;
+  account_id: string;
+  model_id: string;
+  display_name: string;
+  family: string | null;
+  capability_tier: "economy" | "balanced" | "frontier" | "specialist";
+  capabilities: string[];
+  quality_score: number;
+  cost_score: number;
+  latency_score: number;
+  context_window: number | null;
+  enabled: boolean;
+  priority: number;
+  metadata: Record<string, unknown>;
+  discovered_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiProviderAccount = {
+  id: string;
+  subscription_id: string | null;
+  provider: "openai" | "anthropic" | "google";
+  channel: AiProviderChannel;
+  display_name: string;
+  auth_mode: "chatgpt" | "claude_subscription" | "google_subscription" | "api_key" | "vertex_adc" | "service_account";
+  execution_mode: "app_server" | "local_cli" | "sdk" | "api" | "manual_handoff";
+  auth_ref: string | null;
+  status: "active" | "degraded" | "unavailable" | "paused";
+  is_default: boolean;
+  capabilities: string[];
+  settings: Record<string, unknown>;
+  health_detail: string | null;
+  last_probe_at: string | null;
+  models: AiModelCatalogItem[];
+  quota_buckets: AiQuotaBucket[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiRoutingPolicy = {
+  id: string;
+  task_kind: string;
+  capability: string;
+  name: string;
+  allowed_channels: string[];
+  allowed_models: string[];
+  preferred_tiers: string[];
+  minimum_quota_headroom: number | string;
+  requires_human_approval: boolean;
+  allow_fallback: boolean;
+  status: "draft" | "active" | "retired";
+};
+
+export type AiRoutingControlPlane = {
+  accounts: AiProviderAccount[];
+  policies: AiRoutingPolicy[];
+  quota_collection_jobs: Array<{
+    id: string;
+    account_id: string;
+    collector: string;
+    status: "queued" | "running" | "completed" | "failed";
+    result: Record<string, unknown> | null;
+    error_message: string | null;
+    attempts: number;
+    started_at: string | null;
+    finished_at: string | null;
+    created_at: string;
+  }>;
+  generated_at: string;
+};
+
+export type AiRoutePreview = {
+  task_kind: string;
+  policy_id: string | null;
+  selected: AiRouteCandidate | null;
+  candidates: AiRouteCandidate[];
+};
+
+export type AiRouteCandidate = {
+  account_id: string;
+  model_catalog_id: string;
+  provider: string;
+  channel: string;
+  model_id: string;
+  display_name: string;
+  score: number | string;
+  quota_headroom: number | string | null;
+  eligible: boolean;
+  reasons: string[];
 };
 
 export type GitHubConnection = {
@@ -2138,6 +2266,55 @@ export const api = {
   approveAiWorkflowRun: (runId: string) =>
     request<AiWorkflowRun>(`/backoffice/ai-operations/workflow-runs/${runId}/approve`, {
       method: "POST",
+    }),
+  aiRoutingControlPlane: () =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/control-plane"),
+  createAiProviderAccount: (payload: {
+    provider: "openai" | "anthropic" | "google";
+    channel: AiProviderChannel;
+    display_name: string;
+    auth_mode: AiProviderAccount["auth_mode"];
+    execution_mode: AiProviderAccount["execution_mode"];
+    auth_ref?: string | null;
+    capabilities: string[];
+    settings?: Record<string, unknown>;
+  }) =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/accounts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  bootstrapAiModels: (accountId: string) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/models/bootstrap`, {
+      method: "POST",
+    }),
+  recordAiQuotaBucket: (accountId: string, payload: {
+    bucket_key: string;
+    scope?: string;
+    model_id?: string | null;
+    remaining_percent?: number | null;
+    unit?: string;
+    window_duration_minutes?: number | null;
+    resets_at?: string | null;
+    source: string;
+    confidence: string;
+    notes?: string | null;
+  }) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/quota-buckets`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  collectAiQuota: (accountId: string) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/quota-collection`, {
+      method: "POST",
+    }),
+  bootstrapAiRoutingPolicies: () =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/routing-policies/bootstrap", {
+      method: "POST",
+    }),
+  previewAiRoute: (taskKind: string) =>
+    request<AiRoutePreview>("/backoffice/ai-operations/route-preview", {
+      method: "POST",
+      body: JSON.stringify({ task_kind: taskKind }),
     }),
   performanceOverview: (clientId: string) => request<PerformanceOverview>(`/workspaces/${clientId}/performance`),
   adsCampaigns: (clientId: string) =>

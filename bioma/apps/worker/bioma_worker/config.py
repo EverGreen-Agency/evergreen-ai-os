@@ -31,6 +31,12 @@ class WorkerSettings(BaseSettings):
     openai_research_model: str = "gpt-5.6-terra"
     openai_transcription_model: str = "whisper-1"
     openai_request_timeout_seconds: float = 120
+    codex_cli_path: str = "codex"
+    claude_cli_path: str = "claude"
+    ai_execution_timeout_seconds: int = 600
+    gemini_api_key: str | None = None
+    google_cloud_project: str | None = None
+    google_cloud_location: str = "us-central1"
     ahrefs_api_key: str | None = None
     # QUEUE-001: o lease precisa ser maior que o job mais longo esperado
     # (sync de 30 dias em 4 providers), senão o reaper reenfileira job vivo.
