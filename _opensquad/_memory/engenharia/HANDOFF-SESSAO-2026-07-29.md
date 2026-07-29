@@ -1,22 +1,13 @@
 # Handoff — sessão 2026-07-29
 
-Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `56989d9`.
+Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `30371d4`.
 
-## ⚠️ LEIA PRIMEIRO: sessão paralela ativa
+## Sessão paralela — RESOLVIDO
 
-Outra sessão de IA está construindo um **control plane de IA** (roteamento de
-provider, coletor de cota). ~24 arquivos não commitados, incluindo a migração
-`0064_ai_provider_routing.sql`. **Não commitar por eles e não regenerar o
-contrato OpenAPI** — `bioma/packages/contracts/openapi.json` está sujo com o
-trabalho deles, e regenerar assaria rotas em progresso.
-
-Arquivos deles (não tocar): `ai_operations.*`, `ai_routing.*`, `ai_providers.py`,
-`quota_collectors.py`, `AiControlPlanePanel.tsx`, `AiOperationsView.tsx`,
-`useBiomaApi.ts`, `lib/api.ts`, `api-schema.d.ts`, `openapi.json`,
-worker `config.py`/`orchestrator.py`/`storage.py`, `main.py`.
-
-Consequência prática: **qualquer mudança minha que exija regenerar o contrato
-está bloqueada** até eles commitarem. Migração + repositório podem seguir.
+A outra sessão commitou o control plane de IA em `d57976e` e a árvore ficou
+limpa. O bloqueio de contrato acabou. Se aparecer sujeira nova em
+`openapi.json`/`lib/api.ts`/`useBiomaApi.ts` que não seja sua, é sinal de que
+voltou — nesse caso, não regenerar o contrato até eles commitarem.
 
 ---
 
@@ -61,17 +52,34 @@ Próximo passo: **implementar** o que o v2 define (ver "Fila de implementação"
 - **Sem campos personalizados criados pelo usuário** por agora — só os campos
   já existentes nos manuais v1.
 
-### Fila de implementação (o que o v2 pede e ainda não existe)
+### Fila de implementação
 
-1. Criar tarefa nas visões **lista e calendário** (hoje só o Kanban tem o `+`).
-2. Detalhe da tarefa: **Definição de Pronto** rotulada (não descrição solta),
-   checklist, subtarefas, dependências, comentários.
-3. Seletor de **Projeto** na tarefa + agrupar/filtrar por projeto.
-4. Visão **Roadmap (Gantt)** por projeto, usando datas de `project_phases`.
-5. Filtros salvos que o v1 chamava de views: Bug Tracker, Banco de Ideias,
+**Concluído (`30371d4`), validado contra Postgres real:**
+
+- ✅ Criar tarefa nas visões **lista e calendário** (era só no Kanban).
+- ✅ **Definição de Pronto** rotulada no detalhe (era "Descrição / Copy").
+- ✅ **Checklist** renomeado, com a regra na tela ("se muda responsável ou
+  prazo, use subtarefa").
+- ✅ **Comentários** na tarefa (migração `0066`), com `client_visible`.
+- ✅ `project_id` e `parent_task_id` circulando na API, com validações:
+  projeto/pai do mesmo workspace, sem auto-pai (422), sem ciclo (409).
+
+**Falta:**
+
+1. **Seletor de Projeto na UI** do detalhe da tarefa + agrupar/filtrar por
+   projeto na lista e no Kanban. O backend já aceita `project_id`; falta o
+   controle na tela e o `projects` do workspace alimentando o dropdown.
+2. **Criar subtarefa pela UI.** O backend aceita `parent_task_id`, mas nenhuma
+   tela oferece "criar subtarefa" nem exibe a hierarquia pai/filho.
+3. **Visão Roadmap (Gantt)** por projeto, usando datas de `project_phases`.
+   Hoje a terceira visão é um calendário mensal, não um Gantt.
+4. Filtros salvos que o v1 chamava de views: Bug Tracker, Banco de Ideias,
    Aprovação do Cliente.
-6. Recorrência: colunas existem (`recurrence`, `recurrence_source_task_id`),
-   regra de negócio **não definida** — pendente de decisão.
+5. Recorrência: colunas existem (`recurrence`, `recurrence_source_task_id`),
+   regra de negócio **não definida** — pendente de decisão do Eduardo.
+6. Status por frente ainda são **listas hardcoded** no `TaskDrawer.tsx`
+   (`GROWTH_STATUSES`, `SOCIAL_STATUSES`) — falta o conjunto de Tech e mover
+   isso para um lugar único derivado do `type` da lista.
 
 ### Limpeza executada
 
@@ -139,6 +147,7 @@ Vale o Eduardo conferir no dev server antes de seguir.
 
 | Commit | O quê |
 |---|---|
+| `30371d4` | Projeto/subtarefa na API, comentários (0066), criar tarefa em todas as visões |
 | `56989d9` | Manual v2, migração 0065 (project_id + parent_task_id), remoção do legado |
 | `a715823` | **Perf:** cache padrão do React Query (causa da tela de Tarefas lenta) |
 | `50e7b73` | Cockpit acionável + correção das contagens da carteira |
