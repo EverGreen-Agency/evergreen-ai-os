@@ -1026,6 +1026,13 @@ export type IntegrationsStatus = {
   app_env: string;
 };
 
+export type CockpitPortfolioSummary = {
+  monthly_revenue_cents: number;
+  mrr_cents: number;
+  overdue_deliverables: number;
+  clients_at_risk: number;
+};
+
 export type HookSource = "llm_transcript" | "higgsfield_virality";
 export type ContentScriptStatus = "suggested" | "approved" | "scheduled" | "recorded" | "published" | "discarded";
 
@@ -1955,6 +1962,7 @@ export const api = {
     }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
+  getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
   createClient: (payload: ClientPayload) =>
     request<ClientPortal>("/clients", {
       method: "POST",

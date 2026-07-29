@@ -5,9 +5,10 @@ import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
+import { BriefingPanel } from "../components/BriefingPanel";
 import { RaioXScorePanel } from "../components/RaioXScorePanel";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useCommercialPortal, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useCommercialPortal, useCreateArtifact, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
 import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
@@ -17,7 +18,7 @@ export function ClientHubView() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   
-  const { setSelectedClientId } = useUiStore();
+  const { setSelectedClientId, setSelectedArtifact } = useUiStore();
 
   const { data: user, isLoading: loadingUser } = useCurrentUser();
   const isEgAdmin = !loadingUser && (user?.organizations.some((org: { role: string }) => org.role === "eg_admin") ?? false);
@@ -29,6 +30,7 @@ export function ClientHubView() {
   const { data: portalData, isLoading: loadingPortal } = useClientPortal(contextId);
   const portal = portalData ?? null;
   const decideApproval = useDecideApproval();
+  const createArtifact = useCreateArtifact();
   const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(contextId);
   
   const isBusy = decideApproval.isPending;
@@ -125,6 +127,29 @@ export function ClientHubView() {
               canEdit={isEgAdmin}
             />
           </div>
+
+          <article className="surface" style={{ marginTop: "24px" }}>
+            <BriefingPanel
+              briefing={portal.artifacts.find((artifact) => artifact.kind === "briefing") ?? null}
+              onEdit={setSelectedArtifact}
+            />
+            {isEgAdmin && !portal.artifacts.some((artifact) => artifact.kind === "briefing") && (
+              <button
+                className="secondary-button"
+                type="button"
+                style={{ marginTop: "12px" }}
+                disabled={createArtifact.isPending}
+                onClick={() =>
+                  createArtifact.mutate({
+                    clientId: contextId,
+                    payload: { title: "Briefing estratégico", kind: "briefing", visibility: "internal", content: "" },
+                  })
+                }
+              >
+                {createArtifact.isPending ? "Criando..." : "Criar briefing"}
+              </button>
+            )}
+          </article>
         </div>
       )}
 

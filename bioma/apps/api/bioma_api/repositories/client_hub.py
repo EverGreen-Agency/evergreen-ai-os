@@ -466,6 +466,62 @@ def delete_financial_record(conn, organization_id: UUID, record_id: UUID) -> boo
     return _delete_scoped_row(conn, "financial_records", organization_id, record_id)
 
 
+def get_portfolio_summary(conn) -> dict[str, Any]:
+    """Agregado real da carteira inteira de clientes (não de um workspace só),
+    usado no Cockpit do time EG. Escopado a organization_id de clients — exclui
+    a organização interna da própria EG, que não é "carteira" de cliente."""
+    revenue = conn.execute(
+        """
+        select coalesce(sum(amount), 0) as total
+        from financial_records
+        where kind = 'invoice' and status = 'paid'
+          and paid_at >= date_trunc('month', now())
+          and paid_at < date_trunc('month', now()) + interval '1 month'
+          and organization_id in (select organization_id from clients)
+        """
+    ).fetchone()
+
+    mrr = conn.execute(
+        """
+        select coalesce(sum(amount), 0) as total
+        from financial_records
+        where kind = 'contract' and status in ('open', 'paid')
+          and (contract_end_at is null or contract_end_at >= current_date)
+          and organization_id in (select organization_id from clients)
+        """
+    ).fetchone()
+
+    overdue_deliverables = conn.execute(
+        """
+        select count(*) as total
+        from deliverables
+        where due_at is not null and due_at < now() and status <> 'done'
+          and organization_id in (select organization_id from clients)
+        """
+    ).fetchone()
+
+    clients_at_risk = conn.execute(
+        """
+        select count(distinct organization_id) as total
+        from (
+          select organization_id from deliverables
+          where due_at is not null and due_at < now() and status <> 'done'
+          union
+          select organization_id from financial_records
+          where status = 'overdue'
+        ) at_risk
+        where organization_id in (select organization_id from clients)
+        """
+    ).fetchone()
+
+    return {
+        "monthly_revenue_cents": round((revenue["total"] or 0) * 100),
+        "mrr_cents": round((mrr["total"] or 0) * 100),
+        "overdue_deliverables": overdue_deliverables["total"],
+        "clients_at_risk": clients_at_risk["total"],
+    }
+
+
 def list_performance_metrics(conn, organization_id: UUID):
     return conn.execute(
         """

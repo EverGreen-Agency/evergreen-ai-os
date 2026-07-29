@@ -3483,6 +3483,34 @@
         "title": "ClientUpdateRequest",
         "type": "object"
       },
+      "CockpitPortfolioSummary": {
+        "properties": {
+          "clients_at_risk": {
+            "title": "Clients At Risk",
+            "type": "integer"
+          },
+          "monthly_revenue_cents": {
+            "title": "Monthly Revenue Cents",
+            "type": "integer"
+          },
+          "mrr_cents": {
+            "title": "Mrr Cents",
+            "type": "integer"
+          },
+          "overdue_deliverables": {
+            "title": "Overdue Deliverables",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "monthly_revenue_cents",
+          "mrr_cents",
+          "overdue_deliverables",
+          "clients_at_risk"
+        ],
+        "title": "CockpitPortfolioSummary",
+        "type": "object"
+      },
       "CommercialPortalResponse": {
         "properties": {
           "action_plans": {
@@ -22169,6 +22197,27 @@
         "summary": "Update Certification",
         "tags": [
           "certifications"
+        ]
+      }
+    },
+    "/backoffice/cockpit-summary": {
+      "get": {
+        "operationId": "get_cockpit_summary_backoffice_cockpit_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CockpitPortfolioSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cockpit Summary",
+        "tags": [
+          "client-hub-backoffice"
         ]
       }
     },

@@ -551,6 +551,23 @@ export interface paths {
         patch: operations["update_certification_backoffice_certifications__certification_id__patch"];
         trace?: never;
     };
+    "/backoffice/cockpit-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Cockpit Summary */
+        get: operations["get_cockpit_summary_backoffice_cockpit_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/engineering": {
         parameters: {
             query?: never;
@@ -5307,6 +5324,17 @@ export interface components {
             responsible_name?: string | null;
             /** Status */
             status?: ("onboarding" | "active" | "paused" | "completed" | "archived") | null;
+        };
+        /** CockpitPortfolioSummary */
+        CockpitPortfolioSummary: {
+            /** Clients At Risk */
+            clients_at_risk: number;
+            /** Monthly Revenue Cents */
+            monthly_revenue_cents: number;
+            /** Mrr Cents */
+            mrr_cents: number;
+            /** Overdue Deliverables */
+            overdue_deliverables: number;
         };
         /** CommercialPortalResponse */
         CommercialPortalResponse: {
@@ -12548,6 +12576,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cockpit_summary_backoffice_cockpit_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CockpitPortfolioSummary"];
                 };
             };
         };

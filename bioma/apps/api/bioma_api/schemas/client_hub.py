@@ -208,6 +208,13 @@ class FinancialRecordSummary(BaseModel):
     updated_at: datetime
 
 
+class CockpitPortfolioSummary(BaseModel):
+    monthly_revenue_cents: int
+    mrr_cents: int
+    overdue_deliverables: int
+    clients_at_risk: int
+
+
 class FinancialRecordCreateRequest(BaseModel):
     kind: FinancialRecordKind
     title: str

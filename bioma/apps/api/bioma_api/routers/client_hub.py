@@ -14,6 +14,7 @@ from bioma_api.schemas.client_hub import (
     ClientPurgeRequest,
     ClientSummary,
     ClientUpdateRequest,
+    CockpitPortfolioSummary,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -32,11 +33,17 @@ from bioma_api.services import client_hub as client_hub_service
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
 workspace_router = APIRouter(prefix="/workspaces", tags=["workspace-client-hub"])
+backoffice_router = APIRouter(tags=["client-hub-backoffice"])
 
 
 @router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
 def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_request)):
     return client_hub_service.list_my_deliverables(user)
+
+
+@backoffice_router.get("/backoffice/cockpit-summary", response_model=CockpitPortfolioSummary)
+def get_cockpit_summary(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return client_hub_service.get_cockpit_summary(user)
 
 
 @router.get("", response_model=list[ClientSummary])

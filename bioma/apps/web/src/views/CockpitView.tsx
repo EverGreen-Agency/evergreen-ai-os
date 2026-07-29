@@ -14,9 +14,13 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
+import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
 import { SquadsView } from "./SquadsView";
+
+function formatCents(cents: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+}
 
 export function CockpitView() {
   const navigate = useNavigate();
@@ -27,6 +31,7 @@ export function CockpitView() {
   const { data: myDeliverablesData } = useMyDeliverables();
 
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
+  const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
 
   // Client data
   const clients = externalClients(clientsData ?? []);
@@ -58,14 +63,15 @@ export function CockpitView() {
             </div>
           </article>
 
-          {/* Placeholders Estratégicos */}
           <article className="bento-card">
             <div className="bento-header">
               <h3>Faturamento (Mês)</h3>
               <TrendingUp size={16} />
             </div>
-            <div className="bento-value">R$ --</div>
-            <div className="bento-footer">A definir métrica de receita</div>
+            <div className="bento-value">
+              {loadingCockpitSummary ? "..." : formatCents(cockpitSummary?.monthly_revenue_cents ?? 0)}
+            </div>
+            <div className="bento-footer">Faturas pagas no mês corrente</div>
           </article>
 
           <article className="bento-card">
@@ -73,8 +79,10 @@ export function CockpitView() {
               <h3>MRR Atual</h3>
               <TrendingUp size={16} />
             </div>
-            <div className="bento-value">R$ --</div>
-            <div className="bento-footer">A definir métrica de recorrência</div>
+            <div className="bento-value">
+              {loadingCockpitSummary ? "..." : formatCents(cockpitSummary?.mrr_cents ?? 0)}
+            </div>
+            <div className="bento-footer">Contratos recorrentes ativos</div>
           </article>
 
           <article className="bento-card">
@@ -82,8 +90,10 @@ export function CockpitView() {
               <h3>Clientes em Risco</h3>
               <AlertTriangle size={16} color="#ffab00" />
             </div>
-            <div className="bento-value" style={{ color: '#ffab00' }}>--</div>
-            <div className="bento-footer">A definir modelo de churn/risco</div>
+            <div className="bento-value" style={{ color: '#ffab00' }}>
+              {loadingCockpitSummary ? "..." : cockpitSummary?.clients_at_risk ?? 0}
+            </div>
+            <div className="bento-footer">Entrega atrasada ou fatura vencida</div>
           </article>
 
           <article className="bento-card">
@@ -91,7 +101,9 @@ export function CockpitView() {
               <h3>Entregas Atrasadas</h3>
               <Clock size={16} color="#ff5252" />
             </div>
-            <div className="bento-value" style={{ color: '#ff5252' }}>--</div>
+            <div className="bento-value" style={{ color: '#ff5252' }}>
+              {loadingCockpitSummary ? "..." : cockpitSummary?.overdue_deliverables ?? 0}
+            </div>
             <div className="bento-footer">Visão global de SLAs críticos</div>
           </article>
         </div>

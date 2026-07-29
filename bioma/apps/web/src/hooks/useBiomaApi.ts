@@ -50,6 +50,14 @@ export function useMyDeliverables() {
   });
 }
 
+export function useCockpitSummary(enabled: boolean) {
+  return useQuery({
+    queryKey: ["cockpit-summary"],
+    queryFn: api.getCockpitSummary,
+    enabled,
+  });
+}
+
 export function useClientPortal(clientId: string | null) {
   return useQuery({
     queryKey: ["portal", clientId],

@@ -21,6 +21,7 @@ from bioma_api.schemas.client_hub import (
     ClientPortalResponse,
     ClientSummary,
     ClientUpdateRequest,
+    CockpitPortfolioSummary,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -605,3 +606,10 @@ def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:
             is_platform_admin(user),
             user.id,
         )
+
+
+def get_cockpit_summary(user: CurrentUserResponse) -> CockpitPortfolioSummary:
+    require_platform_admin(user)
+    with connect() as conn:
+        row = client_hub_repo.get_portfolio_summary(conn)
+    return CockpitPortfolioSummary(**row)
