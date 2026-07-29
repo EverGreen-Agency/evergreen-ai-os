@@ -286,7 +286,10 @@ export type PerformanceProvider =
   | "gtm"
   | "meta_ads"
   | "linkedin_ads"
-  | "instagram_organic";
+  | "instagram_organic"
+  | "google_business_profile"
+  | "google_adsense"
+  | "youtube_organic";
 
 export type PerformanceOverview = {
   workspace_id: string;

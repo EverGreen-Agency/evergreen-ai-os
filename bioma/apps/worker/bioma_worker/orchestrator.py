@@ -154,7 +154,10 @@ def _sync_provider(
     date_from: date,
     date_to: date,
 ) -> int:
-    from bioma_worker.providers import ga4, google_ads, gtm, instagram_organic, linkedin_ads, meta_ads, search_console
+    from bioma_worker.providers import (
+        adsense, ga4, google_ads, google_business_profile, gtm, instagram_organic,
+        linkedin_ads, meta_ads, search_console, youtube_organic,
+    )
     provider = connection["provider"]
     if provider == "google_ads":
         return google_ads.sync(conn, google_client, settings, client_id, connection, date_from, date_to)
@@ -170,6 +173,12 @@ def _sync_provider(
         return linkedin_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     if provider == "instagram_organic":
         return instagram_organic.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
+    if provider == "google_business_profile":
+        return google_business_profile.sync(conn, google_client, client_id, connection, date_from, date_to)
+    if provider == "google_adsense":
+        return adsense.sync(conn, google_client, client_id, connection, date_from, date_to)
+    if provider == "youtube_organic":
+        return youtube_organic.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     raise RuntimeError(f"Provider não suportado: {provider}")
 
 
@@ -178,6 +187,7 @@ _SUPPORTED_CREDENTIALS_REFS = (
     "env:META_ADS_ACCESS_TOKEN",
     "env:LINKEDIN_ADS_ACCESS_TOKEN",
     "env:INSTAGRAM_ACCESS_TOKEN",
+    "env:YOUTUBE_API_KEY",
 )
 
 

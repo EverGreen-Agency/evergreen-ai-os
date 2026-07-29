@@ -17,6 +17,8 @@ class WorkerSettings(BaseSettings):
     instagram_access_token: str | None = None
     instagram_api_version: str = "v21.0"
     instagram_post_sync_limit: int = 50
+    youtube_api_key: str | None = None
+    youtube_organic_sync_limit: int = 50
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_research_model: str = "gpt-5.6-terra"

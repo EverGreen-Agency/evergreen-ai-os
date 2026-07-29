@@ -7460,7 +7460,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
             /**
              * Status
              * @default active
@@ -7507,7 +7507,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
             /**
              * Status
              * @enum {string}
@@ -7705,7 +7705,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "all";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "all";
         };
         /** PerformanceSyncRunSummary */
         PerformanceSyncRunSummary: {
@@ -10283,7 +10283,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
             /**
              * Status
              * @enum {string}

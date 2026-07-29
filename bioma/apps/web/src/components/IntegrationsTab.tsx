@@ -28,13 +28,16 @@ import { WhatsAppManager } from "./WhatsAppManager";
 import { StatusPill } from "./StatusPill";
 import {
   Ga4Icon,
+  GoogleAdSenseIcon,
   GoogleAdsIcon,
+  GoogleBusinessProfileIcon,
   GtmIcon,
   InstagramIcon,
   KommoIcon,
   LinkedInAdsIcon,
   MetaAdsIcon,
   SearchConsoleIcon,
+  YouTubeIcon,
 } from "./icons/BrandIcons";
 
 const PROVIDER_META: Record<PerformanceProvider, {
@@ -90,6 +93,24 @@ const PROVIDER_META: Record<PerformanceProvider, {
     icon: InstagramIcon,
     accountLabel: "Instagram Business Account ID",
     accountPlaceholder: "17841400000000000",
+  },
+  google_business_profile: {
+    label: "Google Meu Negócio",
+    icon: GoogleBusinessProfileIcon,
+    accountLabel: "Location ID",
+    accountPlaceholder: "locations/1234567890",
+  },
+  google_adsense: {
+    label: "Google AdSense",
+    icon: GoogleAdSenseIcon,
+    accountLabel: "Account ID",
+    accountPlaceholder: "accounts/pub-1234567890123456",
+  },
+  youtube_organic: {
+    label: "YouTube (orgânico)",
+    icon: YouTubeIcon,
+    accountLabel: "Channel ID",
+    accountPlaceholder: "UCxxxxxxxxxxxxxxxxxxxxxx",
   },
 };
 

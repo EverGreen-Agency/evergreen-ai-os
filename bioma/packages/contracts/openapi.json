@@ -9100,7 +9100,10 @@
               "gtm",
               "meta_ads",
               "linkedin_ads",
-              "instagram_organic"
+              "instagram_organic",
+              "google_business_profile",
+              "google_adsense",
+              "youtube_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -9218,7 +9221,10 @@
               "gtm",
               "meta_ads",
               "linkedin_ads",
-              "instagram_organic"
+              "instagram_organic",
+              "google_business_profile",
+              "google_adsense",
+              "youtube_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -9736,6 +9742,9 @@
               "meta_ads",
               "linkedin_ads",
               "instagram_organic",
+              "google_business_profile",
+              "google_adsense",
+              "youtube_organic",
               "all"
             ],
             "title": "Provider",
@@ -17393,7 +17402,10 @@
               "gtm",
               "meta_ads",
               "linkedin_ads",
-              "instagram_organic"
+              "instagram_organic",
+              "google_business_profile",
+              "google_adsense",
+              "youtube_organic"
             ],
             "title": "Provider",
             "type": "string"
