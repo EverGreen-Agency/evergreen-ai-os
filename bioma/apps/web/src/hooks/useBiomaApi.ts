@@ -329,6 +329,24 @@ export function useUpdatePerformanceConnection() {
   });
 }
 
+export function useSavePerformanceProviderToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      provider,
+      token,
+    }: {
+      workspaceId: string;
+      provider: Parameters<typeof api.savePerformanceProviderToken>[1];
+      token: string;
+    }) => api.savePerformanceProviderToken(workspaceId, provider, token),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["performance-connections", variables.workspaceId], data);
+    },
+  });
+}
+
 export function useRequestPerformanceSync() {
   const queryClient = useQueryClient();
   return useMutation({

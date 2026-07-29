@@ -9106,7 +9106,9 @@
               "youtube_organic",
               "tiktok_organic",
               "tiktok_ads",
-              "linkedin_organic"
+              "linkedin_organic",
+              "rd_station_crm",
+              "hubspot"
             ],
             "title": "Provider",
             "type": "string"
@@ -9230,7 +9232,9 @@
               "youtube_organic",
               "tiktok_organic",
               "tiktok_ads",
-              "linkedin_organic"
+              "linkedin_organic",
+              "rd_station_crm",
+              "hubspot"
             ],
             "title": "Provider",
             "type": "string"
@@ -9754,6 +9758,8 @@
               "tiktok_organic",
               "tiktok_ads",
               "linkedin_organic",
+              "rd_station_crm",
+              "hubspot",
               "all"
             ],
             "title": "Provider",
@@ -14620,6 +14626,21 @@
         "title": "ProposalUpdatePayload",
         "type": "object"
       },
+      "ProviderTokenRequest": {
+        "properties": {
+          "token": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "ProviderTokenRequest",
+        "type": "object"
+      },
       "PublicProposalLifecycleRecord": {
         "properties": {
           "acceptance_status": {
@@ -17417,7 +17438,9 @@
               "youtube_organic",
               "tiktok_organic",
               "tiktok_ads",
-              "linkedin_organic"
+              "linkedin_organic",
+              "rd_station_crm",
+              "hubspot"
             ],
             "title": "Provider",
             "type": "string"
@@ -34895,6 +34918,73 @@
           }
         },
         "summary": "Authorize",
+        "tags": [
+          "social-connect"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/performance/connections/{provider}/token": {
+      "put": {
+        "description": "Salva o token de um CRM token-based (RD Station, HubSpot), cifrado.\n\nO token nunca volta na resposta: a listagem devolve só o estado da conexão.",
+        "operationId": "save_provider_token_workspaces__workspace_id__performance_connections__provider__token_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PerformanceConnectionSummary"
+                  },
+                  "title": "Response Save Provider Token Workspaces  Workspace Id  Performance Connections  Provider  Token Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Provider Token",
         "tags": [
           "social-connect"
         ]

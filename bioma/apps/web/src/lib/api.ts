@@ -292,7 +292,9 @@ export type PerformanceProvider =
   | "youtube_organic"
   | "tiktok_organic"
   | "tiktok_ads"
-  | "linkedin_organic";
+  | "linkedin_organic"
+  | "rd_station_crm"
+  | "hubspot";
 
 export type PerformanceOverview = {
   workspace_id: string;
@@ -2310,6 +2312,11 @@ export const api = {
       body: JSON.stringify({ provider }),
     }),
   integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
+  savePerformanceProviderToken: (workspaceId: string, provider: PerformanceProvider, token: string) =>
+    request<PerformanceConnection[]>(`/workspaces/${workspaceId}/performance/connections/${provider}/token`, {
+      method: "PUT",
+      body: JSON.stringify({ token }),
+    }),
   listInstagramPosts: (workspaceId: string, days = 90) =>
     request<InstagramPostSummary[]>(`/workspaces/${workspaceId}/content/instagram-posts?days=${days}`),
   listContentHookBank: (workspaceId: string) =>

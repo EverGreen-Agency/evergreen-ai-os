@@ -3997,6 +3997,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspace_id}/performance/connections/{provider}/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Provider Token
+         * @description Salva o token de um CRM token-based (RD Station, HubSpot), cifrado.
+         *
+         *     O token nunca volta na resposta: a listagem devolve só o estado da conexão.
+         */
+        put: operations["save_provider_token_workspaces__workspace_id__performance_connections__provider__token_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/projects": {
         parameters: {
             query?: never;
@@ -7494,7 +7516,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "rd_station_crm" | "hubspot";
             /**
              * Status
              * @default active
@@ -7541,7 +7563,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "rd_station_crm" | "hubspot";
             /**
              * Status
              * @enum {string}
@@ -7739,7 +7761,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "all";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "rd_station_crm" | "hubspot" | "all";
         };
         /** PerformanceSyncRunSummary */
         PerformanceSyncRunSummary: {
@@ -9321,6 +9343,11 @@ export interface components {
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
         };
+        /** ProviderTokenRequest */
+        ProviderTokenRequest: {
+            /** Token */
+            token: string;
+        };
         /** PublicProposalLifecycleRecord */
         PublicProposalLifecycleRecord: {
             /**
@@ -10317,7 +10344,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "rd_station_crm" | "hubspot";
             /**
              * Status
              * @enum {string}
@@ -20956,6 +20983,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_provider_token_workspaces__workspace_id__performance_connections__provider__token_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceConnectionSummary"][];
                 };
             };
             /** @description Validation Error */

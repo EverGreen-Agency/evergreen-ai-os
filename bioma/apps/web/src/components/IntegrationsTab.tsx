@@ -16,6 +16,7 @@ import {
   useIntegrationsStatus,
   usePerformanceConnections,
   useRequestPerformanceSync,
+  useSavePerformanceProviderToken,
   useUpdatePerformanceConnection,
   useKommoConfig,
   useSetupKommoConfig,
@@ -26,16 +27,19 @@ import { api, apiUrl } from "../lib/api";
 import { useEffect } from "react";
 import { WhatsAppManager } from "./WhatsAppManager";
 import { StatusPill } from "./StatusPill";
+import { IntegrationGuide } from "./IntegrationGuide";
 import {
   Ga4Icon,
   GoogleAdSenseIcon,
   GoogleAdsIcon,
   GoogleBusinessProfileIcon,
   GtmIcon,
+  HubSpotIcon,
   InstagramIcon,
   KommoIcon,
   LinkedInAdsIcon,
   MetaAdsIcon,
+  RdStationIcon,
   SearchConsoleIcon,
   TikTokIcon,
   YouTubeIcon,
@@ -49,6 +53,8 @@ const PROVIDER_META: Record<PerformanceProvider, {
   parentLabel?: string;
   parentPlaceholder?: string;
   oauthConnect?: boolean;
+  /** CRMs que autenticam por token colado (não OAuth, não account id). */
+  tokenConnect?: { label: string; placeholder: string };
 }> = {
   google_ads: {
     label: "Google Ads",
@@ -135,6 +141,20 @@ const PROVIDER_META: Record<PerformanceProvider, {
     accountPlaceholder: "",
     oauthConnect: true,
   },
+  rd_station_crm: {
+    label: "RD Station CRM",
+    icon: RdStationIcon,
+    accountLabel: "Conexão por token",
+    accountPlaceholder: "",
+    tokenConnect: { label: "Token da instância", placeholder: "Cole o token gerado no RD Station CRM" },
+  },
+  hubspot: {
+    label: "HubSpot",
+    icon: HubSpotIcon,
+    accountLabel: "Conexão por token",
+    accountPlaceholder: "",
+    tokenConnect: { label: "Token do app privado", placeholder: "pat-na1-..." },
+  },
 };
 
 const PROVIDERS = Object.keys(PROVIDER_META) as PerformanceProvider[];
@@ -170,6 +190,7 @@ export function IntegrationsTab({
   const createConnection = useCreatePerformanceConnection();
   const updateConnection = useUpdatePerformanceConnection();
   const requestSync = useRequestPerformanceSync();
+  const saveProviderToken = useSavePerformanceProviderToken();
 
   const [oppPlatforms, setOppPlatforms] = useState<OpportunityPlatformConfig[]>([]);
   const [editingPlatformKey, setEditingPlatformKey] = useState<string | null>(null);
@@ -214,6 +235,7 @@ export function IntegrationsTab({
   }
 
   const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
+  const [providerToken, setProviderToken] = useState("");
   const [accountId, setAccountId] = useState("");
   const [parentId, setParentId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -231,8 +253,15 @@ export function IntegrationsTab({
   const [kommoSubdomain, setKommoSubdomain] = useState("");
   const [isEditingKommo, setIsEditingKommo] = useState(false);
 
+  // Um único consentimento OAuth pode devolver várias contas (ex: TikTok Ads
+  // com N advertisers, LinkedIn com N organizações administradas). Guardamos
+  // uma conexão por conta, então o card precisa listar todas — senão as
+  // demais sincronizam invisíveis.
+  const connectionsFor = (provider: PerformanceProvider) =>
+    connections.filter((connection) => connection.provider === provider);
+
   const connectionFor = (provider: PerformanceProvider) =>
-    connections.find((connection) => connection.provider === provider) ?? null;
+    connectionsFor(provider)[0] ?? null;
 
   function startEdit(provider: PerformanceProvider) {
     const existing = connectionFor(provider);
@@ -247,6 +276,16 @@ export function IntegrationsTab({
     setAccountId("");
     setParentId("");
     setDisplayName("");
+    setProviderToken("");
+  }
+
+  function handleSaveProviderToken(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedClientId || !editingProvider || !providerToken.trim()) return;
+    saveProviderToken.mutate(
+      { workspaceId: selectedClientId, provider: editingProvider, token: providerToken.trim() },
+      { onSuccess: cancelEdit },
+    );
   }
 
   function startEditKommo() {
@@ -497,51 +536,119 @@ export function IntegrationsTab({
                 {PROVIDERS.map((provider) => {
                   const meta = PROVIDER_META[provider];
                   const Icon = meta.icon;
-                  const connection = connectionFor(provider);
+                  const providerConnections = connectionsFor(provider);
+                  const connection = providerConnections[0] ?? null;
+                  const hasActive = providerConnections.some((item) => item.status === "active");
                   const isEditing = editingProvider === provider;
                   return (
                     <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                          <span style={{ display: "inline-flex", opacity: connection?.status === "active" ? 1 : 0.5 }}>
+                          <span style={{ display: "inline-flex", opacity: hasActive ? 1 : 0.5 }}>
                             <Icon size={20} />
                           </span>
                           <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>{meta.label}</h4>
                         </div>
-                        <ConnectionStatusPill connection={connection} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {providerConnections.length > 1 && (
+                            <span className="demo-badge">{providerConnections.length} contas</span>
+                          )}
+                          <ConnectionStatusPill connection={connection} />
+                        </div>
                       </div>
+
+                      <IntegrationGuide provider={provider} label={meta.label} />
 
                       {loadingConnections && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
 
-                      {!isEditing && connection && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", display: "grid", gap: 4 }}>
-                          <div>{meta.accountLabel}: <strong>{connection.external_account_id}</strong></div>
-                          {connection.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{connection.external_parent_id}</strong></div>}
-                          {connection.display_name && <div>Nome: <strong>{connection.display_name}</strong></div>}
+                      {!isEditing && providerConnections.map((item) => (
+                        <div
+                          key={item.id}
+                          style={{
+                            fontSize: 12,
+                            color: "var(--text-muted)",
+                            display: "grid",
+                            gap: 4,
+                            paddingTop: providerConnections.length > 1 ? 8 : 0,
+                            borderTop: providerConnections.length > 1 ? "1px solid var(--border)" : undefined,
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                            <span>
+                              {meta.tokenConnect
+                                ? "Token configurado e cifrado"
+                                : <>{meta.accountLabel}: <strong>{item.external_account_id}</strong></>}
+                            </span>
+                            {providerConnections.length > 1 && <ConnectionStatusPill connection={item} />}
+                          </div>
+                          {item.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{item.external_parent_id}</strong></div>}
+                          {item.display_name && <div>Nome: <strong>{item.display_name}</strong></div>}
                           <div>
                             Último sync:{" "}
-                            <strong>{connection.last_synced_at ? formatDateTime(connection.last_synced_at) : "nunca"}</strong>
+                            <strong>{item.last_synced_at ? formatDateTime(item.last_synced_at) : "nunca"}</strong>
                           </div>
-                          {connection.last_error_message && (
-                            <div style={{ color: "var(--danger-soft)" }}>Erro: {connection.last_error_message}</div>
+                          {item.last_error_message && (
+                            <div style={{ color: "var(--danger-soft)" }}>Erro: {item.last_error_message}</div>
                           )}
-                          {!connection.credentials_configured && (
-                            <div style={{ color: "var(--amber-soft)" }}>
-                              Credencial Google (service account) ainda não configurada no worker.
-                            </div>
+                          {providerConnections.length > 1 && (
+                            <button
+                              className="mini-button"
+                              type="button"
+                              style={{ width: "fit-content", marginTop: 4 }}
+                              onClick={() => handleToggleStatus(item)}
+                              disabled={updateConnection.isPending}
+                            >
+                              {item.status === "active" ? "Desativar esta conta" : "Reativar esta conta"}
+                            </button>
                           )}
                         </div>
-                      )}
+                      ))}
 
-                      {!isEditing && !connection && (
+                      {!isEditing && providerConnections.length === 0 && (
                         <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
                           {meta.oauthConnect
                             ? `Nenhuma conta ${meta.label} conectada. A conexão exige autorização OAuth — clique em "Conectar via OAuth" abaixo.`
-                            : `Nenhuma conta ${meta.label} mapeada para ${selectedClient.name}.`}
+                            : meta.tokenConnect
+                              ? `${meta.label} ainda não conectado. Siga o guia acima para gerar o token e cole-o aqui.`
+                              : `Nenhuma conta ${meta.label} mapeada para ${selectedClient.name}.`}
                         </div>
                       )}
 
-                      {isEditing && !meta.oauthConnect && (
+                      {isEditing && meta.tokenConnect && (
+                        <form onSubmit={handleSaveProviderToken} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          <div>
+                            <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>
+                              {meta.tokenConnect.label}
+                            </label>
+                            <input
+                              type="password"
+                              value={providerToken}
+                              onChange={(event) => setProviderToken(event.target.value)}
+                              placeholder={meta.tokenConnect.placeholder}
+                              style={inputStyle}
+                              required
+                            />
+                            <p style={{ fontSize: 11, color: "var(--text-faint)", margin: "6px 0 0" }}>
+                              O token é gravado cifrado e nunca é exibido de volta. Para trocar, basta colar um novo.
+                            </p>
+                          </div>
+                          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                            <button className="primary-button" type="submit" disabled={saveProviderToken.isPending} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                              {saveProviderToken.isPending ? "Salvando..." : "Salvar token"}
+                            </button>
+                            <button className="ghost-button" type="button" onClick={cancelEdit} style={{ padding: 8, fontSize: 13 }}>
+                              Cancelar
+                            </button>
+                          </div>
+                          {saveProviderToken.isError && (
+                            <div className="notice error" style={{ fontSize: 12 }}>
+                              {(saveProviderToken.error as Error)?.message ?? "Não foi possível salvar o token."}
+                            </div>
+                          )}
+                        </form>
+                      )}
+
+                      {isEditing && !meta.oauthConnect && !meta.tokenConnect && (
                         <form onSubmit={handleSaveConnection} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                           <div>
                             <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>{meta.accountLabel}</label>
@@ -594,29 +701,32 @@ export function IntegrationsTab({
                               <PenLine size={13} />
                               {connection ? "Reconectar via OAuth" : "Conectar via OAuth"}
                             </a>
+                          ) : meta.tokenConnect ? (
+                            <button className="mini-button" type="button" onClick={() => { setEditingProvider(provider); setProviderToken(""); }}>
+                              {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                              {connection ? "Trocar token" : "Conectar com token"}
+                            </button>
                           ) : (
                             <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
                               {connection ? <PenLine size={13} /> : <Plus size={13} />}
                               {connection ? "Editar" : "Conectar"}
                             </button>
                           )}
-                          {connection && (
-                            <>
-                              <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
-                                {connection.status === "active" ? "Desativar" : "Reativar"}
-                              </button>
-                              {connection.status === "active" && (
-                                <button
-                                  className="mini-button approve"
-                                  type="button"
-                                  onClick={() => handleProviderSync(provider)}
-                                  disabled={requestSync.isPending}
-                                >
-                                  <RefreshCw size={13} />
-                                  Sincronizar
-                                </button>
-                              )}
-                            </>
+                          {connection && providerConnections.length === 1 && (
+                            <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
+                              {connection.status === "active" ? "Desativar" : "Reativar"}
+                            </button>
+                          )}
+                          {hasActive && (
+                            <button
+                              className="mini-button approve"
+                              type="button"
+                              onClick={() => handleProviderSync(provider)}
+                              disabled={requestSync.isPending}
+                            >
+                              <RefreshCw size={13} />
+                              {providerConnections.length > 1 ? "Sincronizar todas" : "Sincronizar"}
+                            </button>
                           )}
                         </div>
                       )}

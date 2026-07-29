@@ -155,8 +155,8 @@ def _sync_provider(
     date_to: date,
 ) -> int:
     from bioma_worker.providers import (
-        adsense, ga4, google_ads, google_business_profile, gtm, instagram_organic,
-        linkedin_ads, linkedin_organic, meta_ads, search_console, tiktok_ads,
+        adsense, ga4, google_ads, google_business_profile, gtm, hubspot, instagram_organic,
+        linkedin_ads, linkedin_organic, meta_ads, rd_station_crm, search_console, tiktok_ads,
         tiktok_organic, youtube_organic,
     )
     provider = connection["provider"]
@@ -186,6 +186,10 @@ def _sync_provider(
         return tiktok_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     if provider == "linkedin_organic":
         return linkedin_organic.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
+    if provider == "rd_station_crm":
+        return rd_station_crm.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
+    if provider == "hubspot":
+        return hubspot.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     raise RuntimeError(f"Provider não suportado: {provider}")
 
 

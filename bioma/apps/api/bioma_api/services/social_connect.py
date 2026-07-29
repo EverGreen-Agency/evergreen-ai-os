@@ -16,6 +16,37 @@ from bioma_api.schemas.auth import CurrentUserResponse
 
 OAUTH_PROVIDERS = ("tiktok_organic", "tiktok_ads", "linkedin_organic")
 
+# CRMs que autenticam por token estático por conta (não OAuth): o token é
+# colado pelo operador e guardado cifrado, igual ao padrão do Kommo.
+TOKEN_PROVIDERS = ("rd_station_crm", "hubspot")
+
+TOKEN_PROVIDER_LABELS = {
+    "rd_station_crm": "RD Station CRM",
+    "hubspot": "HubSpot",
+}
+
+
+def save_provider_token(conn, client: dict, provider: str, token: str) -> UUID:
+    """Grava o token de um CRM token-based, cifrado, numa performance_connection."""
+    if provider not in TOKEN_PROVIDERS:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Provider não usa token estático.")
+    require_encryption_configured()
+    cleaned = token.strip()
+    if not cleaned:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Token vazio.")
+
+    label = TOKEN_PROVIDER_LABELS[provider]
+    return performance_repo.create_connection(conn, client["id"], client["organization_id"], {
+        "provider": provider,
+        # Token-based não expõe um "account id" na autenticação; usamos o
+        # próprio workspace como identificador estável da conexão, pra manter
+        # o unique (client_id, provider, external_account_id) previsível.
+        "external_account_id": str(client["workspace_id"]),
+        "display_name": label,
+        "status": "active",
+        "metadata": {"api_token": encrypt_secret(cleaned)},
+    })
+
 
 def new_state() -> str:
     return secrets.token_urlsafe(24)

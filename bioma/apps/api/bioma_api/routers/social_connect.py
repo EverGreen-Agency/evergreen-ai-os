@@ -2,14 +2,21 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel, Field
 
 from bioma_api.auth import current_user_from_request
 from bioma_api.config import get_settings
 from bioma_api.db import connect
 from bioma_api.schemas.auth import CurrentUserResponse
+from bioma_api.schemas.performance import PerformanceConnectionSummary
+from bioma_api.services import performance as performance_service
 from bioma_api.services import social_connect as service
 
 router = APIRouter(tags=["social-connect"])
+
+
+class ProviderTokenRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=2000)
 
 STATE_COOKIE = "bioma_social_oauth_state"
 
@@ -52,6 +59,28 @@ def authorize(
         path="/integrations/social-connect",
     )
     return response
+
+
+@router.put(
+    "/workspaces/{workspace_id}/performance/connections/{provider}/token",
+    response_model=list[PerformanceConnectionSummary],
+)
+def save_provider_token(
+    workspace_id: UUID,
+    provider: str,
+    payload: ProviderTokenRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PerformanceConnectionSummary]:
+    """Salva o token de um CRM token-based (RD Station, HubSpot), cifrado.
+
+    O token nunca volta na resposta: a listagem devolve só o estado da conexão.
+    """
+    if provider not in service.TOKEN_PROVIDERS:
+        raise HTTPException(status_code=404, detail="Provider não usa token estático.")
+    with connect() as conn:
+        client = service.resolve_client(conn, workspace_id, user)
+        service.save_provider_token(conn, client, provider, payload.token)
+    return performance_service.list_connections(workspace_id, user)
 
 
 @router.get("/integrations/social-connect/{provider}/callback")
