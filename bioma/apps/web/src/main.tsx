@@ -19,6 +19,21 @@ function handleSessionError(client: QueryClient, error: unknown): boolean {
 }
 
 const queryClient: QueryClient = new QueryClient({
+  // Sem defaultOptions o React Query usa staleTime: 0 e
+  // refetchOnWindowFocus: true — ou seja, TODA remontagem de componente e
+  // TODO retorno de aba refazia todas as requisições da tela. Era isso que
+  // fazia a tela de Tarefas "carregar e carregar" a cada troca de aba.
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      // Voltar para a aba não precisa refazer tudo; os dados de 1 min atrás
+      // servem, e mutações já invalidam o que muda de fato.
+      refetchOnWindowFocus: false,
+      // Ao refazer, mantém o dado anterior na tela em vez de piscar vazio.
+      placeholderData: <T,>(previous: T) => previous,
+      retry: 1,
+    },
+  },
   queryCache: new QueryCache({
     onError: (error) => {
       handleSessionError(queryClient, error);
