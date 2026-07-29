@@ -25,3 +25,9 @@ def new_session_token() -> str:
 
 def hash_session_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def new_personal_access_token() -> str:
+    # Prefixo reconhecível (padrão GitHub/Stripe) — ajuda a identificar o
+    # segredo em logs/scanners antes mesmo de saber que é do Bioma.
+    return f"bioma_pat_{secrets.token_urlsafe(40)}"

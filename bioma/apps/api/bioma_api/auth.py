@@ -9,6 +9,10 @@ from bioma_api.schemas.auth import CurrentUserResponse, OrganizationSummary
 
 
 def current_user_from_request(request: Request) -> CurrentUserResponse:
+    auth_header = request.headers.get("authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        return _user_from_personal_access_token(auth_header[len("Bearer "):].strip())
+
     settings = get_settings()
     token = request.cookies.get(settings.session_cookie_name)
     if not token:
@@ -43,22 +47,55 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
                 (token_hash,),
             )
 
-        memberships = conn.execute(
+        return _build_current_user(
+            conn, session["user_id"], session["email"], session["display_name"], session["has_password"],
+        )
+
+
+def _user_from_personal_access_token(token: str) -> CurrentUserResponse:
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token de acesso pessoal ausente.")
+    token_hash = hash_session_token(token)
+    with connect() as conn:
+        pat = conn.execute(
             """
-            select o.id, o.name, o.slug, m.role, o.enabled_modules
-            from memberships m
-            join organizations o on o.id = m.organization_id
-            where m.user_id = %s
-            order by o.type, o.name
+            select p.user_id, u.email, u.display_name, u.password_hash is not null as has_password
+            from personal_access_tokens p
+            join users u on u.id = p.user_id
+            where p.token_hash = %s
+              and p.revoked_at is null
+              and (p.expires_at is null or p.expires_at > now())
+              and u.is_active = true
             """,
-            (session["user_id"],),
-        ).fetchall()
+            (token_hash,),
+        ).fetchone()
+        if not pat:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token de acesso pessoal inválido, expirado ou revogado.")
+
+        conn.execute(
+            "update personal_access_tokens set last_used_at = now() where token_hash = %s",
+            (token_hash,),
+        )
+        return _build_current_user(conn, pat["user_id"], pat["email"], pat["display_name"], pat["has_password"])
+
+
+def _build_current_user(conn, user_id, email: str, display_name: str, has_password: bool) -> CurrentUserResponse:
+    memberships = conn.execute(
+        """
+        select o.id, o.name, o.slug, m.role, o.enabled_modules
+        from memberships m
+        join organizations o on o.id = m.organization_id
+        where m.user_id = %s
+        order by o.type, o.name
+        """,
+        (user_id,),
+    ).fetchall()
 
     return CurrentUserResponse(
-        id=session["user_id"],
-        email=session["email"],
-        display_name=session["display_name"],
-        has_password=session["has_password"],
+        id=user_id,
+        email=email,
+        display_name=display_name,
+        has_password=has_password,
         organizations=[OrganizationSummary(**row) for row in memberships],
     )
 

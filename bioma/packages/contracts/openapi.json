@@ -9846,6 +9846,105 @@
         "title": "PerformanceSyncRunSummary",
         "type": "object"
       },
+      "PersonalAccessTokenCreateRequest": {
+        "properties": {
+          "expires_in_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In Days"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "PersonalAccessTokenCreateRequest",
+        "type": "object"
+      },
+      "PersonalAccessTokenCreatedResponse": {
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/PersonalAccessTokenSummary"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "summary"
+        ],
+        "title": "PersonalAccessTokenCreatedResponse",
+        "type": "object"
+      },
+      "PersonalAccessTokenSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "token_prefix": {
+            "title": "Token Prefix",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "token_prefix",
+          "created_at"
+        ],
+        "title": "PersonalAccessTokenSummary",
+        "type": "object"
+      },
       "PipelineMetrics": {
         "properties": {
           "active_leads": {
@@ -21427,6 +21526,116 @@
         "summary": "Confirm Reset",
         "tags": [
           "passwords"
+        ]
+      }
+    },
+    "/auth/personal-access-tokens": {
+      "get": {
+        "operationId": "list_personal_access_tokens_auth_personal_access_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonalAccessTokenSummary"
+                  },
+                  "title": "Response List Personal Access Tokens Auth Personal Access Tokens Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Personal Access Tokens",
+        "tags": [
+          "auth"
+        ]
+      },
+      "post": {
+        "operationId": "create_personal_access_token_auth_personal_access_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalAccessTokenCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalAccessTokenCreatedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Personal Access Token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/personal-access-tokens/{token_id}": {
+      "delete": {
+        "operationId": "revoke_personal_access_token_auth_personal_access_tokens__token_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "title": "Token Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Revoke Personal Access Token Auth Personal Access Tokens  Token Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Personal Access Token",
+        "tags": [
+          "auth"
         ]
       }
     },

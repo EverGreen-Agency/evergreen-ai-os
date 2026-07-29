@@ -259,6 +259,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/personal-access-tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Personal Access Tokens */
+        get: operations["list_personal_access_tokens_auth_personal_access_tokens_get"];
+        put?: never;
+        /** Create Personal Access Token */
+        post: operations["create_personal_access_token_auth_personal_access_tokens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/personal-access-tokens/{token_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Personal Access Token */
+        delete: operations["revoke_personal_access_token_auth_personal_access_tokens__token_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/sessions": {
         parameters: {
             query?: never;
@@ -7711,6 +7746,40 @@ export interface components {
              */
             workspace_id: string;
         };
+        /** PersonalAccessTokenCreateRequest */
+        PersonalAccessTokenCreateRequest: {
+            /** Expires In Days */
+            expires_in_days?: number | null;
+            /** Name */
+            name: string;
+        };
+        /** PersonalAccessTokenCreatedResponse */
+        PersonalAccessTokenCreatedResponse: {
+            summary: components["schemas"]["PersonalAccessTokenSummary"];
+            /** Token */
+            token: string;
+        };
+        /** PersonalAccessTokenSummary */
+        PersonalAccessTokenSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /** Name */
+            name: string;
+            /** Token Prefix */
+            token_prefix: string;
+        };
         /** PipelineMetrics */
         PipelineMetrics: {
             /** Active Leads */
@@ -11995,6 +12064,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_personal_access_tokens_auth_personal_access_tokens_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalAccessTokenSummary"][];
+                };
+            };
+        };
+    };
+    create_personal_access_token_auth_personal_access_tokens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalAccessTokenCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalAccessTokenCreatedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_personal_access_token_auth_personal_access_tokens__token_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */

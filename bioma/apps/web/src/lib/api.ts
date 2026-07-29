@@ -1026,6 +1026,20 @@ export type IntegrationsStatus = {
   app_env: string;
 };
 
+export type PersonalAccessTokenSummary = {
+  id: string;
+  name: string;
+  token_prefix: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+};
+
+export type PersonalAccessTokenCreatedResponse = {
+  token: string;
+  summary: PersonalAccessTokenSummary;
+};
+
 export type CockpitPortfolioSummary = {
   monthly_revenue_cents: number;
   mrr_cents: number;
@@ -1791,6 +1805,14 @@ export const api = {
   sessions: () => request<Array<{ id: string; created_at: string; expires_at: string; is_current: boolean }>>("/auth/sessions"),
   revokeSession: (sessionId: string) => request<{ status: string }>(`/auth/sessions/${sessionId}`, { method: "DELETE" }),
   revokeOtherSessions: () => request<{ status: string }>("/auth/sessions/other", { method: "DELETE" }),
+  personalAccessTokens: () => request<PersonalAccessTokenSummary[]>("/auth/personal-access-tokens"),
+  createPersonalAccessToken: (name: string, expiresInDays?: number | null) =>
+    request<PersonalAccessTokenCreatedResponse>("/auth/personal-access-tokens", {
+      method: "POST",
+      body: JSON.stringify({ name, expires_in_days: expiresInDays ?? null }),
+    }),
+  revokePersonalAccessToken: (tokenId: string) =>
+    request<{ status: string }>(`/auth/personal-access-tokens/${tokenId}`, { method: "DELETE" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   teams: (tenantOrganizationId: string) =>
     request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),

@@ -244,6 +244,34 @@ export function useRevokeOtherSessions() {
   });
 }
 
+export function usePersonalAccessTokens() {
+  return useQuery({
+    queryKey: ["personal-access-tokens"],
+    queryFn: api.personalAccessTokens,
+  });
+}
+
+export function useCreatePersonalAccessToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, expiresInDays }: { name: string; expiresInDays?: number | null }) =>
+      api.createPersonalAccessToken(name, expiresInDays),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["personal-access-tokens"] });
+    },
+  });
+}
+
+export function useRevokePersonalAccessToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tokenId: string) => api.revokePersonalAccessToken(tokenId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["personal-access-tokens"] });
+    },
+  });
+}
+
 // --- INVITES ---
 
 export function useCreateInvite() {
