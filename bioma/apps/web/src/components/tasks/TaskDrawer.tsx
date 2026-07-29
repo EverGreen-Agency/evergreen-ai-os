@@ -1,7 +1,122 @@
 import { useState, useEffect } from "react";
-import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat } from "lucide-react";
-import { useCreateTask, useUpdateTask, useDeleteTask, useTasksInList } from "../../hooks/useBiomaApi";
+import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff } from "lucide-react";
+import {
+  useCreateTask,
+  useCreateTaskComment,
+  useDeleteTask,
+  useDeleteTaskComment,
+  useTaskComments,
+  useTasksInList,
+  useUpdateTask,
+} from "../../hooks/useBiomaApi";
 import type { TaskDependency, TaskGroupStatus, TaskPriority, TaskCustomField, TaskSubtaskInput } from "../../lib/api";
+
+/** Substitui o "chat da tarefa" do ClickUp: histórico preso à tarefa em vez de
+ *  espalhado no WhatsApp. Comentário nasce interno; só vai ao cliente quando
+ *  marcado de propósito, porque o Hub é o mesmo lugar onde ele aprova. */
+function TaskCommentsSection({ taskId }: { taskId: string }) {
+  const { data: comments = [], isLoading } = useTaskComments(taskId);
+  const createComment = useCreateTaskComment();
+  const deleteComment = useDeleteTaskComment();
+  const [body, setBody] = useState("");
+  const [clientVisible, setClientVisible] = useState(false);
+
+  function submit() {
+    if (!body.trim()) return;
+    createComment.mutate(
+      { taskId, body: body.trim(), clientVisible },
+      { onSuccess: () => { setBody(""); setClientVisible(false); } },
+    );
+  }
+
+  return (
+    <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+        <MessageSquare size={14} /> Conversa ({comments.length})
+      </h3>
+
+      {isLoading && <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</span>}
+
+      {!isLoading && comments.length === 0 && (
+        <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
+          Nenhum comentário. O histórico desta tarefa fica aqui, não no WhatsApp.
+        </span>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {comments.map((comment) => (
+          <div
+            key={comment.id}
+            style={{
+              background: "var(--surface-color)",
+              border: "1px solid var(--border-color)",
+              borderRadius: 4,
+              padding: "8px 10px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <strong style={{ fontSize: 12 }}>{comment.author_name ?? "Usuário removido"}</strong>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
+                  {new Date(comment.created_at).toLocaleString("pt-BR")}
+                </span>
+                {comment.client_visible ? (
+                  <span title="Visível para o cliente" style={{ display: "inline-flex", color: "var(--accent)" }}>
+                    <Eye size={12} />
+                  </span>
+                ) : (
+                  <span title="Interno da EG" style={{ display: "inline-flex", color: "var(--text-faint)" }}>
+                    <EyeOff size={12} />
+                  </span>
+                )}
+                <button
+                  className="icon-button danger"
+                  type="button"
+                  style={{ padding: 2 }}
+                  title="Excluir comentário"
+                  onClick={() => deleteComment.mutate({ commentId: comment.id, taskId })}
+                  disabled={deleteComment.isPending}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, whiteSpace: "pre-wrap" }}>{comment.body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <textarea
+          className="text-input"
+          style={{ minHeight: 60, resize: "vertical", fontSize: 13 }}
+          placeholder="Escreva um comentário..."
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-dim)", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={clientVisible}
+              onChange={(event) => setClientVisible(event.target.checked)}
+            />
+            Visível para o cliente
+          </label>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={submit}
+            disabled={createComment.isPending || !body.trim()}
+            style={{ padding: "4px 12px", fontSize: 12 }}
+          >
+            <Send size={13} /> {createComment.isPending ? "Enviando..." : "Comentar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type TaskDrawerProps = {
   listId: string;
@@ -262,7 +377,15 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
 
           {/* Subtarefas / Checklists */}
           <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Checklist de Subtarefas</h3>
+            {/* Manual v2: isto é CHECKLIST — etapas da mesma tarefa, mesmo
+                responsável e mesmo prazo. Quando o trabalho troca de mão ou de
+                prazo, o certo é criar uma subtarefa (tarefa com pai), que
+                aparece no Kanban da equipe que assumiu. */}
+            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Checklist</h3>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -6 }}>
+              Etapas desta mesma tarefa. Se mudar o responsável ou o prazo, crie
+              uma subtarefa em vez de um item aqui.
+            </span>
             
             <div style={{ display: "flex", gap: 8 }}>
               <input 
@@ -361,17 +484,24 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             </label>
           </div>
 
+          {/* Manual v2: a descrição É a Definição de Pronto — o critério que
+              autoriza mover para DONE, não um campo de texto solto. */}
           <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Descrição / Copy</span>
-            <textarea 
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Definição de Pronto</span>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -4 }}>
+              O que precisa ser verdade para esta tarefa poder ser fechada.
+            </span>
+            <textarea
               className="text-input"
               style={{ minHeight: 100, resize: "vertical" }}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detalhes ou roteiro da tarefa..."
+              placeholder="Ex: testes passam, PR aprovado e deploy em staging validado."
               disabled={isBusy}
             />
           </label>
+
+          {taskId && <TaskCommentsSection taskId={taskId} />}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>

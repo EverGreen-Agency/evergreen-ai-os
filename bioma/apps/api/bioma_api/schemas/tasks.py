@@ -32,8 +32,28 @@ class TaskSubtask(TaskSubtaskBase):
     created_at: datetime
     updated_at: datetime
 
+class TaskCommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=10_000)
+    # Padrão interno: o Hub do Cliente é o mesmo lugar onde ele aprova, então
+    # comentário só chega ao cliente quando marcado de propósito.
+    client_visible: bool = False
+
+
+class TaskComment(BaseModel):
+    id: UUID
+    task_id: UUID
+    author_id: Optional[UUID] = None
+    author_name: Optional[str] = None
+    body: str
+    client_visible: bool
+    created_at: datetime
+    updated_at: datetime
+
+
 class TaskBase(BaseModel):
     title: str
+    # A descrição é a Definição de Pronto (Manual Operacional Bioma v2): é o
+    # critério que autoriza mover a tarefa para DONE, não um campo livre.
     description: Optional[str] = None
     status: str
     group_status: Literal["NOT_STARTED", "ACTIVE", "DONE", "CLOSED"]
@@ -42,6 +62,11 @@ class TaskBase(BaseModel):
     owner_id: Optional[UUID] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = "none"
+    # Frente (lista) define os status; projeto define escopo/contrato/datas.
+    project_id: Optional[UUID] = None
+    # Subtarefa real: preenchido quando o trabalho trocou de responsável ou de
+    # prazo. Para etapas internas sem troca de mão, use `subtasks` (checklist).
+    parent_task_id: Optional[UUID] = None
 
 class TaskCreate(TaskBase):
     custom_fields: list[TaskCustomFieldBase] = Field(default_factory=list)
@@ -58,6 +83,8 @@ class TaskUpdate(BaseModel):
     owner_id: Optional[UUID] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = None
+    project_id: Optional[UUID] = None
+    parent_task_id: Optional[UUID] = None
     custom_fields: Optional[list[TaskCustomFieldBase]] = None
     dependencies: Optional[list[TaskDependencyBase]] = None
     subtasks: Optional[list[TaskSubtaskInput]] = None

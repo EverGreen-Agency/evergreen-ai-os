@@ -3102,6 +3102,23 @@ export interface paths {
         patch: operations["toggle_subtask_subtasks__subtask_id__toggle_patch"];
         trace?: never;
     };
+    "/task-comments/{comment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Task Comment */
+        delete: operations["delete_task_comment_task_comments__comment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task-lists/{list_id}/tasks": {
         parameters: {
             query?: never;
@@ -3136,6 +3153,24 @@ export interface paths {
         head?: never;
         /** Update Task */
         patch: operations["update_task_tasks__task_id__patch"];
+        trace?: never;
+    };
+    "/tasks/{task_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Task Comments */
+        get: operations["list_task_comments_tasks__task_id__comments_get"];
+        put?: never;
+        /** Create Task Comment */
+        post: operations["create_task_comment_tasks__task_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/tasks/{task_id}/subtasks": {
@@ -11354,8 +11389,12 @@ export interface components {
             list_id: string;
             /** Owner Id */
             owner_id?: string | null;
+            /** Parent Task Id */
+            parent_task_id?: string | null;
             /** Priority */
             priority?: ("Alta" | "Média" | "Baixa") | null;
+            /** Project Id */
+            project_id?: string | null;
             /**
              * Recurrence
              * @default none
@@ -11372,6 +11411,47 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** TaskComment */
+        TaskComment: {
+            /** Author Id */
+            author_id?: string | null;
+            /** Author Name */
+            author_name?: string | null;
+            /** Body */
+            body: string;
+            /** Client Visible */
+            client_visible: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TaskCommentCreate */
+        TaskCommentCreate: {
+            /** Body */
+            body: string;
+            /**
+             * Client Visible
+             * @default false
+             */
+            client_visible: boolean;
         };
         /** TaskCreate */
         TaskCreate: {
@@ -11392,8 +11472,12 @@ export interface components {
             group_status: "NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED";
             /** Owner Id */
             owner_id?: string | null;
+            /** Parent Task Id */
+            parent_task_id?: string | null;
             /** Priority */
             priority?: ("Alta" | "Média" | "Baixa") | null;
+            /** Project Id */
+            project_id?: string | null;
             /**
              * Recurrence
              * @default none
@@ -11564,8 +11648,12 @@ export interface components {
             group_status?: ("NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED") | null;
             /** Owner Id */
             owner_id?: string | null;
+            /** Parent Task Id */
+            parent_task_id?: string | null;
             /** Priority */
             priority?: ("Alta" | "Média" | "Baixa") | null;
+            /** Project Id */
+            project_id?: string | null;
             /** Recurrence */
             recurrence?: ("none" | "weekly" | "monthly") | null;
             /** Status */
@@ -19192,6 +19280,35 @@ export interface operations {
             };
         };
     };
+    delete_task_comment_task_comments__comment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tasks_task_lists__list_id__tasks_get: {
         parameters: {
             query?: never;
@@ -19309,6 +19426,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_task_comments_tasks__task_id__comments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskComment"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_comment_tasks__task_id__comments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCommentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskComment"];
                 };
             };
             /** @description Validation Error */

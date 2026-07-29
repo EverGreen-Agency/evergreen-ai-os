@@ -19589,6 +19589,18 @@
             ],
             "title": "Owner Id"
           },
+          "parent_task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Task Id"
+          },
           "priority": {
             "anyOf": [
               {
@@ -19604,6 +19616,18 @@
               }
             ],
             "title": "Priority"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
           },
           "recurrence": {
             "anyOf": [
@@ -19653,6 +19677,91 @@
           "updated_at"
         ],
         "title": "Task",
+        "type": "object"
+      },
+      "TaskComment": {
+        "properties": {
+          "author_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Id"
+          },
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "client_visible": {
+            "title": "Client Visible",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "task_id": {
+            "format": "uuid",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "task_id",
+          "body",
+          "client_visible",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TaskComment",
+        "type": "object"
+      },
+      "TaskCommentCreate": {
+        "properties": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "client_visible": {
+            "default": false,
+            "title": "Client Visible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "TaskCommentCreate",
         "type": "object"
       },
       "TaskCreate": {
@@ -19728,6 +19837,18 @@
             ],
             "title": "Owner Id"
           },
+          "parent_task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Task Id"
+          },
           "priority": {
             "anyOf": [
               {
@@ -19743,6 +19864,18 @@
               }
             ],
             "title": "Priority"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
           },
           "recurrence": {
             "anyOf": [
@@ -20121,6 +20254,18 @@
             ],
             "title": "Owner Id"
           },
+          "parent_task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Task Id"
+          },
           "priority": {
             "anyOf": [
               {
@@ -20136,6 +20281,18 @@
               }
             ],
             "title": "Priority"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
           },
           "recurrence": {
             "anyOf": [
@@ -32288,6 +32445,42 @@
         ]
       }
     },
+    "/task-comments/{comment_id}": {
+      "delete": {
+        "operationId": "delete_task_comment_task_comments__comment_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Comment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Task Comment",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
     "/task-lists/{list_id}/tasks": {
       "get": {
         "operationId": "list_tasks_task_lists__list_id__tasks_get",
@@ -32468,6 +32661,104 @@
           }
         },
         "summary": "Update Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{task_id}/comments": {
+      "get": {
+        "operationId": "list_task_comments_tasks__task_id__comments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TaskComment"
+                  },
+                  "title": "Response List Task Comments Tasks  Task Id  Comments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Task Comments",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "post": {
+        "operationId": "create_task_comment_tasks__task_id__comments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCommentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskComment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Task Comment",
         "tags": [
           "tasks"
         ]

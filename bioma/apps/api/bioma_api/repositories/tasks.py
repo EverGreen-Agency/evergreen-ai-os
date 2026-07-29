@@ -3,9 +3,9 @@ from uuid import UUID
 
 
 TASK_COLUMNS = """
-  id, list_id, title, description, status, group_status, priority,
-  assignee_id, owner_id, due_date, recurrence, external_source, external_id,
-  created_at, updated_at
+  id, list_id, project_id, parent_task_id, title, description, status,
+  group_status, priority, assignee_id, owner_id, due_date, recurrence,
+  external_source, external_id, created_at, updated_at
 """
 
 
@@ -177,6 +177,29 @@ def user_can_belong_to_workspace(conn, workspace_id: UUID, user_id: UUID) -> boo
     return bool(row and row["allowed"])
 
 
+def project_belongs_to_workspace(conn, workspace_id: UUID, project_id: UUID) -> bool:
+    """Impede vincular a tarefa a um projeto de outro cliente."""
+    return conn.execute(
+        "select 1 from projects where id = %s and workspace_id = %s",
+        (project_id, workspace_id),
+    ).fetchone() is not None
+
+
+def parent_would_cycle(conn, task_id: UUID, parent_id: UUID) -> bool:
+    """Subir a cadeia de pais para não criar ciclo (A pai de B, B pai de A)."""
+    seen: set[UUID] = set()
+    current = parent_id
+    while current is not None:
+        if current == task_id:
+            return True
+        if current in seen:
+            return True
+        seen.add(current)
+        row = conn.execute("select parent_task_id from eg_tasks where id = %s", (current,)).fetchone()
+        current = row["parent_task_id"] if row else None
+    return False
+
+
 def task_ids_in_workspace(conn, workspace_id: UUID, task_ids: list[UUID]) -> set[UUID]:
     if not task_ids:
         return set()
@@ -213,13 +236,15 @@ def create_task(conn, list_id: UUID, values: dict):
     return conn.execute(
         f"""
         insert into eg_tasks (
-          list_id, title, description, status, group_status, priority,
-          assignee_id, owner_id, due_date, recurrence
-        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+          list_id, project_id, parent_task_id, title, description, status,
+          group_status, priority, assignee_id, owner_id, due_date, recurrence
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         returning {TASK_COLUMNS}
         """,
         (
             list_id,
+            values.get("project_id"),
+            values.get("parent_task_id"),
             values["title"],
             values.get("description"),
             values["status"],
@@ -237,6 +262,7 @@ def update_task(conn, task_id: UUID, updates: dict):
     allowed = {
         "title", "description", "status", "group_status", "priority",
         "assignee_id", "owner_id", "due_date", "recurrence",
+        "project_id", "parent_task_id",
     }
     selected = [(field, value) for field, value in updates.items() if field in allowed]
     if not selected:
@@ -373,3 +399,74 @@ def delete_subtask(conn, subtask_id: UUID) -> bool:
         "delete from eg_task_subtasks where id = %s returning id",
         (subtask_id,),
     ).fetchone() is not None
+
+
+COMMENT_COLUMNS = """
+  c.id, c.task_id, c.author_id, c.body, c.client_visible,
+  c.created_at, c.updated_at, u.display_name as author_name
+"""
+
+
+def list_task_comments(conn, task_id: UUID, include_internal: bool):
+    """Cliente só enxerga o que foi marcado como visível para ele."""
+    if include_internal:
+        return conn.execute(
+            f"""
+            select {COMMENT_COLUMNS}
+            from eg_task_comments c
+            left join users u on u.id = c.author_id
+            where c.task_id = %s
+            order by c.created_at asc
+            """,
+            (task_id,),
+        ).fetchall()
+    return conn.execute(
+        f"""
+        select {COMMENT_COLUMNS}
+        from eg_task_comments c
+        left join users u on u.id = c.author_id
+        where c.task_id = %s and c.client_visible = true
+        order by c.created_at asc
+        """,
+        (task_id,),
+    ).fetchall()
+
+
+def create_task_comment(conn, task_id: UUID, author_id: UUID, body: str, client_visible: bool):
+    row = conn.execute(
+        """
+        insert into eg_task_comments (task_id, author_id, body, client_visible)
+        values (%s, %s, %s, %s)
+        returning id
+        """,
+        (task_id, author_id, body, client_visible),
+    ).fetchone()
+    return conn.execute(
+        f"""
+        select {COMMENT_COLUMNS}
+        from eg_task_comments c
+        left join users u on u.id = c.author_id
+        where c.id = %s
+        """,
+        (row["id"],),
+    ).fetchone()
+
+
+def delete_task_comment(conn, comment_id: UUID, author_id: UUID, is_admin: bool) -> bool:
+    """Só o autor apaga o próprio comentário; admin de plataforma apaga qualquer um."""
+    if is_admin:
+        return conn.execute(
+            "delete from eg_task_comments where id = %s returning id",
+            (comment_id,),
+        ).fetchone() is not None
+    return conn.execute(
+        "delete from eg_task_comments where id = %s and author_id = %s returning id",
+        (comment_id, author_id),
+    ).fetchone() is not None
+
+
+def find_comment_task(conn, comment_id: UUID):
+    return conn.execute(
+        "select task_id from eg_task_comments where id = %s",
+        (comment_id,),
+    ).fetchone()

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTasksInList } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 type TaskCalendarViewProps = {
   listId: string;
@@ -11,7 +11,8 @@ type TaskCalendarViewProps = {
 export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
   const { data: tasks, isLoading } = useTasksInList(listId);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  
+  const [isCreating, setIsCreating] = useState(false);
+
   const [currentDate, setCurrentDate] = useState(new Date());
 
   if (isLoading) {
@@ -64,10 +65,14 @@ export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
             {monthNames[month]} {year}
           </h2>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button className="icon-button" type="button" onClick={prevMonth}><ChevronLeft size={18} /></button>
             <button className="secondary-button" type="button" onClick={() => setCurrentDate(new Date())} style={{ padding: "4px 12px", fontSize: 12 }}>Hoje</button>
             <button className="icon-button" type="button" onClick={nextMonth}><ChevronRight size={18} /></button>
+            {/* Criar tarefa existia só no Kanban; obrigava a trocar de visão. */}
+            <button className="mini-button" type="button" onClick={() => setIsCreating(true)}>
+              <Plus size={13} /> Nova tarefa
+            </button>
           </div>
         </div>
 
@@ -131,11 +136,14 @@ export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
         </div>
       </div>
 
-      {selectedTaskId && (
-        <TaskDrawer 
-          listId={listId} 
-          taskId={selectedTaskId} 
-          onClose={() => setSelectedTaskId(null)} 
+      {(selectedTaskId || isCreating) && (
+        <TaskDrawer
+          listId={listId}
+          taskId={selectedTaskId}
+          onClose={() => {
+            setSelectedTaskId(null);
+            setIsCreating(false);
+          }}
         />
       )}
     </>

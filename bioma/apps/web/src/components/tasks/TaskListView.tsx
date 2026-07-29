@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
-import type { TaskGroupStatus } from "../../lib/api";
 import { formatDueDate } from "../../lib/format";
-import { CheckSquare, Circle } from "lucide-react";
+import { CheckSquare, Circle, Plus } from "lucide-react";
 
 type TaskListViewProps = {
   listId: string;
@@ -14,13 +13,35 @@ export function TaskListView({ listId }: TaskListViewProps) {
   const { data: tasks, isLoading } = useTasksInList(listId);
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  // Criar tarefa existia só no Kanban; a lista e o calendário eram somente
+  // leitura, obrigando a trocar de visão só para adicionar algo.
+  const [isCreating, setIsCreating] = useState(false);
 
   if (isLoading) {
     return <EmptyState text="Carregando tarefas..." />;
   }
 
+  const newTaskButton = (
+    <button
+      className="mini-button"
+      type="button"
+      onClick={() => setIsCreating(true)}
+      style={{ width: "fit-content" }}
+    >
+      <Plus size={13} /> Nova tarefa
+    </button>
+  );
+
   if (!tasks || tasks.length === 0) {
-    return <EmptyState text="Nenhuma tarefa encontrada." />;
+    return (
+      <>
+        <EmptyState text="Nenhuma tarefa encontrada." />
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>{newTaskButton}</div>
+        {isCreating && (
+          <TaskDrawer listId={listId} taskId={null} onClose={() => setIsCreating(false)} />
+        )}
+      </>
+    );
   }
 
   // Ordenar: ativos primeiro, depois feitos
@@ -110,11 +131,16 @@ export function TaskListView({ listId }: TaskListViewProps) {
         </table>
       </div>
       
-      {selectedTaskId && (
-        <TaskDrawer 
-          listId={listId} 
-          taskId={selectedTaskId} 
-          onClose={() => setSelectedTaskId(null)} 
+      <div style={{ marginTop: 12 }}>{newTaskButton}</div>
+
+      {(selectedTaskId || isCreating) && (
+        <TaskDrawer
+          listId={listId}
+          taskId={selectedTaskId}
+          onClose={() => {
+            setSelectedTaskId(null);
+            setIsCreating(false);
+          }}
         />
       )}
     </>

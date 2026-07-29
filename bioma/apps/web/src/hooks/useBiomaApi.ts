@@ -824,10 +824,42 @@ export function useTasksInList(listId: string | null) {
 export function useCreateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) => 
+    mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) =>
       api.createTask(listId, payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", variables.listId] });
+    },
+  });
+}
+
+export function useTaskComments(taskId: string | null) {
+  return useQuery({
+    queryKey: ["task-comments", taskId],
+    queryFn: () => {
+      if (!taskId) throw new Error("No task ID provided");
+      return api.taskComments(taskId);
+    },
+    enabled: Boolean(taskId),
+  });
+}
+
+export function useCreateTaskComment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, body, clientVisible }: { taskId: string; body: string; clientVisible?: boolean }) =>
+      api.createTaskComment(taskId, body, clientVisible),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["task-comments", variables.taskId] });
+    },
+  });
+}
+
+export function useDeleteTaskComment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId }: { commentId: string; taskId: string }) => api.deleteTaskComment(commentId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["task-comments", variables.taskId] });
     },
   });
 }

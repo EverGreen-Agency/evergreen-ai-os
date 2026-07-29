@@ -1842,6 +1842,7 @@ export type TaskSubtaskInput = {
 
 export type TaskPayload = {
   title: string;
+  /** Definição de Pronto — critério que autoriza mover a tarefa para DONE. */
   description?: string | null;
   status: string;
   group_status: TaskGroupStatus;
@@ -1850,9 +1851,25 @@ export type TaskPayload = {
   owner_id?: string | null;
   due_date?: string | null;
   recurrence?: "none" | "weekly" | "monthly" | null;
+  /** Frente (lista) define os status; projeto define escopo/contrato/datas. */
+  project_id?: string | null;
+  /** Subtarefa real: trocou de responsável ou prazo. Checklist é `subtasks`. */
+  parent_task_id?: string | null;
   custom_fields?: TaskCustomField[];
   dependencies?: TaskDependency[];
+  /** Itens de CHECKLIST (etapas da mesma tarefa, sem responsável/prazo). */
   subtasks?: TaskSubtaskInput[];
+};
+
+export type TaskComment = {
+  id: string;
+  task_id: string;
+  author_id: string | null;
+  author_name: string | null;
+  body: string;
+  client_visible: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type TaskSummary = TaskPayload & {
@@ -2634,6 +2651,14 @@ export const api = {
     }),
   deleteTask: (taskId: string) =>
     request<void>(`/tasks/${taskId}`, { method: "DELETE" }),
+  taskComments: (taskId: string) => request<TaskComment[]>(`/tasks/${taskId}/comments`),
+  createTaskComment: (taskId: string, body: string, clientVisible = false) =>
+    request<TaskComment>(`/tasks/${taskId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ body, client_visible: clientVisible }),
+    }),
+  deleteTaskComment: (commentId: string) =>
+    request<void>(`/task-comments/${commentId}`, { method: "DELETE" }),
 
   // Wiki EG (base de conhecimento interna; só EG admin)
   wikiDocuments: () => request<WikiDocumentSummary[]>("/backoffice/wiki/documents"),
