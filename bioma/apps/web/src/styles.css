@@ -273,11 +273,15 @@ a {
 
 .login-shell {
   display: grid;
-  grid-template-columns: 1fr minmax(400px, 480px);
-  align-items: center;
-  min-height: 100vh;
+  grid-template-columns: 1fr minmax(380px, 480px);
+  align-items: stretch;
+  /* html/body/#root são overflow:hidden (app shell), então a página nunca
+     rola sozinha: o .login-shell precisa ser o próprio container de scroll.
+     Altura travada em 100dvh + overflow-y:auto faz o conteúdo rolar dentro
+     dele numa janela baixa (F12 acoplado, 1366x768, tablet em paisagem) em
+     vez de ser cortado sem scroll — que era o bug. */
   height: 100dvh;
-  overflow: hidden;
+  overflow-y: auto;
   color: var(--text);
   background: radial-gradient(ellipse at 15% 40%, var(--moss-700) 0%, var(--moss-950) 70%);
 }
@@ -285,11 +289,10 @@ a {
 .login-copy {
   display: flex;
   flex-direction: column;
-  /* gap menor e fluidó para monitores pequenos não cortarem */
+  /* gap menor e fluido para monitores pequenos não cortarem */
   gap: clamp(16px, 2.5vh, 36px);
-  height: 100%;
+  min-width: 0;
   padding: clamp(24px, 4vh, 60px) clamp(28px, 5vw, 80px);
-  overflow: hidden;
   justify-content: center;
 }
 
@@ -381,6 +384,7 @@ a {
   flex-direction: column;
   justify-content: center;
   align-self: stretch;
+  min-width: 0;
   padding: clamp(28px, 4vh, 48px) clamp(28px, 3vw, 48px);
   border-left: 1px solid var(--glass-border);
   color: var(--text);
@@ -397,6 +401,12 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+/* Só existe no layout empilhado (ver media query 1080px). */
+.login-card-brand {
+  display: none;
+  margin-bottom: 24px;
 }
 
 .login-card-title {
@@ -640,15 +650,25 @@ a {
 }
 
 .login-health {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 20px;
-  color: var(--text-faint);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(184, 69, 47, 0.4);
+  border-radius: 8px;
+  background: rgba(184, 69, 47, 0.12);
+  color: var(--danger-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.login-health-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger-soft);
 }
 
 html, body, #root {
@@ -2958,25 +2978,33 @@ h3 {
 @media (max-width: 1080px) {
   .login-shell {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100dvh;
-    overflow: auto;
+    /* Continua 100dvh + scroll interno (ver comentário na regra base):
+       com height:auto o conteúdo estourava o #root overflow:hidden e ficava
+       inalcançável — era esta a quebra em celular e tablet. */
+    height: 100dvh;
+    overflow-y: auto;
     align-items: start;
+    grid-auto-rows: auto;
   }
 
   .login-copy {
     height: auto;
     min-height: auto;
-    padding: 40px 32px 32px;
+    padding: 32px 32px 40px;
     gap: 28px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
+    border-top: 1px solid var(--border);
   }
 
   .login-copy h1 {
     font-size: clamp(28px, 5vw, 42px);
   }
 
+  /* Empilhado, a tarefa da página é ENTRAR — o formulário vem primeiro.
+     Antes a copy de marketing ocupava a tela toda e o login caía abaixo da
+     dobra, obrigando a rolar para achar o campo de e-mail. */
   .login-card {
+    order: -1;
     align-self: auto;
     border-left: none;
     border-top: none;
@@ -2984,6 +3012,20 @@ h3 {
     padding: 32px 24px 40px;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* A marca acompanha o formulário no topo, senão ele aparece "solto". */
+  .login-card .login-card-inner {
+    width: min(100%, 420px);
+  }
+
+  .login-card-brand {
+    display: flex;
+  }
+
+  /* A marca grande da coluna de identidade seria duplicata aqui. */
+  .login-copy .brand.large {
+    display: none;
   }
 
   .hero-grid,
@@ -3041,7 +3083,6 @@ h3 {
     font-size: 34px;
   }
 
-  .login-proof,
   .metrics,
   .hub-grid,
   .artifact-board,
@@ -3049,15 +3090,26 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  /* Em celular os proof items ficam em coluna. Antes viravam row+wrap sem
+     largura mínima, o que espremia ícone e texto em duas colunas ilegíveis. */
   .login-proof {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .login-card {
     width: 100%;
     margin: 0;
+  }
+
+  /* Em telas estreitas o selo LGPD ao lado do texto aperta demais. */
+  .login-security-bar {
+    flex-wrap: wrap;
+  }
+
+  .security-badge {
+    padding-left: 0;
+    border-left: none;
   }
 
   .topbar,
@@ -3353,11 +3405,24 @@ h3 {
   font-size: 11px;
   line-height: 1.5;
   text-align: center;
+  /* Evita a palavra órfã sozinha na última linha ("...Aviso de / Privacidade.").
+     Onde não há suporte, degrada para o comportamento atual — nada quebra. */
+  text-wrap: pretty;
 }
 
 .privacy-notice a {
   color: var(--text-dim);
   text-decoration: underline;
+}
+
+/* O nome do documento não deve ser partido no meio. */
+.privacy-notice a,
+.login-new-user-link {
+  white-space: nowrap;
+}
+
+.login-new-user {
+  text-wrap: pretty;
 }
 
 .privacy-shell {
@@ -5190,5 +5255,37 @@ h3 {
   .market-research-report a {
     color: #0b6146 !important;
     text-decoration: underline;
+  }
+}
+
+/* --- Login em viewport de pouca altura -----------------------------------
+   Casos reais: DevTools acoplado embaixo, notebook 1366x768, tablet em
+   paisagem. A tela continua rolável (min-height + overflow-y:auto no
+   .login-shell); aqui só compactamos para que, na maioria dos casos, nem
+   precise rolar. Nada é escondido — apenas respira menos. */
+@media (max-height: 780px) and (min-width: 1081px) {
+  .login-copy {
+    gap: 14px;
+    padding-block: 24px;
+  }
+
+  .login-copy h1 {
+    font-size: clamp(26px, 2.4vw, 36px);
+  }
+
+  .login-proof {
+    gap: 10px;
+  }
+
+  .login-card {
+    padding-block: 24px;
+  }
+
+  .login-social {
+    margin-bottom: 12px;
+  }
+
+  .login-card-subtitle {
+    margin-bottom: 14px;
   }
 }

@@ -9,6 +9,7 @@ export function LoginView({
   rememberMe = true,
   loginError,
   apiOnline,
+  isSubmitting = false,
   onEmailChange,
   onPasswordChange,
   onRememberMeChange,
@@ -19,6 +20,7 @@ export function LoginView({
   rememberMe?: boolean;
   loginError: string;
   apiOnline: boolean;
+  isSubmitting?: boolean;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onRememberMeChange?: (value: boolean) => void;
@@ -100,6 +102,19 @@ export function LoginView({
       {/* Coluna direita — formulário */}
       <section className="login-card" aria-label="Entrar no Bioma">
         <div className="login-card-inner">
+          {/* Marca compacta: só aparece no layout empilhado, onde o formulário
+              vem antes da coluna de identidade (senão a tela abriria num
+              formulário sem marca alguma). */}
+          <div className="brand login-card-brand">
+            <div className="brand-mark">
+              <img src="/assets/brand/eg-symbol.png" alt="Símbolo EverGreen" width={32} height={32} />
+            </div>
+            <div>
+              <strong>Bioma</strong>
+              <span>EverGreen</span>
+            </div>
+          </div>
+
           <h2 className="login-card-title">Bem-vindo de volta</h2>
           <p className="login-card-subtitle">Entre para acessar sua conta</p>
 
@@ -192,10 +207,25 @@ export function LoginView({
               </a>
             </div>
 
-            <button type="submit" className="primary-button wide login-submit-btn">
+            {/* Sem o disabled, dois cliques rápidos criavam duas sessões e
+                podiam disparar o rate limit de login (5 tentativas). */}
+            <button
+              type="submit"
+              className="primary-button wide login-submit-btn"
+              disabled={isSubmitting}
+            >
               <LogIn size={16} />
-              Entrar
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </button>
+
+            {/* Sem este aviso, com a API fora do ar o usuário só descobria
+                tentando entrar e recebendo um erro genérico. */}
+            {!apiOnline && (
+              <p className="login-health" role="status">
+                <span className="login-health-dot" />
+                Não foi possível falar com o servidor. Verifique sua conexão e tente novamente.
+              </p>
+            )}
 
             <p className="login-new-user">
               Novo por aqui?{" "}

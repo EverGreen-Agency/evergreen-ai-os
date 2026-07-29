@@ -233,6 +233,7 @@ export function App() {
               rememberMe={rememberMe}
               loginError={loginError}
               apiOnline={apiOnline}
+              isSubmitting={login.isPending}
               onEmailChange={setEmail}
               onPasswordChange={setPassword}
               onRememberMeChange={setRememberMe}
