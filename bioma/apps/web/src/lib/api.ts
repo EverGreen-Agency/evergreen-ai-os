@@ -1048,11 +1048,32 @@ export type PersonalAccessTokenCreatedResponse = {
   summary: PersonalAccessTokenSummary;
 };
 
+export type CockpitOverdueItem = {
+  id: string;
+  title: string;
+  status: DeliverableStatus;
+  due_at: string;
+  client_id: string;
+  client_name: string;
+};
+
+export type CockpitPendingApproval = {
+  id: string;
+  deliverable_title: string | null;
+  created_at: string;
+  client_id: string;
+  client_name: string;
+};
+
 export type CockpitPortfolioSummary = {
   monthly_revenue_cents: number;
   mrr_cents: number;
   overdue_deliverables: number;
   clients_at_risk: number;
+  clients_active: number;
+  clients_total: number;
+  overdue_items: CockpitOverdueItem[];
+  pending_approvals: CockpitPendingApproval[];
 };
 
 export type HookSource = "llm_transcript" | "higgsfield_virality";

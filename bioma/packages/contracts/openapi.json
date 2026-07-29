@@ -3483,10 +3483,108 @@
         "title": "ClientUpdateRequest",
         "type": "object"
       },
+      "CockpitOverdueItem": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "in_progress",
+              "waiting_approval",
+              "done",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "due_at",
+          "client_id",
+          "client_name"
+        ],
+        "title": "CockpitOverdueItem",
+        "type": "object"
+      },
+      "CockpitPendingApproval": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deliverable_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliverable Title"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "client_id",
+          "client_name"
+        ],
+        "title": "CockpitPendingApproval",
+        "type": "object"
+      },
       "CockpitPortfolioSummary": {
         "properties": {
+          "clients_active": {
+            "title": "Clients Active",
+            "type": "integer"
+          },
           "clients_at_risk": {
             "title": "Clients At Risk",
+            "type": "integer"
+          },
+          "clients_total": {
+            "title": "Clients Total",
             "type": "integer"
           },
           "monthly_revenue_cents": {
@@ -3500,13 +3598,31 @@
           "overdue_deliverables": {
             "title": "Overdue Deliverables",
             "type": "integer"
+          },
+          "overdue_items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CockpitOverdueItem"
+            },
+            "title": "Overdue Items",
+            "type": "array"
+          },
+          "pending_approvals": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CockpitPendingApproval"
+            },
+            "title": "Pending Approvals",
+            "type": "array"
           }
         },
         "required": [
           "monthly_revenue_cents",
           "mrr_cents",
           "overdue_deliverables",
-          "clients_at_risk"
+          "clients_at_risk",
+          "clients_active",
+          "clients_total"
         ],
         "title": "CockpitPortfolioSummary",
         "type": "object"

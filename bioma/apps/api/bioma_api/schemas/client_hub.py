@@ -208,11 +208,32 @@ class FinancialRecordSummary(BaseModel):
     updated_at: datetime
 
 
+class CockpitOverdueItem(BaseModel):
+    id: UUID
+    title: str
+    status: DeliverableStatus
+    due_at: datetime
+    client_id: UUID
+    client_name: str
+
+
+class CockpitPendingApproval(BaseModel):
+    id: UUID
+    deliverable_title: str | None = None
+    created_at: datetime
+    client_id: UUID
+    client_name: str
+
+
 class CockpitPortfolioSummary(BaseModel):
     monthly_revenue_cents: int
     mrr_cents: int
     overdue_deliverables: int
     clients_at_risk: int
+    clients_active: int
+    clients_total: int
+    overdue_items: list[CockpitOverdueItem] = []
+    pending_approvals: list[CockpitPendingApproval] = []
 
 
 class FinancialRecordCreateRequest(BaseModel):

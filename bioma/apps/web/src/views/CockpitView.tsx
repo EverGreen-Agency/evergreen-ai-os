@@ -33,6 +33,12 @@ export function CockpitView() {
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
   const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
 
+  // Prefixo "portfolio" para não colidir com as pendências de UM cliente
+  // usadas mais abaixo na visão do cliente.
+  const portfolioApprovals = cockpitSummary?.pending_approvals ?? [];
+  const overdueItems = cockpitSummary?.overdue_items ?? [];
+  const hasAttentionItems = portfolioApprovals.length > 0 || overdueItems.length > 0;
+
   // Client data
   const clients = externalClients(clientsData ?? []);
   const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
@@ -51,16 +57,68 @@ export function CockpitView() {
     return (
       <>
         <div className="bento-grid">
-          {/* Hero Banner */}
-          <article className="bento-card col-span-2 row-span-2" style={{ background: 'linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.1) 100%)' }}>
+          {/* Ocupa o espaço nobre com o que exige ação hoje, em vez de uma
+              saudação decorativa: aprovações e atrasos de toda a carteira,
+              clicáveis, para não ter que entrar cliente por cliente. */}
+          <article className="bento-card col-span-2 row-span-2 cockpit-attention">
             <div className="bento-header">
-              <h3>Visão Geral da Operação</h3>
+              <h3>Precisa de você</h3>
               <Sparkles size={16} color="var(--brand-accent)" />
             </div>
-            <div style={{ marginTop: 'auto' }}>
-              <h2>Bom dia, {user.display_name}!</h2>
-              <p style={{ color: 'var(--text-muted)' }}>Você tem {clients.length} clientes ativos na base.</p>
-            </div>
+
+            {loadingCockpitSummary && <p style={{ color: "var(--text-muted)" }}>Carregando carteira...</p>}
+
+            {!loadingCockpitSummary && !hasAttentionItems && (
+              <div style={{ marginTop: "auto" }}>
+                <h2>Bom dia, {user.display_name}!</h2>
+                <p style={{ color: "var(--text-muted)" }}>
+                  Nada pendente na carteira agora — nenhuma aprovação aguardando nem entrega atrasada.
+                </p>
+              </div>
+            )}
+
+            {!loadingCockpitSummary && hasAttentionItems && (
+              <div className="cockpit-attention-lists">
+                {portfolioApprovals.length > 0 && (
+                  <div>
+                    <h4 className="cockpit-attention-title">
+                      <CalendarCheck size={13} /> Aprovações aguardando ({portfolioApprovals.length})
+                    </h4>
+                    <ul className="cockpit-attention-list">
+                      {portfolioApprovals.map((approval) => (
+                        <li key={approval.id}>
+                          <button type="button" onClick={() => navigate(`/clientes/${approval.client_id}`)}>
+                            <strong>{approval.deliverable_title ?? "Aprovação"}</strong>
+                            <span>{approval.client_name}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {overdueItems.length > 0 && (
+                  <div>
+                    <h4 className="cockpit-attention-title">
+                      <Clock size={13} color="#ff5252" /> Entregas atrasadas ({cockpitSummary?.overdue_deliverables ?? 0})
+                    </h4>
+                    <ul className="cockpit-attention-list">
+                      {overdueItems.map((item) => (
+                        <li key={item.id}>
+                          <button type="button" onClick={() => navigate(`/clientes/${item.client_id}/tarefas`)}>
+                            <strong>{item.title}</strong>
+                            <span>
+                              {item.client_name} · venceu em{" "}
+                              {new Date(item.due_at).toLocaleDateString("pt-BR")}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </article>
 
           <article className="bento-card">
@@ -112,17 +170,36 @@ export function CockpitView() {
           <article className="surface large">
             <div className="surface-header">
               <Users size={18} />
-              <h3>Atalhos Administrativos</h3>
+              <h3>Carteira</h3>
             </div>
-            <div style={{ padding: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            {/* O texto antigo dizia "N clientes ativos" contando também
+                onboarding/pausado/arquivado. Agora os dois números aparecem
+                separados, sem prometer o que o dado não sustenta. */}
+            <div className="cockpit-portfolio">
+              <button type="button" className="cockpit-portfolio-stat" onClick={() => navigate("/clientes")}>
+                <strong>{loadingCockpitSummary ? "..." : cockpitSummary?.clients_active ?? 0}</strong>
+                <span>ativos</span>
+              </button>
+              <button type="button" className="cockpit-portfolio-stat" onClick={() => navigate("/clientes")}>
+                <strong>{loadingCockpitSummary ? "..." : cockpitSummary?.clients_total ?? 0}</strong>
+                <span>na carteira</span>
+              </button>
+            </div>
+            <div className="cockpit-shortcuts">
               <button className="bento-action" onClick={() => navigate("/clientes")}>
                 Carteira de Clientes <ArrowRight size={16} />
               </button>
-              <button className="bento-action" onClick={() => navigate("/eg-office")} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
-                Ir para o Escritório Virtual (Phaser)
+              <button className="bento-action ghost" onClick={() => navigate("/eg-propostas")}>
+                Propostas <ArrowRight size={16} />
               </button>
-              <button className="bento-action" onClick={() => navigate("/eg-ideas")} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-soft)' }}>
-                Banco de Ideias
+              <button className="bento-action ghost" onClick={() => navigate("/operacao")}>
+                Operação EG <ArrowRight size={16} />
+              </button>
+              <button className="bento-action ghost" onClick={() => navigate("/eg-ideas")}>
+                Banco de Ideias <ArrowRight size={16} />
+              </button>
+              <button className="bento-action ghost" onClick={() => navigate("/eg-office")}>
+                Escritório Virtual <ArrowRight size={16} />
               </button>
             </div>
           </article>

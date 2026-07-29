@@ -5289,3 +5289,116 @@ h3 {
     margin-bottom: 14px;
   }
 }
+
+/* --- Cockpit EG: painel "Precisa de você" e carteira -------------------- */
+.cockpit-attention {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.08) 100%);
+}
+
+.cockpit-attention-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 12px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.cockpit-attention-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.cockpit-attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cockpit-attention-list button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cockpit-attention-list button:hover {
+  border-color: var(--accent);
+  background: rgba(58, 201, 123, 0.08);
+}
+
+.cockpit-attention-list strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cockpit-attention-list span {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cockpit-portfolio {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px 0;
+}
+
+.cockpit-portfolio-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cockpit-portfolio-stat:hover {
+  border-color: var(--accent);
+}
+
+.cockpit-portfolio-stat strong {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.cockpit-portfolio-stat span {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cockpit-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 24px 24px;
+}
+
+.bento-action.ghost {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}

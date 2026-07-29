@@ -467,41 +467,70 @@ def delete_financial_record(conn, organization_id: UUID, record_id: UUID) -> boo
 
 
 def get_portfolio_summary(conn) -> dict[str, Any]:
-    """Agregado real da carteira inteira de clientes (não de um workspace só),
-    usado no Cockpit do time EG. Escopado a organization_id de clients — exclui
-    a organização interna da própria EG, que não é "carteira" de cliente."""
+    """Agregado real da carteira de clientes, usado no Cockpit do time EG.
+
+    Escopo: apenas organizações de CLIENTE. A EverGreen tem uma linha própria
+    em `clients` (o workspace interno), então filtrar só por
+    `organization_id in (select organization_id from clients)` **incluía** a
+    própria EG nos números — por isso todas as consultas aqui excluem
+    explicitamente `organizations.slug = 'eg'`.
+    """
     revenue = conn.execute(
         """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
         select coalesce(sum(amount), 0) as total
         from financial_records
         where kind = 'invoice' and status = 'paid'
           and paid_at >= date_trunc('month', now())
           and paid_at < date_trunc('month', now()) + interval '1 month'
-          and organization_id in (select organization_id from clients)
+          and organization_id in (select organization_id from client_orgs)
         """
     ).fetchone()
 
     mrr = conn.execute(
         """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
         select coalesce(sum(amount), 0) as total
         from financial_records
         where kind = 'contract' and status in ('open', 'paid')
           and (contract_end_at is null or contract_end_at >= current_date)
-          and organization_id in (select organization_id from clients)
+          and organization_id in (select organization_id from client_orgs)
         """
     ).fetchone()
 
     overdue_deliverables = conn.execute(
         """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
         select count(*) as total
         from deliverables
         where due_at is not null and due_at < now() and status <> 'done'
-          and organization_id in (select organization_id from clients)
+          and organization_id in (select organization_id from client_orgs)
         """
     ).fetchone()
 
     clients_at_risk = conn.execute(
         """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
         select count(distinct organization_id) as total
         from (
           select organization_id from deliverables
@@ -510,15 +539,61 @@ def get_portfolio_summary(conn) -> dict[str, Any]:
           select organization_id from financial_records
           where status = 'overdue'
         ) at_risk
-        where organization_id in (select organization_id from clients)
+        where organization_id in (select organization_id from client_orgs)
         """
     ).fetchone()
+
+    # Contagem por status: o Cockpit dizia "N clientes ativos" contando todos
+    # os clientes externos, inclusive onboarding/pausado/arquivado.
+    client_counts = conn.execute(
+        """
+        select
+          count(*) filter (where c.status = 'active')::int as active,
+          count(*)::int as total
+        from clients c
+        join organizations o on o.id = c.organization_id
+        where o.slug <> 'eg'
+        """
+    ).fetchone()
+
+    # Listas acionáveis: sem elas o Cockpit só mostra um número e obriga a
+    # entrar cliente por cliente pra descobrir o que fazer.
+    overdue_items = conn.execute(
+        """
+        select d.id, d.title, d.status, d.due_at, c.id as client_id, c.name as client_name
+        from deliverables d
+        join clients c on c.organization_id = d.organization_id
+        join organizations o on o.id = c.organization_id
+        where d.due_at is not null and d.due_at < now() and d.status <> 'done'
+          and o.slug <> 'eg'
+        order by d.due_at asc
+        limit 8
+        """
+    ).fetchall()
+
+    pending_approvals = conn.execute(
+        """
+        select a.id, d.title as deliverable_title, a.created_at,
+               c.id as client_id, c.name as client_name
+        from approvals a
+        left join deliverables d on d.id = a.deliverable_id
+        join clients c on c.organization_id = a.organization_id
+        join organizations o on o.id = c.organization_id
+        where a.status = 'pending' and o.slug <> 'eg'
+        order by a.created_at asc
+        limit 8
+        """
+    ).fetchall()
 
     return {
         "monthly_revenue_cents": round((revenue["total"] or 0) * 100),
         "mrr_cents": round((mrr["total"] or 0) * 100),
         "overdue_deliverables": overdue_deliverables["total"],
         "clients_at_risk": clients_at_risk["total"],
+        "clients_active": client_counts["active"],
+        "clients_total": client_counts["total"],
+        "overdue_items": [dict(row) for row in overdue_items],
+        "pending_approvals": [dict(row) for row in pending_approvals],
     }
 
 

@@ -5416,16 +5416,79 @@ export interface components {
             /** Status */
             status?: ("onboarding" | "active" | "paused" | "completed" | "archived") | null;
         };
+        /** CockpitOverdueItem */
+        CockpitOverdueItem: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "planned" | "in_progress" | "waiting_approval" | "done" | "blocked";
+            /** Title */
+            title: string;
+        };
+        /** CockpitPendingApproval */
+        CockpitPendingApproval: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deliverable Title */
+            deliverable_title?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
         /** CockpitPortfolioSummary */
         CockpitPortfolioSummary: {
+            /** Clients Active */
+            clients_active: number;
             /** Clients At Risk */
             clients_at_risk: number;
+            /** Clients Total */
+            clients_total: number;
             /** Monthly Revenue Cents */
             monthly_revenue_cents: number;
             /** Mrr Cents */
             mrr_cents: number;
             /** Overdue Deliverables */
             overdue_deliverables: number;
+            /**
+             * Overdue Items
+             * @default []
+             */
+            overdue_items: components["schemas"]["CockpitOverdueItem"][];
+            /**
+             * Pending Approvals
+             * @default []
+             */
+            pending_approvals: components["schemas"]["CockpitPendingApproval"][];
         };
         /** CommercialPortalResponse */
         CommercialPortalResponse: {
