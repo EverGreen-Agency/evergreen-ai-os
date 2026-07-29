@@ -1,6 +1,22 @@
 # Handoff — sessão 2026-07-29
 
-Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `4f243db`.
+Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `56989d9`.
+
+## ⚠️ LEIA PRIMEIRO: sessão paralela ativa
+
+Outra sessão de IA está construindo um **control plane de IA** (roteamento de
+provider, coletor de cota). ~24 arquivos não commitados, incluindo a migração
+`0064_ai_provider_routing.sql`. **Não commitar por eles e não regenerar o
+contrato OpenAPI** — `bioma/packages/contracts/openapi.json` está sujo com o
+trabalho deles, e regenerar assaria rotas em progresso.
+
+Arquivos deles (não tocar): `ai_operations.*`, `ai_routing.*`, `ai_providers.py`,
+`quota_collectors.py`, `AiControlPlanePanel.tsx`, `AiOperationsView.tsx`,
+`useBiomaApi.ts`, `lib/api.ts`, `api-schema.d.ts`, `openapi.json`,
+worker `config.py`/`orchestrator.py`/`storage.py`, `main.py`.
+
+Consequência prática: **qualquer mudança minha que exija regenerar o contrato
+está bloqueada** até eles commitarem. Migração + repositório podem seguir.
 
 ---
 
@@ -24,7 +40,60 @@ Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `4f243
 
 ---
 
-## Onde paramos
+## Onde paramos (atualizado)
+
+**Cockpit revisado. Modelagem de Projetos/Tarefas decidida e documentada no
+[Manual Operacional Bioma v2](../knowledge/Manual%20Operacional%20Bioma%20v2%20—%20Projetos%20e%20Tarefas.md).**
+Próximo passo: **implementar** o que o v2 define (ver "Fila de implementação").
+
+### Decisões travadas (não reabrir sem motivo novo)
+
+- **Frente × Projeto são níveis diferentes.** Frente (`eg_task_lists.type`)
+  define status e campos; Projeto (`projects` + `eg_tasks.project_id`) define
+  escopo, contrato e datas. Uma frente Tech, N projetos dentro.
+- **Projeto é campo da tarefa, como FK** — não lista separada, não texto livre.
+- **Social vira aba do Estúdio IA**, mantendo a esteira de 10 status.
+  A separação Growth/Social em listas era limitação do ClickUp, declarada no
+  próprio manual v1.
+- **Checklist ≠ Subtarefa.** Checklist = etapas da mesma tarefa
+  (`eg_task_subtasks`, que apesar do nome É um checklist). Subtarefa = trocou
+  de responsável ou prazo (`eg_tasks.parent_task_id`). As duas se mantêm.
+- **Sem campos personalizados criados pelo usuário** por agora — só os campos
+  já existentes nos manuais v1.
+
+### Fila de implementação (o que o v2 pede e ainda não existe)
+
+1. Criar tarefa nas visões **lista e calendário** (hoje só o Kanban tem o `+`).
+2. Detalhe da tarefa: **Definição de Pronto** rotulada (não descrição solta),
+   checklist, subtarefas, dependências, comentários.
+3. Seletor de **Projeto** na tarefa + agrupar/filtrar por projeto.
+4. Visão **Roadmap (Gantt)** por projeto, usando datas de `project_phases`.
+5. Filtros salvos que o v1 chamava de views: Bug Tracker, Banco de Ideias,
+   Aprovação do Cliente.
+6. Recorrência: colunas existem (`recurrence`, `recurrence_source_task_id`),
+   regra de negócio **não definida** — pendente de decisão.
+
+### Limpeza executada
+
+- `bioma-legacy/` (2.0 GB) e `dashboard/` (241 MB) **apagados** — 233 arquivos.
+  Recuperáveis pelo histórico git.
+- Dados de tarefa **zerados** no banco local (48 tarefas, 189 campos, 6 listas).
+  Backup em `scratch/backups/eg_tasks_backup_pre_limpeza.json` (13 ganchos/copies
+  preservados). Produção começa vazia por decisão do Eduardo.
+- Resolveu de tabela o bug dos 27 `AGENDADO` mapeados em `NOT_STARTED`.
+
+### Dívida de refatoração identificada (não iniciada)
+
+- `styles.css` — **5.404 linhas**, global, sem escopo. Já causou bug nesta sessão
+  (tags de integração todas verdes porque `draft`/`cancelled` não existiam).
+  Sugestão: quebrar por domínio com `@import`, refator mecânico.
+- `lib/api.ts` — **3.385 linhas**. Bloqueado pela sessão paralela.
+- `ProposalsManager.tsx` — 1.264 linhas.
+- `.bak` no disco em `bioma/apps/web/src/views/admin/office/` (não versionados).
+
+---
+
+## Onde paramos (histórico anterior)
 
 **Login revisado e corrigido; regressão de auth corrigida e validada contra
 banco real.** Próximo passo combinado: **visão/acesso do admin da EG (Cockpit)**
@@ -70,6 +139,9 @@ Vale o Eduardo conferir no dev server antes de seguir.
 
 | Commit | O quê |
 |---|---|
+| `56989d9` | Manual v2, migração 0065 (project_id + parent_task_id), remoção do legado |
+| `a715823` | **Perf:** cache padrão do React Query (causa da tela de Tarefas lenta) |
+| `50e7b73` | Cockpit acionável + correção das contagens da carteira |
 | `4f243db` | **Fix crítico:** 500 em login/convite/reset causado pelo shim de Request falso |
 | `951b2f5` | Este handoff |
 | `1cc5852` | Login: responsividade, órfã, estados ausentes |
