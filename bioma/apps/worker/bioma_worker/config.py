@@ -14,10 +14,15 @@ class WorkerSettings(BaseSettings):
     meta_ads_api_version: str = "v21.0"
     linkedin_ads_access_token: str | None = None
     linkedin_ads_api_version: str = "202504"
+    instagram_access_token: str | None = None
+    instagram_api_version: str = "v21.0"
+    instagram_post_sync_limit: int = 50
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_research_model: str = "gpt-5.6-terra"
+    openai_transcription_model: str = "whisper-1"
     openai_request_timeout_seconds: float = 120
+    ahrefs_api_key: str | None = None
     # QUEUE-001: o lease precisa ser maior que o job mais longo esperado
     # (sync de 30 dias em 4 providers), senão o reaper reenfileira job vivo.
     # O heartbeat entre providers dá folga; 15 min é a margem para o resto.

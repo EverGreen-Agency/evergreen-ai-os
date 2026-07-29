@@ -3737,6 +3737,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspace_id}/content/hook-bank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Hook Bank */
+        get: operations["list_hook_bank_workspaces__workspace_id__content_hook_bank_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/instagram-posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Instagram Posts */
+        get: operations["list_instagram_posts_workspaces__workspace_id__content_instagram_posts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/instagram-posts/{post_id}/link-script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Post To Script */
+        post: operations["link_post_to_script_workspaces__workspace_id__content_instagram_posts__post_id__link_script_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/retrospective": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Latest Retrospective */
+        get: operations["get_latest_retrospective_workspaces__workspace_id__content_retrospective_get"];
+        put?: never;
+        /** Generate Retrospective */
+        post: operations["generate_retrospective_workspaces__workspace_id__content_retrospective_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/scripts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Scripts */
+        get: operations["list_scripts_workspaces__workspace_id__content_scripts_get"];
+        put?: never;
+        /** Generate Scripts */
+        post: operations["generate_scripts_workspaces__workspace_id__content_scripts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/scripts/{script_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Script */
+        patch: operations["update_script_workspaces__workspace_id__content_scripts__script_id__patch"];
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/favorite": {
         parameters: {
             query?: never;
@@ -5257,6 +5361,86 @@ export interface components {
              */
             workspace_id: string;
         };
+        /** ContentRetrospectiveSummary */
+        ContentRetrospectiveSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Estimated Cost Cents */
+            estimated_cost_cents: number;
+            /** Generation Mode */
+            generation_mode: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Output Data */
+            output_data: {
+                [key: string]: unknown;
+            };
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Posts Analyzed */
+            posts_analyzed: number;
+            /** Token Usage */
+            token_usage: {
+                [key: string]: unknown;
+            };
+        };
+        /** ContentScriptSummary */
+        ContentScriptSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Cta */
+            cta?: string | null;
+            /** Generation Mode */
+            generation_mode: string;
+            /** Hook Opening */
+            hook_opening?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Rationale */
+            rationale?: string | null;
+            /** Retrospective Id */
+            retrospective_id?: string | null;
+            /** Scheduled For */
+            scheduled_for?: string | null;
+            /** Script Body */
+            script_body: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "suggested" | "approved" | "scheduled" | "recorded" | "published" | "discarded";
+            /** Suggested Format */
+            suggested_format?: string | null;
+            /** Theme */
+            theme?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** ContractCreate */
         ContractCreate: {
             /**
@@ -5720,6 +5904,24 @@ export interface components {
             /** Total Users */
             total_users: number;
         };
+        /** GenerateRetrospectiveRequest */
+        GenerateRetrospectiveRequest: {
+            /**
+             * Period Days
+             * @default 60
+             */
+            period_days: number;
+        };
+        /** GenerateScriptsRequest */
+        GenerateScriptsRequest: {
+            /** Competitor Handles */
+            competitor_handles?: string[];
+            /**
+             * Count
+             * @default 12
+             */
+            count: number;
+        };
         /** GitHubActivitySyncRequest */
         GitHubActivitySyncRequest: {
             /**
@@ -5999,6 +6201,37 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HookAnalysisSummary */
+        HookAnalysisSummary: {
+            /** Analysis Notes */
+            analysis_notes?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Effectiveness Score */
+            effectiveness_score?: number | null;
+            /** Hook Pattern */
+            hook_pattern?: string | null;
+            /** Hook Text */
+            hook_text?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "llm_transcript" | "higgsfield_virality";
+        };
         /** IdeaDocData */
         IdeaDocData: {
             /** Content */
@@ -6027,6 +6260,46 @@ export interface components {
             id: string;
             /** Provider */
             provider: string;
+        };
+        /** InstagramPostSummary */
+        InstagramPostSummary: {
+            /** Avg Watch Time Seconds */
+            avg_watch_time_seconds?: number | null;
+            /** Caption */
+            caption?: string | null;
+            /** Comments */
+            comments: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ig Media Id */
+            ig_media_id: string;
+            /** Impressions */
+            impressions: number;
+            /** Likes */
+            likes: number;
+            /** Media Type */
+            media_type: string;
+            /** Permalink */
+            permalink?: string | null;
+            /** Plays */
+            plays: number;
+            /** Posted At */
+            posted_at?: string | null;
+            /** Reach */
+            reach: number;
+            /** Saved */
+            saved: number;
+            /** Shares */
+            shares: number;
+            /** Source Script Id */
+            source_script_id?: string | null;
+            /** Thumbnail Url */
+            thumbnail_url?: string | null;
+            /** Transcript */
+            transcript?: string | null;
         };
         /** IntegrationsStatusResponse */
         IntegrationsStatusResponse: {
@@ -6467,6 +6740,14 @@ export interface components {
             source?: string | null;
             /** Stage */
             stage?: ("new" | "qualifying" | "meeting" | "proposal" | "won" | "lost") | null;
+        };
+        /** LinkPostToScriptRequest */
+        LinkPostToScriptRequest: {
+            /**
+             * Script Id
+             * Format: uuid
+             */
+            script_id: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -7116,7 +7397,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
             /**
              * Status
              * @default active
@@ -7163,7 +7444,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
             /**
              * Status
              * @enum {string}
@@ -7361,7 +7642,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "all";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "all";
         };
         /** PerformanceSyncRunSummary */
         PerformanceSyncRunSummary: {
@@ -9821,6 +10102,13 @@ export interface components {
             /** Unit */
             unit?: string | null;
         };
+        /** ScriptUpdateRequest */
+        ScriptUpdateRequest: {
+            /** Scheduled For */
+            scheduled_for?: string | null;
+            /** Status */
+            status?: ("suggested" | "approved" | "scheduled" | "recorded" | "published" | "discarded") | null;
+        };
         /** SocialDailyMetric */
         SocialDailyMetric: {
             /** Account Id */
@@ -9898,7 +10186,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic";
             /**
              * Status
              * @enum {string}
@@ -19899,6 +20187,276 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommercialPortalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_hook_bank_workspaces__workspace_id__content_hook_bank_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HookAnalysisSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_instagram_posts_workspaces__workspace_id__content_instagram_posts_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstagramPostSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_post_to_script_workspaces__workspace_id__content_instagram_posts__post_id__link_script_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkPostToScriptRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstagramPostSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_latest_retrospective_workspaces__workspace_id__content_retrospective_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentRetrospectiveSummary"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_retrospective_workspaces__workspace_id__content_retrospective_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateRetrospectiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentRetrospectiveSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_scripts_workspaces__workspace_id__content_scripts_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentScriptSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_scripts_workspaces__workspace_id__content_scripts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateScriptsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentScriptSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_script_workspaces__workspace_id__content_scripts__script_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                script_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScriptUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentScriptSummary"];
                 };
             };
             /** @description Validation Error */

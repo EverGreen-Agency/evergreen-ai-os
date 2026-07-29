@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # subdomínios diferentes.
     api_public_url: str = "http://127.0.0.1:8000"
     web_app_url: str = "http://localhost:5173"
+    # Benchmark de concorrentes (social-media do Ahrefs API v3) — usado só como
+    # contexto de mercado na geração de roteiros, nunca fabricado sem a chave.
+    ahrefs_api_key: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

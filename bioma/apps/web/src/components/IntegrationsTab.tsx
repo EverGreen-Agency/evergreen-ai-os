@@ -30,6 +30,7 @@ import {
   Ga4Icon,
   GoogleAdsIcon,
   GtmIcon,
+  InstagramIcon,
   KommoIcon,
   LinkedInAdsIcon,
   MetaAdsIcon,
@@ -83,6 +84,12 @@ const PROVIDER_META: Record<PerformanceProvider, {
     icon: LinkedInAdsIcon,
     accountLabel: "Sponsored Account ID",
     accountPlaceholder: "123456789",
+  },
+  instagram_organic: {
+    label: "Instagram (orgânico)",
+    icon: InstagramIcon,
+    accountLabel: "Instagram Business Account ID",
+    accountPlaceholder: "17841400000000000",
   },
 };
 

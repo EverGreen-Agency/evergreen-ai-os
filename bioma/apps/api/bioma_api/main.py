@@ -13,6 +13,7 @@ from bioma_api.routers import (
     client_profiles,
     client_hub,
     commercial,
+    content_intelligence,
     files,
     health,
     integrations,
@@ -68,6 +69,7 @@ app.include_router(client_hub.router)
 app.include_router(client_profiles.router)
 app.include_router(workspaces.router)
 app.include_router(commercial.router)
+app.include_router(content_intelligence.router)
 app.include_router(whatsapp.router)
 app.include_router(squads.router)
 app.include_router(brand_book.router)

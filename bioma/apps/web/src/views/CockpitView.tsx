@@ -14,9 +14,8 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCurrentUser, useClients, useClientPortal, useMyDeliverables, useCommercialPortal } from "../hooks/useBiomaApi";
+import { useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
-import { RaioXScorePanel } from "../components/RaioXScorePanel";
 import { SquadsView } from "./SquadsView";
 
 export function CockpitView() {
@@ -26,7 +25,6 @@ export function CockpitView() {
   const { data: clientsData } = useClients();
   const { data: portalData } = useClientPortal(selectedClientId);
   const { data: myDeliverablesData } = useMyDeliverables();
-  const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(selectedClientId);
 
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
 
@@ -196,15 +194,7 @@ export function CockpitView() {
 
       {selectedClientId && (
         <div style={{ marginTop: "1.5rem" }}>
-          <RaioXScorePanel
-            workspaceId={selectedClientId}
-            data={commercialData ?? null}
-            onUpdate={refetchCommercial}
-            canEdit={isEgAdmin}
-          />
-          <div style={{ marginTop: "24px" }}>
-            <SquadsView workspaceId={selectedClientId} />
-          </div>
+          <SquadsView workspaceId={selectedClientId} />
         </div>
       )}
 

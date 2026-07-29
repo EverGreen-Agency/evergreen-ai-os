@@ -3594,6 +3594,198 @@
         "title": "CommercialScoreSummary",
         "type": "object"
       },
+      "ContentRetrospectiveSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "estimated_cost_cents": {
+            "title": "Estimated Cost Cents",
+            "type": "integer"
+          },
+          "generation_mode": {
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "output_data": {
+            "additionalProperties": true,
+            "title": "Output Data",
+            "type": "object"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "posts_analyzed": {
+            "title": "Posts Analyzed",
+            "type": "integer"
+          },
+          "token_usage": {
+            "additionalProperties": true,
+            "title": "Token Usage",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "period_start",
+          "period_end",
+          "posts_analyzed",
+          "generation_mode",
+          "output_data",
+          "token_usage",
+          "estimated_cost_cents",
+          "created_at"
+        ],
+        "title": "ContentRetrospectiveSummary",
+        "type": "object"
+      },
+      "ContentScriptSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "cta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cta"
+          },
+          "generation_mode": {
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "hook_opening": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hook Opening"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "retrospective_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrospective Id"
+          },
+          "scheduled_for": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled For"
+          },
+          "script_body": {
+            "title": "Script Body",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "suggested",
+              "approved",
+              "scheduled",
+              "recorded",
+              "published",
+              "discarded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggested_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Format"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "script_body",
+          "status",
+          "generation_mode",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ContentScriptSummary",
+        "type": "object"
+      },
       "ContractCreate": {
         "properties": {
           "client_visible": {
@@ -4992,6 +5184,39 @@
         "title": "Ga4AcquisitionSummary",
         "type": "object"
       },
+      "GenerateRetrospectiveRequest": {
+        "properties": {
+          "period_days": {
+            "default": 60,
+            "maximum": 180.0,
+            "minimum": 7.0,
+            "title": "Period Days",
+            "type": "integer"
+          }
+        },
+        "title": "GenerateRetrospectiveRequest",
+        "type": "object"
+      },
+      "GenerateScriptsRequest": {
+        "properties": {
+          "competitor_handles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Competitor Handles",
+            "type": "array"
+          },
+          "count": {
+            "default": 12,
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "title": "GenerateScriptsRequest",
+        "type": "object"
+      },
       "GitHubActivitySyncRequest": {
         "properties": {
           "client_visible": {
@@ -5607,6 +5832,85 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HookAnalysisSummary": {
+        "properties": {
+          "analysis_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Notes"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "effectiveness_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effectiveness Score"
+          },
+          "hook_pattern": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hook Pattern"
+          },
+          "hook_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hook Text"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "llm_transcript",
+              "higgsfield_virality"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "post_id",
+          "source",
+          "created_at"
+        ],
+        "title": "HookAnalysisSummary",
+        "type": "object"
+      },
       "IdeaDocData": {
         "properties": {
           "content": {
@@ -5671,6 +5975,144 @@
           "created_at"
         ],
         "title": "IdentitySummary",
+        "type": "object"
+      },
+      "InstagramPostSummary": {
+        "properties": {
+          "avg_watch_time_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Watch Time Seconds"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "comments": {
+            "title": "Comments",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ig_media_id": {
+            "title": "Ig Media Id",
+            "type": "string"
+          },
+          "impressions": {
+            "title": "Impressions",
+            "type": "integer"
+          },
+          "likes": {
+            "title": "Likes",
+            "type": "integer"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "permalink": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permalink"
+          },
+          "plays": {
+            "title": "Plays",
+            "type": "integer"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "reach": {
+            "title": "Reach",
+            "type": "integer"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "integer"
+          },
+          "shares": {
+            "title": "Shares",
+            "type": "integer"
+          },
+          "source_script_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Script Id"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript"
+          }
+        },
+        "required": [
+          "id",
+          "ig_media_id",
+          "media_type",
+          "reach",
+          "impressions",
+          "likes",
+          "comments",
+          "shares",
+          "saved",
+          "plays"
+        ],
+        "title": "InstagramPostSummary",
         "type": "object"
       },
       "IntegrationsStatusResponse": {
@@ -6941,6 +7383,20 @@
           }
         },
         "title": "LeadUpdateRequest",
+        "type": "object"
+      },
+      "LinkPostToScriptRequest": {
+        "properties": {
+          "script_id": {
+            "format": "uuid",
+            "title": "Script Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "script_id"
+        ],
+        "title": "LinkPostToScriptRequest",
         "type": "object"
       },
       "LoginRequest": {
@@ -8615,7 +9071,8 @@
               "search_console",
               "gtm",
               "meta_ads",
-              "linkedin_ads"
+              "linkedin_ads",
+              "instagram_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -8732,7 +9189,8 @@
               "search_console",
               "gtm",
               "meta_ads",
-              "linkedin_ads"
+              "linkedin_ads",
+              "instagram_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -9249,6 +9707,7 @@
               "gtm",
               "meta_ads",
               "linkedin_ads",
+              "instagram_organic",
               "all"
             ],
             "title": "Provider",
@@ -16599,6 +17058,43 @@
         "title": "ScopeItemUpdate",
         "type": "object"
       },
+      "ScriptUpdateRequest": {
+        "properties": {
+          "scheduled_for": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled For"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "suggested",
+                  "approved",
+                  "scheduled",
+                  "recorded",
+                  "published",
+                  "discarded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "ScriptUpdateRequest",
+        "type": "object"
+      },
       "SocialDailyMetric": {
         "properties": {
           "account_id": {
@@ -16769,7 +17265,8 @@
               "search_console",
               "gtm",
               "meta_ads",
-              "linkedin_ads"
+              "linkedin_ads",
+              "instagram_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -33232,6 +33729,458 @@
         "summary": "Answer Diagnostic Question",
         "tags": [
           "commercial"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/hook-bank": {
+      "get": {
+        "operationId": "list_hook_bank_workspaces__workspace_id__content_hook_bank_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HookAnalysisSummary"
+                  },
+                  "title": "Response List Hook Bank Workspaces  Workspace Id  Content Hook Bank Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Hook Bank",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/instagram-posts": {
+      "get": {
+        "operationId": "list_instagram_posts_workspaces__workspace_id__content_instagram_posts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 365,
+              "minimum": 7,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InstagramPostSummary"
+                  },
+                  "title": "Response List Instagram Posts Workspaces  Workspace Id  Content Instagram Posts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Instagram Posts",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/instagram-posts/{post_id}/link-script": {
+      "post": {
+        "operationId": "link_post_to_script_workspaces__workspace_id__content_instagram_posts__post_id__link_script_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkPostToScriptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstagramPostSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link Post To Script",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/retrospective": {
+      "get": {
+        "operationId": "get_latest_retrospective_workspaces__workspace_id__content_retrospective_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ContentRetrospectiveSummary"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Latest Retrospective Workspaces  Workspace Id  Content Retrospective Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Latest Retrospective",
+        "tags": [
+          "content-intelligence"
+        ]
+      },
+      "post": {
+        "operationId": "generate_retrospective_workspaces__workspace_id__content_retrospective_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRetrospectiveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentRetrospectiveSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Retrospective",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/scripts": {
+      "get": {
+        "operationId": "list_scripts_workspaces__workspace_id__content_scripts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContentScriptSummary"
+                  },
+                  "title": "Response List Scripts Workspaces  Workspace Id  Content Scripts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Scripts",
+        "tags": [
+          "content-intelligence"
+        ]
+      },
+      "post": {
+        "operationId": "generate_scripts_workspaces__workspace_id__content_scripts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateScriptsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContentScriptSummary"
+                  },
+                  "title": "Response Generate Scripts Workspaces  Workspace Id  Content Scripts Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Scripts",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/scripts/{script_id}": {
+      "patch": {
+        "operationId": "update_script_workspaces__workspace_id__content_scripts__script_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentScriptSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Script",
+        "tags": [
+          "content-intelligence"
         ]
       }
     },

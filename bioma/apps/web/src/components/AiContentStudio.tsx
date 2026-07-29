@@ -8,9 +8,11 @@ import {
   Copy,
   Film,
   Image as ImageIcon,
+  Lightbulb,
   LoaderCircle,
   MessageSquareText,
   Plus,
+  Send,
   Sparkles,
   WandSparkles,
 } from "lucide-react";
@@ -20,17 +22,26 @@ import {
   type AiContentPost,
   type AiContentImage,
   type AiContentVideoScript,
+  type ContentScriptSummary,
 } from "../lib/api";
 import {
   useBrandBook,
   useSaveBrandBook,
   useCalendarItems,
+  useContentHookBank,
+  useContentScripts,
   useCreateCalendarItem,
+  useGenerateContentScripts,
+  useGenerateRetrospective,
+  useInstagramPosts,
+  useLatestRetrospective,
   useUpdateCalendarStage,
+  useUpdateContentScript,
 } from "../hooks/useBiomaApi";
 import { EmptyState, SectionHeader } from "./shared";
+import { StatusPill } from "./StatusPill";
 
-type MainTab = "studio" | "brand_book" | "calendar";
+type MainTab = "studio" | "brand_book" | "calendar" | "retrospective";
 type ContentType = "social_posts" | "image_generation" | "video_scripts";
 type ImageProvider = "dalle_3" | "flux" | "higgsfield" | "custom";
 
@@ -146,6 +157,215 @@ function BrandBookSection({ workspaceId }: { workspaceId: string }) {
         </div>
       </form>
     </article>
+  );
+}
+
+function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
+  const { data: posts, isLoading: loadingPosts } = useInstagramPosts(workspaceId);
+  const { data: hookBank } = useContentHookBank(workspaceId);
+  const { data: retrospective, isLoading: loadingRetro } = useLatestRetrospective(workspaceId);
+  const { data: scripts } = useContentScripts(workspaceId);
+  const generateRetrospective = useGenerateRetrospective();
+  const generateScripts = useGenerateContentScripts();
+  const updateScript = useUpdateContentScript();
+  const createCalendarItem = useCreateCalendarItem();
+
+  const [scriptCount, setScriptCount] = useState(12);
+  const [competitorInput, setCompetitorInput] = useState("");
+  const [sentToCalendar, setSentToCalendar] = useState<Record<string, boolean>>({});
+
+  const hasPosts = (posts?.length ?? 0) > 0;
+  const output = retrospective?.output_data;
+
+  function handleSendToCalendar(script: ContentScriptSummary) {
+    createCalendarItem.mutate(
+      {
+        workspaceId,
+        payload: {
+          title: script.title,
+          content_type: "video_script",
+          channel: "instagram",
+          post_text: script.script_body,
+          scheduled_at: script.scheduled_for,
+          stage: "ideation",
+        },
+      },
+      {
+        onSuccess: () => {
+          setSentToCalendar((prev) => ({ ...prev, [script.id]: true }));
+          updateScript.mutate({ workspaceId, scriptId: script.id, payload: { status: "approved" } });
+        },
+      },
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <article className="surface">
+        <SectionHeader
+          eyebrow="Retrospectiva de Conteúdo"
+          title="O que já funcionou (sem precisar de briefing)"
+          icon={Lightbulb}
+        />
+        <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+          Analisa os posts orgânicos já sincronizados do Instagram (legenda, transcrição e métricas reais) e
+          identifica temas, formatos e ganchos que performaram — sem exigir que você sugira um tema.
+        </p>
+        {!hasPosts && !loadingPosts && (
+          <div className="notice" style={{ marginBottom: 12 }}>
+            Nenhum post orgânico sincronizado ainda. Conecte o Instagram em Integrações e rode uma sincronização
+            antes de gerar a retrospectiva.
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={generateRetrospective.isPending || !hasPosts}
+            onClick={() => generateRetrospective.mutate({ workspaceId, periodDays: 60 })}
+          >
+            <Lightbulb size={15} />
+            {generateRetrospective.isPending ? "Analisando..." : "Gerar Retrospectiva (últimos 60 dias)"}
+          </button>
+          {retrospective && (
+            <StatusPill variant={retrospective.generation_mode === "live" ? "connected" : "paused"}>
+              {retrospective.generation_mode === "live" ? "Análise real de IA" : "Prévia local (sem OPENAI_API_KEY)"}
+            </StatusPill>
+          )}
+        </div>
+
+        {loadingRetro && <EmptyState compact text="Carregando retrospectiva..." />}
+
+        {output && (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{output.sintese}</p>
+            {output.themes_performantes.length > 0 && (
+              <div>
+                <strong style={{ fontSize: 13 }}>Temas que performaram:</strong>
+                <ul style={{ margin: "4px 0", paddingLeft: 20, fontSize: 13 }}>
+                  {output.themes_performantes.map((theme, i) => <li key={i}>{theme}</li>)}
+                </ul>
+              </div>
+            )}
+            {output.hooks_que_funcionam.length > 0 && (
+              <div>
+                <strong style={{ fontSize: 13 }}>Ganchos que funcionam:</strong>
+                <div className="table-list" style={{ marginTop: 6 }}>
+                  {output.hooks_que_funcionam.map((hook, i) => (
+                    <div className="table-row" key={i}>
+                      <strong>"{hook.hook_text}"</strong>
+                      <span>{hook.padrao}</span>
+                      <span>{hook.por_que_funciona}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </article>
+
+      {hookBank && hookBank.length > 0 && (
+        <article className="surface">
+          <SectionHeader eyebrow="Memória de Longo Prazo" title="Banco de Ganchos" icon={BookOpen} />
+          <div className="table-list" style={{ marginTop: 12 }}>
+            {hookBank.map((hook) => (
+              <div className="table-row" key={hook.id}>
+                <strong>"{hook.hook_text}"</strong>
+                <span>{hook.hook_pattern ?? "—"}</span>
+                <span className="demo-badge">{hook.source === "higgsfield_virality" ? "Higgsfield" : "Transcrição + IA"}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
+
+      <article className="surface">
+        <SectionHeader eyebrow="Roteirização Automática" title="Gerar Roteiros do Mês" icon={WandSparkles} />
+        <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+          Cruza a retrospectiva, o banco de ganchos, o calendário de datas comemorativas e (opcionalmente) o
+          benchmark de concorrentes do Ahrefs para gerar um lote de roteiros prontos para gravação.
+        </p>
+        {!retrospective && (
+          <div className="notice" style={{ marginBottom: 12 }}>
+            Gere a retrospectiva acima primeiro — os roteiros são construídos em cima dela.
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 12 }}>
+          <label style={{ fontSize: 12 }}>
+            Quantidade de roteiros
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={scriptCount}
+              onChange={(e) => setScriptCount(Number(e.target.value))}
+              style={{ display: "block", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border-light)", marginTop: 4 }}
+            />
+          </label>
+          <label style={{ fontSize: 12, flex: 1, minWidth: 220 }}>
+            Handles de concorrentes (opcional, separados por vírgula)
+            <input
+              type="text"
+              placeholder="@concorrente1, @concorrente2"
+              value={competitorInput}
+              onChange={(e) => setCompetitorInput(e.target.value)}
+              style={{ display: "block", width: "100%", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border-light)", marginTop: 4, boxSizing: "border-box" }}
+            />
+          </label>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={generateScripts.isPending || !retrospective}
+            onClick={() =>
+              generateScripts.mutate({
+                workspaceId,
+                count: scriptCount,
+                competitorHandles: competitorInput.split(",").map((h) => h.trim()).filter(Boolean),
+              })
+            }
+          >
+            <WandSparkles size={15} />
+            {generateScripts.isPending ? "Gerando..." : "Gerar Roteiros"}
+          </button>
+        </div>
+
+        {scripts && scripts.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {scripts.map((script) => (
+              <details key={script.id} className="surface" style={{ padding: 16 }}>
+                <summary style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <span>
+                    <strong>{script.title}</strong>{" "}
+                    <span style={{ color: "var(--text-muted)", fontSize: 12 }}>· {script.suggested_format}</span>
+                  </span>
+                  <StatusPill variant={script.status === "discarded" ? "not_configured" : script.status === "suggested" ? "paused" : "connected"}>
+                    {script.status}
+                  </StatusPill>
+                </summary>
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+                  <p><strong>Gancho de abertura:</strong> {script.hook_opening}</p>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{script.script_body}</p>
+                  <p><strong>CTA:</strong> {script.cta}</p>
+                  <p style={{ color: "var(--text-muted)" }}><strong>Por quê esse tema:</strong> {script.rationale}</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="mini-button approve"
+                      type="button"
+                      disabled={sentToCalendar[script.id] || createCalendarItem.isPending}
+                      onClick={() => handleSendToCalendar(script)}
+                    >
+                      <Send size={13} />
+                      {sentToCalendar[script.id] ? "Enviado ao Calendário" : "Enviar ao Calendário Editorial"}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
   );
 }
 
@@ -371,10 +591,18 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
         >
           <Calendar size={15} /> Esteira do Calendário Editorial
         </button>
+        <button
+          className={mainTab === "retrospective" ? "performance-tab active" : "performance-tab"}
+          type="button"
+          onClick={() => setMainTab("retrospective")}
+        >
+          <Lightbulb size={15} /> Retrospectiva & Roteiros
+        </button>
       </div>
 
       {mainTab === "brand_book" && <BrandBookSection workspaceId={workspaceId} />}
       {mainTab === "calendar" && <CalendarSection workspaceId={workspaceId} />}
+      {mainTab === "retrospective" && <RetrospectiveSection workspaceId={workspaceId} />}
 
       {mainTab === "studio" && (
         <>

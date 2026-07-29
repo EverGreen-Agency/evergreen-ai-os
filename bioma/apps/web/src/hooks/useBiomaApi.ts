@@ -305,6 +305,105 @@ export function useRequestPerformanceSync() {
   });
 }
 
+// --- CONTENT INTELLIGENCE (retrospectiva, banco de ganchos, roteiros) ---
+
+export function useInstagramPosts(workspaceId: string | null, days = 90) {
+  return useQuery({
+    queryKey: ["content-instagram-posts", workspaceId, days],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listInstagramPosts(workspaceId, days);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useContentHookBank(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["content-hook-bank", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listContentHookBank(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useLatestRetrospective(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["content-retrospective", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.getLatestRetrospective(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useGenerateRetrospective() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, periodDays }: { workspaceId: string; periodDays?: number }) =>
+      api.generateRetrospective(workspaceId, periodDays),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["content-retrospective", variables.workspaceId], data);
+      queryClient.invalidateQueries({ queryKey: ["content-hook-bank", variables.workspaceId] });
+    },
+  });
+}
+
+export function useContentScripts(workspaceId: string | null, status?: import("../lib/api").ContentScriptStatus) {
+  return useQuery({
+    queryKey: ["content-scripts", workspaceId, status],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listContentScripts(workspaceId, status);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useGenerateContentScripts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, count, competitorHandles }: { workspaceId: string; count?: number; competitorHandles?: string[] }) =>
+      api.generateContentScripts(workspaceId, count, competitorHandles),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
+    },
+  });
+}
+
+export function useUpdateContentScript() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      scriptId,
+      payload,
+    }: {
+      workspaceId: string;
+      scriptId: string;
+      payload: Parameters<typeof api.updateContentScript>[2];
+    }) => api.updateContentScript(workspaceId, scriptId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
+    },
+  });
+}
+
+export function useLinkPostToScript() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, postId, scriptId }: { workspaceId: string; postId: string; scriptId: string }) =>
+      api.linkPostToScript(workspaceId, postId, scriptId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-instagram-posts", variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
+    },
+  });
+}
+
 // --- KOMMO INTEGRATION ---
 
 export function useKommoConfig(organizationId: string | null) {

@@ -154,7 +154,7 @@ def _sync_provider(
     date_from: date,
     date_to: date,
 ) -> int:
-    from bioma_worker.providers import ga4, google_ads, gtm, linkedin_ads, meta_ads, search_console
+    from bioma_worker.providers import ga4, google_ads, gtm, instagram_organic, linkedin_ads, meta_ads, search_console
     provider = connection["provider"]
     if provider == "google_ads":
         return google_ads.sync(conn, google_client, settings, client_id, connection, date_from, date_to)
@@ -168,10 +168,17 @@ def _sync_provider(
         return meta_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     if provider == "linkedin_ads":
         return linkedin_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
+    if provider == "instagram_organic":
+        return instagram_organic.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     raise RuntimeError(f"Provider não suportado: {provider}")
 
 
-_SUPPORTED_CREDENTIALS_REFS = ("env:GOOGLE_SERVICE_ACCOUNT_JSON", "env:META_ADS_ACCESS_TOKEN", "env:LINKEDIN_ADS_ACCESS_TOKEN")
+_SUPPORTED_CREDENTIALS_REFS = (
+    "env:GOOGLE_SERVICE_ACCOUNT_JSON",
+    "env:META_ADS_ACCESS_TOKEN",
+    "env:LINKEDIN_ADS_ACCESS_TOKEN",
+    "env:INSTAGRAM_ACCESS_TOKEN",
+)
 
 
 def _validate_credentials_reference(connection: dict[str, Any]) -> None:

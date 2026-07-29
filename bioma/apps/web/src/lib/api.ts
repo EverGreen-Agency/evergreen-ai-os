@@ -279,7 +279,14 @@ export type FinancialRecordPayload = {
   notes?: string | null;
 };
 
-export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads";
+export type PerformanceProvider =
+  | "google_ads"
+  | "ga4"
+  | "search_console"
+  | "gtm"
+  | "meta_ads"
+  | "linkedin_ads"
+  | "instagram_organic";
 
 export type PerformanceOverview = {
   workspace_id: string;
@@ -1017,6 +1024,76 @@ export type IntegrationsStatus = {
   storage_configured: boolean;
   google_oauth_configured: boolean;
   app_env: string;
+};
+
+export type HookSource = "llm_transcript" | "higgsfield_virality";
+export type ContentScriptStatus = "suggested" | "approved" | "scheduled" | "recorded" | "published" | "discarded";
+
+export type InstagramPostSummary = {
+  id: string;
+  ig_media_id: string;
+  permalink: string | null;
+  media_type: string;
+  caption: string | null;
+  posted_at: string | null;
+  thumbnail_url: string | null;
+  reach: number;
+  impressions: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saved: number;
+  plays: number;
+  avg_watch_time_seconds: number | null;
+  transcript: string | null;
+  source_script_id: string | null;
+};
+
+export type HookAnalysisSummary = {
+  id: string;
+  post_id: string;
+  source: HookSource;
+  hook_text: string | null;
+  hook_pattern: string | null;
+  effectiveness_score: number | null;
+  analysis_notes: string | null;
+  created_at: string;
+};
+
+export type ContentRetrospectiveSummary = {
+  id: string;
+  period_start: string;
+  period_end: string;
+  posts_analyzed: number;
+  generation_mode: string;
+  output_data: {
+    themes_performantes: string[];
+    themes_fracos: string[];
+    formatos_recomendados: string[];
+    hooks_que_funcionam: Array<{ hook_text: string; padrao: string; post_ids: string[]; por_que_funciona: string }>;
+    hooks_que_nao_funcionam: Array<{ hook_text: string; post_ids: string[]; por_que_nao_funciona: string }>;
+    sintese: string;
+  };
+  token_usage: Record<string, unknown>;
+  estimated_cost_cents: number;
+  created_at: string;
+};
+
+export type ContentScriptSummary = {
+  id: string;
+  retrospective_id: string | null;
+  title: string;
+  theme: string | null;
+  hook_opening: string | null;
+  script_body: string;
+  suggested_format: string | null;
+  cta: string | null;
+  rationale: string | null;
+  status: ContentScriptStatus;
+  scheduled_for: string | null;
+  generation_mode: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AiQuotaSnapshot = {
@@ -2197,6 +2274,36 @@ export const api = {
       body: JSON.stringify({ provider }),
     }),
   integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
+  listInstagramPosts: (workspaceId: string, days = 90) =>
+    request<InstagramPostSummary[]>(`/workspaces/${workspaceId}/content/instagram-posts?days=${days}`),
+  listContentHookBank: (workspaceId: string) =>
+    request<HookAnalysisSummary[]>(`/workspaces/${workspaceId}/content/hook-bank`),
+  getLatestRetrospective: (workspaceId: string) =>
+    request<ContentRetrospectiveSummary | null>(`/workspaces/${workspaceId}/content/retrospective`),
+  generateRetrospective: (workspaceId: string, periodDays = 60) =>
+    request<ContentRetrospectiveSummary>(`/workspaces/${workspaceId}/content/retrospective`, {
+      method: "POST",
+      body: JSON.stringify({ period_days: periodDays }),
+    }),
+  listContentScripts: (workspaceId: string, status?: ContentScriptStatus) =>
+    request<ContentScriptSummary[]>(
+      `/workspaces/${workspaceId}/content/scripts${status ? `?status=${status}` : ""}`,
+    ),
+  generateContentScripts: (workspaceId: string, count = 12, competitorHandles: string[] = []) =>
+    request<ContentScriptSummary[]>(`/workspaces/${workspaceId}/content/scripts`, {
+      method: "POST",
+      body: JSON.stringify({ count, competitor_handles: competitorHandles }),
+    }),
+  updateContentScript: (workspaceId: string, scriptId: string, payload: { status?: ContentScriptStatus; scheduled_for?: string | null }) =>
+    request<ContentScriptSummary>(`/workspaces/${workspaceId}/content/scripts/${scriptId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  linkPostToScript: (workspaceId: string, postId: string, scriptId: string) =>
+    request<InstagramPostSummary>(`/workspaces/${workspaceId}/content/instagram-posts/${postId}/link-script`, {
+      method: "POST",
+      body: JSON.stringify({ script_id: scriptId }),
+    }),
   githubConnection: (projectId: string) => request<GitHubConnection>(`/integrations/github/projects/${projectId}`),
   configureGitHubConnection: (projectId: string, payload: { repository: string; default_branch: string; status?: "active" | "paused" }) =>
     request<GitHubConnection>(`/integrations/github/projects/${projectId}`, { method: "PUT", body: JSON.stringify(payload) }),

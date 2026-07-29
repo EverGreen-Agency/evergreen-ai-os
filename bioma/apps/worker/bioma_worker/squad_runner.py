@@ -11,6 +11,8 @@ AGENT_NAME_BY_PILAR = {
     "onboarding": "Client Onboarding Strategist",
     "planning": "Multi-discipline Project Planner",
     "opportunity_fit": "Opportunity Fit Analyst",
+    "content_retrospective": "Content Retrospective Analyst",
+    "content_script": "Content Scriptwriter",
 }
 
 PILAR_INSTRUCTIONS = {
@@ -48,6 +50,23 @@ PILAR_INSTRUCTIONS = {
         "disponíveis, perfis do time). Dê uma nota de 0 a 100 (fit_score) e explique o porquê em fit_analysis, "
         "citando competências que casam (matched_skills) e gaps reais (skill_gaps). Não infira dados que não "
         "estão no contexto e não infle a nota — uma vaga genérica ou com poucas evidências deve pontuar baixo."
+    ),
+    "content_retrospective": (
+        "Você analisa o histórico recente de conteúdo orgânico publicado (posts, legendas, transcrições e "
+        "métricas reais de alcance/engajamento) fornecido no contexto. Identifique temas que performaram bem "
+        "e mal, formatos recomendados, e extraia os ganchos (abertura/primeiras frases) que mais geraram "
+        "resultado e os que falharam, sempre citando os post_ids como evidência. Não invente posts, métricas "
+        "ou padrões que não estejam no contexto — se os dados forem insuficientes, diga isso na síntese em "
+        "vez de generalizar."
+    ),
+    "content_script": (
+        "Você é o roteirista-chefe de conteúdo da EverGreen. A partir da retrospectiva de performance, do "
+        "banco de ganchos que já funcionou, do contexto de calendário/mercado e do benchmark de concorrentes "
+        "fornecidos no contexto, gere um lote de roteiros completos de vídeo prontos para gravação — sem pedir "
+        "briefing adicional ao usuário. Cada roteiro deve justificar o tema escolhido citando a evidência "
+        "(retrospectiva, data comemorativa ou gancho reaproveitado) usada para escolhê-lo. Não repita o mesmo "
+        "gancho ou tema em roteiros diferentes do mesmo lote. Não invente dado de mercado que não esteja no "
+        "contexto."
     ),
 }
 
@@ -181,6 +200,76 @@ OUTPUT_SCHEMA_OPPORTUNITY_FIT = {
     },
 }
 
+OUTPUT_SCHEMA_CONTENT_RETROSPECTIVE = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "themes_performantes", "themes_fracos", "formatos_recomendados",
+        "hooks_que_funcionam", "hooks_que_nao_funcionam", "sintese",
+    ],
+    "properties": {
+        "themes_performantes": {"type": "array", "items": {"type": "string"}},
+        "themes_fracos": {"type": "array", "items": {"type": "string"}},
+        "formatos_recomendados": {"type": "array", "items": {"type": "string"}},
+        "hooks_que_funcionam": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["hook_text", "padrao", "post_ids", "por_que_funciona"],
+                "properties": {
+                    "hook_text": {"type": "string"},
+                    "padrao": {"type": "string"},
+                    "post_ids": {"type": "array", "items": {"type": "string"}},
+                    "por_que_funciona": {"type": "string"},
+                },
+            },
+        },
+        "hooks_que_nao_funcionam": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["hook_text", "post_ids", "por_que_nao_funciona"],
+                "properties": {
+                    "hook_text": {"type": "string"},
+                    "post_ids": {"type": "array", "items": {"type": "string"}},
+                    "por_que_nao_funciona": {"type": "string"},
+                },
+            },
+        },
+        "sintese": {"type": "string"},
+    },
+}
+
+OUTPUT_SCHEMA_CONTENT_SCRIPT = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["roteiros"],
+    "properties": {
+        "roteiros": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "titulo", "tema", "gancho_abertura", "roteiro_completo",
+                    "formato_sugerido", "cta", "justificativa",
+                ],
+                "properties": {
+                    "titulo": {"type": "string"},
+                    "tema": {"type": "string"},
+                    "gancho_abertura": {"type": "string"},
+                    "roteiro_completo": {"type": "string"},
+                    "formato_sugerido": {"type": "string"},
+                    "cta": {"type": "string"},
+                    "justificativa": {"type": "string"},
+                },
+            },
+        },
+    },
+}
+
 OUTPUT_SCHEMA_BY_PILAR = {
     "oferta": OUTPUT_SCHEMA_OFERTA,
     "demanda": OUTPUT_SCHEMA_DEMANDA,
@@ -188,6 +277,8 @@ OUTPUT_SCHEMA_BY_PILAR = {
     "onboarding": OUTPUT_SCHEMA_ONBOARDING,
     "planning": OUTPUT_SCHEMA_PLANNING,
     "opportunity_fit": OUTPUT_SCHEMA_OPPORTUNITY_FIT,
+    "content_retrospective": OUTPUT_SCHEMA_CONTENT_RETROSPECTIVE,
+    "content_script": OUTPUT_SCHEMA_CONTENT_SCRIPT,
 }
 
 
@@ -385,6 +476,20 @@ def _preview_output(pilar: str, squad_name: str, input_data: dict[str, Any]) -> 
         }
     if pilar == "opportunity_fit":
         return _preview_opportunity_fit(input_data)
+    if pilar == "content_retrospective":
+        return _preview_content_retrospective(input_data)
+    if pilar == "content_script":
+        return {
+            "roteiros": [{
+                "titulo": "Prévia local — configure OPENAI_API_KEY",
+                "tema": "A definir pelo modelo em execução live.",
+                "gancho_abertura": "Prévia local: o gancho real vem da retrospectiva quando a chave estiver configurada.",
+                "roteiro_completo": "Configure OPENAI_API_KEY no worker para gerar roteiros reais a partir da retrospectiva e do banco de ganchos.",
+                "formato_sugerido": "a definir",
+                "cta": "a definir",
+                "justificativa": "Prévia local determinística; nenhum roteiro foi de fato gerado.",
+            }],
+        }
     return {
         "script_fechamento": f"Prévia local — script para: {objective}",
         "sequencia_whatsapp": [{"dia": 1, "mensagem": "Configure OPENAI_API_KEY para a sequência real."}],
@@ -423,4 +528,57 @@ def _preview_opportunity_fit(input_data: dict[str, Any]) -> dict[str, Any]:
         "matched_skills": matched_skills,
         "skill_gaps": [gap.capitalize() for gap in skill_gaps],
         "recommendation": recommendation,
+    }
+
+
+def _preview_content_retrospective(input_data: dict[str, Any]) -> dict[str, Any]:
+    # Sem OPENAI_API_KEY não classificamos "tema" ou "padrão de gancho" — isso
+    # exige compreensão real de linguagem. O que dá pra fazer honestamente é
+    # ordenar os posts reais por alcance real e mostrar a abertura literal de
+    # cada um, deixando claro que a leitura de padrão ainda depende do modelo.
+    posts = input_data.get("posts") or []
+    ranked = [p for p in posts if (p.get("reach") or 0) > 0]
+    ranked.sort(key=lambda p: p.get("reach") or 0, reverse=True)
+    top = ranked[:3]
+    bottom = ranked[-3:] if len(ranked) > 3 else []
+
+    def opening(post: dict[str, Any]) -> str:
+        text = post.get("transcript") or post.get("caption") or ""
+        words = str(text).strip().split()
+        return " ".join(words[:15]) or "(sem legenda ou transcrição)"
+
+    hooks_ok = [
+        {
+            "hook_text": opening(post),
+            "padrao": "Prévia local: classificação de padrão exige OPENAI_API_KEY.",
+            "post_ids": [str(post.get("post_id"))],
+            "por_que_funciona": f"Maior alcance real do período ({post.get('reach', 0)}).",
+        }
+        for post in top
+    ]
+    hooks_bad = [
+        {
+            "hook_text": opening(post),
+            "post_ids": [str(post.get("post_id"))],
+            "por_que_nao_funciona": f"Menor alcance real do período ({post.get('reach', 0)}).",
+        }
+        for post in bottom
+    ]
+
+    if not posts:
+        sintese = "Prévia local: nenhum post encontrado no período para retrospectiva."
+    else:
+        sintese = (
+            f"Prévia local — ordenação determinística por alcance real de {len(posts)} post(s), não é "
+            "análise de IA. Configure OPENAI_API_KEY no worker para identificar padrões reais de tema, "
+            "formato e gancho."
+        )
+
+    return {
+        "themes_performantes": ["Prévia local: temas reais exigem OPENAI_API_KEY."] if posts else [],
+        "themes_fracos": [],
+        "formatos_recomendados": [],
+        "hooks_que_funcionam": hooks_ok,
+        "hooks_que_nao_funcionam": hooks_bad,
+        "sintese": sintese,
     }

@@ -5,8 +5,9 @@ import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
+import { RaioXScorePanel } from "../components/RaioXScorePanel";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import { useClients, useClientPortal, useCommercialPortal, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
 import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
@@ -28,6 +29,7 @@ export function ClientHubView() {
   const { data: portalData, isLoading: loadingPortal } = useClientPortal(contextId);
   const portal = portalData ?? null;
   const decideApproval = useDecideApproval();
+  const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(contextId);
   
   const isBusy = decideApproval.isPending;
 
@@ -113,6 +115,15 @@ export function ClientHubView() {
                 </div>
               ))}
             </article>
+          </div>
+
+          <div style={{ marginTop: "24px" }}>
+            <RaioXScorePanel
+              workspaceId={contextId}
+              data={commercialData ?? null}
+              onUpdate={refetchCommercial}
+              canEdit={isEgAdmin}
+            />
           </div>
         </div>
       )}
