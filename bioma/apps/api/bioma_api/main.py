@@ -37,6 +37,7 @@ from bioma_api.routers import (
     sales_copilot,
     brand_book,
     editorial_calendar,
+    social_connect,
 )
 
 
@@ -85,6 +86,7 @@ app.include_router(invites.admin_router)
 app.include_router(invites.workspace_admin_router)
 app.include_router(performance.router)
 app.include_router(performance.workspace_router)
+app.include_router(social_connect.router)
 app.include_router(projects.router)
 app.include_router(projects.workspace_router)
 app.include_router(analytics.router)

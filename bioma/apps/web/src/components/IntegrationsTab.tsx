@@ -22,7 +22,7 @@ import {
 } from "../hooks/useBiomaApi";
 import { formatDateTime } from "../lib/format";
 import type { PerformanceConnection, PerformanceProvider, OpportunityPlatformConfig } from "../lib/api";
-import { api } from "../lib/api";
+import { api, apiUrl } from "../lib/api";
 import { useEffect } from "react";
 import { WhatsAppManager } from "./WhatsAppManager";
 import { StatusPill } from "./StatusPill";
@@ -37,6 +37,7 @@ import {
   LinkedInAdsIcon,
   MetaAdsIcon,
   SearchConsoleIcon,
+  TikTokIcon,
   YouTubeIcon,
 } from "./icons/BrandIcons";
 
@@ -47,6 +48,7 @@ const PROVIDER_META: Record<PerformanceProvider, {
   accountPlaceholder: string;
   parentLabel?: string;
   parentPlaceholder?: string;
+  oauthConnect?: boolean;
 }> = {
   google_ads: {
     label: "Google Ads",
@@ -111,6 +113,27 @@ const PROVIDER_META: Record<PerformanceProvider, {
     icon: YouTubeIcon,
     accountLabel: "Channel ID",
     accountPlaceholder: "UCxxxxxxxxxxxxxxxxxxxxxx",
+  },
+  tiktok_organic: {
+    label: "TikTok (orgânico)",
+    icon: TikTokIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
+  },
+  tiktok_ads: {
+    label: "TikTok Ads",
+    icon: TikTokIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
+  },
+  linkedin_organic: {
+    label: "LinkedIn (orgânico)",
+    icon: LinkedInAdsIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
   },
 };
 
@@ -512,11 +535,13 @@ export function IntegrationsTab({
 
                       {!isEditing && !connection && (
                         <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
-                          Nenhuma conta {meta.label} mapeada para {selectedClient.name}.
+                          {meta.oauthConnect
+                            ? `Nenhuma conta ${meta.label} conectada. A conexão exige autorização OAuth — clique em "Conectar via OAuth" abaixo.`
+                            : `Nenhuma conta ${meta.label} mapeada para ${selectedClient.name}.`}
                         </div>
                       )}
 
-                      {isEditing && (
+                      {isEditing && !meta.oauthConnect && (
                         <form onSubmit={handleSaveConnection} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                           <div>
                             <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>{meta.accountLabel}</label>
@@ -561,10 +586,20 @@ export function IntegrationsTab({
 
                       {!isEditing && (
                         <div style={{ marginTop: "auto", display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8 }}>
-                          <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
-                            {connection ? <PenLine size={13} /> : <Plus size={13} />}
-                            {connection ? "Editar" : "Conectar"}
-                          </button>
+                          {meta.oauthConnect ? (
+                            <a
+                              className="mini-button"
+                              href={apiUrl(`/workspaces/${selectedClient.id}/performance/connections/${provider}/authorize`)}
+                            >
+                              <PenLine size={13} />
+                              {connection ? "Reconectar via OAuth" : "Conectar via OAuth"}
+                            </a>
+                          ) : (
+                            <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
+                              {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                              {connection ? "Editar" : "Conectar"}
+                            </button>
+                          )}
                           {connection && (
                             <>
                               <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>

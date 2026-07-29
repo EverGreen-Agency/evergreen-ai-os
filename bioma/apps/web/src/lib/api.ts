@@ -289,7 +289,10 @@ export type PerformanceProvider =
   | "instagram_organic"
   | "google_business_profile"
   | "google_adsense"
-  | "youtube_organic";
+  | "youtube_organic"
+  | "tiktok_organic"
+  | "tiktok_ads"
+  | "linkedin_organic";
 
 export type PerformanceOverview = {
   workspace_id: string;

@@ -19,6 +19,13 @@ class WorkerSettings(BaseSettings):
     instagram_post_sync_limit: int = 50
     youtube_api_key: str | None = None
     youtube_organic_sync_limit: int = 50
+    secret_encryption_key: str | None = None
+    tiktok_client_key: str | None = None
+    tiktok_client_secret: str | None = None
+    tiktok_ads_app_id: str | None = None
+    tiktok_ads_secret: str | None = None
+    linkedin_client_id: str | None = None
+    linkedin_client_secret: str | None = None
     openai_api_key: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_research_model: str = "gpt-5.6-terra"

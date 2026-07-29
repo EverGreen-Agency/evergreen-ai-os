@@ -9103,7 +9103,10 @@
               "instagram_organic",
               "google_business_profile",
               "google_adsense",
-              "youtube_organic"
+              "youtube_organic",
+              "tiktok_organic",
+              "tiktok_ads",
+              "linkedin_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -9224,7 +9227,10 @@
               "instagram_organic",
               "google_business_profile",
               "google_adsense",
-              "youtube_organic"
+              "youtube_organic",
+              "tiktok_organic",
+              "tiktok_ads",
+              "linkedin_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -9745,6 +9751,9 @@
               "google_business_profile",
               "google_adsense",
               "youtube_organic",
+              "tiktok_organic",
+              "tiktok_ads",
+              "linkedin_organic",
               "all"
             ],
             "title": "Provider",
@@ -17405,7 +17414,10 @@
               "instagram_organic",
               "google_business_profile",
               "google_adsense",
-              "youtube_organic"
+              "youtube_organic",
+              "tiktok_organic",
+              "tiktok_ads",
+              "linkedin_organic"
             ],
             "title": "Provider",
             "type": "string"
@@ -28730,6 +28742,94 @@
         ]
       }
     },
+    "/integrations/social-connect/{provider}/callback": {
+      "get": {
+        "operationId": "callback_integrations_social_connect__provider__callback_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Callback",
+        "tags": [
+          "social-connect"
+        ]
+      }
+    },
     "/integrations/status": {
       "get": {
         "operationId": "get_status_integrations_status_get",
@@ -34747,6 +34847,56 @@
         "summary": "Get Research",
         "tags": [
           "market-research"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/performance/connections/{provider}/authorize": {
+      "get": {
+        "operationId": "authorize_workspaces__workspace_id__performance_connections__provider__authorize_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Authorize",
+        "tags": [
+          "social-connect"
         ]
       }
     },

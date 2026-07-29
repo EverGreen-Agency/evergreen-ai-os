@@ -2487,6 +2487,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/social-connect/{provider}/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Callback */
+        get: operations["callback_integrations_social_connect__provider__callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/status": {
         parameters: {
             query?: never;
@@ -3955,6 +3972,23 @@ export interface paths {
         };
         /** Get Research */
         get: operations["get_research_workspaces__workspace_id__market_research__research_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/performance/connections/{provider}/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Authorize */
+        get: operations["authorize_workspaces__workspace_id__performance_connections__provider__authorize_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7460,7 +7494,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
             /**
              * Status
              * @default active
@@ -7507,7 +7541,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
             /**
              * Status
              * @enum {string}
@@ -7705,7 +7739,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "all";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic" | "all";
         };
         /** PerformanceSyncRunSummary */
         PerformanceSyncRunSummary: {
@@ -10283,7 +10317,7 @@ export interface components {
              * Provider
              * @enum {string}
              */
-            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic";
+            provider: "google_ads" | "ga4" | "search_console" | "gtm" | "meta_ads" | "linkedin_ads" | "instagram_organic" | "google_business_profile" | "google_adsense" | "youtube_organic" | "tiktok_organic" | "tiktok_ads" | "linkedin_organic";
             /**
              * Status
              * @enum {string}
@@ -17055,6 +17089,41 @@ export interface operations {
             };
         };
     };
+    callback_integrations_social_connect__provider__callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_status_integrations_status_get: {
         parameters: {
             query?: never;
@@ -20855,6 +20924,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarketResearchDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    authorize_workspaces__workspace_id__performance_connections__provider__authorize_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
