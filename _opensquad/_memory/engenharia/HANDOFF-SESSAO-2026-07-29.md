@@ -1,6 +1,6 @@
 # Handoff — sessão 2026-07-29
 
-Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `1cc5852`.
+Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `4f243db`.
 
 ---
 
@@ -26,8 +26,26 @@ Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `1cc58
 
 ## Onde paramos
 
-**Login foi revisado e corrigido (commit `1cc5852`).** Próximo passo combinado:
-**visão/acesso do admin da EG**.
+**Login revisado e corrigido; regressão de auth corrigida e validada contra
+banco real.** Próximo passo combinado: **visão/acesso do admin da EG (Cockpit)**
+— o backend dele já foi verificado (ver abaixo), falta revisar a interface.
+
+### Regressão crítica encontrada e corrigida (`4f243db`)
+
+O commit do PAT (`ede2b79`) quebrou **as três portas de entrada de sessão** do
+produto — login, aceitar convite e confirmar redefinição de senha — todas com
+500. Causa: `current_user_from_request` passou a ler
+`request.headers["authorization"]`, mas esses três fluxos chamavam a função com
+um **objeto falso de Request** (`_request_from_token`) que só tinha `.cookies`.
+
+Corrigido extraindo `user_from_session_token(token)` em `auth.py` e **removendo
+as três cópias do shim**, em vez de remendá-las com um `headers` vazio. Assim,
+qualquer campo novo lido de `Request` no futuro não consegue mais derrubar
+esses fluxos.
+
+**Lição que vale para o resto da revisão:** o mesmo hack estava copiado em 3
+arquivos. Ao mexer em contrato de função compartilhada, vale um
+`grep -rn "<nome>" --include="*.py"` antes de assumir que só há um chamador.
 
 O que foi encontrado e corrigido no login:
 - Causa raiz da quebra em celular/tablet/F12: `html, body, #root` são
@@ -52,6 +70,8 @@ Vale o Eduardo conferir no dev server antes de seguir.
 
 | Commit | O quê |
 |---|---|
+| `4f243db` | **Fix crítico:** 500 em login/convite/reset causado pelo shim de Request falso |
+| `951b2f5` | Este handoff |
 | `1cc5852` | Login: responsividade, órfã, estados ausentes |
 | `d8ea324` | Guias de conexão, RD Station CRM, HubSpot, fix card multi-conta |
 | `539fa69` | TikTok orgânico, TikTok Ads, LinkedIn orgânico (OAuth por conexão) |
@@ -66,12 +86,33 @@ Vale o Eduardo conferir no dev server antes de seguir.
 
 ## Bloqueios reais (não são bugs — dependem de terceiros)
 
-### Ambiente local
-- **Docker/Postgres não subiu nesta sessão.** Migrações `0059`–`0063` foram
-  escritas mas **nunca aplicadas nem testadas contra banco real**.
-  Rodar: `cd bioma/apps/api && ./.venv/Scripts/python.exe scripts/migrate.py`
-- Sem banco, também não deu para escrever/rodar smoke tests. **Esse é o maior
-  risco em aberto**: ~6 mil linhas escritas nesta sessão sem execução real.
+### Ambiente local — RESOLVIDO no fim da sessão
+
+Postgres subiu e as migrações `0059`–`0063` foram **aplicadas com sucesso**.
+O que já foi **executado de verdade** contra banco real:
+
+| Fluxo | Resultado |
+|---|---|
+| `POST /auth/login` | 200, usuário correto, 8 orgs |
+| `GET /auth/me` | 200 |
+| `GET /clients` | 200, 5 clientes |
+| PAT: criar | 201 |
+| PAT: usar sem cookie | 200, usuário correto |
+| PAT: token inválido | 401 |
+| PAT: token revogado | 401 |
+| `GET /backoffice/cockpit-summary` | 200 — MRR 450000, 3 entregas atrasadas, 1 cliente em risco |
+| Convite/reset com token inexistente | 404 (não 500) |
+| `export_openapi.py --check` | contrato em dia |
+
+O SQL do cockpit foi **conferido linha a linha contra o banco**: 1 contrato
+aberto de R$ 4.500 → MRR 450000 centavos; a única fatura está `open` (não
+`paid`), por isso faturamento do mês = 0; e há exatamente 3 entregas atrasadas.
+Os números não são fabricados.
+
+**O que ainda NÃO foi executado:** nada das integrações novas (Instagram,
+TikTok, LinkedIn, GBP, AdSense, YouTube, RD Station, HubSpot) nem os pilares de
+retrospectiva/roteiro — todos dependem de credencial externa que não temos.
+Também não há smoke test escrito para esses caminhos.
 
 ### Credenciais que faltam para as integrações funcionarem
 | Integração | Falta | Observação |
@@ -170,3 +211,7 @@ revisados:
 4. **`.find()` onde o dado é 1-para-N** — o card de integração mostrava só a
    primeira conta; as outras sincronizavam invisíveis.
 5. **Prop recebida e nunca usada** (`apiOnline` no login).
+6. **Hack copiado em vários arquivos** — o shim `_request_from_token` existia
+   idêntico em 3 routers. Mudar o contrato de uma função compartilhada quebrou
+   os 3 de uma vez. Sempre `grep` por outros chamadores antes de assumir que
+   há só um.
