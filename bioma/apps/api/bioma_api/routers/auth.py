@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from bioma_api.auth import current_user_from_request, session_cookie_kwargs
+from bioma_api.auth import current_user_from_request, session_cookie_kwargs, user_from_session_token
 from bioma_api.config import get_settings
 from bioma_api.db import connect
 from bioma_api.schemas.auth import (
@@ -72,8 +72,7 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
         )
 
     response.set_cookie(value=token, **session_cookie_kwargs(expires_at))
-    current = current_user_from_request(_request_from_token(settings.session_cookie_name, token))
-    return LoginResponse(user=current, expires_at=expires_at)
+    return LoginResponse(user=user_from_session_token(token), expires_at=expires_at)
 
 
 @router.post("/logout")
@@ -247,8 +246,3 @@ def revoke_personal_access_token(
             (token_id, user.id),
         )
     return {"status": "ok"}
-
-
-class _request_from_token:
-    def __init__(self, cookie_name: str, token: str) -> None:
-        self.cookies = {cookie_name: token}

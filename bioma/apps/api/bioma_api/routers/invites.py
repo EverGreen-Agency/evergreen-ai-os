@@ -2,8 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Response, status
 
-from bioma_api.auth import current_user_from_request, session_cookie_kwargs
-from bioma_api.config import get_settings
+from bioma_api.auth import current_user_from_request, session_cookie_kwargs, user_from_session_token
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.invites import (
     InviteAcceptRequest,
@@ -57,13 +56,6 @@ def get_invite(token: str) -> InvitePublicResponse:
 
 @public_router.post("/{token}/accept", response_model=InviteAcceptResponse)
 def accept_invite(token: str, payload: InviteAcceptRequest, response: Response) -> InviteAcceptResponse:
-    settings = get_settings()
     session_token, expires_at, _user_id = invites_service.accept_invite(token, payload)
     response.set_cookie(value=session_token, **session_cookie_kwargs(expires_at))
-    current = current_user_from_request(_request_from_token(settings.session_cookie_name, session_token))
-    return InviteAcceptResponse(user=current, expires_at=expires_at)
-
-
-class _request_from_token:
-    def __init__(self, cookie_name: str, token: str) -> None:
-        self.cookies = {cookie_name: token}
+    return InviteAcceptResponse(user=user_from_session_token(session_token), expires_at=expires_at)

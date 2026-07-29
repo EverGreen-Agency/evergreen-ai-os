@@ -18,6 +18,18 @@ def current_user_from_request(request: Request) -> CurrentUserResponse:
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão ausente.")
 
+    return user_from_session_token(token)
+
+
+def user_from_session_token(token: str) -> CurrentUserResponse:
+    """Resolve o usuário a partir do token de sessão puro.
+
+    Existe separada de `current_user_from_request` porque o /auth/login precisa
+    montar a resposta logo após criar a sessão, quando ainda não há um Request
+    com o cookie. Antes isso era feito com um objeto falso de Request, que
+    quebrava sempre que esta função passava a ler um campo novo (foi o que
+    aconteceu ao adicionar o header Authorization dos tokens pessoais).
+    """
     token_hash = hash_session_token(token)
     with connect() as conn:
         session = conn.execute(

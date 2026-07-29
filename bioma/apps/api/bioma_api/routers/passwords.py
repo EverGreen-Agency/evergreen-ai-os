@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from bioma_api.auth import current_user_from_request, session_cookie_kwargs
+from bioma_api.auth import current_user_from_request, session_cookie_kwargs, user_from_session_token
 from bioma_api.config import get_settings
 from bioma_api.schemas.auth import (
     CurrentUserResponse,
@@ -46,13 +46,6 @@ def get_reset(token: str) -> PasswordResetPublicResponse:
 
 @router.post("/password-resets/{token}/confirm", response_model=LoginResponse)
 def confirm_reset(token: str, payload: PasswordResetConfirmRequest, response: Response) -> LoginResponse:
-    settings = get_settings()
     session_token, expires_at = passwords_service.confirm_reset(token, payload.password)
     response.set_cookie(value=session_token, **session_cookie_kwargs(expires_at))
-    current = current_user_from_request(_request_from_token(settings.session_cookie_name, session_token))
-    return LoginResponse(user=current, expires_at=expires_at)
-
-
-class _request_from_token:
-    def __init__(self, cookie_name: str, token: str) -> None:
-        self.cookies = {cookie_name: token}
+    return LoginResponse(user=user_from_session_token(session_token), expires_at=expires_at)
