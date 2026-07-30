@@ -1100,6 +1100,26 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type FathomMeeting = {
+  recording_id: number;
+  title: string;
+  meeting_type: string | null;
+  url: string | null;
+  created_at: string | null;
+  started_at: string | null;
+  ended_at: string | null;
+  recorded_by: string | null;
+  external_invitees: Array<{ name: string | null; email: string | null; domain: string | null }>;
+};
+
+export type FathomImportResult = {
+  session_id: string;
+  recording_id: number;
+  imported_segments: number;
+  skipped_segments: number;
+  analyzed: boolean;
+};
+
 export type ScriptScoreboardRow = {
   script_id: string;
   title: string;
@@ -3019,6 +3039,13 @@ export const api = {
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
   salesCopilotSession: (sessionId: string) =>
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  fathomMeetings: (limit = 20) =>
+    request<FathomMeeting[]>(`/backoffice/sales-copilot/fathom/meetings?limit=${limit}`),
+  importFathomMeeting: (sessionId: string, recordingId: number, analyzeAfterImport = true) =>
+    request<FathomImportResult>(`/backoffice/sales-copilot/sessions/${sessionId}/fathom-import`, {
+      method: "POST",
+      body: JSON.stringify({ recording_id: recordingId, analyze_after_import: analyzeAfterImport }),
+    }),
   salesCopilotMetrics: () => request<SalesCopilotMetrics>("/backoffice/sales-copilot/metrics"),
   salesCopilotRealtimeStatus: () =>
     request<SalesCopilotRealtimeStatus>("/backoffice/sales-copilot/realtime-adapter"),

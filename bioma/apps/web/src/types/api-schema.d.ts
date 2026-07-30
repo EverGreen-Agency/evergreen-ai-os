@@ -1743,6 +1743,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/sales-copilot/fathom/meetings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Fathom Meetings
+         * @description Reuniões gravadas no Fathom disponíveis para importação.
+         */
+        get: operations["list_fathom_meetings_backoffice_sales_copilot_fathom_meetings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/sales-copilot/ingest/{session_id}": {
         parameters: {
             query?: never;
@@ -1788,6 +1808,26 @@ export interface paths {
         get: operations["get_realtime_adapter_backoffice_sales_copilot_realtime_adapter_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/sessions/{session_id}/fathom-import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Fathom Meeting
+         * @description Importa a transcrição real da gravação para a sessão (idempotente).
+         */
+        post: operations["import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6457,6 +6497,62 @@ export interface components {
             doc_type: string;
             /** Filename */
             filename?: string | null;
+        };
+        /** FathomImportRequest */
+        FathomImportRequest: {
+            /**
+             * Analyze After Import
+             * @default true
+             */
+            analyze_after_import: boolean;
+            /** Recording Id */
+            recording_id: number;
+        };
+        /** FathomImportResult */
+        FathomImportResult: {
+            /** Analyzed */
+            analyzed: boolean;
+            /** Imported Segments */
+            imported_segments: number;
+            /** Recording Id */
+            recording_id: number;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Skipped Segments */
+            skipped_segments: number;
+        };
+        /** FathomMeeting */
+        FathomMeeting: {
+            /** Created At */
+            created_at?: string | null;
+            /** Ended At */
+            ended_at?: string | null;
+            /** External Invitees */
+            external_invitees?: components["schemas"]["FathomMeetingInvitee"][];
+            /** Meeting Type */
+            meeting_type?: string | null;
+            /** Recorded By */
+            recorded_by?: string | null;
+            /** Recording Id */
+            recording_id: number;
+            /** Started At */
+            started_at?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
+        /** FathomMeetingInvitee */
+        FathomMeetingInvitee: {
+            /** Domain */
+            domain?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Name */
+            name?: string | null;
         };
         /** FinOpsSummaryResponse */
         FinOpsSummaryResponse: {
@@ -16753,6 +16849,37 @@ export interface operations {
             };
         };
     };
+    list_fathom_meetings_backoffice_sales_copilot_fathom_meetings_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FathomMeeting"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ingest_external_transcript_backoffice_sales_copilot_ingest__session_id__post: {
         parameters: {
             query?: never;
@@ -16826,6 +16953,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RealtimeAdapterStatus"];
+                };
+            };
+        };
+    };
+    import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FathomImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FathomImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

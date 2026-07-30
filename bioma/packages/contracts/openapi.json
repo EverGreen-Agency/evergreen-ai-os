@@ -5054,6 +5054,191 @@
         "title": "EngineeringDocData",
         "type": "object"
       },
+      "FathomImportRequest": {
+        "properties": {
+          "analyze_after_import": {
+            "default": true,
+            "title": "Analyze After Import",
+            "type": "boolean"
+          },
+          "recording_id": {
+            "title": "Recording Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recording_id"
+        ],
+        "title": "FathomImportRequest",
+        "type": "object"
+      },
+      "FathomImportResult": {
+        "properties": {
+          "analyzed": {
+            "title": "Analyzed",
+            "type": "boolean"
+          },
+          "imported_segments": {
+            "title": "Imported Segments",
+            "type": "integer"
+          },
+          "recording_id": {
+            "title": "Recording Id",
+            "type": "integer"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "skipped_segments": {
+            "title": "Skipped Segments",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id",
+          "recording_id",
+          "imported_segments",
+          "skipped_segments",
+          "analyzed"
+        ],
+        "title": "FathomImportResult",
+        "type": "object"
+      },
+      "FathomMeeting": {
+        "properties": {
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "external_invitees": {
+            "items": {
+              "$ref": "#/components/schemas/FathomMeetingInvitee"
+            },
+            "title": "External Invitees",
+            "type": "array"
+          },
+          "meeting_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Type"
+          },
+          "recorded_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded By"
+          },
+          "recording_id": {
+            "title": "Recording Id",
+            "type": "integer"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "recording_id",
+          "title"
+        ],
+        "title": "FathomMeeting",
+        "type": "object"
+      },
+      "FathomMeetingInvitee": {
+        "properties": {
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "FathomMeetingInvitee",
+        "type": "object"
+      },
       "FinOpsSummaryResponse": {
         "properties": {
           "completion_tokens": {
@@ -28790,6 +28975,54 @@
         ]
       }
     },
+    "/backoffice/sales-copilot/fathom/meetings": {
+      "get": {
+        "description": "Reuniões gravadas no Fathom disponíveis para importação.",
+        "operationId": "list_fathom_meetings_backoffice_sales_copilot_fathom_meetings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FathomMeeting"
+                  },
+                  "title": "Response List Fathom Meetings Backoffice Sales Copilot Fathom Meetings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Fathom Meetings",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
     "/backoffice/sales-copilot/ingest/{session_id}": {
       "post": {
         "operationId": "ingest_external_transcript_backoffice_sales_copilot_ingest__session_id__post",
@@ -28889,6 +29122,60 @@
           }
         },
         "summary": "Get Realtime Adapter",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/sessions/{session_id}/fathom-import": {
+      "post": {
+        "description": "Importa a transcrição real da gravação para a sessão (idempotente).",
+        "operationId": "import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FathomImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FathomImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Fathom Meeting",
         "tags": [
           "sales-copilot"
         ]
