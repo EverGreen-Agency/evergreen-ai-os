@@ -234,7 +234,10 @@ def add_segment(conn, session_id: UUID, actor_user_id: UUID | None, data: dict[s
         conn.execute(
             """
             update sales_copilot_sessions
-            set transcript = concat_ws(E'\n', nullif(transcript, ''), %s),
+            -- O cast ::text é obrigatório: dentro de concat_ws o Postgres não
+            -- infere o tipo do parâmetro e derruba a query com
+            -- IndeterminateDatatype (era 500 em toda ingestão de transcrição).
+            set transcript = concat_ws(E'\n', nullif(transcript, ''), %s::text),
                 status = case when status in ('draft', 'prepared') then 'active' else status end,
                 realtime_status = case when meeting_provider <> 'manual' then 'live' else realtime_status end,
                 started_at = coalesce(started_at, now()),
@@ -411,7 +414,10 @@ def add_event(conn, session_id: UUID, actor_user_id: UUID, data: dict[str, Any])
         conn.execute(
             """
             update sales_copilot_sessions
-            set transcript = concat_ws(E'\n', nullif(transcript, ''), %s),
+            -- O cast ::text é obrigatório: dentro de concat_ws o Postgres não
+            -- infere o tipo do parâmetro e derruba a query com
+            -- IndeterminateDatatype (era 500 em toda ingestão de transcrição).
+            set transcript = concat_ws(E'\n', nullif(transcript, ''), %s::text),
                 status = case when status in ('draft', 'prepared') then 'active' else status end,
                 started_at = coalesce(started_at, now()),
                 updated_at = now()
