@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from bioma_api.config import get_settings
 from bioma_api.routers import (
     admin,
+    agent_memory,
     ai_content,
     ai_operations,
     ai_routing,
@@ -107,6 +108,7 @@ app.include_router(market_research.router)
 app.include_router(local_radar.router)
 app.include_router(briefing.router)
 app.include_router(copilot.router)
+app.include_router(agent_memory.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)
