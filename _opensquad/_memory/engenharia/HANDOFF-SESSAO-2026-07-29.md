@@ -2,6 +2,59 @@
 
 Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
 
+## Avanço 2026-07-30 — parte 5 (os 5 ajustes + copiloto)
+
+- **`86597de` — CI passou de 4 para 26 smokes** (`bioma/scripts/run_smokes.py`):
+  descoberta automática, um processo por smoke, interpretador do venv de cada app
+  e exclusões declaradas COM MOTIVO (`SKIP`). Smoke novo entra na CI só por
+  existir. A primeira execução revelou **6 falhas escondidas**, todas corrigidas:
+  - `smoke_ai_operations` e `smoke_ai_control_plane`: exigem banco `_smoke` →
+    reclassificados no grupo `mutable`;
+  - `smoke_benchmark`: faltava o boilerplate de `sys.path` (nunca rodou);
+  - `smoke_proposals`: **asserção invertida** — cobrava que proposta em `draft`
+    fosse acessível pelo token público, ou seja, testava o vazamento como se
+    fosse a feature. Agora exige `is None` em draft e `is not None` só depois de
+    `sent` + claims aprovadas;
+  - `smoke_files`: exige storage configurado → `SKIP` documentado;
+  - `smoke_api`: o teste de rate limit não limpava `login_attempts`, então
+    rodar duas vezes na janela já falhava. Agora é idempotente.
+  - **Dívida registrada:** os smokes ainda não são isolados por transação; a
+    ordem (`ORDER_FIRST`) resolve na prática, mas o isolamento real fica pendente.
+- **`9cc363d` — Cockpit acionável + saúde das integrações**: conexão ativa que
+  nunca sincronizou (ou parada há 3+ dias) entra no painel "Precisa de você" com
+  link direto para as integrações do cliente, e prospects do Radar Local
+  aguardando aprovação viram item de ação. Achado real na base: **4 conexões da
+  HM nunca sincronizaram** — antes indistinguível de "cliente sem investimento".
+- **`249048f` — análise ao vivo dedicada** (`bioma_worker/sales_live.py`): saiu do
+  squad genérico. O momento da call (`objection_price`, `buying_signal`,
+  `closing_window`…) é classificado pelo modelo em schema fechado, não por busca
+  de palavra — antes `"caro"` em qualquer contexto virava objeção de preço.
+  Devolve a fala sugerida, sinais com trecho de apoio, pergunta que destrava e o
+  risco do momento.
+- **`9300ff1` — `styles.css` de 5.404 linhas → 8 arquivos por domínio**, com a
+  ordem de cascata preservada e documentada no índice. **Prova de equivalência:
+  o CSS gerado manteve o mesmo hash** (`index-B1aqSijk.css`, 80,18 kB).
+- **`406b8ff` + `33f1574` — COPILOTO**, com as decisões do Eduardo travadas:
+  - **catálogo fechado** em `bioma_worker/copilot.py`; nome fora do catálogo é
+    descartado pela API, independentemente do que o modelo devolva;
+  - **reversível executa direto e devolve `undo_hint`**; ação visível ao cliente
+    (`send_whatsapp`, `request_client_approval`) volta como
+    `pending_confirmation` e **nunca** executa no serviço;
+  - **fonte obrigatória** em toda resposta: `kind: "bioma"` cita tela/tabela,
+    `kind: "web"` só aceita URL **realmente visitada** pela ferramenta de busca
+    (declaração do modelo sem visita é filtrada);
+  - **só EG** (`require_platform_admin`), validado com 403 para client_user;
+  - superfície `task` ligada: `/` no chat da tarefa abre o menu de comandos, o
+    resultado mostra ação aplicada, como desfazer e as fontes.
+  - `smoke_copilot.py` injeta plano determinístico e testa a **autoridade da
+    API**, não a criatividade do modelo: 403, catálogo por superfície, execução
+    com undo, descarte de ação fora de catálogo/superfície, `dry_run` inerte, 404.
+- **Falta do copiloto (próximo passo):** superfícies `/` no Estúdio IA e o chat
+  de escopo global ("o que priorizar hoje") — o motor e o dossiê já suportam
+  ambos (`SURFACE_ACTIONS` + `_build_dossier`), falta a UI.
+- Validado ao final: **27/27 smokes**, `tsc --noEmit`, `npm run build`, contrato
+  regenerado.
+
 ## Avanço 2026-07-30 — parte 4 (versão, Fathom e um 500 escondido)
 
 - **`04bc13e` — BUG CRÍTICO pré-existente corrigido**: `concat_ws(E'\n',
