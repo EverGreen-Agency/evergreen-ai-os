@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables } from "../hooks/useBiomaApi";
+import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
 import { SquadsView } from "./SquadsView";
 
@@ -29,6 +29,10 @@ export function CockpitView() {
   const { data: clientsData } = useClients();
   const { data: portalData } = useClientPortal(selectedClientId);
   const { data: myDeliverablesData } = useMyDeliverables();
+  // Duas origens coexistem: `deliverables` (client-hub, responsável por e-mail,
+  // é o que move aprovação) e `eg_tasks` (o substituto do ClickUp). O painel
+  // lia só a primeira, então nada criado em Tarefas aparecia aqui.
+  const { data: myTasksData } = useMyTasks();
 
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
   const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
@@ -47,6 +51,8 @@ export function CockpitView() {
   const pendingApprovals = portal?.approvals.filter((approval) => approval.status === "pending") ?? [];
   const activeDeliverables = portal?.deliverables.filter((deliverable) => deliverable.status !== "done" && deliverable.status !== "blocked") ?? [];
   const myDeliverables = myDeliverablesData ?? [];
+  const myTasks = myTasksData ?? [];
+  const hasAnyPersonalWork = myDeliverables.length > 0 || myTasks.length > 0;
 
   if (!user) return null;
 
@@ -210,20 +216,49 @@ export function CockpitView() {
               <h3>Minhas tarefas</h3>
             </div>
             <div className="timeline-list">
-              {myDeliverables.length === 0 ? (
+              {!hasAnyPersonalWork && (
                 <div className="timeline-row">
                   <span style={{ background: "transparent", color: "var(--text-muted)" }}>Tudo em dia</span>
                   <strong>Nenhuma tarefa atribuída a você no momento.</strong>
                 </div>
-              ) : (
-                myDeliverables.map((task: any) => (
-                  <div className="timeline-row" key={task.id}>
-                    <span>{task.client_name ?? "Agência"}</span>
-                    <strong>{task.title}</strong>
-                    <small>Status: {task.status} | Prazo: {task.due_at ? new Date(task.due_at).toLocaleDateString() : "Sem prazo"}</small>
-                  </div>
-                ))
               )}
+
+              {/* Tarefas do sistema que substituiu o ClickUp — inclui a
+                  demanda interna da EG, não só a de cliente. */}
+              {myTasks.map((task) => (
+                <button
+                  type="button"
+                  className="timeline-row cockpit-task-row"
+                  key={task.id}
+                  onClick={() =>
+                    navigate(
+                      task.workspace_kind === "agency_internal"
+                        ? `/operacao/tarefas?list=${task.list_id}`
+                        : `/clientes/${task.workspace_id}/tarefas?list=${task.list_id}`,
+                    )
+                  }
+                >
+                  <span>
+                    {task.workspace_kind === "agency_internal" ? "EG interno" : task.workspace_name}
+                  </span>
+                  <strong>{task.title}</strong>
+                  <small>
+                    {task.list_name}
+                    {task.project_name ? ` · ${task.project_name}` : ""} · {task.status} · Prazo:{" "}
+                    {task.due_date ? new Date(task.due_date).toLocaleDateString("pt-BR") : "sem prazo"}
+                  </small>
+                </button>
+              ))}
+
+              {/* Entregáveis do client-hub: origem diferente, é o que move o
+                  fluxo de aprovação do cliente. */}
+              {myDeliverables.map((task: any) => (
+                <div className="timeline-row" key={task.id}>
+                  <span>{task.client_name ?? "Agência"}</span>
+                  <strong>{task.title}</strong>
+                  <small>Entregável · {task.status} · Prazo: {task.due_at ? new Date(task.due_at).toLocaleDateString("pt-BR") : "sem prazo"}</small>
+                </div>
+              ))}
             </div>
           </article>
         </section>

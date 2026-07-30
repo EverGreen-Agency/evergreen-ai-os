@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.tasks import (
+    AssignableUser,
+    MyTaskSummary,
     Task,
     TaskComment,
     TaskCommentCreate,
@@ -110,3 +112,16 @@ def delete_task_comment(
 ):
     tasks_service.delete_task_comment(comment_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/tasks/me", response_model=list[MyTaskSummary])
+def list_my_tasks(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[MyTaskSummary]:
+    return tasks_service.list_my_tasks(user)
+
+@router.get("/workspaces/{workspace_id}/assignable-users", response_model=list[AssignableUser])
+def list_assignable_users(
+    workspace_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[AssignableUser]:
+    return tasks_service.list_assignable_users(workspace_id, user)

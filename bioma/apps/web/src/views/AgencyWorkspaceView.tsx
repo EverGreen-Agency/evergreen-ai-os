@@ -11,6 +11,7 @@ import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/work
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: module.CrmView })));
 const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
+const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
 
@@ -146,6 +147,14 @@ export function AgencyAnalyticsRoute() {
       <AnalyticsView clientId={workspace.workspaceId} workspaceName={workspace.name} />
     </Suspense>
   );
+}
+
+/** Demanda interna da EG: social/tech/growth da própria casa, treinamento de
+ *  time, hackathon. Mesma máquina de tarefas dos clientes, apontada para o
+ *  workspace interno — sem isso a EG não conseguia usar o próprio produto. */
+export function AgencyTasksRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return <Suspense fallback={<ModuleLoading />}><TasksView workspaceId={workspace.workspaceId} /></Suspense>;
 }
 
 export function AgencyAiOperationsRoute() {

@@ -3,13 +3,16 @@ import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
 import { formatDueDate } from "../../lib/format";
+import type { TaskListType } from "../../lib/api";
 import { CheckSquare, Circle, Plus } from "lucide-react";
 
 type TaskListViewProps = {
   listId: string;
+  listType?: TaskListType;
+  workspaceId?: string;
 };
 
-export function TaskListView({ listId }: TaskListViewProps) {
+export function TaskListView({ listId, listType, workspaceId }: TaskListViewProps) {
   const { data: tasks, isLoading } = useTasksInList(listId);
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -38,7 +41,9 @@ export function TaskListView({ listId }: TaskListViewProps) {
         <EmptyState text="Nenhuma tarefa encontrada." />
         <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>{newTaskButton}</div>
         {isCreating && (
-          <TaskDrawer listId={listId} taskId={null} onClose={() => setIsCreating(false)} />
+          <TaskDrawer listId={listId}
+          listType={listType}
+          workspaceId={workspaceId} taskId={null} onClose={() => setIsCreating(false)} />
         )}
       </>
     );
@@ -136,6 +141,8 @@ export function TaskListView({ listId }: TaskListViewProps) {
       {(selectedTaskId || isCreating) && (
         <TaskDrawer
           listId={listId}
+          listType={listType}
+          workspaceId={workspaceId}
           taskId={selectedTaskId}
           onClose={() => {
             setSelectedTaskId(null);

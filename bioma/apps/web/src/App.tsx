@@ -38,6 +38,7 @@ const EngineeringView = lazy(() => import("./views/EngineeringView").then((modul
 const AgencyWorkspaceView = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyWorkspaceView })));
 const AgencyOverviewRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyOverviewRoute })));
 const AgencyCrmRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyCrmRoute })));
+const AgencyTasksRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyTasksRoute })));
 const AgencyFinanceRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyFinanceRoute })));
 const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAnalyticsRoute })));
 const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
@@ -291,6 +292,7 @@ export function App() {
             </Suspense>,
           )}>
             <Route index element={<AgencyOverviewRoute />} />
+            <Route path="tarefas" element={<AgencyTasksRoute />} />
             <Route path="crm" element={<AgencyCrmRoute />} />
             <Route path="financeiro" element={<AgencyFinanceRoute />} />
             <Route path="metricas" element={<AgencyAnalyticsRoute />} />

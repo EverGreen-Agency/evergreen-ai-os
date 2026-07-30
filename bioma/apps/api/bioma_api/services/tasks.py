@@ -8,6 +8,8 @@ from bioma_api.db import connect
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.tasks import (
+    AssignableUser,
+    MyTaskSummary,
     Task,
     TaskComment,
     TaskCommentCreate,
@@ -304,3 +306,19 @@ def delete_task_comment(comment_id: UUID, user: CurrentUserResponse) -> None:
             # Não distingue "não existe" de "não é seu": não confirma a
             # existência de comentário que o usuário não pode apagar.
             raise _not_found("Comentário não encontrado.")
+
+
+def list_my_tasks(user: CurrentUserResponse) -> list[MyTaskSummary]:
+    """Não recebe workspace: é a visão pessoal, atravessa a carteira toda e o
+    workspace interno da EG. O escopo é garantido na própria query."""
+    with connect() as conn:
+        rows = tasks_repo.list_my_tasks(conn, user.id, is_platform_admin(user))
+    return [MyTaskSummary(**row) for row in rows]
+
+
+def list_assignable_users(workspace_id: UUID, user: CurrentUserResponse) -> list[AssignableUser]:
+    with connect() as conn:
+        context = tasks_repo.find_workspace_context(conn, workspace_id, is_platform_admin(user), user.id)
+        _authorize(context, user, "view", "Workspace não encontrado.")
+        rows = tasks_repo.list_assignable_users(conn, workspace_id)
+    return [AssignableUser(**row) for row in rows]

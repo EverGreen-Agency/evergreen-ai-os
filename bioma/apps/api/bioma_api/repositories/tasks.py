@@ -470,3 +470,62 @@ def find_comment_task(conn, comment_id: UUID):
         "select task_id from eg_task_comments where id = %s",
         (comment_id,),
     ).fetchone()
+
+
+def list_my_tasks(conn, user_id: UUID, is_admin: bool):
+    """Tarefas atribuídas a mim (ou das quais sou dono) em todos os workspaces
+    que posso acessar — incluindo o workspace interno da EG.
+
+    Existe porque o painel "Minhas tarefas" do Cockpit lia apenas a tabela
+    `deliverables` (do client-hub, com responsável por e-mail) e por isso nunca
+    mostrava nada criado no sistema de tarefas que substituiu o ClickUp.
+    """
+    return conn.execute(
+        """
+        select
+          t.id, t.title, t.status, t.group_status, t.priority, t.due_date,
+          t.project_id, t.parent_task_id,
+          l.id as list_id, l.name as list_name, l.type as list_type,
+          w.id as workspace_id, w.name as workspace_name, w.kind as workspace_kind,
+          p.name as project_name
+        from eg_tasks t
+        join eg_task_lists l on l.id = t.list_id
+        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        left join projects p on p.id = t.project_id
+        where (t.assignee_id = %s or t.owner_id = %s)
+          and t.group_status <> 'CLOSED'
+          and (%s or workspace_access_role(w.id, %s) is not null)
+        order by t.due_date nulls last, t.updated_at desc
+        limit 50
+        """,
+        (user_id, user_id, is_admin, user_id),
+    ).fetchall()
+
+
+def list_assignable_users(conn, workspace_id: UUID):
+    """Usuários que podem ser responsável/dono de tarefa neste workspace.
+
+    Espelha exatamente a regra de `user_can_belong_to_workspace`: quem tem papel
+    no workspace, mais os eg_admin do tenant. Assim o seletor da UI nunca
+    oferece alguém que o backend recusaria com 422.
+    """
+    return conn.execute(
+        """
+        select distinct u.id, u.display_name, u.email
+        from users u
+        join workspaces w on w.id = %s and w.status = 'active'
+        where u.is_active = true
+          and (
+            workspace_access_role(w.id, u.id) is not null
+            or exists (
+              select 1 from memberships m
+              join organizations o on o.id = m.organization_id
+              where m.user_id = u.id
+                and m.role = 'eg_admin'
+                and o.id = w.tenant_organization_id
+            )
+          )
+        order by u.display_name
+        """,
+        (workspace_id,),
+    ).fetchall()

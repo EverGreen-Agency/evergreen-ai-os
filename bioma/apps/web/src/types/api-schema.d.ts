@@ -3137,6 +3137,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Tasks */
+        get: operations["list_my_tasks_tasks_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{task_id}": {
         parameters: {
             query?: never;
@@ -3831,6 +3848,23 @@ export interface paths {
         put?: never;
         /** Create Request */
         post: operations["create_request_workspaces__workspace_id__ai_content_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/assignable-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assignable Users */
+        get: operations["list_assignable_users_workspaces__workspace_id__assignable_users_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5162,6 +5196,21 @@ export interface components {
             url?: string | null;
             /** Visibility */
             visibility?: ("internal" | "client") | null;
+        };
+        /**
+         * AssignableUser
+         * @description Quem pode ser responsável/dono de tarefa num workspace.
+         */
+        AssignableUser: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /** AuditLogSummary */
         AuditLogSummary: {
@@ -7595,6 +7644,61 @@ export interface components {
              * @default 50
              */
             quality_score: number;
+        };
+        /**
+         * MyTaskSummary
+         * @description Tarefa atribuída a mim, com o contexto necessário para navegar até ela
+         *     a partir do Cockpit (workspace, lista e projeto).
+         */
+        MyTaskSummary: {
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Group Status
+             * @enum {string}
+             */
+            group_status: "NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * List Id
+             * Format: uuid
+             */
+            list_id: string;
+            /** List Name */
+            list_name: string;
+            /**
+             * List Type
+             * @enum {string}
+             */
+            list_type: "social" | "growth" | "tech" | "general";
+            /** Parent Task Id */
+            parent_task_id?: string | null;
+            /** Priority */
+            priority?: ("Alta" | "Média" | "Baixa") | null;
+            /** Project Id */
+            project_id?: string | null;
+            /** Project Name */
+            project_name?: string | null;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /**
+             * Workspace Kind
+             * @enum {string}
+             */
+            workspace_kind: "agency_internal" | "client";
+            /** Workspace Name */
+            workspace_name: string;
         };
         /** OnboardingMilestoneEntry */
         OnboardingMilestoneEntry: {
@@ -19375,6 +19479,26 @@ export interface operations {
             };
         };
     };
+    list_my_tasks_tasks_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTaskSummary"][];
+                };
+            };
+        };
+    };
     delete_task_tasks__task_id__delete: {
         parameters: {
             query?: never;
@@ -21329,6 +21453,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiContentRequestSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_assignable_users_workspaces__workspace_id__assignable_users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignableUser"][];
                 };
             };
             /** @description Validation Error */

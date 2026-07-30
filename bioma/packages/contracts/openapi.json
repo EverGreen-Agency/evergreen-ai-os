@@ -2000,6 +2000,31 @@
         "title": "ArtifactUpdateRequest",
         "type": "object"
       },
+      "AssignableUser": {
+        "description": "Quem pode ser responsável/dono de tarefa num workspace.",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "email"
+        ],
+        "title": "AssignableUser",
+        "type": "object"
+      },
       "AuditLogSummary": {
         "properties": {
           "actor_user_id": {
@@ -8764,6 +8789,147 @@
           "display_name"
         ],
         "title": "ModelCatalogUpsert",
+        "type": "object"
+      },
+      "MyTaskSummary": {
+        "description": "Tarefa atribuída a mim, com o contexto necessário para navegar até ela\na partir do Cockpit (workspace, lista e projeto).",
+        "properties": {
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "group_status": {
+            "enum": [
+              "NOT_STARTED",
+              "ACTIVE",
+              "DONE",
+              "CLOSED"
+            ],
+            "title": "Group Status",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "list_id": {
+            "format": "uuid",
+            "title": "List Id",
+            "type": "string"
+          },
+          "list_name": {
+            "title": "List Name",
+            "type": "string"
+          },
+          "list_type": {
+            "enum": [
+              "social",
+              "growth",
+              "tech",
+              "general"
+            ],
+            "title": "List Type",
+            "type": "string"
+          },
+          "parent_task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Task Id"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Alta",
+                  "Média",
+                  "Baixa"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "project_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Name"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "workspace_kind": {
+            "enum": [
+              "agency_internal",
+              "client"
+            ],
+            "title": "Workspace Kind",
+            "type": "string"
+          },
+          "workspace_name": {
+            "title": "Workspace Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "group_status",
+          "list_id",
+          "list_name",
+          "list_type",
+          "workspace_id",
+          "workspace_name",
+          "workspace_kind"
+        ],
+        "title": "MyTaskSummary",
         "type": "object"
       },
       "OnboardingMilestoneEntry": {
@@ -32579,6 +32745,31 @@
         ]
       }
     },
+    "/tasks/me": {
+      "get": {
+        "operationId": "list_my_tasks_tasks_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MyTaskSummary"
+                  },
+                  "title": "Response List My Tasks Tasks Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List My Tasks",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
     "/tasks/{task_id}": {
       "delete": {
         "operationId": "delete_task_tasks__task_id__delete",
@@ -35784,6 +35975,53 @@
         "summary": "Create Request",
         "tags": [
           "ai-content"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/assignable-users": {
+      "get": {
+        "operationId": "list_assignable_users_workspaces__workspace_id__assignable_users_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssignableUser"
+                  },
+                  "title": "Response List Assignable Users Workspaces  Workspace Id  Assignable Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Assignable Users",
+        "tags": [
+          "tasks"
         ]
       }
     },

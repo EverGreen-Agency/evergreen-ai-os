@@ -33,18 +33,37 @@ export function TasksView({ workspaceId }: TasksViewProps) {
     return (
       <div className="operations-layout">
         <SectionHeader eyebrow="Workspace" title="Projetos & Operação" icon={LayoutDashboard} />
-        <EmptyState text="Nenhuma lista de tarefas encontrada para este cliente." />
-        <div style={{ textAlign: "center", marginTop: 16 }}>
-          <button 
-            className="primary-button" 
-            type="button" 
+        {/* Serve tanto para workspace de cliente quanto para a Operação EG,
+            então o texto não pode dizer "cliente". As frentes padrão são Growth
+            e Tech: pelo Manual v2, Social vive no Estúdio IA. */}
+        <EmptyState text="Nenhuma frente de trabalho criada neste workspace." />
+        <div style={{ textAlign: "center", marginTop: 16, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <button
+            className="primary-button"
+            type="button"
             onClick={() => {
               createList.mutate({ workspaceId, name: "Growth & Projetos", type: "growth" });
-              createList.mutate({ workspaceId, name: "Social Media Engine", type: "social" });
+              createList.mutate({ workspaceId, name: "Tech & Software", type: "tech" });
             }}
             disabled={createList.isPending}
           >
-            {createList.isPending ? "Criando..." : "Criar listas padrão (Growth & Social)"}
+            {createList.isPending ? "Criando..." : "Criar frentes padrão (Growth + Tech)"}
+          </button>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => createList.mutate({ workspaceId, name: "Growth & Projetos", type: "growth" })}
+            disabled={createList.isPending}
+          >
+            Só Growth
+          </button>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => createList.mutate({ workspaceId, name: "Tech & Software", type: "tech" })}
+            disabled={createList.isPending}
+          >
+            Só Tech
           </button>
         </div>
       </div>
@@ -93,11 +112,11 @@ export function TasksView({ workspaceId }: TasksViewProps) {
 
       <div style={{ flex: 1, minHeight: 0, marginTop: 16 }}>
         {activeListId ? (
-          viewMode === "board" 
-            ? <TaskBoard listId={activeListId} /> 
+          viewMode === "board"
+            ? <TaskBoard listId={activeListId} listType={activeList?.type} workspaceId={workspaceId} />
             : viewMode === "list"
-              ? <TaskListView listId={activeListId} />
-              : <TaskCalendarView listId={activeListId} />
+              ? <TaskListView listId={activeListId} listType={activeList?.type} workspaceId={workspaceId} />
+              : <TaskCalendarView listId={activeListId} listType={activeList?.type} workspaceId={workspaceId} />
         ) : (
           <EmptyState text="Selecione uma lista na barra lateral." />
         )}

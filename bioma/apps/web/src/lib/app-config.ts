@@ -67,8 +67,11 @@ export const agencyWorkspaceNavItems: Array<{
   module: ClientModule;
   icon: LucideIcon;
 }> = [
+  // "tasks" incluído: sem ele a própria EG não tinha onde gerenciar demanda
+  // interna (social/tech/growth da casa, treinamento de time, hackathon) —
+  // o workspace interno existe desde sempre, mas não havia aba para alcançá-lo.
   ...clientHubNavItems
-    .filter((item) => ["hub", "crm", "finance", "analytics"].includes(item.id))
+    .filter((item) => ["hub", "tasks", "crm", "finance", "analytics"].includes(item.id))
     .map((item) => item.id === "analytics" ? { ...item, path: "metricas" } : item),
   {
     id: "ai-operations",

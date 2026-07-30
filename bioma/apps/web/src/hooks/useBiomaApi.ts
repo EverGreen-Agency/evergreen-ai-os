@@ -832,6 +832,39 @@ export function useCreateTask() {
   });
 }
 
+/** Quem pode receber tarefa neste workspace — espelha a validação do backend,
+ *  então o seletor nunca oferece alguém que resultaria em 422. */
+export function useAssignableUsers(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["assignable-users", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.assignableUsers(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+/** Projetos do workspace — alimenta o seletor de Projeto da tarefa. */
+export function useWorkspaceProjects(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["projects", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.projects(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+/** Visão pessoal: atravessa a carteira toda e o workspace interno da EG. */
+export function useMyTasks() {
+  return useQuery({
+    queryKey: ["tasks", "me"],
+    queryFn: api.myTasks,
+  });
+}
+
 export function useTaskComments(taskId: string | null) {
   return useQuery({
     queryKey: ["task-comments", taskId],

@@ -3,12 +3,15 @@ import { useTasksInList } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import type { TaskListType } from "../../lib/api";
 
 type TaskCalendarViewProps = {
   listId: string;
+  listType?: TaskListType;
+  workspaceId?: string;
 };
 
-export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
+export function TaskCalendarView({ listId, listType, workspaceId }: TaskCalendarViewProps) {
   const { data: tasks, isLoading } = useTasksInList(listId);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -139,6 +142,8 @@ export function TaskCalendarView({ listId }: TaskCalendarViewProps) {
       {(selectedTaskId || isCreating) && (
         <TaskDrawer
           listId={listId}
+          listType={listType}
+          workspaceId={workspaceId}
           taskId={selectedTaskId}
           onClose={() => {
             setSelectedTaskId(null);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff } from "lucide-react";
+import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound } from "lucide-react";
 import {
   useCreateTask,
   useCreateTaskComment,
@@ -8,8 +8,18 @@ import {
   useTaskComments,
   useTasksInList,
   useUpdateTask,
+  useWorkspaceProjects,
+  useAssignableUsers,
 } from "../../hooks/useBiomaApi";
-import type { TaskDependency, TaskGroupStatus, TaskPriority, TaskCustomField, TaskSubtaskInput } from "../../lib/api";
+import type {
+  TaskDependency,
+  TaskGroupStatus,
+  TaskListType,
+  TaskPriority,
+  TaskCustomField,
+  TaskSubtaskInput,
+} from "../../lib/api";
+import { groupForStatus, statusesForFrente } from "../../lib/task-frentes";
 
 /** Substitui o "chat da tarefa" do ClickUp: histórico preso à tarefa em vez de
  *  espalhado no WhatsApp. Comentário nasce interno; só vai ao cliente quando
@@ -120,16 +130,30 @@ function TaskCommentsSection({ taskId }: { taskId: string }) {
 
 type TaskDrawerProps = {
   listId: string;
+  listType?: TaskListType;
+  workspaceId?: string;
   taskId: string | null;
   initialStatus?: TaskGroupStatus;
+  /** Preenchido ao criar uma SUBTAREFA a partir de outra tarefa. */
+  parentTaskId?: string | null;
   onClose: () => void;
 };
 
-const GROWTH_STATUSES = ["BRAIN", "BACKLOG", "IN PROGRESS", "IN REVIEW", "REJECTED", "BLOCKED", "DONE", "CLOSED"];
-const SOCIAL_STATUSES = ["IDEAÇÃO", "ROTEIRIZAÇÃO", "EM PRODUÇÃO", "REVISÃO INTERNA", "APROVAÇÃO CLIENTE", "EM AJUSTE", "AGENDADO", "PUBLICADO", "ANALISAR", "DESCARTADO", "FINALIZADO"];
 
-export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawerProps) {
+export function TaskDrawer({
+  listId,
+  listType,
+  workspaceId,
+  taskId,
+  initialStatus,
+  parentTaskId,
+  onClose,
+}: TaskDrawerProps) {
   const { data: tasks } = useTasksInList(listId);
+  // Projetos alimentam o seletor de Projeto; sem workspaceId não há como
+  // saber quais projetos são elegíveis (o backend recusa projeto de outro).
+  const { data: projects = [] } = useWorkspaceProjects(workspaceId ?? null);
+  const { data: assignableUsers = [] } = useAssignableUsers(workspaceId ?? null);
   const existingTask = taskId ? tasks?.find(t => t.id === taskId) : null;
   const readOnlyProjection = existingTask?.external_source === "clickup";
   
@@ -148,6 +172,13 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
   const [subtasks, setSubtasks] = useState<TaskSubtaskInput[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [waitingOnTaskId, setWaitingOnTaskId] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>("");
+  const [assigneeId, setAssigneeId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>("");
+  const [creatingSubtaskFor, setCreatingSubtaskFor] = useState<string | null>(null);
+
+  // Filhas vivem na mesma lista, entao saem do fetch que ja temos.
+  const childTasks = taskId ? (tasks ?? []).filter((t) => t.parent_task_id === taskId) : [];
 
   useEffect(() => {
     if (existingTask) {
@@ -167,6 +198,9 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
 
       setSubtasks(existingTask.subtasks || []);
       setWaitingOnTaskId(existingTask.dependencies?.[0]?.depends_on_task_id || "");
+      setProjectId(existingTask.project_id || "");
+      setAssigneeId(existingTask.assignee_id || "");
+      setOwnerId(existingTask.owner_id || "");
     } else {
       setTitle("");
       setDescription("");
@@ -178,6 +212,9 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
       setCustomFields({});
       setSubtasks([]);
       setWaitingOnTaskId("");
+      setProjectId("");
+      setAssigneeId("");
+      setOwnerId("");
     }
   }, [existingTask, initialStatus]);
 
@@ -218,6 +255,9 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           priority: priority || null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          project_id: projectId || null,
+          assignee_id: assigneeId || null,
+          owner_id: ownerId || null,
           custom_fields: formattedFields,
           dependencies,
           subtasks,
@@ -236,6 +276,10 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           priority: priority || null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          project_id: projectId || null,
+          parent_task_id: parentTaskId || null,
+          assignee_id: assigneeId || null,
+          owner_id: ownerId || null,
           custom_fields: formattedFields,
           dependencies,
           subtasks,
@@ -320,13 +364,21 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
                 className="text-input"
                 list="status-options"
                 value={specificStatus}
-                onChange={(e) => setSpecificStatus(e.target.value)}
-                placeholder="Ex: ROTEIRIZAÇÃO"
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSpecificStatus(next);
+                  // Status conhecido da frente já traz o grupo certo: evita a
+                  // tarefa cair na coluna errada do Kanban por digitação.
+                  const group = groupForStatus(listType, next);
+                  if (group) setGroupStatus(group);
+                }}
+                placeholder={statusesForFrente(listType)[0]?.status}
                 disabled={isBusy}
               />
+              {/* Sugestões vêm da frente da lista (Manual v2). Antes o datalist
+                  misturava Growth e Social e não tinha nenhum status de Tech. */}
               <datalist id="status-options">
-                {GROWTH_STATUSES.map(s => <option key={s} value={s} />)}
-                {SOCIAL_STATUSES.map(s => <option key={s} value={s} />)}
+                {statusesForFrente(listType).map(item => <option key={item.status} value={item.status} />)}
               </datalist>
             </label>
           </div>
@@ -374,6 +426,119 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
               <option value="monthly">Mensal (Recria a cada 30 dias)</option>
             </select>
           </label>
+
+          {/* Responsável e Dono: os manuais v1 já pediam os dois, mas não
+              existia seletor nenhum na tela — sem isso "Minhas tarefas" do
+              Cockpit nunca populava, porque nada ficava atribuído. */}
+          {assignableUsers.length > 0 && (
+            <div style={{ display: "flex", gap: 16 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                  <UserRound size={14} /> Responsável
+                </span>
+                <select
+                  className="text-input"
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  disabled={isBusy}
+                >
+                  <option value="">Ninguém</option>
+                  {assignableUsers.map((person) => (
+                    <option key={person.id} value={person.id}>{person.display_name}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Dono (gestor)</span>
+                <select
+                  className="text-input"
+                  value={ownerId}
+                  onChange={(e) => setOwnerId(e.target.value)}
+                  disabled={isBusy}
+                >
+                  <option value="">Ninguém</option>
+                  {assignableUsers.map((person) => (
+                    <option key={person.id} value={person.id}>{person.display_name}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+
+          {/* Projeto: a frente define os status, o projeto define escopo e
+              contrato (Manual v2). Só aparece se o workspace tiver projetos. */}
+          {projects.length > 0 && (
+            <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                <FolderKanban size={14} /> Projeto
+              </span>
+              <select
+                className="text-input"
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                disabled={isBusy}
+              >
+                <option value="">Sem projeto</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {/* Subtarefas reais: tarefas com pai. Diferente do checklist abaixo,
+              cada uma tem responsável, prazo e status próprios — é o caso de
+              quando o trabalho passa para outra área/equipe. */}
+          {taskId && (
+            <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <GitBranch size={14} /> Subtarefas ({childTasks.length})
+              </h3>
+              <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -6 }}>
+                Use quando o trabalho troca de responsável ou de prazo. Cada uma
+                aparece no quadro com o prazo dela.
+              </span>
+
+              {childTasks.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {childTasks.map((child) => (
+                    <div
+                      key={child.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 8,
+                        background: "var(--surface-color)",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: 4,
+                        padding: "6px 10px",
+                        fontSize: 12,
+                      }}
+                    >
+                      <span>{child.title}</span>
+                      <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
+                        {child.status}
+                        {child.due_date ? ` · ${new Date(child.due_date).toLocaleDateString("pt-BR")}` : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                className="mini-button"
+                type="button"
+                onClick={() => setCreatingSubtaskFor(taskId)}
+                style={{ width: "fit-content" }}
+                disabled={readOnlyProjection}
+              >
+                <Plus size={13} /> Nova subtarefa
+              </button>
+            </div>
+          )}
 
           {/* Subtarefas / Checklists */}
           <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -521,6 +686,18 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           </div>
         </div>
       </div>
+
+      {/* Drawer aninhado para criar a subtarefa, já com o pai preenchido. */}
+      {creatingSubtaskFor && (
+        <TaskDrawer
+          listId={listId}
+          listType={listType}
+          workspaceId={workspaceId}
+          taskId={null}
+          parentTaskId={creatingSubtaskFor}
+          onClose={() => setCreatingSubtaskFor(null)}
+        />
+      )}
     </>
   );
 }

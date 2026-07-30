@@ -32,6 +32,33 @@ class TaskSubtask(TaskSubtaskBase):
     created_at: datetime
     updated_at: datetime
 
+class AssignableUser(BaseModel):
+    """Quem pode ser responsável/dono de tarefa num workspace."""
+    id: UUID
+    display_name: str
+    email: str
+
+
+class MyTaskSummary(BaseModel):
+    """Tarefa atribuída a mim, com o contexto necessário para navegar até ela
+    a partir do Cockpit (workspace, lista e projeto)."""
+    id: UUID
+    title: str
+    status: str
+    group_status: Literal["NOT_STARTED", "ACTIVE", "DONE", "CLOSED"]
+    priority: Optional[Literal["Alta", "Média", "Baixa"]] = None
+    due_date: Optional[datetime] = None
+    project_id: Optional[UUID] = None
+    project_name: Optional[str] = None
+    parent_task_id: Optional[UUID] = None
+    list_id: UUID
+    list_name: str
+    list_type: Literal["social", "growth", "tech", "general"]
+    workspace_id: UUID
+    workspace_name: str
+    workspace_kind: Literal["agency_internal", "client"]
+
+
 class TaskCommentCreate(BaseModel):
     body: str = Field(min_length=1, max_length=10_000)
     # Padrão interno: o Hub do Cliente é o mesmo lugar onde ele aprova, então

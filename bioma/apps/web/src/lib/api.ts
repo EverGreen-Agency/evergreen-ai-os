@@ -1861,6 +1861,30 @@ export type TaskPayload = {
   subtasks?: TaskSubtaskInput[];
 };
 
+export type AssignableUser = {
+  id: string;
+  display_name: string;
+  email: string;
+};
+
+export type MyTaskSummary = {
+  id: string;
+  title: string;
+  status: string;
+  group_status: TaskGroupStatus;
+  priority: TaskPriority | null;
+  due_date: string | null;
+  project_id: string | null;
+  project_name: string | null;
+  parent_task_id: string | null;
+  list_id: string;
+  list_name: string;
+  list_type: TaskListType;
+  workspace_id: string;
+  workspace_name: string;
+  workspace_kind: "agency_internal" | "client";
+};
+
 export type TaskComment = {
   id: string;
   task_id: string;
@@ -2651,6 +2675,9 @@ export const api = {
     }),
   deleteTask: (taskId: string) =>
     request<void>(`/tasks/${taskId}`, { method: "DELETE" }),
+  myTasks: () => request<MyTaskSummary[]>("/tasks/me"),
+  assignableUsers: (workspaceId: string) =>
+    request<AssignableUser[]>(`/workspaces/${workspaceId}/assignable-users`),
   taskComments: (taskId: string) => request<TaskComment[]>(`/tasks/${taskId}/comments`),
   createTaskComment: (taskId: string, body: string, clientVisible = false) =>
     request<TaskComment>(`/tasks/${taskId}/comments`, {
