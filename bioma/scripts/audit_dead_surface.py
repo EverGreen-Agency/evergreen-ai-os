@@ -44,6 +44,12 @@ CREATE_TABLE_RE = re.compile(r"create\s+table\s+(?:if\s+not\s+exists\s+)?([a-z_]
 ADD_COLUMN_RE = re.compile(
     r"alter\s+table\s+(?:if\s+exists\s+)?([a-z_]+)\s+add\s+column\s+(?:if\s+not\s+exists\s+)?([a-z_]+)", re.I
 )
+# Sem estes dois, migrações posteriores que removem colunas/tabelas ficam
+# invisíveis e o relatório acusa como "morto" o que já não existe no banco.
+DROP_COLUMN_RE = re.compile(
+    r"alter\s+table\s+(?:if\s+exists\s+)?([a-z_]+)\s+drop\s+column\s+(?:if\s+exists\s+)?([a-z_]+)", re.I
+)
+DROP_TABLE_RE = re.compile(r"drop\s+table\s+(?:if\s+exists\s+)?([a-z_]+)", re.I)
 COLUMN_LINE_RE = re.compile(r"^\s*([a-z_]+)\s+(?:uuid|text|int|bigint|numeric|boolean|timestamptz|date|jsonb|serial|float|double|varchar|char)", re.I)
 LABEL_RE = re.compile(r"[>\"'`]([^<>\"'`{}]*\b(?:todos|todas|total|ativos|ativas)\b[^<>\"'`{}]*)[<\"'`]", re.I)
 
@@ -89,6 +95,12 @@ def find_unread_columns() -> list[tuple[str, str]]:
                     table_columns.add((table.lower(), col.group(1).lower()))
         for table, column in ADD_COLUMN_RE.findall(sql):
             table_columns.add((table.lower(), column.lower()))
+        # Aplicadas na ordem das migrações: o que foi dropado sai do conjunto.
+        for table, column in DROP_COLUMN_RE.findall(sql):
+            table_columns.discard((table.lower(), column.lower()))
+        for table in DROP_TABLE_RE.findall(sql):
+            dropped = table.lower()
+            table_columns = {pair for pair in table_columns if pair[0] != dropped}
 
     backend_text = "\n".join(
         path.read_text(encoding="utf-8", errors="replace")

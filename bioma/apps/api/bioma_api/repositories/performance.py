@@ -135,7 +135,13 @@ def list_ads_campaigns(conn, client_id: UUID, date_from: date, date_to: date, li
           coalesce(sum(clicks), 0)::bigint as clicks,
           coalesce(sum(cost_micros), 0)::bigint as cost_micros,
           coalesce(sum(conversions), 0)::numeric as conversions,
-          coalesce(sum(conversion_value), 0)::numeric as conversion_value
+          coalesce(sum(conversion_value), 0)::numeric as conversion_value,
+          -- Impression share nao soma: e media ponderada pelas impressoes dos
+          -- dias em que o Google reportou o dado (dias sem dado ficam de fora).
+          (sum(search_impression_share * impressions)
+             filter (where search_impression_share is not null)
+           / nullif(sum(impressions) filter (where search_impression_share is not null), 0)
+          )::numeric as search_impression_share
         from ads_campaign_daily
         where client_id = %s and date between %s and %s
         group by campaign_id

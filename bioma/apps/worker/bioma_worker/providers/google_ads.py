@@ -47,7 +47,8 @@ def sync(
         SELECT segments.date, customer.id, campaign.id, campaign.name, campaign.status,
                campaign.advertising_channel_type, campaign_budget.amount_micros,
                metrics.impressions, metrics.clicks, metrics.cost_micros,
-               metrics.conversions, metrics.all_conversions, metrics.conversion_value
+               metrics.conversions, metrics.all_conversions, metrics.conversion_value,
+               metrics.search_impression_share
         FROM campaign
         WHERE segments.date BETWEEN '{start}' AND '{end}'
         """,
@@ -60,6 +61,7 @@ def sync(
             "client_id", "date", "customer_id", "campaign_id", "campaign_name",
             "campaign_status", "channel_type", "budget_micros", "impressions", "clicks",
             "cost_micros", "conversions", "all_conversions", "conversion_value",
+            "search_impression_share",
         ),
         ("client_id", "date", "campaign_id"),
         campaigns,
@@ -202,6 +204,9 @@ def _campaign_row(client_id: UUID, customer_id: str, row: dict[str, Any]) -> dic
         "campaign_status": campaign["status"],
         "channel_type": campaign.get("advertisingChannelType", "UNKNOWN"),
         "budget_micros": _number(row.get("campaignBudget", {}).get("amountMicros"), int, None),
+        # A API omite impression share quando nao ha leilao elegivel no periodo;
+        # nesse caso a coluna fica null (ausencia real), nao 0.
+        "search_impression_share": _number(metrics.get("searchImpressionShare"), float, None),
         **_metrics(metrics, include_all=True),
     }
 

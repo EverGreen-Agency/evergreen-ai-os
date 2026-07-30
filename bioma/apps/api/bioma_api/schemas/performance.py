@@ -98,6 +98,9 @@ class AdsCampaignSummary(BaseModel):
     cost_micros: int
     conversions: float
     conversion_value: float
+    # Fracao dos leiloes elegiveis em que o anuncio apareceu (0-1). None quando
+    # o Google nao reporta o periodo — nunca 0, que significaria "nunca apareceu".
+    search_impression_share: float | None = None
     ctr: float
     cpa_micros: float
     roas: float
