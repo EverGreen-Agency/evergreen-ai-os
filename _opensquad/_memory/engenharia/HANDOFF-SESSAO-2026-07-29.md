@@ -1,6 +1,32 @@
 # Handoff — sessão 2026-07-29
 
-Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `1cf5fff`.
+Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
+
+## Avanço 2026-07-30 (continuação da mesma linha)
+
+- **`b995e07` — Gantt como 4ª visão de QUALQUER frente** (correção do Eduardo:
+  Gantt não é exclusivo do cliente; growth/social/tech todos usavam). Inclui:
+  migração `0067` (`start_date` + constraint start<=due, com 422 amigável no
+  serviço), campo "Data de Início" no drawer, filtros rápidos por frente
+  (`lib/task-filters.ts`: Bug Tracker, Banco de Ideias, Aprovação, Atrasadas)
+  e filtro por projeto aplicável a todas as visões. Testado contra Postgres
+  real (201/422/409).
+- **`45cdaa5` — Rollup executivo no Cockpit** (o gap real da "Solução 5" dos
+  vídeos): `GET /backoffice/portfolio-performance?days=30` soma investimento
+  Google/Meta/LinkedIn + leads por cliente lendo as mesmas tabelas dos syncs
+  (`ads_campaign_daily`, `workspace_meta_ads_daily_metrics`,
+  `workspace_linkedin_ads_daily_metrics`), excluindo a org da EG
+  (`slug <> 'eg'`). Tabela no Cockpit admin com CPL, clique → analytics do
+  cliente; só aparece se houver dado real (zeros = sem sync, sem número
+  inventado). Testado: HM Conexões google=R$392,00 / 48 leads.
+- **Copilot no Estúdio IA: PARADO por instrução.** Eduardo quer brainstorm
+  antes ("ideia muito superficial"). NÃO é copiloto que edita código — isso é
+  território do squad EG Engenharia/Arquiteto. O que ele imagina: copiloto
+  contextual dentro do Estúdio ("planeja a semana, altera isso, joga pro
+  Higgsfield").
+- **Solução 2 (Máquina de Auditoria e Prospecção)**: análise entregue na
+  conversa; decisões pendentes do Eduardo (fonte de leads, volume/custo,
+  aprovação humana obrigatória antes de outbound). Nada implementado.
 
 ## Sessão paralela — RESOLVIDO
 
