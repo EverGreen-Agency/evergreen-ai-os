@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance } from "../hooks/useBiomaApi";
+import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance, useSetMonthlyTarget } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
 import { SquadsView } from "./SquadsView";
 
@@ -37,6 +37,7 @@ export function CockpitView() {
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
   const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
   const { data: portfolioPerf = [] } = usePortfolioPerformance(Boolean(isEgAdmin));
+  const setMonthlyTarget = useSetMonthlyTarget();
 
   // Prefixo "portfolio" para não colidir com as pendências de UM cliente
   // usadas mais abaixo na visão do cliente.
@@ -194,6 +195,8 @@ export function CockpitView() {
                       <th style={{ padding: "8px 12px" }}>Total</th>
                       <th style={{ padding: "8px 12px" }}>Leads</th>
                       <th style={{ padding: "8px 12px" }}>CPL</th>
+                      <th style={{ padding: "8px 12px" }}>Meta de leads</th>
+                      <th style={{ padding: "8px 12px" }}>Atingido</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,6 +214,37 @@ export function CockpitView() {
                         <td style={{ padding: "10px 12px" }}>{row.total_leads}</td>
                         <td style={{ padding: "10px 12px", color: "var(--text-dim)" }}>
                           {row.total_leads > 0 ? formatCents(Math.round(row.total_spend_cents / row.total_leads)) : "—"}
+                        </td>
+                        {/* Meta do mes (monthly_targets): editavel no mesmo lugar
+                            onde o numero e lido, sem tela separada. Vazio = sem meta. */}
+                        <td style={{ padding: "6px 12px" }} onClick={(event) => event.stopPropagation()}>
+                          <input
+                            type="number"
+                            min={0}
+                            defaultValue={row.target_leads ?? ""}
+                            placeholder="definir"
+                            disabled={setMonthlyTarget.isPending}
+                            onBlur={(event) => {
+                              const raw = event.target.value.trim();
+                              const next = raw === "" ? null : Number(raw);
+                              if (next === (row.target_leads ?? null)) return;
+                              setMonthlyTarget.mutate({
+                                clientId: row.client_id,
+                                targetLeads: next,
+                                budgetCents: row.budget_cents ?? null,
+                              });
+                            }}
+                            style={{ width: 74, fontSize: 12, padding: "3px 6px" }}
+                          />
+                        </td>
+                        <td style={{ padding: "10px 12px", fontWeight: 600 }}>
+                          {row.target_leads && row.target_leads > 0 ? (
+                            <span style={{ color: row.total_leads >= row.target_leads ? "#2e9e5b" : "#ffab00" }}>
+                              {Math.round((row.total_leads / row.target_leads) * 100)}%
+                            </span>
+                          ) : (
+                            <span style={{ color: "var(--text-dim)" }}>—</span>
+                          )}
                         </td>
                       </tr>
                     ))}

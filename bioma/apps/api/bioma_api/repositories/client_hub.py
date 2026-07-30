@@ -803,6 +803,11 @@ def get_portfolio_performance(conn, days: int = 30) -> list[dict[str, Any]]:
           from workspace_linkedin_ads_daily_metrics
           where date >= current_date - %s::int
           group by workspace_id
+        ),
+        targets as (
+          select client_id, target_leads, budget_micros
+          from monthly_targets
+          where month = date_trunc('month', current_date)::date
         )
         select cr.client_id, cr.client_name, cr.workspace_id, cr.status,
                coalesce(g.spend_cents, 0)::bigint as google_spend_cents,
@@ -811,12 +816,42 @@ def get_portfolio_performance(conn, days: int = 30) -> list[dict[str, Any]]:
                (coalesce(g.spend_cents, 0) + coalesce(m.spend_cents, 0)
                 + coalesce(l.spend_cents, 0))::bigint as total_spend_cents,
                (coalesce(g.conversions, 0) + coalesce(m.leads, 0)
-                + coalesce(l.leads, 0))::bigint as total_leads
+                + coalesce(l.leads, 0))::bigint as total_leads,
+               t.target_leads::float as target_leads,
+               (t.budget_micros / 10000)::bigint as budget_cents
         from client_rows cr
         left join google g on g.client_id = cr.client_id
         left join meta m on m.workspace_id = cr.workspace_id
         left join li l on l.workspace_id = cr.workspace_id
+        left join targets t on t.client_id = cr.client_id
         order by total_spend_cents desc, cr.client_name
         """,
         (days, days, days),
     ).fetchall()
+
+
+def upsert_monthly_target(
+    conn,
+    client_id: UUID,
+    target_leads: float | None,
+    budget_cents: int | None,
+) -> bool:
+    """Meta do mês corrente do cliente. As colunas existiam desde a 0003 e nunca
+    tinham tido escrita nem leitura pela API — agora fecham o ciclo meta ×
+    realizado no rollup do Cockpit."""
+    row = conn.execute(
+        """
+        insert into monthly_targets (client_id, organization_id, month, target_leads, budget_micros)
+        select c.id, c.organization_id, date_trunc('month', current_date)::date, %s, %s
+        from clients c where c.id = %s
+        on conflict (client_id, month)
+        do update set target_leads = excluded.target_leads,
+                      budget_micros = excluded.budget_micros,
+                      updated_at = now()
+        returning client_id
+        """,
+        # 1 centavo = 10.000 micros (1 unidade monetaria = 1.000.000). O rollup
+        # le com /10000, então a escrita precisa do mesmo fator.
+        (target_leads, budget_cents * 10_000 if budget_cents is not None else None, client_id),
+    ).fetchone()
+    return row is not None

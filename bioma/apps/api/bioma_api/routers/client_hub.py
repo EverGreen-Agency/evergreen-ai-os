@@ -15,6 +15,7 @@ from bioma_api.schemas.client_hub import (
     ClientSummary,
     ClientUpdateRequest,
     CockpitPortfolioSummary,
+    MonthlyTargetRequest,
     PortfolioPerformanceRow,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
@@ -54,6 +55,20 @@ def get_portfolio_performance(
 ):
     """Rollup executivo: midia paga de todos os clientes lado a lado."""
     return client_hub_service.get_portfolio_performance(user, days)
+
+
+@backoffice_router.put(
+    "/backoffice/clients/{client_id}/monthly-target",
+    response_model=list[PortfolioPerformanceRow],
+)
+def set_monthly_target(
+    client_id: UUID,
+    payload: MonthlyTargetRequest,
+    days: int = 30,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Meta de leads e verba do mês — fecha o ciclo meta x realizado no rollup."""
+    return client_hub_service.set_monthly_target(client_id, payload, user, days)
 
 
 @router.get("", response_model=list[ClientSummary])

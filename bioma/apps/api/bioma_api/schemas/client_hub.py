@@ -236,6 +236,15 @@ class PortfolioPerformanceRow(BaseModel):
     linkedin_spend_cents: int
     total_spend_cents: int
     total_leads: int
+    # Meta do mês corrente (monthly_targets). None = meta não definida — o
+    # painel mostra "—" em vez de fingir que a meta é zero.
+    target_leads: float | None = None
+    budget_cents: int | None = None
+
+
+class MonthlyTargetRequest(BaseModel):
+    target_leads: float | None = None
+    budget_cents: int | None = None
 
 
 class CockpitPortfolioSummary(BaseModel):
