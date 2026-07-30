@@ -1065,6 +1065,58 @@ export type CockpitPendingApproval = {
   client_name: string;
 };
 
+export type LocalRadarProspect = {
+  id: string;
+  scan_id: string;
+  place_id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  google_maps_url: string | null;
+  rating: number | null;
+  rating_count: number | null;
+  business_status: string | null;
+  place_types: string[];
+  presence_score: number | null;
+  presence_gaps: string[];
+  audit: {
+    diagnosis?: string;
+    opportunities?: Array<{ issue: string; recommended_service: string; rationale: string }>;
+    suggested_message?: string;
+    cautions?: string[];
+  } | null;
+  audit_mode: "live" | "preview" | null;
+  outreach_message: string | null;
+  review_status: "new" | "audited" | "approved" | "rejected" | "sent";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  lead_id: string | null;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LocalRadarScan = {
+  id: string;
+  created_by: string | null;
+  niche: string;
+  city: string;
+  query_text: string;
+  status: "completed" | "failed";
+  error_message: string | null;
+  prospect_count: number;
+  created_at: string;
+};
+
+export type LocalRadarScanDetail = LocalRadarScan & { prospects: LocalRadarProspect[] };
+
+export type LocalRadarSendResult = {
+  prospect: LocalRadarProspect;
+  send_status: "sent" | "simulated" | "failed";
+  detail: string | null;
+};
+
 export type PortfolioPerformanceRow = {
   client_id: string;
   client_name: string;
@@ -2199,6 +2251,31 @@ export const api = {
   getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
   getPortfolioPerformance: (days = 30) =>
     request<PortfolioPerformanceRow[]>(`/backoffice/portfolio-performance?days=${days}`),
+  createLocalRadarScan: (payload: { niche: string; city: string; limit?: number }) =>
+    request<LocalRadarScanDetail>("/backoffice/local-radar/scans", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getLocalRadarScans: () => request<LocalRadarScan[]>("/backoffice/local-radar/scans"),
+  getLocalRadarScan: (scanId: string) =>
+    request<LocalRadarScanDetail>(`/backoffice/local-radar/scans/${scanId}`),
+  auditLocalRadarProspect: (prospectId: string) =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/audit`, { method: "POST" }),
+  updateLocalRadarMessage: (prospectId: string, message: string) =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/message`, {
+      method: "PATCH",
+      body: JSON.stringify({ message }),
+    }),
+  decideLocalRadarProspect: (prospectId: string, decision: "approved" | "rejected") =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision }),
+    }),
+  sendLocalRadarProspect: (prospectId: string, providerType: WhatsAppProviderType) =>
+    request<LocalRadarSendResult>(`/backoffice/local-radar/prospects/${prospectId}/send`, {
+      method: "POST",
+      body: JSON.stringify({ provider_type: providerType }),
+    }),
   createClient: (payload: ClientPayload) =>
     request<ClientPortal>("/clients", {
       method: "POST",

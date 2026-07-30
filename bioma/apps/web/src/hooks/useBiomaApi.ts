@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -47,6 +48,76 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useLocalRadarScans(enabled: boolean) {
+  return useQuery({
+    queryKey: ["local-radar", "scans"],
+    queryFn: () => api.getLocalRadarScans(),
+    enabled,
+  });
+}
+
+export function useLocalRadarScan(scanId: string | null) {
+  return useQuery({
+    queryKey: ["local-radar", "scan", scanId],
+    queryFn: () => api.getLocalRadarScan(scanId as string),
+    enabled: Boolean(scanId),
+  });
+}
+
+export function useCreateLocalRadarScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { niche: string; city: string; limit?: number }) =>
+      api.createLocalRadarScan(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useAuditLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (prospectId: string) => api.auditLocalRadarProspect(prospectId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useUpdateLocalRadarMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, message }: { prospectId: string; message: string }) =>
+      api.updateLocalRadarMessage(prospectId, message),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useDecideLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, decision }: { prospectId: string; decision: "approved" | "rejected" }) =>
+      api.decideLocalRadarProspect(prospectId, decision),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useSendLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, providerType }: { prospectId: string; providerType: WhatsAppProviderType }) =>
+      api.sendLocalRadarProspect(prospectId, providerType),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
   });
 }
 

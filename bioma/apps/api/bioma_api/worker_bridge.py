@@ -53,6 +53,26 @@ def refine_market_sector_safe(request: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError("Falha ao refinar o setor para pesquisa.") from exc
 
 
+def search_local_businesses_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.local_radar import search_local_businesses
+
+    # Sem try/except genérico: o RuntimeError de chave ausente precisa chegar
+    # intacto ao serviço para virar um 422 com a mensagem real.
+    return search_local_businesses(request, get_settings())
+
+
+def audit_local_prospect_safe(prospect: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.local_radar import audit_local_prospect
+
+    return audit_local_prospect(prospect, get_settings())
+
+
 def generate_market_research_safe(request: dict[str, Any]) -> dict[str, Any]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")

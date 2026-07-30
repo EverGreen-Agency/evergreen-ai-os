@@ -876,6 +876,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/local-radar/prospects/{prospect_id}/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Audit */
+        post: operations["run_audit_backoffice_local_radar_prospects__prospect_id__audit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/local-radar/prospects/{prospect_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_backoffice_local_radar_prospects__prospect_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/local-radar/prospects/{prospect_id}/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Message */
+        patch: operations["update_message_backoffice_local_radar_prospects__prospect_id__message_patch"];
+        trace?: never;
+    };
+    "/backoffice/local-radar/prospects/{prospect_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Whatsapp */
+        post: operations["send_whatsapp_backoffice_local_radar_prospects__prospect_id__send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/local-radar/scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Scans */
+        get: operations["list_scans_backoffice_local_radar_scans_get"];
+        put?: never;
+        /** Create Scan */
+        post: operations["create_scan_backoffice_local_radar_scans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/local-radar/scans/{scan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Scan */
+        get: operations["get_scan_backoffice_local_radar_scans__scan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/logistics/kits": {
         parameters: {
             query?: never;
@@ -7219,6 +7322,157 @@ export interface components {
              */
             script_id: string;
         };
+        /** LocalRadarProspect */
+        LocalRadarProspect: {
+            /** Address */
+            address?: string | null;
+            /** Audit */
+            audit?: {
+                [key: string]: unknown;
+            } | null;
+            /** Audit Mode */
+            audit_mode?: ("live" | "preview") | null;
+            /** Business Status */
+            business_status?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Google Maps Url */
+            google_maps_url?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lead Id */
+            lead_id?: string | null;
+            /** Name */
+            name: string;
+            /** Outreach Message */
+            outreach_message?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Place Id */
+            place_id: string;
+            /**
+             * Place Types
+             * @default []
+             */
+            place_types: string[];
+            /**
+             * Presence Gaps
+             * @default []
+             */
+            presence_gaps: string[];
+            /** Presence Score */
+            presence_score?: number | null;
+            /** Rating */
+            rating?: number | null;
+            /** Rating Count */
+            rating_count?: number | null;
+            /**
+             * Review Status
+             * @enum {string}
+             */
+            review_status: "new" | "audited" | "approved" | "rejected" | "sent";
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /** Reviewed By */
+            reviewed_by?: string | null;
+            /**
+             * Scan Id
+             * Format: uuid
+             */
+            scan_id: string;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Website */
+            website?: string | null;
+        };
+        /** LocalRadarScanCreate */
+        LocalRadarScanCreate: {
+            /** City */
+            city: string;
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /** Niche */
+            niche: string;
+        };
+        /** LocalRadarScanDetail */
+        LocalRadarScanDetail: {
+            /** City */
+            city: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Error Message */
+            error_message?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Niche */
+            niche: string;
+            /** Prospect Count */
+            prospect_count: number;
+            /**
+             * Prospects
+             * @default []
+             */
+            prospects: components["schemas"]["LocalRadarProspect"][];
+            /** Query Text */
+            query_text: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "failed";
+        };
+        /** LocalRadarScanSummary */
+        LocalRadarScanSummary: {
+            /** City */
+            city: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Error Message */
+            error_message?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Niche */
+            niche: string;
+            /** Prospect Count */
+            prospect_count: number;
+            /** Query Text */
+            query_text: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "failed";
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -9883,6 +10137,38 @@ export interface components {
             urgency?: string | null;
             /** Win Loss Feedback */
             win_loss_feedback?: string | null;
+        };
+        /** ProspectDecisionPayload */
+        ProspectDecisionPayload: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approved" | "rejected";
+        };
+        /** ProspectMessagePayload */
+        ProspectMessagePayload: {
+            /** Message */
+            message: string;
+        };
+        /** ProspectSendPayload */
+        ProspectSendPayload: {
+            /**
+             * Provider Type
+             * @enum {string}
+             */
+            provider_type: "evolution" | "meta_cloud" | "zapi" | "custom";
+        };
+        /** ProspectSendResult */
+        ProspectSendResult: {
+            /** Detail */
+            detail?: string | null;
+            prospect: components["schemas"]["LocalRadarProspect"];
+            /**
+             * Send Status
+             * @enum {string}
+             */
+            send_status: "sent" | "simulated" | "failed";
         };
         /** ProviderAccountCreate */
         ProviderAccountCreate: {
@@ -14389,6 +14675,226 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_audit_backoffice_local_radar_prospects__prospect_id__audit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarProspect"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_backoffice_local_radar_prospects__prospect_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProspectDecisionPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarProspect"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_message_backoffice_local_radar_prospects__prospect_id__message_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProspectMessagePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarProspect"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_whatsapp_backoffice_local_radar_prospects__prospect_id__send_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProspectSendPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProspectSendResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_scans_backoffice_local_radar_scans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarScanSummary"][];
+                };
+            };
+        };
+    };
+    create_scan_backoffice_local_radar_scans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalRadarScanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarScanDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_scan_backoffice_local_radar_scans__scan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarScanDetail"];
                 };
             };
             /** @description Validation Error */

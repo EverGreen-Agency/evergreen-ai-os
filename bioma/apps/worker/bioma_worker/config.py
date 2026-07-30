@@ -18,6 +18,7 @@ class WorkerSettings(BaseSettings):
     instagram_api_version: str = "v21.0"
     instagram_post_sync_limit: int = 50
     youtube_api_key: str | None = None
+    google_places_api_key: str | None = None
     youtube_organic_sync_limit: int = 50
     secret_encryption_key: str | None = None
     tiktok_client_key: str | None = None

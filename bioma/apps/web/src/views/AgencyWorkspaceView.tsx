@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BarChart3, Bot, FileSearch, Users, WalletCards } from "lucide-react";
+import { BarChart3, Bot, FileSearch, MapPin, Users, WalletCards } from "lucide-react";
 import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
@@ -14,6 +14,7 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
+const LocalRadarStudio = lazy(() => import("../components/LocalRadarStudio").then((module) => ({ default: module.LocalRadarStudio })));
 
 type AgencyWorkspaceOutletContext = {
   workspace: AgencyWorkspaceContext;
@@ -82,6 +83,12 @@ export function AgencyOverviewRoute() {
       description: "Pesquisa setorial com refinamento, fontes rastreáveis e aplicação em Growth, Social e prospecção.",
       to: "/operacao/pesquisa-mercado",
       icon: FileSearch,
+    },
+    {
+      title: "Radar Local",
+      description: "Prospecção de negócios locais via Google Maps, com auditoria de presença digital e aprovação humana antes do contato.",
+      to: "/operacao/radar-local",
+      icon: MapPin,
     },
     {
       title: "CRM da EG",
@@ -160,6 +167,14 @@ export function AgencyTasksRoute() {
 export function AgencyAiOperationsRoute() {
   const { workspace } = useAgencyWorkspace();
   return <Suspense fallback={<ModuleLoading />}><AiOperationsView workspaceId={workspace.workspaceId} /></Suspense>;
+}
+
+export function AgencyLocalRadarRoute() {
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <LocalRadarStudio />
+    </Suspense>
+  );
 }
 
 export function AgencyMarketResearchRoute() {

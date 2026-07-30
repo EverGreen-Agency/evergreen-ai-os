@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, MapPin, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -86,6 +86,13 @@ export const agencyWorkspaceNavItems: Array<{
     path: "pesquisa-mercado",
     module: "hub",
     icon: FileSearch,
+  },
+  {
+    id: "local-radar",
+    label: "Radar Local",
+    path: "radar-local",
+    module: "hub",
+    icon: MapPin,
   },
 ];
 
