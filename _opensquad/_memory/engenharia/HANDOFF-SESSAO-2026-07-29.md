@@ -2,6 +2,57 @@
 
 Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
 
+## Avanço 2026-07-30 — parte 2 (as 3 ideias + correção da auditoria)
+
+- **`e3a1ffd` — Radar Local v2** (migração `0069`):
+  - **Import de planilha** (`POST /backoffice/local-radar/scans/import`): o parse
+    do CSV/TSV colado roda no navegador (`parsePastedProspects` em
+    `LocalRadarStudio.tsx`), aceita cabeçalhos pt/en, e o backend aplica o mesmo
+    score determinístico. Caminho **sem custo de API** — atende a extensão de
+    scrape que o Eduardo já usa. `place_id` derivado de sha1(nome|endereço) para
+    o diff funcionar entre importações.
+  - **Sinais de rescan** (`local_radar_prospects.changes`): compara com o
+    snapshot anterior do mesmo `place_id` e marca "criou site", "site sumiu",
+    "cadastrou telefone", "nota mudou de X para Y", "+N avaliações", "já é lead
+    no CRM". É o sinal barato e legal equivalente ao "começou a anunciar".
+  - **Pesquisa de mercado alimenta a abordagem**: `latest_research_playbook()`
+    casa o nicho do scan com uma pesquisa concluída e injeta o
+    `prospecting_playbook` na auditoria; a UI mostra qual pesquisa calibrou a
+    mensagem (`audit.research_used`).
+- **`88a4f47` — Meta × realizado no Cockpit**: `PUT /backoffice/clients/{id}/
+  monthly-target` grava `monthly_targets.target_leads/budget_micros` (colunas que
+  existiam desde a 0003 sem nenhuma leitura/escrita) e o rollup traz meta e
+  percentual atingido, editável inline na tabela. **Bug de unidade pego pelo
+  smoke**: centavos→micros é ×10.000, não ×100.
+- **`8c0e741` — correções de auditoria com dado real**:
+  - `metrics.search_impression_share` agora é coletado (GAQL + coluna no upsert)
+    e **exposto** em `AdsCampaignSummary` como média ponderada por impressões dos
+    dias que o Google reportou (null ≠ 0).
+  - `audit_dead_surface.py` passou a aplicar `DROP COLUMN`/`DROP TABLE` na ordem
+    das migrações: **os 9 achados `clickup_*` eram falso positivo meu** (já
+    dropados na 0034). De 20 colunas mortas para 11.
+  - `smoke_api.py` tinha 3 asserções cobrando `/clients/{id}/sync/clickup`,
+    endpoint extinto → a suíte falhava permanentemente por teste obsoleto, não
+    por regressão. Removidas; `smoke ok`.
+- **`1cc9f43` — superfície morta ligada**:
+  - `EditorialCalendar` (zero importadores) + `portal.deliverables` (nunca
+    renderizado) agora vivem no hub do cliente: semana de entregas + lista
+    acionável com **pedir aprovação** (com guard de aprovação pendente
+    duplicada), trocar status e excluir → mata `useCreateApproval`,
+    `useUpdateDeliverable`, `useDeleteDeliverable`.
+  - **Arquivar cliente** no AdminDock (`useArchiveClient`): o dropdown de status
+    só mudava `clients.status`; arquivar de fato desativa o workspace e é
+    pré-requisito do expurgo.
+  - **Atribuição roteiro→post** no Estúdio IA (`useLinkPostToScript`):
+    `source_script_id` era gravável pela API e invisível; agora dá para medir se
+    o roteiro gerado por IA performou.
+  - `useSaveEngineeringDoc` **removido** (duplicata morta: a view chama a api
+    direto).
+- Validado: `smoke_local_radar`, `smoke_local_radar_v2` (novo), `smoke_api`,
+  `smoke_performance`, `smoke_tasks`, `tsc --noEmit`, `npm run build`.
+- Nota de ambiente: o Docker Desktop caiu no meio da sessão; subir com
+  `docker compose -f bioma/infra/docker-compose.yml up -d`.
+
 ## Avanço 2026-07-30 (continuação da mesma linha)
 
 - **`b995e07` — Gantt como 4ª visão de QUALQUER frente** (correção do Eduardo:

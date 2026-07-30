@@ -54,7 +54,7 @@ function countOf(line: string, character: string) {
   return line.split(character).length - 1;
 }
 
-export function parsePastedProspects(raw: string): { rows: LocalRadarImportRow[]; ignored: number } {
+function parsePastedProspects(raw: string): { rows: LocalRadarImportRow[]; ignored: number } {
   const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (lines.length < 2) return { rows: [], ignored: 0 };
 
