@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, CalendarDays, Settings, Trash2 } from "lucide-react";
+import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, CalendarDays, Settings, Trash2, Sparkles} from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
@@ -14,6 +14,7 @@ import {
   useClientPortal,
   useCommercialPortal,
   useCreateApproval,
+  useBuildBriefingDraft,
   useCreateArtifact,
   useDecideApproval,
   useDeleteDeliverable,
@@ -45,6 +46,7 @@ export function ClientHubView() {
   const decideApproval = useDecideApproval();
   const createArtifact = useCreateArtifact();
   const createApproval = useCreateApproval();
+  const briefingDraft = useBuildBriefingDraft();
   const updateDeliverable = useUpdateDeliverable();
   const deleteDeliverable = useDeleteDeliverable();
   const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(contextId);
@@ -233,20 +235,125 @@ export function ClientHubView() {
               onEdit={setSelectedArtifact}
             />
             {isEgAdmin && !portal.artifacts.some((artifact) => artifact.kind === "briefing") && (
-              <button
-                className="secondary-button"
-                type="button"
-                style={{ marginTop: "12px" }}
-                disabled={createArtifact.isPending}
-                onClick={() =>
-                  createArtifact.mutate({
-                    clientId: contextId,
-                    payload: { title: "Briefing estratégico", kind: "briefing", visibility: "internal", content: "" },
-                  })
-                }
-              >
-                {createArtifact.isPending ? "Criando..." : "Criar briefing"}
-              </button>
+              <div style={{ marginTop: "12px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={createArtifact.isPending}
+                  onClick={() =>
+                    createArtifact.mutate({
+                      clientId: contextId,
+                      payload: { title: "Briefing estratégico", kind: "briefing", visibility: "internal", content: "" },
+                    })
+                  }
+                >
+                  {createArtifact.isPending ? "Criando..." : "Criar briefing em branco"}
+                </button>
+                {/* Em vez de formulário em branco: monta o rascunho com os sinais
+                    que já existem (perfil, mídia paga, orgânico, busca, contratos,
+                    pesquisa do setor) e mostra na cara o que NÃO foi observado. */}
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={briefingDraft.isPending}
+                  onClick={() => briefingDraft.mutate({ workspaceId: contextId, persist: false })}
+                >
+                  <Sparkles size={15} />
+                  {briefingDraft.isPending ? "Montando rascunho..." : "Gerar rascunho com os dados do cliente"}
+                </button>
+              </div>
+            )}
+
+            {briefingDraft.isError && (
+              <div className="notice error" style={{ marginTop: "12px" }}>
+                {briefingDraft.error instanceof Error ? briefingDraft.error.message : "Falha ao gerar o rascunho."}
+              </div>
+            )}
+
+            {briefingDraft.data && (
+              <div style={{ marginTop: "16px", border: "1px solid var(--border)", borderRadius: "10px", padding: "14px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" }}>
+                  <strong>Rascunho de briefing</strong>
+                  <span className="demo-badge">
+                    {briefingDraft.data.generation_mode === "live" ? "IA" : "prévia local (sem OPENAI_API_KEY)"}
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    {briefingDraft.data.sources_used.length} fonte(s) com dado real
+                  </span>
+                </div>
+
+                <p style={{ fontSize: 13 }}>{briefingDraft.data.draft.summary}</p>
+
+                {briefingDraft.data.draft.diagnosis.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Diagnóstico (com evidência)
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.diagnosis.map((item, index) => (
+                        <li key={index}>
+                          <strong>{item.observation}</strong>{" "}
+                          <span style={{ color: "var(--text-muted)" }}>— {item.evidence}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {briefingDraft.data.draft.recommended_focus.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Foco recomendado
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.recommended_focus.map((item, index) => (
+                        <li key={index}>
+                          <strong>{item.focus}</strong> ({item.service}) —{" "}
+                          <span style={{ color: "var(--text-muted)" }}>{item.rationale}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {briefingDraft.data.draft.questions_for_client.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Perguntas para a próxima call
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.questions_for_client.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {(briefingDraft.data.missing_sources.length > 0 || briefingDraft.data.draft.missing_data.length > 0) && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "#ffab00", marginTop: 12 }}>
+                      Não foi observado
+                    </h4>
+                    <ul style={{ fontSize: 12, paddingLeft: 18, color: "var(--text-muted)" }}>
+                      {[...briefingDraft.data.missing_sources, ...briefingDraft.data.draft.missing_data].map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {!briefingDraft.data.artifact_id && (
+                  <button
+                    className="primary-button"
+                    type="button"
+                    style={{ marginTop: "12px" }}
+                    disabled={briefingDraft.isPending}
+                    onClick={() => briefingDraft.mutate({ workspaceId: contextId, persist: true })}
+                  >
+                    Salvar como briefing interno
+                  </button>
+                )}
+              </div>
             )}
           </article>
         </div>

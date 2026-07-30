@@ -73,6 +73,15 @@ def audit_local_prospect_safe(prospect: dict[str, Any], playbook: dict[str, Any]
     return audit_local_prospect(prospect, get_settings(), playbook=playbook)
 
 
+def generate_briefing_draft_safe(dossier: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.briefing import generate_briefing_draft
+    from bioma_worker.config import get_settings
+
+    return generate_briefing_draft(dossier, get_settings())
+
+
 def normalize_imported_prospects_safe(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")

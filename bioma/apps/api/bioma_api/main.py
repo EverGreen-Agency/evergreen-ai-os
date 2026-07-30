@@ -10,6 +10,7 @@ from bioma_api.routers import (
     analytics,
     auth,
     benchmark,
+    briefing,
     certifications,
     client_profiles,
     client_hub,
@@ -103,6 +104,7 @@ app.include_router(wiki.router)
 app.include_router(kits.router)
 app.include_router(market_research.router)
 app.include_router(local_radar.router)
+app.include_router(briefing.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)
