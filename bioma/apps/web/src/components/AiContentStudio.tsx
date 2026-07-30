@@ -15,6 +15,7 @@ import {
   Send,
   Sparkles,
   WandSparkles,
+  TrendingUp,
 } from "lucide-react";
 
 import {
@@ -32,6 +33,7 @@ import {
   useContentScripts,
   useCreateCalendarItem,
   useLinkPostToScript,
+  useScriptScoreboard,
   useGenerateContentScripts,
   useGenerateRetrospective,
   useInstagramPosts,
@@ -171,6 +173,7 @@ function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
   const updateScript = useUpdateContentScript();
   const createCalendarItem = useCreateCalendarItem();
   const linkPostToScript = useLinkPostToScript();
+  const { data: scoreboard } = useScriptScoreboard(workspaceId);
 
   const [scriptCount, setScriptCount] = useState(12);
   const [competitorInput, setCompetitorInput] = useState("");
@@ -279,6 +282,66 @@ function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
               </div>
             ))}
           </div>
+        </article>
+      )}
+
+      {/* O loop de aprendizado: com a atribuição roteiro->post ligada, dá para
+          responder se a IA da casa performa acima do resto da conta. Média por
+          post (não soma) para não premiar o grupo com mais publicações. */}
+      {scoreboard && scoreboard.ai_posts > 0 && (
+        <article className="surface">
+          <SectionHeader
+            eyebrow="Aprendizado"
+            title="Roteiros da IA x resto da conta"
+            icon={TrendingUp}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+            {scoreboard.ai_posts} post(s) vindos de roteiro da IA contra {scoreboard.other_posts} post(s) do
+            restante, nos últimos 90 dias. Métricas reais sincronizadas do Instagram.
+          </p>
+
+          {scoreboard.other_posts === 0 ? (
+            <div className="notice">
+              Ainda não há posts fora da IA no período — sem base de comparação, o placar não afirma ganho.
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
+              {[
+                { label: "Alcance médio", ai: scoreboard.ai_avg_reach, base: scoreboard.other_avg_reach, lift: scoreboard.lift_reach_percent },
+                { label: "Engajamento médio", ai: scoreboard.ai_avg_engagement, base: scoreboard.other_avg_engagement, lift: scoreboard.lift_engagement_percent },
+                { label: "Salvamentos médios", ai: scoreboard.ai_avg_saved, base: scoreboard.other_avg_saved, lift: null },
+              ].map((metric) => (
+                <div key={metric.label} style={{ minWidth: 170 }}>
+                  <small style={{ color: "var(--text-dim)", textTransform: "uppercase", fontSize: 10 }}>{metric.label}</small>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>
+                    {metric.ai !== null ? Math.round(metric.ai) : "—"}
+                    <span style={{ fontSize: 13, fontWeight: 400, color: "var(--text-muted)" }}>
+                      {" "}vs {metric.base !== null ? Math.round(metric.base) : "—"}
+                    </span>
+                  </div>
+                  {metric.lift !== null && metric.lift !== undefined && (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: metric.lift >= 0 ? "#2e9e5b" : "#ff5252" }}>
+                      {metric.lift >= 0 ? "+" : ""}{metric.lift}%
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {scoreboard.per_script.length > 0 && (
+            <div className="table-list">
+              {scoreboard.per_script.map((row) => (
+                <div className="table-row" key={row.script_id}>
+                  <strong style={{ flex: 1 }}>{row.title}</strong>
+                  <span>{row.suggested_format ?? row.theme ?? "—"}</span>
+                  <span>{row.posts} post(s)</span>
+                  <span>{Math.round(row.avg_reach)} alcance</span>
+                  <span>{Math.round(row.avg_engagement)} engaj.</span>
+                </div>
+              ))}
+            </div>
+          )}
         </article>
       )}
 

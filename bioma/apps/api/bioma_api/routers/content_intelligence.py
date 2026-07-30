@@ -11,6 +11,7 @@ from bioma_api.schemas.content_intelligence import (
     GenerateScriptsRequest,
     HookAnalysisSummary,
     InstagramPostSummary,
+    ScriptScoreboard,
     LinkPostToScriptRequest,
     ScriptUpdateRequest,
 )
@@ -51,6 +52,16 @@ def generate_retrospective(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> ContentRetrospectiveSummary:
     return service.generate_retrospective(workspace_id, user, payload.period_days)
+
+
+@router.get("/script-scoreboard", response_model=ScriptScoreboard)
+def get_script_scoreboard(
+    workspace_id: UUID,
+    period_days: int = 90,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> ScriptScoreboard:
+    """Os roteiros da IA performaram acima ou abaixo do resto da conta?"""
+    return service.get_script_scoreboard(workspace_id, user, period_days)
 
 
 @router.get("/scripts", response_model=list[ContentScriptSummary])

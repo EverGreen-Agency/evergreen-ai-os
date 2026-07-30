@@ -12,6 +12,8 @@ from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.content_intelligence import (
     ContentRetrospectiveSummary,
+    ScriptScoreboard,
+    ScriptScoreboardRow,
     ContentScriptSummary,
     GenerateScriptsRequest,
     HookAnalysisSummary,
@@ -299,3 +301,44 @@ def _competitor_snapshot(handles: list[str]) -> list[dict]:
     finally:
         client.close()
     return snapshots
+
+
+def get_script_scoreboard(workspace_id: UUID, user: CurrentUserResponse, period_days: int = 90) -> ScriptScoreboard:
+    """Mede se os roteiros da IA performaram melhor que o resto da conta."""
+    period_end = date.today()
+    period_start = period_end - timedelta(days=period_days)
+    with connect() as conn:
+        client = _accessible_workspace(conn, workspace_id, user)
+        data = repo.script_performance_scoreboard(conn, client["workspace_id"], period_start, period_end)
+
+    totals = data["totals"]
+
+    def as_float(value):
+        return float(value) if value is not None else None
+
+    ai_reach = as_float(totals.get("ai_avg_reach"))
+    other_reach = as_float(totals.get("other_avg_reach"))
+    ai_engagement = as_float(totals.get("ai_avg_engagement"))
+    other_engagement = as_float(totals.get("other_avg_engagement"))
+
+    def lift(ai_value, base_value):
+        # Sem base (ou base zerada) nao existe comparacao: None, nunca 0% nem 100%.
+        if ai_value is None or base_value is None or base_value == 0:
+            return None
+        return round(((ai_value - base_value) / base_value) * 100, 1)
+
+    return ScriptScoreboard(
+        period_start=period_start,
+        period_end=period_end,
+        ai_posts=int(totals.get("ai_posts") or 0),
+        other_posts=int(totals.get("other_posts") or 0),
+        ai_avg_reach=ai_reach,
+        other_avg_reach=other_reach,
+        ai_avg_engagement=ai_engagement,
+        other_avg_engagement=other_engagement,
+        ai_avg_saved=as_float(totals.get("ai_avg_saved")),
+        other_avg_saved=as_float(totals.get("other_avg_saved")),
+        lift_reach_percent=lift(ai_reach, other_reach),
+        lift_engagement_percent=lift(ai_engagement, other_engagement),
+        per_script=[ScriptScoreboardRow(**row) for row in data["per_script"]],
+    )

@@ -68,6 +68,34 @@ class ContentScriptSummary(BaseModel):
     updated_at: datetime
 
 
+class ScriptScoreboardRow(BaseModel):
+    script_id: UUID
+    title: str
+    theme: str | None = None
+    suggested_format: str | None = None
+    posts: int
+    avg_reach: float
+    avg_engagement: float
+
+
+class ScriptScoreboard(BaseModel):
+    """Placar: roteiro da IA x resto da conta. `lift_*` e None quando falta base
+    de comparacao (nenhum post vinculado, ou nenhum post organico fora da IA)."""
+    period_start: date
+    period_end: date
+    ai_posts: int
+    other_posts: int
+    ai_avg_reach: float | None = None
+    other_avg_reach: float | None = None
+    ai_avg_engagement: float | None = None
+    other_avg_engagement: float | None = None
+    ai_avg_saved: float | None = None
+    other_avg_saved: float | None = None
+    lift_reach_percent: float | None = None
+    lift_engagement_percent: float | None = None
+    per_script: list[ScriptScoreboardRow] = []
+
+
 class GenerateRetrospectiveRequest(BaseModel):
     period_days: int = Field(default=60, ge=7, le=180)
 

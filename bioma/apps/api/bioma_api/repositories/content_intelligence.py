@@ -20,6 +20,48 @@ def list_recent_posts(conn, workspace_id: UUID, period_start: date, period_end: 
     ).fetchall()
 
 
+def script_performance_scoreboard(conn, workspace_id: UUID, period_start: date, period_end: date) -> dict:
+    """Compara posts que nasceram de roteiro da IA com os demais, no periodo.
+
+    Media por post (nao soma) para nao premiar o grupo que tem mais posts.
+    """
+    row = conn.execute(
+        """
+        select
+          count(*) filter (where source_script_id is not null) as ai_posts,
+          count(*) filter (where source_script_id is null) as other_posts,
+          avg(reach) filter (where source_script_id is not null) as ai_avg_reach,
+          avg(reach) filter (where source_script_id is null) as other_avg_reach,
+          avg(likes + comments + shares + saved) filter (where source_script_id is not null) as ai_avg_engagement,
+          avg(likes + comments + shares + saved) filter (where source_script_id is null) as other_avg_engagement,
+          avg(saved) filter (where source_script_id is not null) as ai_avg_saved,
+          avg(saved) filter (where source_script_id is null) as other_avg_saved
+        from workspace_instagram_posts
+        where workspace_id = %s and posted_at between %s and %s
+        """,
+        (workspace_id, period_start, period_end),
+    ).fetchone()
+
+    per_script = conn.execute(
+        """
+        select s.id as script_id, s.title, s.theme, s.suggested_format,
+               count(p.id) as posts,
+               coalesce(avg(p.reach), 0) as avg_reach,
+               coalesce(avg(p.likes + p.comments + p.shares + p.saved), 0) as avg_engagement
+        from workspace_content_scripts s
+        join workspace_instagram_posts p
+          on p.source_script_id = s.id and p.workspace_id = s.workspace_id
+        where s.workspace_id = %s and p.posted_at between %s and %s
+        group by s.id, s.title, s.theme, s.suggested_format
+        order by avg_engagement desc
+        limit 20
+        """,
+        (workspace_id, period_start, period_end),
+    ).fetchall()
+
+    return {"totals": dict(row or {}), "per_script": [dict(item) for item in per_script]}
+
+
 def get_post(conn, workspace_id: UUID, post_id: UUID) -> dict | None:
     return conn.execute(
         """
