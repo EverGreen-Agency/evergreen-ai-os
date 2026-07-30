@@ -225,6 +225,19 @@ class CockpitPendingApproval(BaseModel):
     client_name: str
 
 
+class PortfolioPerformanceRow(BaseModel):
+    """Uma linha por cliente: investimento por canal e leads no período."""
+    client_id: UUID
+    client_name: str
+    workspace_id: UUID
+    status: ClientStatus
+    google_spend_cents: int
+    meta_spend_cents: int
+    linkedin_spend_cents: int
+    total_spend_cents: int
+    total_leads: int
+
+
 class CockpitPortfolioSummary(BaseModel):
     monthly_revenue_cents: int
     mrr_cents: int

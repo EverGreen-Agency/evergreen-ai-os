@@ -15,6 +15,7 @@ from bioma_api.schemas.client_hub import (
     ClientSummary,
     ClientUpdateRequest,
     CockpitPortfolioSummary,
+    PortfolioPerformanceRow,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -44,6 +45,15 @@ def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_r
 @backoffice_router.get("/backoffice/cockpit-summary", response_model=CockpitPortfolioSummary)
 def get_cockpit_summary(user: CurrentUserResponse = Depends(current_user_from_request)):
     return client_hub_service.get_cockpit_summary(user)
+
+
+@backoffice_router.get("/backoffice/portfolio-performance", response_model=list[PortfolioPerformanceRow])
+def get_portfolio_performance(
+    days: int = 30,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Rollup executivo: midia paga de todos os clientes lado a lado."""
+    return client_hub_service.get_portfolio_performance(user, days)
 
 
 @router.get("", response_model=list[ClientSummary])

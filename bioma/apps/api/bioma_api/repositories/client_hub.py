@@ -759,3 +759,64 @@ def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
         """,
         (user_email, is_admin, user_id),
     ).fetchall()
+
+
+def get_portfolio_performance(conn, days: int = 30) -> list[dict[str, Any]]:
+    """Performance de mídia da carteira inteira, um cliente por linha.
+
+    É o rollup executivo que faltava: cada cliente já tem a aba Métricas
+    unificada, mas comparar a carteira exigia entrar cliente por cliente.
+    Lê as mesmas tabelas que os syncs reais populam — sem credencial
+    configurada as linhas ficam zeradas, nunca inventadas.
+    """
+    return conn.execute(
+        """
+        with client_rows as (
+          select c.id as client_id, c.name as client_name,
+                 w.id as workspace_id, c.status
+          from clients c
+          join organizations o on o.id = c.organization_id
+          join workspaces w on w.subject_organization_id = c.organization_id
+           and w.kind = 'client' and w.status = 'active'
+          where o.slug <> 'eg'
+        ),
+        google as (
+          select client_id,
+                 coalesce(sum(cost_micros), 0) / 10000 as spend_cents,
+                 coalesce(sum(conversions), 0) as conversions
+          from ads_campaign_daily
+          where date >= current_date - %s::int
+          group by client_id
+        ),
+        meta as (
+          select workspace_id,
+                 coalesce(sum(spend_cents), 0) as spend_cents,
+                 coalesce(sum(leads), 0) as leads
+          from workspace_meta_ads_daily_metrics
+          where date >= current_date - %s::int
+          group by workspace_id
+        ),
+        li as (
+          select workspace_id,
+                 coalesce(sum(spend_cents), 0) as spend_cents,
+                 coalesce(sum(leads), 0) as leads
+          from workspace_linkedin_ads_daily_metrics
+          where date >= current_date - %s::int
+          group by workspace_id
+        )
+        select cr.client_id, cr.client_name, cr.workspace_id, cr.status,
+               coalesce(g.spend_cents, 0)::bigint as google_spend_cents,
+               coalesce(m.spend_cents, 0)::bigint as meta_spend_cents,
+               coalesce(l.spend_cents, 0)::bigint as linkedin_spend_cents,
+               (coalesce(g.spend_cents, 0) + coalesce(m.spend_cents, 0)
+                + coalesce(l.spend_cents, 0))::bigint as total_spend_cents,
+               (coalesce(g.conversions, 0) + coalesce(m.leads, 0)
+                + coalesce(l.leads, 0))::bigint as total_leads
+        from client_rows cr
+        left join google g on g.client_id = cr.client_id
+        left join meta m on m.workspace_id = cr.workspace_id
+        left join li l on l.workspace_id = cr.workspace_id
+        order by total_spend_cents desc, cr.client_name
+        """,
+        (days, days, days),
+    ).fetchall()

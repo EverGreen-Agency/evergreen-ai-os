@@ -50,6 +50,14 @@ export function useMyDeliverables() {
   });
 }
 
+export function usePortfolioPerformance(enabled: boolean, days = 30) {
+  return useQuery({
+    queryKey: ["portfolio-performance", days],
+    queryFn: () => api.getPortfolioPerformance(days),
+    enabled,
+  });
+}
+
 export function useCockpitSummary(enabled: boolean) {
   return useQuery({
     queryKey: ["cockpit-summary"],

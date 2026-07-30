@@ -10740,6 +10740,69 @@
         "title": "PlanningPortfolioItem",
         "type": "object"
       },
+      "PortfolioPerformanceRow": {
+        "description": "Uma linha por cliente: investimento por canal e leads no período.",
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "google_spend_cents": {
+            "title": "Google Spend Cents",
+            "type": "integer"
+          },
+          "linkedin_spend_cents": {
+            "title": "Linkedin Spend Cents",
+            "type": "integer"
+          },
+          "meta_spend_cents": {
+            "title": "Meta Spend Cents",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "onboarding",
+              "active",
+              "paused",
+              "completed",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_leads": {
+            "title": "Total Leads",
+            "type": "integer"
+          },
+          "total_spend_cents": {
+            "title": "Total Spend Cents",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_name",
+          "workspace_id",
+          "status",
+          "google_spend_cents",
+          "meta_spend_cents",
+          "linkedin_spend_cents",
+          "total_spend_cents",
+          "total_leads"
+        ],
+        "title": "PortfolioPerformanceRow",
+        "type": "object"
+      },
       "ProjectCreate": {
         "properties": {
           "cadence_days": {
@@ -25611,6 +25674,54 @@
         "summary": "List Planning Portfolio",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/backoffice/portfolio-performance": {
+      "get": {
+        "description": "Rollup executivo: midia paga de todos os clientes lado a lado.",
+        "operationId": "get_portfolio_performance_backoffice_portfolio_performance_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PortfolioPerformanceRow"
+                  },
+                  "title": "Response Get Portfolio Performance Backoffice Portfolio Performance Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Portfolio Performance",
+        "tags": [
+          "client-hub-backoffice"
         ]
       }
     },

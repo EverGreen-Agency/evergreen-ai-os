@@ -22,6 +22,7 @@ from bioma_api.schemas.client_hub import (
     ClientSummary,
     ClientUpdateRequest,
     CockpitPortfolioSummary,
+    PortfolioPerformanceRow,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -613,3 +614,10 @@ def get_cockpit_summary(user: CurrentUserResponse) -> CockpitPortfolioSummary:
     with connect() as conn:
         row = client_hub_repo.get_portfolio_summary(conn)
     return CockpitPortfolioSummary(**row)
+
+
+def get_portfolio_performance(user: CurrentUserResponse, days: int = 30) -> list[PortfolioPerformanceRow]:
+    require_platform_admin(user)
+    with connect() as conn:
+        rows = client_hub_repo.get_portfolio_performance(conn, days)
+    return [PortfolioPerformanceRow(**row) for row in rows]

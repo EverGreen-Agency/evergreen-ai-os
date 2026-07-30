@@ -998,6 +998,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/portfolio-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Portfolio Performance
+         * @description Rollup executivo: midia paga de todos os clientes lado a lado.
+         */
+        get: operations["get_portfolio_performance_backoffice_portfolio_performance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/proposals": {
         parameters: {
             query?: never;
@@ -8393,6 +8413,39 @@ export interface components {
              */
             workspace_id: string;
         };
+        /**
+         * PortfolioPerformanceRow
+         * @description Uma linha por cliente: investimento por canal e leads no período.
+         */
+        PortfolioPerformanceRow: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string;
+            /** Google Spend Cents */
+            google_spend_cents: number;
+            /** Linkedin Spend Cents */
+            linkedin_spend_cents: number;
+            /** Meta Spend Cents */
+            meta_spend_cents: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "onboarding" | "active" | "paused" | "completed" | "archived";
+            /** Total Leads */
+            total_leads: number;
+            /** Total Spend Cents */
+            total_spend_cents: number;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+        };
         /** ProjectCreate */
         ProjectCreate: {
             /** Cadence Days */
@@ -14640,6 +14693,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanningPortfolioItem"][];
+                };
+            };
+        };
+    };
+    get_portfolio_performance_backoffice_portfolio_performance_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioPerformanceRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

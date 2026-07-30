@@ -1065,6 +1065,18 @@ export type CockpitPendingApproval = {
   client_name: string;
 };
 
+export type PortfolioPerformanceRow = {
+  client_id: string;
+  client_name: string;
+  workspace_id: string;
+  status: ClientStatus;
+  google_spend_cents: number;
+  meta_spend_cents: number;
+  linkedin_spend_cents: number;
+  total_spend_cents: number;
+  total_leads: number;
+};
+
 export type CockpitPortfolioSummary = {
   monthly_revenue_cents: number;
   mrr_cents: number;
@@ -2185,6 +2197,8 @@ export const api = {
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
+  getPortfolioPerformance: (days = 30) =>
+    request<PortfolioPerformanceRow[]>(`/backoffice/portfolio-performance?days=${days}`),
   createClient: (payload: ClientPayload) =>
     request<ClientPortal>("/clients", {
       method: "POST",

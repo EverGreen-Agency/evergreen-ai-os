@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useUiStore } from "../store/uiStore";
-import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks } from "../hooks/useBiomaApi";
+import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
 import { SquadsView } from "./SquadsView";
 
@@ -36,6 +36,7 @@ export function CockpitView() {
 
   const isEgAdmin = user?.organizations.some((org: { role: string }) => org.role === "eg_admin");
   const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
+  const { data: portfolioPerf = [] } = usePortfolioPerformance(Boolean(isEgAdmin));
 
   // Prefixo "portfolio" para não colidir com as pendências de UM cliente
   // usadas mais abaixo na visão do cliente.
@@ -171,6 +172,54 @@ export function CockpitView() {
             <div className="bento-footer">Visão global de SLAs críticos</div>
           </article>
         </div>
+
+        {/* Rollup executivo: mídia paga de todos os clientes lado a lado,
+            lendo as mesmas tabelas que os syncs populam. Elimina o abre-aba
+            cliente por cliente para comparar investimento e lead. */}
+        {portfolioPerf.some((row) => row.total_spend_cents > 0 || row.total_leads > 0) && (
+          <section className="content-grid" style={{ marginTop: "1.5rem" }}>
+            <article className="surface large" style={{ gridColumn: "1 / -1" }}>
+              <div className="surface-header">
+                <TrendingUp size={18} />
+                <h3>Performance da carteira (30 dias)</h3>
+              </div>
+              <div style={{ padding: "0 24px 20px", overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ textAlign: "left", color: "var(--text-dim)", fontSize: 11, textTransform: "uppercase" }}>
+                      <th style={{ padding: "8px 12px 8px 0" }}>Cliente</th>
+                      <th style={{ padding: "8px 12px" }}>Google Ads</th>
+                      <th style={{ padding: "8px 12px" }}>Meta Ads</th>
+                      <th style={{ padding: "8px 12px" }}>LinkedIn</th>
+                      <th style={{ padding: "8px 12px" }}>Total</th>
+                      <th style={{ padding: "8px 12px" }}>Leads</th>
+                      <th style={{ padding: "8px 12px" }}>CPL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {portfolioPerf.map((row) => (
+                      <tr
+                        key={row.client_id}
+                        style={{ borderTop: "1px solid var(--border)", cursor: "pointer" }}
+                        onClick={() => navigate(`/clientes/${row.client_id}/analytics`)}
+                      >
+                        <td style={{ padding: "10px 12px 10px 0", fontWeight: 600 }}>{row.client_name}</td>
+                        <td style={{ padding: "10px 12px" }}>{formatCents(row.google_spend_cents)}</td>
+                        <td style={{ padding: "10px 12px" }}>{formatCents(row.meta_spend_cents)}</td>
+                        <td style={{ padding: "10px 12px" }}>{formatCents(row.linkedin_spend_cents)}</td>
+                        <td style={{ padding: "10px 12px", fontWeight: 600 }}>{formatCents(row.total_spend_cents)}</td>
+                        <td style={{ padding: "10px 12px" }}>{row.total_leads}</td>
+                        <td style={{ padding: "10px 12px", color: "var(--text-dim)" }}>
+                          {row.total_leads > 0 ? formatCents(Math.round(row.total_spend_cents / row.total_leads)) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        )}
 
         <section className="content-grid">
           <article className="surface large">
