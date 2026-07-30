@@ -2,6 +2,41 @@
 
 Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
 
+## Avanço 2026-07-30 — parte 4 (versão, Fathom e um 500 escondido)
+
+- **`04bc13e` — BUG CRÍTICO pré-existente corrigido**: `concat_ws(E'\n',
+  nullif(transcript,''), %s)` em `repositories/sales_copilot.py` (2 ocorrências)
+  derrubava com `IndeterminateDatatype` **toda** ingestão de transcrição do
+  copiloto de vendas — 500 em qualquer segmento, por qualquer caminho (manual,
+  upload, adaptador). Faltava `%s::text`. Ou seja: o copiloto de vendas nunca
+  havia sido exercitado de ponta a ponta. Verificado antes e depois via API.
+- **`7a8c56e` — versão do sidebar**: o release-please está corretamente
+  configurado, mas **nunca rodou**, porque só dispara em push para `main` e
+  `main` está no commit inicial (`develop` +333 commits, zero tags). Em vez de
+  forjar o número, o `vite.config.mjs` injeta `__BUILD_COMMIT__`/
+  `__BUILD_BRANCH__`/`__BUILD_AT__` e o rodapé mostra
+  `v0.1.0 · develop 4c471d8` (com data do build no tooltip). Quando houver merge
+  em `main`, o release-please assume e o rótulo volta a ser só `vX.Y.Z`.
+  **Pendente de decisão do Eduardo:** fazer o primeiro merge `develop → main`
+  para cortar o release inicial.
+- **`df11b7c` — Fathom ligado no copiloto de vendas**: a EG grava as calls no
+  Fathom, e o copiloto já tinha o slot `provider_webhook`, sessões com
+  consentimento, análise ao vivo e materialização de ações — faltava a ponte.
+  Implementado como **PULL** (`GET /backoffice/sales-copilot/fathom/meetings`,
+  `POST /backoffice/sales-copilot/{id}/fathom-import`), o que dispensa endpoint
+  público e token por sessão. API verificada na doc oficial: base
+  `https://api.fathom.ai/external/v1`, header `X-Api-Key`, `/meetings` paginado
+  por cursor, `/recordings/{id}/transcript` → `[{speaker:{display_name}, text,
+  timestamp:"HH:MM:SS"}]`, 60 req/min. Idempotência por
+  `fathom:{recording_id}:{índice}`; reimportar não duplica. Consentimento
+  continua obrigatório (409 antes de qualquer chamada externa). Sem
+  `FATHOM_API_KEY` → 422 com a mensagem real, nunca lista vazia.
+  **Para ativar:** gerar API key no Fathom e setar `FATHOM_API_KEY` no `.env` do
+  worker.
+- Validado por `scripts/smoke_fathom_import.py` (novo): 422 sem chave, 409 sem
+  consentimento, idempotência confirmada, limpeza ok. `tsc` + build limpos, com
+  a branch confirmada dentro do bundle.
+
 ## Avanço 2026-07-30 — parte 3 (loop de aprendizado + briefing automático)
 
 - **`b2402f8` — Placar de aprendizado** (`GET /workspaces/{id}/content/
