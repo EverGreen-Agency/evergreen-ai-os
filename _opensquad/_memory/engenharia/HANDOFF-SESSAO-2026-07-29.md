@@ -1,6 +1,6 @@
 # Handoff — sessão 2026-07-29
 
-Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `30371d4`.
+Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `1cf5fff`.
 
 ## Sessão paralela — RESOLVIDO
 
@@ -66,20 +66,29 @@ Próximo passo: **implementar** o que o v2 define (ver "Fila de implementação"
 
 **Falta:**
 
-1. **Seletor de Projeto na UI** do detalhe da tarefa + agrupar/filtrar por
-   projeto na lista e no Kanban. O backend já aceita `project_id`; falta o
-   controle na tela e o `projects` do workspace alimentando o dropdown.
-2. **Criar subtarefa pela UI.** O backend aceita `parent_task_id`, mas nenhuma
-   tela oferece "criar subtarefa" nem exibe a hierarquia pai/filho.
-3. **Visão Roadmap (Gantt)** por projeto, usando datas de `project_phases`.
-   Hoje a terceira visão é um calendário mensal, não um Gantt.
-4. Filtros salvos que o v1 chamava de views: Bug Tracker, Banco de Ideias,
-   Aprovação do Cliente.
-5. Recorrência: colunas existem (`recurrence`, `recurrence_source_task_id`),
+1. **Visão Roadmap (Gantt)** por projeto, usando datas de `project_phases`.
+   Hoje a terceira visão é um calendário mensal, não um Gantt. É a visão que o
+   manual v1 chamava de "Roadmap do Cliente" — a que se mostra ao cliente.
+2. **Agrupar/filtrar por projeto** na lista e no Kanban. O campo já existe e é
+   editável; o que falta é agrupar a visão por ele.
+3. Filtros salvos que o v1 chamava de views: Bug Tracker (Tipo = Bug), Banco de
+   Ideias (status = IDEAÇÃO), Aprovação do Cliente.
+4. Recorrência: colunas existem (`recurrence`, `recurrence_source_task_id`),
    regra de negócio **não definida** — pendente de decisão do Eduardo.
-6. Status por frente ainda são **listas hardcoded** no `TaskDrawer.tsx`
-   (`GROWTH_STATUSES`, `SOCIAL_STATUSES`) — falta o conjunto de Tech e mover
-   isso para um lugar único derivado do `type` da lista.
+5. Campos personalizados no drawer ainda são um conjunto fixo em código; o
+   Manual v2 decidiu não permitir criação pelo usuário, mas os campos por frente
+   deveriam vir de `task-frentes.ts` como os status agora vêm.
+6. **Decisão em aberto:** `deliverables` e `eg_tasks` continuam sendo dois
+   sistemas. O Cockpit agora lê os dois, mas unificá-los (ou não) é decisão de
+   produto, não dívida óbvia.
+
+### Perguntas do Eduardo ainda sem resposta implementada
+
+- **Copilotos/agentes/squads dentro do Bioma**: como as conversas de
+  produto e a "autovigilância" (detectar que uma feature já existe antes de
+  pedir de novo) viveriam dentro do produto. Discutido, nada implementado.
+  Existe base: `ai_operations`, `squads`, o control plane de IA da outra sessão,
+  o Banco de Ideias e o CodeGraph/graphify do repo.
 
 ### Limpeza executada
 
@@ -147,6 +156,7 @@ Vale o Eduardo conferir no dev server antes de seguir.
 
 | Commit | O quê |
 |---|---|
+| `1cf5fff` | Operação interna da EG (dogfooding), responsável, projeto e subtarefa na UI |
 | `30371d4` | Projeto/subtarefa na API, comentários (0066), criar tarefa em todas as visões |
 | `56989d9` | Manual v2, migração 0065 (project_id + parent_task_id), remoção do legado |
 | `a715823` | **Perf:** cache padrão do React Query (causa da tela de Tarefas lenta) |

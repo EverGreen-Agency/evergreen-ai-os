@@ -131,6 +131,44 @@ Link da Pasta, Arquivo Final, Legenda/Copy, Gancho.
 
 ---
 
+## 3.4 A própria EverGreen (dogfooding)
+
+A EG é um workspace como qualquer outro — `kind = 'agency_internal'`, chamado
+**Operação EG**. Ele sempre existiu, mas não tinha aba de Tarefas: era
+impossível usar o próprio produto para gerenciar a casa. Corrigido.
+
+O modelo é o mesmo dos clientes, sem estrutura paralela:
+
+| Demanda interna | Onde vive |
+|---|---|
+| Tech da EG (o próprio Bioma, automações) | Frente **Tech** na Operação EG, projeto por iniciativa |
+| Growth da EG (nosso tráfego, nosso site) | Frente **Growth** na Operação EG |
+| Social da EG | Estúdio IA da Operação EG (mesma regra dos clientes) |
+| Treinamento de time, processo, RH | Frente **Growth** ou **Geral**, projeto "Operação" |
+| Hackathon | **Projeto** dentro da frente Tech, com datas → aparece no roadmap |
+| Tarefa pessoal do CEO | Tarefa na Operação EG com você como responsável |
+
+**Por que projeto e não lista para hackathon:** hackathon tem começo, fim e
+escopo — é exatamente a definição de projeto. Como projeto tem datas, ele entra
+no Gantt junto com o resto; se fosse uma lista, ficaria fora do roadmap.
+
+### O Cockpit precisa ver as duas coisas
+
+O painel "Minhas tarefas" lia apenas a tabela `deliverables` (do client-hub,
+responsável por e-mail). O sistema que substituiu o ClickUp é `eg_tasks`
+(responsável por FK). **As duas nunca se falavam**, então nada criado em
+Tarefas aparecia no Cockpit.
+
+Hoje `GET /tasks/me` atravessa a carteira inteira **mais** o workspace interno,
+e o painel mostra as duas origens rotuladas. É isso que faz "entrar no cockpit e
+ver todas as tarefas, de cliente e operacionais" funcionar de fato.
+
+> As duas tabelas continuam existindo de propósito: `deliverables` é o que move
+> o fluxo de aprovação do cliente; `eg_tasks` é a operação. Unificá-las é uma
+> decisão em aberto, não uma pendência óbvia.
+
+---
+
 ## 4. Checklist vs Subtarefa
 
 Distinção que existia na prática mas **nunca foi documentada**. Registrada aqui
