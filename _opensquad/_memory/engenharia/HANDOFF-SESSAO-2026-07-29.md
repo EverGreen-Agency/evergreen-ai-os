@@ -24,9 +24,31 @@ Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cda
   território do squad EG Engenharia/Arquiteto. O que ele imagina: copiloto
   contextual dentro do Estúdio ("planeja a semana, altera isso, joga pro
   Higgsfield").
-- **Solução 2 (Máquina de Auditoria e Prospecção)**: análise entregue na
-  conversa; decisões pendentes do Eduardo (fonte de leads, volume/custo,
-  aprovação humana obrigatória antes de outbound). Nada implementado.
+- **Solução 2 IMPLEMENTADA como Radar Local (`14b3a0a`)**, com fonte de leads
+  redirecionada pelo Eduardo para Google Maps: migração `0068`
+  (local_radar_scans/prospects), worker `local_radar.py` (Places API New
+  searchText, **fail-loud 422 sem `GOOGLE_PLACES_API_KEY`** — nunca inventa
+  negócio), score de presença determinístico + auditoria IA (preview honesto
+  sem OPENAI_API_KEY), fila com **aprovação humana obrigatória** (aprovar →
+  lead no CRM da EG com source `radar_local`; enviar exige `approved`, envio
+  `simulated`/`failed` NÃO vira `sent`), envio via providers WhatsApp do
+  workspace EG. UI: Operação EG → Radar Local (`/operacao/radar-local`).
+  Smoke `scripts/smoke_local_radar.py` passou contra Postgres real (422/409/
+  lead criado/envio failed tratado). **Para ativar de verdade**: setar
+  `GOOGLE_PLACES_API_KEY` no `.env` do worker (Places API New habilitada no
+  projeto GCP; campos site/telefone/nota são SKU Enterprise) e conferir o
+  provider Evolution do workspace EG (localhost:8080 está 404 hoje).
+- **Auditoria de superfície morta (`6f9ab14`)**: `bioma/scripts/
+  audit_dead_surface.py` (3 checagens mecânicas, sem custo de API). Achados
+  relevantes já confirmados manualmente: `EditorialCalendar.tsx` completo e
+  NUNCA importado (backend registrado no main.py, tipos na api.ts — classe
+  BriefingPanel; provável destino: aba Social do Estúdio IA, decisão do
+  Eduardo); hooks mortos `useLinkPostToScript`/`useCreateApproval`/
+  `useUpdateDeliverable`/`useDeleteDeliverable`/`useArchiveClient`/
+  `useSaveEngineeringDoc`; ~20 colunas de migração nunca citadas no backend
+  (clickup_* é resto da era ClickUp; `monthly_targets.target_*` = feature de
+  metas sem leitura; `ads_campaign_daily.search_impression_share` coletável e
+  ignorada).
 
 ## Sessão paralela — RESOLVIDO
 
