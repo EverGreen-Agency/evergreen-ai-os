@@ -51,6 +51,26 @@ def _validate_people(conn, workspace_id: UUID, values: dict) -> None:
             )
 
 
+def _validate_dates(conn, values: dict, task_id: UUID | None = None) -> None:
+    """Início depois do vencimento é 422 amigável, não 500 da constraint.
+
+    No update parcial, o outro lado da comparação pode estar só no banco —
+    por isso busca o valor atual quando falta no payload.
+    """
+    start = values.get("start_date")
+    due = values.get("due_date")
+    if (start is None or due is None) and task_id is not None and ("start_date" in values or "due_date" in values):
+        row = conn.execute("select start_date, due_date from eg_tasks where id = %s", (task_id,)).fetchone()
+        if row:
+            start = start if "start_date" in values else row["start_date"]
+            due = due if "due_date" in values else row["due_date"]
+    if start is not None and due is not None and start > due:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A data de início não pode ser depois do vencimento.",
+        )
+
+
 def _validate_project(conn, workspace_id: UUID, values: dict) -> None:
     project_id = values.get("project_id")
     if project_id is not None and not tasks_repo.project_belongs_to_workspace(conn, workspace_id, project_id):
@@ -146,6 +166,7 @@ def create_task(list_id: UUID, data: TaskCreate, user: CurrentUserResponse) -> T
             "Lista de tarefas não encontrada.",
         )
         _validate_people(conn, context["workspace_id"], values)
+        _validate_dates(conn, values)
         _validate_project(conn, context["workspace_id"], values)
         _validate_parent(conn, context["workspace_id"], values)
         _validate_dependencies(conn, context["workspace_id"], dependencies)
@@ -175,6 +196,7 @@ def update_task(task_id: UUID, data: TaskUpdate, user: CurrentUserResponse) -> T
         )
         _require_local_task(context)
         _validate_people(conn, context["workspace_id"], updates)
+        _validate_dates(conn, updates, task_id)
         _validate_project(conn, context["workspace_id"], updates)
         _validate_parent(conn, context["workspace_id"], updates, task_id)
         if dependencies is not None:

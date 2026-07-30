@@ -9,6 +9,7 @@ type TaskBoardProps = {
   listId: string;
   listType?: TaskListType;
   workspaceId?: string;
+  taskFilter?: (task: TaskSummary) => boolean;
 };
 
 const COLUMNS: { id: TaskGroupStatus; label: string }[] = [
@@ -18,8 +19,9 @@ const COLUMNS: { id: TaskGroupStatus; label: string }[] = [
   { id: "CLOSED", label: "Closed" },
 ];
 
-export function TaskBoard({ listId, listType, workspaceId }: TaskBoardProps) {
-  const { data: tasks, isLoading } = useTasksInList(listId);
+export function TaskBoard({ listId, listType, workspaceId, taskFilter }: TaskBoardProps) {
+  const { data: allTasks, isLoading } = useTasksInList(listId);
+  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);

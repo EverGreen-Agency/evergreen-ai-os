@@ -4,8 +4,8 @@ from uuid import UUID
 
 TASK_COLUMNS = """
   id, list_id, project_id, parent_task_id, title, description, status,
-  group_status, priority, assignee_id, owner_id, due_date, recurrence,
-  external_source, external_id, created_at, updated_at
+  group_status, priority, assignee_id, owner_id, start_date, due_date,
+  recurrence, external_source, external_id, created_at, updated_at
 """
 
 
@@ -237,8 +237,9 @@ def create_task(conn, list_id: UUID, values: dict):
         f"""
         insert into eg_tasks (
           list_id, project_id, parent_task_id, title, description, status,
-          group_status, priority, assignee_id, owner_id, due_date, recurrence
-        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+          group_status, priority, assignee_id, owner_id, start_date, due_date,
+          recurrence
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         returning {TASK_COLUMNS}
         """,
         (
@@ -252,6 +253,7 @@ def create_task(conn, list_id: UUID, values: dict):
             values.get("priority"),
             values.get("assignee_id"),
             values.get("owner_id"),
+            values.get("start_date"),
             values.get("due_date"),
             values.get("recurrence") or "none",
         ),
@@ -261,7 +263,7 @@ def create_task(conn, list_id: UUID, values: dict):
 def update_task(conn, task_id: UUID, updates: dict):
     allowed = {
         "title", "description", "status", "group_status", "priority",
-        "assignee_id", "owner_id", "due_date", "recurrence",
+        "assignee_id", "owner_id", "start_date", "due_date", "recurrence",
         "project_id", "parent_task_id",
     }
     selected = [(field, value) for field, value in updates.items() if field in allowed]

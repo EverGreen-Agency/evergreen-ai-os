@@ -11504,6 +11504,8 @@ export interface components {
              * @default none
              */
             recurrence: ("none" | "weekly" | "monthly") | null;
+            /** Start Date */
+            start_date?: string | null;
             /** Status */
             status: string;
             /** Subtasks */
@@ -11587,6 +11589,8 @@ export interface components {
              * @default none
              */
             recurrence: ("none" | "weekly" | "monthly") | null;
+            /** Start Date */
+            start_date?: string | null;
             /** Status */
             status: string;
             /** Subtasks */
@@ -11760,6 +11764,8 @@ export interface components {
             project_id?: string | null;
             /** Recurrence */
             recurrence?: ("none" | "weekly" | "monthly") | null;
+            /** Start Date */
+            start_date?: string | null;
             /** Status */
             status?: string | null;
             /** Subtasks */

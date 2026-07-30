@@ -166,6 +166,7 @@ export function TaskDrawer({
   const [groupStatus, setGroupStatus] = useState<TaskGroupStatus>("NOT_STARTED");
   const [specificStatus, setSpecificStatus] = useState("");
   const [priority, setPriority] = useState<TaskPriority | "">("");
+  const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [recurrence, setRecurrence] = useState<"none" | "weekly" | "monthly">("none");
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
@@ -187,6 +188,7 @@ export function TaskDrawer({
       setGroupStatus(existingTask.group_status);
       setSpecificStatus(existingTask.status);
       setPriority(existingTask.priority || "");
+      setStartDate(existingTask.start_date ? existingTask.start_date.split("T")[0] : "");
       setDueDate(existingTask.due_date ? existingTask.due_date.split("T")[0] : "");
       setRecurrence(existingTask.recurrence || "none");
       
@@ -207,6 +209,7 @@ export function TaskDrawer({
       setGroupStatus(initialStatus || "NOT_STARTED");
       setSpecificStatus("");
       setPriority("");
+      setStartDate("");
       setDueDate("");
       setRecurrence("none");
       setCustomFields({});
@@ -253,6 +256,7 @@ export function TaskDrawer({
           group_status: groupStatus,
           status: specificStatus || "pending",
           priority: priority || null,
+          start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
           project_id: projectId || null,
@@ -274,6 +278,7 @@ export function TaskDrawer({
           status: specificStatus || "pending",
           group_status: groupStatus,
           priority: priority || null,
+          start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
           project_id: projectId || null,
@@ -400,8 +405,18 @@ export function TaskDrawer({
             </label>
 
             <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Data de Início</span>
+              <input
+                type="date"
+                className="text-input"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                disabled={isBusy}
+              />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>Data de Vencimento</span>
-              <input 
+              <input
                 type="date"
                 className="text-input"
                 value={dueDate}

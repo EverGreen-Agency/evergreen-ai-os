@@ -19812,6 +19812,18 @@
             "default": "none",
             "title": "Recurrence"
           },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -20059,6 +20071,18 @@
             ],
             "default": "none",
             "title": "Recurrence"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
           },
           "status": {
             "title": "Status",
@@ -20475,6 +20499,18 @@
               }
             ],
             "title": "Recurrence"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
           },
           "status": {
             "anyOf": [

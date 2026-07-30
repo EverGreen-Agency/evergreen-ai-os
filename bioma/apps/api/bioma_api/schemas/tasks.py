@@ -87,6 +87,9 @@ class TaskBase(BaseModel):
     priority: Optional[Literal["Alta", "Média", "Baixa"]] = None
     assignee_id: Optional[UUID] = None
     owner_id: Optional[UUID] = None
+    # Início + vencimento formam a barra do Gantt (manual v1: "Datas Iniciais
+    # e Datas de Vencimento"). Sem início, a tarefa vira marco no vencimento.
+    start_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = "none"
     # Frente (lista) define os status; projeto define escopo/contrato/datas.
@@ -108,6 +111,7 @@ class TaskUpdate(BaseModel):
     priority: Optional[Literal["Alta", "Média", "Baixa"]] = None
     assignee_id: Optional[UUID] = None
     owner_id: Optional[UUID] = None
+    start_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = None
     project_id: Optional[UUID] = None

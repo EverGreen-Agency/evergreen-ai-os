@@ -3,17 +3,19 @@ import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
 import { formatDueDate } from "../../lib/format";
-import type { TaskListType } from "../../lib/api";
+import type { TaskListType, TaskSummary } from "../../lib/api";
 import { CheckSquare, Circle, Plus } from "lucide-react";
 
 type TaskListViewProps = {
   listId: string;
   listType?: TaskListType;
   workspaceId?: string;
+  taskFilter?: (task: TaskSummary) => boolean;
 };
 
-export function TaskListView({ listId, listType, workspaceId }: TaskListViewProps) {
-  const { data: tasks, isLoading } = useTasksInList(listId);
+export function TaskListView({ listId, listType, workspaceId, taskFilter }: TaskListViewProps) {
+  const { data: allTasks, isLoading } = useTasksInList(listId);
+  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   // Criar tarefa existia só no Kanban; a lista e o calendário eram somente

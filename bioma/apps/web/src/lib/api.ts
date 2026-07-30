@@ -1849,6 +1849,8 @@ export type TaskPayload = {
   priority?: TaskPriority | null;
   assignee_id?: string | null;
   owner_id?: string | null;
+  /** Início da barra no Gantt; sem ele a tarefa vira marco no vencimento. */
+  start_date?: string | null;
   due_date?: string | null;
   recurrence?: "none" | "weekly" | "monthly" | null;
   /** Frente (lista) define os status; projeto define escopo/contrato/datas. */
