@@ -67,6 +67,7 @@ python scripts/smoke_vault.py
 python scripts/smoke_workspace_authz.py
 python scripts/smoke_workspace_navigation.py
 python scripts/smoke_tasks.py
+python scripts/smoke_copilot.py
 ```
 
 Os smokes criam massa efêmera própria e não dependem do cliente HM no banco compartilhado. A matriz cobre health, CORS, login, CRUD, archive/purge auditado, navegação, capacidades e isolamento BOLA/IDOR entre clientes.

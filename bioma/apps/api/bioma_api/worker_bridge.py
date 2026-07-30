@@ -73,6 +73,25 @@ def audit_local_prospect_safe(prospect: dict[str, Any], playbook: dict[str, Any]
     return audit_local_prospect(prospect, get_settings(), playbook=playbook)
 
 
+def copilot_plan_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.copilot import plan
+
+    return plan(request, get_settings())
+
+
+def copilot_action_catalog() -> dict[str, Any]:
+    """Catalogo de acoes do copiloto. Fonte unica: o worker. A API valida
+    reversibilidade contra ele antes de executar qualquer coisa."""
+    if not _ensure_worker_in_path():
+        return {}
+    from bioma_worker.copilot import ACTION_CATALOG
+
+    return ACTION_CATALOG
+
+
 def analyze_sales_live_window_safe(request: dict[str, Any]) -> dict[str, Any]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
