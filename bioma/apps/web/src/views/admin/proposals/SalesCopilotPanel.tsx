@@ -23,6 +23,7 @@ import {
 import {
   api,
   type ClientSummary,
+  type FathomMeeting,
   type ProposalSummary,
   type SalesCopilotMetrics,
   type SalesCopilotRealtimeStatus,
@@ -62,6 +63,8 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
   const [meetingProvider, setMeetingProvider] = useState<"manual" | "google_meet" | "microsoft_teams">("manual");
   const [meetingUrl, setMeetingUrl] = useState("");
   const [consentGranted, setConsentGranted] = useState(false);
+  const [fathomMeetings, setFathomMeetings] = useState<FathomMeeting[] | null>(null);
+  const [fathomFeedback, setFathomFeedback] = useState("");
   const [participantName, setParticipantName] = useState("");
   const [participantTitle, setParticipantTitle] = useState("");
   const [participantGroup, setParticipantGroup] = useState<"eg_team" | "client" | "partner" | "unknown">("client");
@@ -391,6 +394,76 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
                       </button>
                     )}
                   </div>
+
+                  {/* Fathom e o gravador que a EG usa de verdade. Import por PULL:
+                      o Bioma busca a transcricao, sem expor endpoint publico nem
+                      administrar token por sessao. Mesma exigencia de
+                      consentimento das outras fontes automaticas. */}
+                  {selected.consent_status === "granted" && (
+                    <div style={{ marginTop: 10, borderTop: "1px dashed var(--border)", paddingTop: 10 }}>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        <button
+                          className="secondary-button"
+                          disabled={Boolean(busy)}
+                          onClick={() => {
+                            setBusy("fathom");
+                            setError("");
+                            setFathomFeedback("");
+                            void api.fathomMeetings(15)
+                              .then((meetings) => {
+                                setFathomMeetings(meetings);
+                                if (meetings.length === 0) setFathomFeedback("Nenhuma reuniao encontrada no Fathom.");
+                              })
+                              .catch((err) => setError(err instanceof Error ? err.message : "Falha ao consultar o Fathom."))
+                              .finally(() => setBusy(""));
+                          }}
+                        >
+                          <Video size={15} /> Buscar reunioes no Fathom
+                        </button>
+                        {fathomFeedback && <small style={{ color: "var(--text-muted)" }}>{fathomFeedback}</small>}
+                      </div>
+
+                      {fathomMeetings && fathomMeetings.length > 0 && (
+                        <div className="table-list" style={{ marginTop: 8 }}>
+                          {fathomMeetings.map((meeting) => (
+                            <div className="table-row" key={meeting.recording_id}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <strong>{meeting.title}</strong>
+                                <small style={{ display: "block", color: "var(--text-muted)" }}>
+                                  {meeting.started_at ? new Date(meeting.started_at).toLocaleString("pt-BR") : "sem data"}
+                                  {meeting.external_invitees.length > 0
+                                    ? ` · ${meeting.external_invitees.map((guest) => guest.domain ?? guest.email).filter(Boolean).join(", ")}`
+                                    : ""}
+                                </small>
+                              </div>
+                              <button
+                                className="mini-button"
+                                disabled={Boolean(busy)}
+                                onClick={() => {
+                                  setBusy(`fathom-${meeting.recording_id}`);
+                                  setError("");
+                                  setFathomFeedback("");
+                                  void api.importFathomMeeting(selected.id, meeting.recording_id)
+                                    .then((result) => {
+                                      setFathomFeedback(
+                                        `${result.imported_segments} segmento(s) importado(s)` +
+                                          (result.skipped_segments > 0 ? `, ${result.skipped_segments} ja existia(m)` : "") +
+                                          (result.analyzed ? " · analise executada" : ""),
+                                      );
+                                      void load();
+                                    })
+                                    .catch((err) => setError(err instanceof Error ? err.message : "Falha ao importar."))
+                                    .finally(() => setBusy(""));
+                                }}
+                              >
+                                Importar transcricao
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {adapterCredential && (
                     <div className="notice" style={{ marginTop: 6 }}>

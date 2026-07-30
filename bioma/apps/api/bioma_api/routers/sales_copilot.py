@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends, Header, status
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.sales_copilot import (
+    FathomImportRequest,
+    FathomImportResult,
+    FathomMeeting,
     RealtimeAdapterStatus,
     SalesCopilotActionCreate,
     SalesCopilotActionMaterialize,
@@ -161,3 +164,22 @@ def complete_session(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return copilot_service.complete_session(session_id, payload, user)
+
+
+@router.get("/fathom/meetings", response_model=list[FathomMeeting])
+def list_fathom_meetings(
+    limit: int = 20,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[FathomMeeting]:
+    """Reuniões gravadas no Fathom disponíveis para importação."""
+    return copilot_service.list_fathom_meetings(user, limit)
+
+
+@router.post("/{session_id}/fathom-import", response_model=FathomImportResult)
+def import_fathom_meeting(
+    session_id: UUID,
+    payload: FathomImportRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> FathomImportResult:
+    """Importa a transcrição real da gravação para a sessão (idempotente)."""
+    return copilot_service.import_fathom_meeting(session_id, payload, user)

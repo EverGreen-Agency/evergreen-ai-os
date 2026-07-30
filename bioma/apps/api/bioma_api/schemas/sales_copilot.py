@@ -86,6 +86,37 @@ class SalesCopilotTranscriptSegmentCreate(BaseModel):
     is_final: bool = True
 
 
+class FathomMeetingInvitee(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    domain: str | None = None
+
+
+class FathomMeeting(BaseModel):
+    recording_id: int
+    title: str
+    meeting_type: str | None = None
+    url: str | None = None
+    created_at: datetime | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    recorded_by: str | None = None
+    external_invitees: list[FathomMeetingInvitee] = Field(default_factory=list)
+
+
+class FathomImportRequest(BaseModel):
+    recording_id: int
+    analyze_after_import: bool = True
+
+
+class FathomImportResult(BaseModel):
+    session_id: UUID
+    recording_id: int
+    imported_segments: int
+    skipped_segments: int
+    analyzed: bool
+
+
 class SalesCopilotTranscriptBatch(BaseModel):
     segments: list[SalesCopilotTranscriptSegmentCreate] = Field(min_length=1, max_length=100)
     analyze_after_ingest: bool = False

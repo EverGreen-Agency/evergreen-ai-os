@@ -16,6 +16,9 @@ from bioma_api.repositories import sales_copilot as copilot_repo
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.sales_copilot import (
+    FathomImportRequest,
+    FathomImportResult,
+    FathomMeeting,
     RealtimeAdapterStatus,
     SalesCopilotAction,
     SalesCopilotActionCreate,
@@ -36,7 +39,11 @@ from bioma_api.schemas.sales_copilot import (
     SalesCopilotTranscriptBatch,
     SalesCopilotTranscriptSegment,
 )
-from bioma_api.worker_bridge import execute_squad_pipeline_safe
+from bioma_api.worker_bridge import (
+    execute_squad_pipeline_safe,
+    get_fathom_transcript_safe,
+    list_fathom_meetings_safe,
+)
 
 
 def list_sessions(user: CurrentUserResponse) -> list[SalesCopilotSession]:
@@ -620,3 +627,92 @@ def _validate_context(workspace_id: UUID | None, proposal_id: UUID | None, conte
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="A proposta não pertence ao cliente selecionado.",
             )
+
+
+def list_fathom_meetings(user: CurrentUserResponse, limit: int = 20) -> list[FathomMeeting]:
+    """Reuniões gravadas no Fathom, para escolher qual importar."""
+    require_platform_admin(user)
+    try:
+        meetings = list_fathom_meetings_safe(limit=limit)
+    except RuntimeError as exc:
+        # Chave ausente: mensagem real, não lista vazia disfarçada de "sem reuniões".
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível consultar as reuniões no Fathom.",
+        ) from exc
+    return [FathomMeeting(**meeting) for meeting in meetings]
+
+
+def import_fathom_meeting(
+    session_id: UUID,
+    payload: FathomImportRequest,
+    user: CurrentUserResponse,
+) -> FathomImportResult:
+    """Traz a transcrição real do Fathom para uma sessão do copiloto.
+
+    Mantém a mesma exigência de consentimento das outras fontes automáticas: o
+    Fathom já gravou com aviso na call, mas o registro que vale para auditoria é
+    o do Bioma.
+    """
+    require_platform_admin(user)
+    with connect() as conn:
+        session = _find_open_session(conn, session_id)
+        if session["consent_status"] != "granted":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Registre o consentimento da sessão antes de importar a transcrição.",
+            )
+
+    try:
+        segments = get_fathom_transcript_safe(payload.recording_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível baixar a transcrição desta gravação no Fathom.",
+        ) from exc
+
+    if not segments:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A gravação não tem transcrição disponível no Fathom.",
+        )
+
+    imported = 0
+    with connect() as conn:
+        # Limite alto explícito em vez de None: a checagem de idempotência precisa
+        # ver a sessão inteira, e um NULL implícito no LIMIT é fácil de quebrar.
+        existing = {row["idempotency_key"] for row in copilot_repo.list_segments(conn, session_id, 5000)}
+        for segment in segments:
+            # Reimportar a mesma reunião não duplica: a chave inclui gravação+posição.
+            if segment["idempotency_key"] in existing:
+                continue
+            copilot_repo.add_segment(conn, session_id, user.id, segment)
+            imported += 1
+        copilot_repo.add_event(
+            conn,
+            session_id,
+            user.id,
+            {
+                "event_type": "note",
+                "content": f"Transcrição importada do Fathom (gravação {payload.recording_id}).",
+                "recommendation": f"{imported} segmento(s) novo(s) ingerido(s).",
+                "source_refs": [],
+            },
+        )
+
+    analyzed = False
+    if payload.analyze_after_import and imported > 0:
+        analyze_live(session_id, SalesCopilotLiveAnalyzeRequest(), user)
+        analyzed = True
+
+    return FathomImportResult(
+        session_id=session_id,
+        recording_id=payload.recording_id,
+        imported_segments=imported,
+        skipped_segments=len(segments) - imported,
+        analyzed=analyzed,
+    )

@@ -39,6 +39,8 @@ class WorkerSettings(BaseSettings):
     google_cloud_project: str | None = None
     google_cloud_location: str = "us-central1"
     ahrefs_api_key: str | None = None
+    fathom_api_key: str | None = None
+    fathom_request_timeout_seconds: float = 60
     # QUEUE-001: o lease precisa ser maior que o job mais longo esperado
     # (sync de 30 dias em 4 providers), senão o reaper reenfileira job vivo.
     # O heartbeat entre providers dá folga; 15 min é a margem para o resto.

@@ -73,6 +73,26 @@ def audit_local_prospect_safe(prospect: dict[str, Any], playbook: dict[str, Any]
     return audit_local_prospect(prospect, get_settings(), playbook=playbook)
 
 
+def list_fathom_meetings_safe(created_after: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.providers.fathom import list_meetings
+
+    # Sem try/except generico: o RuntimeError de chave ausente precisa chegar
+    # intacto ao servico para virar 422 com a mensagem real.
+    return list_meetings(get_settings(), created_after=created_after, limit=limit)
+
+
+def get_fathom_transcript_safe(recording_id: int | str) -> list[dict[str, Any]]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.providers.fathom import get_meeting_transcript
+
+    return get_meeting_transcript(get_settings(), recording_id)
+
+
 def generate_briefing_draft_safe(dossier: dict[str, Any]) -> dict[str, Any]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
