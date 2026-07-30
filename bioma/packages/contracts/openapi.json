@@ -2450,6 +2450,147 @@
         "title": "BrandBookSummary",
         "type": "object"
       },
+      "BriefingDiagnosisItem": {
+        "properties": {
+          "evidence": {
+            "title": "Evidence",
+            "type": "string"
+          },
+          "observation": {
+            "title": "Observation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "observation",
+          "evidence"
+        ],
+        "title": "BriefingDiagnosisItem",
+        "type": "object"
+      },
+      "BriefingDraft": {
+        "properties": {
+          "diagnosis": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingDiagnosisItem"
+            },
+            "title": "Diagnosis",
+            "type": "array"
+          },
+          "hypotheses": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hypotheses",
+            "type": "array"
+          },
+          "missing_data": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Data",
+            "type": "array"
+          },
+          "questions_for_client": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions For Client",
+            "type": "array"
+          },
+          "recommended_focus": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingFocusItem"
+            },
+            "title": "Recommended Focus",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary"
+        ],
+        "title": "BriefingDraft",
+        "type": "object"
+      },
+      "BriefingDraftResponse": {
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/BriefingDraft"
+          },
+          "generation_mode": {
+            "enum": [
+              "live",
+              "preview"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "missing_sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Sources",
+            "type": "array"
+          },
+          "sources_used": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources Used",
+            "type": "array"
+          }
+        },
+        "required": [
+          "client_name",
+          "generation_mode",
+          "draft"
+        ],
+        "title": "BriefingDraftResponse",
+        "type": "object"
+      },
+      "BriefingFocusItem": {
+        "properties": {
+          "focus": {
+            "title": "Focus",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          }
+        },
+        "required": [
+          "focus",
+          "rationale",
+          "service"
+        ],
+        "title": "BriefingFocusItem",
+        "type": "object"
+      },
       "CertificationCreateRequest": {
         "properties": {
           "credential_id": {
@@ -19807,6 +19948,189 @@
           }
         },
         "title": "ScopeItemUpdate",
+        "type": "object"
+      },
+      "ScriptScoreboard": {
+        "description": "Placar: roteiro da IA x resto da conta. `lift_*` e None quando falta base\nde comparacao (nenhum post vinculado, ou nenhum post organico fora da IA).",
+        "properties": {
+          "ai_avg_engagement": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Avg Engagement"
+          },
+          "ai_avg_reach": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Avg Reach"
+          },
+          "ai_avg_saved": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Avg Saved"
+          },
+          "ai_posts": {
+            "title": "Ai Posts",
+            "type": "integer"
+          },
+          "lift_engagement_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lift Engagement Percent"
+          },
+          "lift_reach_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lift Reach Percent"
+          },
+          "other_avg_engagement": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Avg Engagement"
+          },
+          "other_avg_reach": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Avg Reach"
+          },
+          "other_avg_saved": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Avg Saved"
+          },
+          "other_posts": {
+            "title": "Other Posts",
+            "type": "integer"
+          },
+          "per_script": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ScriptScoreboardRow"
+            },
+            "title": "Per Script",
+            "type": "array"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_start",
+          "period_end",
+          "ai_posts",
+          "other_posts"
+        ],
+        "title": "ScriptScoreboard",
+        "type": "object"
+      },
+      "ScriptScoreboardRow": {
+        "properties": {
+          "avg_engagement": {
+            "title": "Avg Engagement",
+            "type": "number"
+          },
+          "avg_reach": {
+            "title": "Avg Reach",
+            "type": "number"
+          },
+          "posts": {
+            "title": "Posts",
+            "type": "integer"
+          },
+          "script_id": {
+            "format": "uuid",
+            "title": "Script Id",
+            "type": "string"
+          },
+          "suggested_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Format"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "script_id",
+          "title",
+          "posts",
+          "avg_reach",
+          "avg_engagement"
+        ],
+        "title": "ScriptScoreboardRow",
         "type": "object"
       },
       "ScriptUpdateRequest": {
@@ -37559,6 +37883,60 @@
         ]
       }
     },
+    "/workspaces/{workspace_id}/briefing/draft": {
+      "post": {
+        "description": "Monta o rascunho a partir dos sinais reais do cliente.\n\n`persist=false` (padrão) só devolve para revisão na tela; `persist=true`\ngrava como artefato `briefing` interno.",
+        "operationId": "build_draft_workspaces__workspace_id__briefing_draft_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "persist",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Persist",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BriefingDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Draft",
+        "tags": [
+          "briefing"
+        ]
+      }
+    },
     "/workspaces/{workspace_id}/calendar": {
       "get": {
         "operationId": "list_items_workspaces__workspace_id__calendar_get",
@@ -38319,6 +38697,60 @@
           }
         },
         "summary": "Generate Retrospective",
+        "tags": [
+          "content-intelligence"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/content/script-scoreboard": {
+      "get": {
+        "description": "Os roteiros da IA performaram acima ou abaixo do resto da conta?",
+        "operationId": "get_script_scoreboard_workspaces__workspace_id__content_script_scoreboard_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_days",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "title": "Period Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptScoreboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Script Scoreboard",
         "tags": [
           "content-intelligence"
         ]

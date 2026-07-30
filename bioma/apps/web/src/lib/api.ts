@@ -1100,6 +1100,50 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type ScriptScoreboardRow = {
+  script_id: string;
+  title: string;
+  theme: string | null;
+  suggested_format: string | null;
+  posts: number;
+  avg_reach: number;
+  avg_engagement: number;
+};
+
+export type ScriptScoreboard = {
+  period_start: string;
+  period_end: string;
+  ai_posts: number;
+  other_posts: number;
+  ai_avg_reach: number | null;
+  other_avg_reach: number | null;
+  ai_avg_engagement: number | null;
+  other_avg_engagement: number | null;
+  ai_avg_saved: number | null;
+  other_avg_saved: number | null;
+  lift_reach_percent: number | null;
+  lift_engagement_percent: number | null;
+  per_script: ScriptScoreboardRow[];
+};
+
+export type BriefingDraft = {
+  summary: string;
+  diagnosis: Array<{ observation: string; evidence: string }>;
+  hypotheses: string[];
+  recommended_focus: Array<{ focus: string; rationale: string; service: string }>;
+  questions_for_client: string[];
+  missing_data: string[];
+};
+
+export type BriefingDraftResponse = {
+  client_name: string;
+  generation_mode: "live" | "preview";
+  sources_used: string[];
+  missing_sources: string[];
+  draft: BriefingDraft;
+  artifact_id: string | null;
+};
+
 export type LocalRadarImportRow = {
   name: string;
   address?: string | null;
@@ -2265,6 +2309,12 @@ export const api = {
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
   getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
+  getScriptScoreboard: (workspaceId: string, periodDays = 90) =>
+    request<ScriptScoreboard>(`/workspaces/${workspaceId}/content/script-scoreboard?period_days=${periodDays}`),
+  buildBriefingDraft: (workspaceId: string, persist = false) =>
+    request<BriefingDraftResponse>(`/workspaces/${workspaceId}/briefing/draft?persist=${persist}`, {
+      method: "POST",
+    }),
   getPortfolioPerformance: (days = 30) =>
     request<PortfolioPerformanceRow[]>(`/backoffice/portfolio-performance?days=${days}`),
   setMonthlyTarget: (clientId: string, payload: { target_leads?: number | null; budget_cents?: number | null }, days = 30) =>

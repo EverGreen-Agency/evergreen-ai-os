@@ -51,6 +51,28 @@ export function useMyDeliverables() {
   });
 }
 
+export function useScriptScoreboard(workspaceId: string | null, periodDays = 90) {
+  return useQuery({
+    queryKey: ["content-script-scoreboard", workspaceId, periodDays],
+    queryFn: () => api.getScriptScoreboard(workspaceId as string, periodDays),
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useBuildBriefingDraft() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, persist }: { workspaceId: string; persist: boolean }) =>
+      api.buildBriefingDraft(workspaceId, persist),
+    onSuccess: (data, variables) => {
+      // Só invalida o portal quando o rascunho virou artefato de verdade.
+      if (variables.persist && data.artifact_id) {
+        void queryClient.invalidateQueries({ queryKey: ["portal", variables.workspaceId] });
+      }
+    },
+  });
+}
+
 export function useSetMonthlyTarget() {
   const queryClient = useQueryClient();
   return useMutation({

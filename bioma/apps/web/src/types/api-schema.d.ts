@@ -4084,6 +4084,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workspaces/{workspace_id}/briefing/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Build Draft
+         * @description Monta o rascunho a partir dos sinais reais do cliente.
+         *
+         *     `persist=false` (padrão) só devolve para revisão na tela; `persist=true`
+         *     grava como artefato `briefing` interno.
+         */
+        post: operations["build_draft_workspaces__workspace_id__briefing_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/{workspace_id}/calendar": {
         parameters: {
             query?: never;
@@ -4268,6 +4291,26 @@ export interface paths {
         put?: never;
         /** Generate Retrospective */
         post: operations["generate_retrospective_workspaces__workspace_id__content_retrospective_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/content/script-scoreboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Script Scoreboard
+         * @description Os roteiros da IA performaram acima ou abaixo do resto da conta?
+         */
+        get: operations["get_script_scoreboard_workspaces__workspace_id__content_script_scoreboard_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5546,6 +5589,54 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /** BriefingDiagnosisItem */
+        BriefingDiagnosisItem: {
+            /** Evidence */
+            evidence: string;
+            /** Observation */
+            observation: string;
+        };
+        /** BriefingDraft */
+        BriefingDraft: {
+            /** Diagnosis */
+            diagnosis?: components["schemas"]["BriefingDiagnosisItem"][];
+            /** Hypotheses */
+            hypotheses?: string[];
+            /** Missing Data */
+            missing_data?: string[];
+            /** Questions For Client */
+            questions_for_client?: string[];
+            /** Recommended Focus */
+            recommended_focus?: components["schemas"]["BriefingFocusItem"][];
+            /** Summary */
+            summary: string;
+        };
+        /** BriefingDraftResponse */
+        BriefingDraftResponse: {
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Client Name */
+            client_name: string;
+            draft: components["schemas"]["BriefingDraft"];
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview";
+            /** Missing Sources */
+            missing_sources?: string[];
+            /** Sources Used */
+            sources_used?: string[];
+        };
+        /** BriefingFocusItem */
+        BriefingFocusItem: {
+            /** Focus */
+            focus: string;
+            /** Rationale */
+            rationale: string;
+            /** Service */
+            service: string;
         };
         /** CertificationCreateRequest */
         CertificationCreateRequest: {
@@ -11627,6 +11718,68 @@ export interface components {
             title?: string | null;
             /** Unit */
             unit?: string | null;
+        };
+        /**
+         * ScriptScoreboard
+         * @description Placar: roteiro da IA x resto da conta. `lift_*` e None quando falta base
+         *     de comparacao (nenhum post vinculado, ou nenhum post organico fora da IA).
+         */
+        ScriptScoreboard: {
+            /** Ai Avg Engagement */
+            ai_avg_engagement?: number | null;
+            /** Ai Avg Reach */
+            ai_avg_reach?: number | null;
+            /** Ai Avg Saved */
+            ai_avg_saved?: number | null;
+            /** Ai Posts */
+            ai_posts: number;
+            /** Lift Engagement Percent */
+            lift_engagement_percent?: number | null;
+            /** Lift Reach Percent */
+            lift_reach_percent?: number | null;
+            /** Other Avg Engagement */
+            other_avg_engagement?: number | null;
+            /** Other Avg Reach */
+            other_avg_reach?: number | null;
+            /** Other Avg Saved */
+            other_avg_saved?: number | null;
+            /** Other Posts */
+            other_posts: number;
+            /**
+             * Per Script
+             * @default []
+             */
+            per_script: components["schemas"]["ScriptScoreboardRow"][];
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+        };
+        /** ScriptScoreboardRow */
+        ScriptScoreboardRow: {
+            /** Avg Engagement */
+            avg_engagement: number;
+            /** Avg Reach */
+            avg_reach: number;
+            /** Posts */
+            posts: number;
+            /**
+             * Script Id
+             * Format: uuid
+             */
+            script_id: string;
+            /** Suggested Format */
+            suggested_format?: string | null;
+            /** Theme */
+            theme?: string | null;
+            /** Title */
+            title: string;
         };
         /** ScriptUpdateRequest */
         ScriptUpdateRequest: {
@@ -22420,6 +22573,39 @@ export interface operations {
             };
         };
     };
+    build_draft_workspaces__workspace_id__briefing_draft_post: {
+        parameters: {
+            query?: {
+                persist?: boolean;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BriefingDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_items_workspaces__workspace_id__calendar_get: {
         parameters: {
             query?: {
@@ -22879,6 +23065,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContentRetrospectiveSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_script_scoreboard_workspaces__workspace_id__content_script_scoreboard_get: {
+        parameters: {
+            query?: {
+                period_days?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScriptScoreboard"];
                 };
             };
             /** @description Validation Error */
