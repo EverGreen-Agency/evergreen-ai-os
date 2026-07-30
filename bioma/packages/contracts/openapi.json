@@ -3828,6 +3828,19 @@
             },
             "title": "Pending Approvals",
             "type": "array"
+          },
+          "radar_prospects_awaiting": {
+            "default": 0,
+            "title": "Radar Prospects Awaiting",
+            "type": "integer"
+          },
+          "stale_connections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CockpitStaleConnection"
+            },
+            "title": "Stale Connections",
+            "type": "array"
           }
         },
         "required": [
@@ -3839,6 +3852,76 @@
           "clients_total"
         ],
         "title": "CockpitPortfolioSummary",
+        "type": "object"
+      },
+      "CockpitStaleConnection": {
+        "description": "Integração ativa que parou de sincronizar. `days_stale` é None quando a\nconexão nunca sincronizou — ausência de sync, não zero dias.",
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_name": {
+            "title": "Client Name",
+            "type": "string"
+          },
+          "days_stale": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Stale"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "last_error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Message"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_name",
+          "provider"
+        ],
+        "title": "CockpitStaleConnection",
         "type": "object"
       },
       "CommercialPortalResponse": {
@@ -29127,60 +29210,6 @@
         ]
       }
     },
-    "/backoffice/sales-copilot/sessions/{session_id}/fathom-import": {
-      "post": {
-        "description": "Importa a transcrição real da gravação para a sessão (idempotente).",
-        "operationId": "import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "session_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Session Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FathomImportRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FathomImportResult"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Import Fathom Meeting",
-        "tags": [
-          "sales-copilot"
-        ]
-      }
-    },
     "/backoffice/sales-copilot/{session_id}": {
       "get": {
         "operationId": "get_session_backoffice_sales_copilot__session_id__get",
@@ -29431,6 +29460,60 @@
           }
         },
         "summary": "Add Event",
+        "tags": [
+          "sales-copilot"
+        ]
+      }
+    },
+    "/backoffice/sales-copilot/{session_id}/fathom-import": {
+      "post": {
+        "description": "Importa a transcrição real da gravação para a sessão (idempotente).",
+        "operationId": "import_fathom_meeting_backoffice_sales_copilot__session_id__fathom_import_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FathomImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FathomImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Fathom Meeting",
         "tags": [
           "sales-copilot"
         ]

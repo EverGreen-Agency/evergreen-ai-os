@@ -1814,26 +1814,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/backoffice/sales-copilot/sessions/{session_id}/fathom-import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import Fathom Meeting
-         * @description Importa a transcrição real da gravação para a sessão (idempotente).
-         */
-        post: operations["import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/backoffice/sales-copilot/{session_id}": {
         parameters: {
             query?: never;
@@ -1913,6 +1893,26 @@ export interface paths {
         put?: never;
         /** Add Event */
         post: operations["add_event_backoffice_sales_copilot__session_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/sales-copilot/{session_id}/fathom-import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Fathom Meeting
+         * @description Importa a transcrição real da gravação para a sessão (idempotente).
+         */
+        post: operations["import_fathom_meeting_backoffice_sales_copilot__session_id__fathom_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6050,6 +6050,40 @@ export interface components {
              * @default []
              */
             pending_approvals: components["schemas"]["CockpitPendingApproval"][];
+            /**
+             * Radar Prospects Awaiting
+             * @default 0
+             */
+            radar_prospects_awaiting: number;
+            /**
+             * Stale Connections
+             * @default []
+             */
+            stale_connections: components["schemas"]["CockpitStaleConnection"][];
+        };
+        /**
+         * CockpitStaleConnection
+         * @description Integração ativa que parou de sincronizar. `days_stale` é None quando a
+         *     conexão nunca sincronizou — ausência de sync, não zero dias.
+         */
+        CockpitStaleConnection: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string;
+            /** Days Stale */
+            days_stale?: number | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Last Error Message */
+            last_error_message?: string | null;
+            /** Last Synced At */
+            last_synced_at?: string | null;
+            /** Provider */
+            provider: string;
         };
         /** CommercialPortalResponse */
         CommercialPortalResponse: {
@@ -16957,41 +16991,6 @@ export interface operations {
             };
         };
     };
-    import_fathom_meeting_backoffice_sales_copilot_sessions__session_id__fathom_import_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FathomImportRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FathomImportResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_session_backoffice_sales_copilot__session_id__get: {
         parameters: {
             query?: never;
@@ -17150,6 +17149,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SalesCopilotSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_fathom_meeting_backoffice_sales_copilot__session_id__fathom_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FathomImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FathomImportResult"];
                 };
             };
             /** @description Validation Error */
