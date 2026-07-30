@@ -2,6 +2,60 @@
 
 Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
 
+## Avanço 2026-07-30 — parte 6 (merge com main + memória do copiloto)
+
+- **Descoberta importante sobre o remoto**: `origin/main` **não** era o commit
+  inicial (o que este clone local mostrava) — já tinha 5 PRs mergeados de
+  `develop` (a "sessão paralela"). `origin/develop` estava 52 commits à frente
+  disso (pushados direto pela sessão paralela), e a `develop` local já continha
+  esses 52 + mais ~109 desta sessão, sem divergência de conteúdo (confirmado
+  por diff). **Push feito** (`f237565..a8e6f5f`) e **PR #6 aberto**
+  (`develop → main`, https://github.com/EverGreen-Agency/evergreen-ai-os/pull/6)
+  — o merge do PR ficou bloqueado pelo classificador do modo automático (ação
+  de maior impacto: dispara o primeiro release real via release-please).
+  **Pendente: Eduardo mergear o PR #6** (`gh pr merge 6 --merge` ou pelo GitHub).
+- **`styles.css`**: confirmado que a nomenclatura dos 8 arquivos é fraca de
+  propósito — o corte foi mecânico por tamanho (~700 linhas), não por domínio
+  real, porque só assim dava pra provar ausência de regressão (hash do CSS
+  final idêntico ao original). Reorganização por domínio de verdade fica como
+  débito, se o Eduardo quiser — exige checar caso a caso se mover um bloco não
+  muda empate de especificidade.
+- **`133fef2` + `4748717` + `a8e6f5f` — MEMÓRIA PERSISTENTE DO COPILOTO**,
+  inspirada no Hermes Agent (pesquisado a fundo: docs oficiais + deep dive),
+  adaptada com duas decisões do Eduardo: **também com camada global da EG**
+  (não só por workspace) e **skill proposta pelo agente exige aprovação humana**
+  antes de ativar (mais cauteloso que o Hermes original, que ativa na hora).
+  - Migração `0070`: `agent_memories` (`workspace_id` NULL = global; categorias
+    identity/fact/preference/directive; `authored_by` NULL = escrito pelo
+    agente), `agent_memory_revisions` (append-only, todo write vira revisão com
+    motivo — "ver o que melhorou" fica auditável, não é diff cru),
+    `agent_skills` (nasce `pending_review`, só entra no dossiê do copiloto
+    depois de aprovada; `use_count`/`last_used_at` para medir se emperra).
+  - Copiloto ganhou 2 ações novas: `remember_fact` (reversível, executa direto,
+    undo = arquivar) e `propose_skill` (reversível — só cria o rascunho; o que
+    é irreversível de verdade é o rascunho *virar* procedimento seguido, e isso
+    fica gated na revisão, não na criação).
+  - `_build_dossier` do copiloto agora inclui memória ativa (global + do
+    workspace em contexto) e skills aprovadas; o modelo pode citar memória como
+    fonte (`"memória: <título>"`) e reportar `skills_used` para contabilizar uso.
+  - UI: `AgentMemoryPanel` (reutilizável) em **Operações de IA** (memória
+    global) e no **Contexto do cliente** (memória por workspace, visível só a
+    `isEgAdmin` mesmo dentro do hub do cliente); `AgentSkillReviewPanel` nos
+    dois lugares.
+  - `smoke_agent_memory.py` (novo): confirma sem vazamento entre escopo global
+    e de workspace, toda escrita gera revisão, skill pendente **não aparece**
+    no dossiê do copiloto até aprovada, 409 ao revisar skill duas vezes, 403
+    para client_user em tudo.
+  - Fontes da pesquisa: [Hermes Agent docs](https://hermes-agent.nousresearch.com/docs/) ·
+    [5 Pillars — MindStudio](https://www.mindstudio.ai/blog/hermes-agent-five-pillars-memory-skills-soul-crons) ·
+    [Deep Dive — DEV.to](https://dev.to/truongpx396/hermes-agent-deep-dive-build-your-own-guide-1pcc)
+- **O que ficou de fora do copiloto** (mapeado, não implementado): `/` no
+  Estúdio IA e chat de escopo global ("o que priorizar hoje") — o motor e o
+  dossiê já suportam as duas, falta só a UI.
+- Validado ao final: **28/28 smokes** (novo total com `smoke_agent_memory` e
+  `smoke_copilot` atualizado), `tsc --noEmit`, `npm run build`, contrato
+  regenerado, push feito.
+
 ## Avanço 2026-07-30 — parte 5 (os 5 ajustes + copiloto)
 
 - **`86597de` — CI passou de 4 para 26 smokes** (`bioma/scripts/run_smokes.py`):
