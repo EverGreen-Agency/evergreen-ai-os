@@ -10,6 +10,12 @@ Valida, contra o banco de dev (precisa das migrations aplicadas):
 Uso: `python scripts/smoke_benchmark.py` (com o Postgres do Bioma no ar).
 """
 
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 from uuid import uuid4
 
 from fastapi.testclient import TestClient

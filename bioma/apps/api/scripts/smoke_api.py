@@ -91,6 +91,11 @@ def main() -> None:
     assert_status(guest.get("/health/ready"), 200, "readiness")
     assert_status(guest.get("/auth/me"), 401, "missing session")
     assert_status(guest.get("/workspaces"), 401, "workspace discovery requires session")
+    # O rate limit persiste em `login_attempts`, então rodar o smoke duas vezes
+    # dentro da janela fazia a primeira tentativa ja vir 429. Limpar antes torna
+    # o teste idempotente sem enfraquecer o que ele valida.
+    with connect() as conn:
+        conn.execute("delete from login_attempts")
     for _ in range(5):
         assert_status(
             guest.post("/auth/login", json={"email": "rate-limit@example.com", "password": "wrong"}),

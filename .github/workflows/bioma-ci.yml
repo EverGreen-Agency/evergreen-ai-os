@@ -88,10 +88,12 @@ jobs:
       # CONTRACT-001: o openapi.json versionado precisa refletir a API atual.
       - run: python bioma/apps/api/scripts/export_openapi.py --check
       - run: python bioma/apps/api/scripts/seed_dev.py
-      - run: python bioma/apps/api/scripts/smoke_api.py
-      - run: python bioma/apps/api/scripts/smoke_performance.py
-      - run: python bioma/apps/api/scripts/smoke_wiki.py
-      - run: python bioma/apps/worker/scripts/smoke_worker.py
+      # SMOKE-DISCOVERY: a CI listava 4 smokes na mao enquanto o repositorio tinha
+      # 40+. Todo smoke novo nascia fora da CI — foi assim que um 500 em toda a
+      # ingestao de transcricao do copiloto de vendas passou meses invisivel.
+      # O runner descobre os smokes automaticamente; exclusoes ficam declaradas
+      # com motivo em bioma/scripts/run_smokes.py.
+      - run: python bioma/scripts/run_smokes.py --group standard
       # Os smokes mutáveis (queue/vault/reaper) exigem banco isolado com sufixo
       # _smoke. A CI nunca o provisionava, então esses passos falhavam. Cria,
       # migra e semeia o banco dedicado antes de rodá-los.
@@ -108,6 +110,7 @@ jobs:
         run: |
           python bioma/apps/api/scripts/migrate.py
           python bioma/apps/api/scripts/seed_dev.py
-      - run: python bioma/apps/worker/scripts/smoke_queue.py
-      - run: python bioma/apps/api/scripts/smoke_vault.py
-      - run: python bioma/apps/worker/scripts/smoke_reaper.py
+      - name: Smokes que exigem banco isolado
+        env:
+          DATABASE_URL: postgresql://bioma:bioma@localhost:5432/bioma_smoke
+        run: python bioma/scripts/run_smokes.py --group mutable
