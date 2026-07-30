@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound } from "lucide-react";
+import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound, Sparkles } from "lucide-react";
 import {
+  useCopilotCommands,
   useCreateTask,
   useCreateTaskComment,
+  useRunCopilot,
   useDeleteTask,
   useDeleteTaskComment,
   useTaskComments,
@@ -12,6 +14,7 @@ import {
   useAssignableUsers,
 } from "../../hooks/useBiomaApi";
 import type {
+  CopilotResponse,
   TaskDependency,
   TaskGroupStatus,
   TaskListType,
@@ -30,6 +33,37 @@ function TaskCommentsSection({ taskId }: { taskId: string }) {
   const deleteComment = useDeleteTaskComment();
   const [body, setBody] = useState("");
   const [clientVisible, setClientVisible] = useState(false);
+
+  // Copiloto na própria caixa de comentário: "/" abre o menu de comandos, o
+  // resto do texto vira a mensagem. Sem tela nova — a conversa da tarefa já é
+  // o lugar onde a decisão acontece.
+  const isCommand = body.trimStart().startsWith("/");
+  const { data: commands = [] } = useCopilotCommands("task", isCommand);
+  const runCopilot = useRunCopilot();
+  const [copilotResult, setCopilotResult] = useState<CopilotResponse | null>(null);
+
+  const commandFilter = isCommand ? body.trimStart().slice(1).split(" ")[0].toLowerCase() : "";
+  const visibleCommands = commands.filter(
+    (command) =>
+      !commandFilter ||
+      command.name.includes(commandFilter) ||
+      command.label.toLowerCase().includes(commandFilter),
+  );
+
+  function askCopilot() {
+    const message = body.trim();
+    if (!message) return;
+    setCopilotResult(null);
+    runCopilot.mutate(
+      { message, surface: "task", task_id: taskId },
+      {
+        onSuccess: (result) => {
+          setCopilotResult(result);
+          setBody("");
+        },
+      },
+    );
+  }
 
   function submit() {
     if (!body.trim()) return;
@@ -96,11 +130,113 @@ function TaskCommentsSection({ taskId }: { taskId: string }) {
         ))}
       </div>
 
+      {copilotResult && (
+        <div style={{ border: "1px solid var(--accent)", borderRadius: 6, padding: "10px 12px", fontSize: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Sparkles size={13} color="var(--accent)" />
+            <strong>Copiloto</strong>
+            <span style={{ color: "var(--text-faint)", fontSize: 10 }}>
+              confiança {copilotResult.confidence}
+              {copilotResult.generation_mode === "preview" ? " · prévia local (sem OPENAI_API_KEY)" : ""}
+            </span>
+            <button
+              className="icon-button"
+              type="button"
+              style={{ marginLeft: "auto", padding: 2 }}
+              onClick={() => setCopilotResult(null)}
+              title="Fechar"
+            >
+              <X size={12} />
+            </button>
+          </div>
+
+          <p style={{ margin: "0 0 6px", whiteSpace: "pre-wrap" }}>{copilotResult.answer}</p>
+
+          {copilotResult.actions.map((action, index) => (
+            <div key={`${action.name}-${index}`} style={{ marginTop: 4, paddingLeft: 8, borderLeft: "2px solid var(--border-color)" }}>
+              <strong style={{ fontSize: 11 }}>{action.label}</strong>{" "}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color:
+                    action.status === "executed"
+                      ? "#2e9e5b"
+                      : action.status === "failed"
+                        ? "#ff5252"
+                        : "#ffab00",
+                }}
+              >
+                {action.status === "executed"
+                  ? "feito"
+                  : action.status === "pending_confirmation"
+                    ? "precisa da sua confirmação"
+                    : action.status === "proposed"
+                      ? "proposto"
+                      : "falhou"}
+              </span>
+              {action.detail && <div style={{ color: "var(--text-dim)" }}>{action.detail}</div>}
+              {action.undo_hint && (
+                <div style={{ color: "var(--text-faint)", fontSize: 10 }}>Desfazer: {action.undo_hint}</div>
+              )}
+            </div>
+          ))}
+
+          {/* Toda resposta cita fonte — inclusive quando o dado vem do Bioma. */}
+          {copilotResult.sources.length > 0 && (
+            <div style={{ marginTop: 8, fontSize: 10, color: "var(--text-faint)" }}>
+              Fontes:{" "}
+              {copilotResult.sources.map((source, index) => (
+                <span key={`${source.reference}-${index}`}>
+                  {index > 0 ? " · " : ""}
+                  {source.kind === "web" ? (
+                    <a href={source.reference} target="_blank" rel="noreferrer">
+                      {source.reference}
+                    </a>
+                  ) : (
+                    source.reference
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isCommand && visibleCommands.length > 0 && (
+        <div style={{ border: "1px solid var(--border-color)", borderRadius: 6, overflow: "hidden" }}>
+          {visibleCommands.map((command) => (
+            <button
+              key={command.name}
+              type="button"
+              onClick={() => setBody(`/${command.name} `)}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                padding: "6px 10px",
+                background: "none",
+                border: "none",
+                borderBottom: "1px solid var(--border-color)",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              <strong>/{command.name}</strong>{" "}
+              <span style={{ color: "var(--text-dim)" }}>{command.description}</span>
+              {command.requires_confirmation && (
+                <span style={{ color: "#ffab00", fontSize: 10 }}> · pede confirmação</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <textarea
           className="text-input"
           style={{ minHeight: 60, resize: "vertical", fontSize: 13 }}
-          placeholder="Escreva um comentário..."
+          placeholder="Escreva um comentário... ou digite / para chamar o copiloto"
           value={body}
           onChange={(event) => setBody(event.target.value)}
         />
@@ -113,17 +249,34 @@ function TaskCommentsSection({ taskId }: { taskId: string }) {
             />
             Visível para o cliente
           </label>
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={submit}
-            disabled={createComment.isPending || !body.trim()}
-            style={{ padding: "4px 12px", fontSize: 12 }}
-          >
-            <Send size={13} /> {createComment.isPending ? "Enviando..." : "Comentar"}
-          </button>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={askCopilot}
+              disabled={runCopilot.isPending || !body.trim()}
+              style={{ padding: "4px 12px", fontSize: 12 }}
+              title="Pedir ao copiloto (ações reversíveis são aplicadas na hora)"
+            >
+              <Sparkles size={13} /> {runCopilot.isPending ? "Pensando..." : "Copiloto"}
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={submit}
+              disabled={createComment.isPending || !body.trim()}
+              style={{ padding: "4px 12px", fontSize: 12 }}
+            >
+              <Send size={13} /> {createComment.isPending ? "Enviando..." : "Comentar"}
+            </button>
+          </div>
         </div>
       </div>
+      {runCopilot.isError && (
+        <div className="notice error" style={{ fontSize: 12 }}>
+          {runCopilot.error instanceof Error ? runCopilot.error.message : "O copiloto falhou."}
+        </div>
+      )}
     </div>
   );
 }

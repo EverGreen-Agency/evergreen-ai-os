@@ -4617,6 +4617,223 @@
         "title": "ContractUpdate",
         "type": "object"
       },
+      "CopilotAction": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "executed",
+              "proposed",
+              "pending_confirmation",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "undo_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Undo Hint"
+          },
+          "why": {
+            "default": "",
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "status"
+        ],
+        "title": "CopilotAction",
+        "type": "object"
+      },
+      "CopilotCommand": {
+        "description": "Item do menu de `/` na interface.",
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "requires_confirmation": {
+            "title": "Requires Confirmation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "description",
+          "requires_confirmation"
+        ],
+        "title": "CopilotCommand",
+        "type": "object"
+      },
+      "CopilotRequest": {
+        "properties": {
+          "allow_web_search": {
+            "default": true,
+            "title": "Allow Web Search",
+            "type": "boolean"
+          },
+          "dry_run": {
+            "default": false,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "message": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "surface": {
+            "default": "workspace",
+            "enum": [
+              "task",
+              "workspace"
+            ],
+            "title": "Surface",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "CopilotRequest",
+        "type": "object"
+      },
+      "CopilotResponse": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "alta",
+              "media",
+              "baixa"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "generation_mode": {
+            "enum": [
+              "live",
+              "preview"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answer",
+          "generation_mode",
+          "confidence"
+        ],
+        "title": "CopilotResponse",
+        "type": "object"
+      },
+      "CopilotSource": {
+        "description": "`bioma` = origem interna (tela/tabela); `web` = URL realmente visitada.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "bioma",
+              "web"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "reference"
+        ],
+        "title": "CopilotSource",
+        "type": "object"
+      },
       "CurrentUserResponse": {
         "properties": {
           "display_name": {
@@ -32873,6 +33090,96 @@
         "summary": "Create Scope Item",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/copilot": {
+      "post": {
+        "description": "Interpreta a mensagem, responde com fontes e executa só o reversível.",
+        "operationId": "run_copilot_copilot_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Copilot",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/commands": {
+      "get": {
+        "description": "Alimenta o menu de `/` — o front nunca inventa comando.",
+        "operationId": "list_commands_copilot_commands_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "surface",
+            "required": false,
+            "schema": {
+              "default": "workspace",
+              "title": "Surface",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CopilotCommand"
+                  },
+                  "title": "Response List Commands Copilot Commands Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Commands",
+        "tags": [
+          "copilot"
         ]
       }
     },

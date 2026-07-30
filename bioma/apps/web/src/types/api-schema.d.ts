@@ -2754,6 +2754,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Copilot
+         * @description Interpreta a mensagem, responde com fontes e executa só o reversível.
+         */
+        post: operations["run_copilot_copilot_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Commands
+         * @description Alimenta o menu de `/` — o front nunca inventa comando.
+         */
+        get: operations["list_commands_copilot_commands_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -6318,6 +6358,102 @@ export interface components {
             title?: string | null;
             /** Total Value */
             total_value?: number | string | null;
+        };
+        /** CopilotAction */
+        CopilotAction: {
+            /** Detail */
+            detail?: string | null;
+            /** Label */
+            label: string;
+            /** Name */
+            name: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "executed" | "proposed" | "pending_confirmation" | "failed";
+            /** Undo Hint */
+            undo_hint?: string | null;
+            /**
+             * Why
+             * @default
+             */
+            why: string;
+        };
+        /**
+         * CopilotCommand
+         * @description Item do menu de `/` na interface.
+         */
+        CopilotCommand: {
+            /** Description */
+            description: string;
+            /** Label */
+            label: string;
+            /** Name */
+            name: string;
+            /** Requires Confirmation */
+            requires_confirmation: boolean;
+        };
+        /** CopilotRequest */
+        CopilotRequest: {
+            /**
+             * Allow Web Search
+             * @default true
+             */
+            allow_web_search: boolean;
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
+            /** Message */
+            message: string;
+            /**
+             * Surface
+             * @default workspace
+             * @enum {string}
+             */
+            surface: "task" | "workspace";
+            /** Task Id */
+            task_id?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** CopilotResponse */
+        CopilotResponse: {
+            /** Actions */
+            actions?: components["schemas"]["CopilotAction"][];
+            /** Answer */
+            answer: string;
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "alta" | "media" | "baixa";
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview";
+            /** Sources */
+            sources?: components["schemas"]["CopilotSource"][];
+        };
+        /**
+         * CopilotSource
+         * @description `bioma` = origem interna (tela/tabela); `web` = URL realmente visitada.
+         */
+        CopilotSource: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bioma" | "web";
+            /** Reference */
+            reference: string;
         };
         /** CurrentUserResponse */
         CurrentUserResponse: {
@@ -19320,6 +19456,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_copilot_copilot_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopilotRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_commands_copilot_commands_get: {
+        parameters: {
+            query?: {
+                surface?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotCommand"][];
                 };
             };
             /** @description Validation Error */

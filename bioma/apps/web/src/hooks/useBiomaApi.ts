@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
+import type { CopilotSurface, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -48,6 +48,31 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useCopilotCommands(surface: CopilotSurface, enabled: boolean) {
+  return useQuery({
+    queryKey: ["copilot-commands", surface],
+    queryFn: () => api.copilotCommands(surface),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useRunCopilot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Parameters<typeof api.runCopilot>[0]) => api.runCopilot(payload),
+    onSuccess: (data, variables) => {
+      // Só invalida quando algo foi de fato alterado — resposta sem execução
+      // não deve provocar refetch da tela inteira.
+      const changed = data.actions.some((action) => action.status === "executed");
+      if (changed && variables.task_id) {
+        void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        void queryClient.invalidateQueries({ queryKey: ["task-comments", variables.task_id] });
+      }
+    },
   });
 }
 

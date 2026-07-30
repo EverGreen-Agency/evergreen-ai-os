@@ -1100,6 +1100,38 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type CopilotSurface = "task" | "workspace";
+
+export type CopilotCommand = {
+  name: string;
+  label: string;
+  description: string;
+  requires_confirmation: boolean;
+};
+
+export type CopilotAction = {
+  name: string;
+  label: string;
+  params: Record<string, unknown>;
+  why: string;
+  status: "executed" | "proposed" | "pending_confirmation" | "failed";
+  detail: string | null;
+  undo_hint: string | null;
+};
+
+export type CopilotSource = {
+  kind: "bioma" | "web";
+  reference: string;
+};
+
+export type CopilotResponse = {
+  answer: string;
+  generation_mode: "live" | "preview";
+  confidence: "alta" | "media" | "baixa";
+  actions: CopilotAction[];
+  sources: CopilotSource[];
+};
+
 export type FathomMeeting = {
   recording_id: number;
   title: string;
@@ -3049,6 +3081,16 @@ export const api = {
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
   salesCopilotSession: (sessionId: string) =>
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  copilotCommands: (surface: CopilotSurface) =>
+    request<CopilotCommand[]>(`/copilot/commands?surface=${surface}`),
+  runCopilot: (payload: {
+    message: string;
+    surface: CopilotSurface;
+    task_id?: string;
+    workspace_id?: string;
+    allow_web_search?: boolean;
+    dry_run?: boolean;
+  }) => request<CopilotResponse>("/copilot", { method: "POST", body: JSON.stringify(payload) }),
   fathomMeetings: (limit = 20) =>
     request<FathomMeeting[]>(`/backoffice/sales-copilot/fathom/meetings?limit=${limit}`),
   importFathomMeeting: (sessionId: string, recordingId: number, analyzeAfterImport = true) =>
