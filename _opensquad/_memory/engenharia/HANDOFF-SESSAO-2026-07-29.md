@@ -2,6 +2,33 @@
 
 Contexto para retomar em sessão nova. Branch: `develop`. Último commit: `45cdaa5`.
 
+## Avanço 2026-07-30 — parte 3 (loop de aprendizado + briefing automático)
+
+- **`b2402f8` — Placar de aprendizado** (`GET /workspaces/{id}/content/
+  script-scoreboard`): compara **média por post** dos posts que nasceram de
+  roteiro da IA com o resto da conta (alcance, engajamento, salvamentos) e mostra
+  o lift; sem base de comparação o lift é `None`, nunca 0%. Aparece na aba
+  Retrospectiva do Estúdio IA, com ranking por roteiro. Só existe porque a
+  atribuição `source_script_id` foi ligada em `1cc9f43`.
+- **`0899538` — Rascunho de briefing** (`POST /workspaces/{id}/briefing/draft`):
+  `repositories/briefing.py` coleta sinais reais (perfil, mídia paga 90d,
+  orgânico do Instagram, top posts, Search Console, projetos contratados —
+  incluindo `cadence_days`, conexões ativas e pesquisa de mercado do setor);
+  `bioma_worker/briefing.py` sintetiza com regra dura de **evidência obrigatória**
+  (item sem número no dossiê vira hipótese, não diagnóstico) e de **ausência ≠
+  problema**. A resposta traz `sources_used`/`missing_sources` explícitos e a UI
+  mostra "Não foi observado" em amarelo. `persist=false` por padrão (revisar
+  antes de gravar); ao gravar, vira artefato `briefing` **interno**.
+  Sem `OPENAI_API_KEY`, a prévia organiza os sinais reais em vez de escrever prosa.
+- Validado por `scripts/smoke_learning_briefing.py` (novo) contra Postgres real:
+  lift 100% com dado de teste, `sources_used=['organic_social']`, 404 em
+  workspace inexistente, limpeza confirmada. Contrato + `tsc` + build limpos.
+- **Decisões de produto ainda abertas** (documentadas na conversa): modelo dos
+  **campos inteligentes** (recomendação: campos por tipo de conteúdo +
+  proveniência por campo, tag derivada em vez de interruptor) e o **desenho do
+  copiloto** (Notion/ClickUp-like: `/` para ação, `@` para contexto, escopo por
+  permissão). Nada implementado nesses dois — dependem de aprovação do Eduardo.
+
 ## Avanço 2026-07-30 — parte 2 (as 3 ideias + correção da auditoria)
 
 - **`e3a1ffd` — Radar Local v2** (migração `0069`):
