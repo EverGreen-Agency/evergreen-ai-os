@@ -71,6 +71,10 @@ Regras obrigatórias:
 - a mensagem deve ser em português do Brasil, curta (máx. 500 caracteres),
   consultiva, identificando a EverGreen, citando 1-2 observações concretas e
   fechando com convite leve para conversa — sem promessa de resultado;
+- se receber sector_playbook (playbook de prospecção do setor, vindo da pesquisa
+  de mercado da EverGreen), use os ângulos de abertura e respeite os cuidados de
+  credibilidade ao redigir a mensagem — mas nunca cite um fato do playbook como
+  se fosse uma observação sobre ESTE negócio específico;
 - em cautions, liste o que um humano deve conferir antes de enviar.
 """.strip()
 
@@ -173,10 +177,44 @@ def _presence_audit(row: dict[str, Any]) -> tuple[int, list[str]]:
     return max(score, 0), gaps
 
 
+def normalize_imported_prospects(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Converte linhas importadas de planilha (scrape manual do Eduardo) para o
+    formato de prospect, com o mesmo score determinístico da busca via API.
+    Só normaliza o que veio — nunca preenche campo ausente com palpite."""
+    import hashlib
+
+    prospects: list[dict[str, Any]] = []
+    for raw in rows:
+        name = (raw.get("name") or "").strip()
+        if not name:
+            continue
+        address = (raw.get("address") or "").strip() or None
+        rating = raw.get("rating")
+        rating_count = raw.get("rating_count")
+        row = {
+            # Import não tem place_id do Google; derivamos um estável de
+            # nome+endereço para o diff entre rescans continuar funcionando.
+            "place_id": "import-" + hashlib.sha1(f"{name}|{address or ''}".lower().encode()).hexdigest()[:20],
+            "name": name,
+            "address": address,
+            "phone": (raw.get("phone") or "").strip() or None,
+            "website": (raw.get("website") or "").strip() or None,
+            "google_maps_url": (raw.get("google_maps_url") or "").strip() or None,
+            "rating": float(rating) if rating not in (None, "") else None,
+            "rating_count": int(rating_count) if rating_count not in (None, "") else None,
+            "business_status": None,
+            "place_types": [],
+        }
+        row["presence_score"], row["presence_gaps"] = _presence_audit(row)
+        prospects.append(row)
+    return prospects
+
+
 def audit_local_prospect(
     prospect: dict[str, Any],
     settings,
     http_client: httpx.Client | None = None,
+    playbook: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not settings.openai_api_key:
         return {
@@ -199,6 +237,8 @@ def audit_local_prospect(
                 "business_status": prospect.get("business_status"),
                 "presence_score": prospect.get("presence_score"),
                 "presence_gaps": prospect.get("presence_gaps") or [],
+                "changes_since_last_scan": prospect.get("changes") or [],
+                "sector_playbook": playbook,
             },
             ensure_ascii=False,
             default=str,

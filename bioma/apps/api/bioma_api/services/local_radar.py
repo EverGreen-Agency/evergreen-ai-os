@@ -18,6 +18,7 @@ from bioma_api.repositories import local_radar as repo
 from bioma_api.repositories import whatsapp as wa_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.local_radar import (
+    LocalRadarImportRequest,
     LocalRadarProspect,
     LocalRadarScanCreate,
     LocalRadarScanDetail,
@@ -30,6 +31,7 @@ from bioma_api.schemas.local_radar import (
 from bioma_api.worker_bridge import (
     audit_local_prospect_safe,
     get_whatsapp_provider_safe,
+    normalize_imported_prospects_safe,
     search_local_businesses_safe,
 )
 
@@ -49,28 +51,78 @@ def create_scan(payload: LocalRadarScanCreate, user: CurrentUserResponse) -> Loc
             detail="A busca no Google Places falhou. Verifique a chave e a cota da API.",
         ) from exc
 
+    return _store_scan(user, payload.niche, payload.city, result["query_text"], "places", result["prospects"])
+
+
+def import_scan(payload: LocalRadarImportRequest, user: CurrentUserResponse) -> LocalRadarScanDetail:
+    """Entrada alternativa sem custo de API: planilha exportada por extensão de
+    scrape (ex.: Instant Data Scraper) parseada no navegador. Mesmo pipeline de
+    score, auditoria e aprovação da busca via Places."""
+    require_platform_admin(user)
+    prospects = normalize_imported_prospects_safe([row.model_dump() for row in payload.rows])
+    if not prospects:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Nenhuma linha com nome de negócio reconhecível na planilha.",
+        )
+    query_text = f"{payload.niche} em {payload.city} (importado)"
+    return _store_scan(user, payload.niche, payload.city, query_text, "import", prospects)
+
+
+def _store_scan(
+    user: CurrentUserResponse,
+    niche: str,
+    city: str,
+    query_text: str,
+    source: str,
+    prospects: list[dict],
+) -> LocalRadarScanDetail:
     with connect() as conn:
+        # Diff contra o snapshot anterior de cada place_id: é o sinal de rescan
+        # ("criou site", "nota caiu") e a deduplicação de quem já virou lead.
+        previous = repo.previous_prospects_by_place(conn, [p["place_id"] for p in prospects])
+        for prospect in prospects:
+            prospect["changes"] = _diff_changes(previous.get(prospect["place_id"]), prospect)
+
         scan = repo.create_scan(
             conn,
             user.id,
-            {
-                "niche": payload.niche,
-                "city": payload.city,
-                "query_text": result["query_text"],
-                "status": "completed",
-            },
+            {"niche": niche, "city": city, "query_text": query_text, "status": "completed", "source": source},
         )
-        repo.insert_prospects(conn, scan["id"], result["prospects"])
+        repo.insert_prospects(conn, scan["id"], prospects)
         scan = repo.get_scan(conn, scan["id"])
-        prospects = repo.list_prospects(conn, scan["id"])
+        rows = repo.list_prospects(conn, scan["id"])
         client_hub_repo.write_audit(
             conn,
             user.id,
             None,
             "local_radar.scan_created",
-            {"scan_id": str(scan["id"]), "niche": payload.niche, "city": payload.city, "count": scan["prospect_count"]},
+            {"scan_id": str(scan["id"]), "niche": niche, "city": city, "source": source, "count": scan["prospect_count"]},
         )
-    return _detail(scan, prospects)
+    return _detail(scan, rows)
+
+
+def _diff_changes(previous: dict | None, current: dict) -> list[str]:
+    if not previous:
+        return []
+    changes: list[str] = []
+    if not previous["website"] and current.get("website"):
+        changes.append("Criou site desde o último scan")
+    if previous["website"] and not current.get("website"):
+        changes.append("Site sumiu do Google desde o último scan")
+    if not previous["phone"] and current.get("phone"):
+        changes.append("Cadastrou telefone desde o último scan")
+    old_rating = float(previous["rating"]) if previous["rating"] is not None else None
+    new_rating = current.get("rating")
+    if old_rating is not None and new_rating is not None and abs(new_rating - old_rating) >= 0.2:
+        changes.append(f"Nota mudou de {old_rating} para {new_rating}")
+    old_count = previous["rating_count"] or 0
+    new_count = current.get("rating_count") or 0
+    if new_count - old_count >= 10:
+        changes.append(f"+{new_count - old_count} avaliações desde o último scan")
+    if previous["lead_id"]:
+        changes.append("Já é lead no CRM da EG (scan anterior)")
+    return changes
 
 
 def list_scans(user: CurrentUserResponse) -> list[LocalRadarScanSummary]:
@@ -104,20 +156,32 @@ def run_audit(prospect_id: UUID, user: CurrentUserResponse) -> LocalRadarProspec
         **prospect,
         "rating": float(prospect["rating"]) if prospect["rating"] is not None else None,
     }
+    # Se existe pesquisa de mercado concluída para o nicho do scan, o playbook
+    # de prospecção dela alimenta a mensagem — abordagem consultiva por setor.
+    playbook = None
+    with connect() as conn:
+        scan = repo.get_scan(conn, prospect["scan_id"])
+        if scan:
+            playbook = repo.latest_research_playbook(conn, scan["niche"])
     try:
-        result = audit_local_prospect_safe(prospect_input)
+        result = audit_local_prospect_safe(prospect_input, playbook=(playbook or {}).get("playbook"))
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="A auditoria de IA falhou. Tente novamente.",
         ) from exc
 
+    audit_payload = dict(result["audit"])
+    if playbook:
+        # Rastreabilidade: qual pesquisa alimentou esta mensagem.
+        audit_payload["research_used"] = {"id": playbook["research_id"], "sector": playbook["sector"]}
+
     with connect() as conn:
         updated = repo.update_prospect(
             conn,
             prospect_id,
             {
-                "audit": result["audit"],
+                "audit": audit_payload,
                 "audit_mode": result["audit_mode"],
                 "outreach_message": result["suggested_message"],
                 "review_status": "audited",

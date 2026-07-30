@@ -64,13 +64,21 @@ def search_local_businesses_safe(request: dict[str, Any]) -> dict[str, Any]:
     return search_local_businesses(request, get_settings())
 
 
-def audit_local_prospect_safe(prospect: dict[str, Any]) -> dict[str, Any]:
+def audit_local_prospect_safe(prospect: dict[str, Any], playbook: dict[str, Any] | None = None) -> dict[str, Any]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
     from bioma_worker.config import get_settings
     from bioma_worker.local_radar import audit_local_prospect
 
-    return audit_local_prospect(prospect, get_settings())
+    return audit_local_prospect(prospect, get_settings(), playbook=playbook)
+
+
+def normalize_imported_prospects_safe(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")
+    from bioma_worker.local_radar import normalize_imported_prospects
+
+    return normalize_imported_prospects(rows)
 
 
 def generate_market_research_safe(request: dict[str, Any]) -> dict[str, Any]:

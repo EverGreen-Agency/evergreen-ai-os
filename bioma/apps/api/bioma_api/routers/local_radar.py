@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.local_radar import (
+    LocalRadarImportRequest,
     LocalRadarProspect,
     LocalRadarScanCreate,
     LocalRadarScanDetail,
@@ -25,6 +26,14 @@ def create_scan(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> LocalRadarScanDetail:
     return service.create_scan(payload, user)
+
+
+@router.post("/scans/import", response_model=LocalRadarScanDetail, status_code=status.HTTP_201_CREATED)
+def import_scan(
+    payload: LocalRadarImportRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> LocalRadarScanDetail:
+    return service.import_scan(payload, user)
 
 
 @router.get("/scans", response_model=list[LocalRadarScanSummary])

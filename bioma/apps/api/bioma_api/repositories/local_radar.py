@@ -3,12 +3,12 @@ from uuid import UUID
 
 from psycopg.types.json import Jsonb
 
-SCAN_COLUMNS = "id, created_by, niche, city, query_text, status, error_message, prospect_count, created_at"
+SCAN_COLUMNS = "id, created_by, niche, city, query_text, status, source, error_message, prospect_count, created_at"
 
 PROSPECT_COLUMNS = (
     "id, scan_id, place_id, name, address, phone, website, google_maps_url, rating, "
-    "rating_count, business_status, place_types, presence_score, presence_gaps, audit, "
-    "audit_mode, outreach_message, review_status, reviewed_by, reviewed_at, lead_id, "
+    "rating_count, business_status, place_types, presence_score, presence_gaps, changes, "
+    "audit, audit_mode, outreach_message, review_status, reviewed_by, reviewed_at, lead_id, "
     "sent_at, created_at, updated_at"
 )
 
@@ -16,8 +16,8 @@ PROSPECT_COLUMNS = (
 def create_scan(conn, created_by: UUID, values: dict[str, Any]) -> dict[str, Any]:
     return conn.execute(
         f"""
-        insert into local_radar_scans (created_by, niche, city, query_text, status, error_message, prospect_count)
-        values (%s, %s, %s, %s, %s, %s, %s)
+        insert into local_radar_scans (created_by, niche, city, query_text, status, source, error_message, prospect_count)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
         returning {SCAN_COLUMNS}
         """,
         (
@@ -26,6 +26,7 @@ def create_scan(conn, created_by: UUID, values: dict[str, Any]) -> dict[str, Any
             values["city"],
             values["query_text"],
             values.get("status", "completed"),
+            values.get("source", "places"),
             values.get("error_message"),
             values.get("prospect_count", 0),
         ),
@@ -55,9 +56,10 @@ def insert_prospects(conn, scan_id: UUID, prospects: list[dict[str, Any]]) -> in
             """
             insert into local_radar_prospects (
               scan_id, place_id, name, address, phone, website, google_maps_url,
-              rating, rating_count, business_status, place_types, presence_score, presence_gaps
+              rating, rating_count, business_status, place_types, presence_score,
+              presence_gaps, changes
             )
-            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             on conflict (scan_id, place_id) do nothing
             """,
             (
@@ -74,6 +76,7 @@ def insert_prospects(conn, scan_id: UUID, prospects: list[dict[str, Any]]) -> in
                 prospect.get("place_types") or [],
                 prospect.get("presence_score"),
                 Jsonb(prospect.get("presence_gaps") or []),
+                Jsonb(prospect.get("changes") or []),
             ),
         )
         count += 1
@@ -120,6 +123,46 @@ def update_prospect(conn, prospect_id: UUID, updates: dict[str, Any]) -> dict[st
         """,
         (*values, prospect_id),
     ).fetchone()
+
+
+def previous_prospects_by_place(conn, place_ids: list[str]) -> dict[str, dict[str, Any]]:
+    """Snapshot mais recente de cada place_id em scans anteriores — base do diff
+    de rescan ("criou site desde o último scan") e da deduplicação de leads."""
+    if not place_ids:
+        return {}
+    rows = conn.execute(
+        """
+        select distinct on (place_id)
+               place_id, website, phone, rating, rating_count, lead_id, review_status
+        from local_radar_prospects
+        where place_id = any(%s)
+        order by place_id, created_at desc
+        """,
+        (place_ids,),
+    ).fetchall()
+    return {row["place_id"]: row for row in rows}
+
+
+def latest_research_playbook(conn, niche: str) -> dict[str, Any] | None:
+    """Pesquisa de mercado concluída mais recente cujo setor bate com o nicho
+    (match frouxo nos dois sentidos). Retorna o playbook de prospecção, se houver."""
+    row = conn.execute(
+        """
+        select id, sector, report
+        from market_researches
+        where status = 'completed' and report is not null
+          and (sector ilike '%%' || %s || '%%' or %s ilike '%%' || sector || '%%')
+        order by completed_at desc nulls last, created_at desc
+        limit 1
+        """,
+        (niche, niche),
+    ).fetchone()
+    if not row:
+        return None
+    playbook = (row["report"] or {}).get("prospecting_playbook")
+    if not playbook:
+        return None
+    return {"research_id": str(row["id"]), "sector": row["sector"], "playbook": playbook}
 
 
 def eg_context(conn) -> dict[str, Any] | None:
