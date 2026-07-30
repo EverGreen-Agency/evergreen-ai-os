@@ -43,7 +43,15 @@ export function CockpitView() {
   // usadas mais abaixo na visão do cliente.
   const portfolioApprovals = cockpitSummary?.pending_approvals ?? [];
   const overdueItems = cockpitSummary?.overdue_items ?? [];
-  const hasAttentionItems = portfolioApprovals.length > 0 || overdueItems.length > 0;
+  // Integração ativa que parou de sincronizar produz número errado no painel sem
+  // avisar ninguém — por isso entra na mesma fila de "precisa de você".
+  const staleConnections = cockpitSummary?.stale_connections ?? [];
+  const radarAwaiting = cockpitSummary?.radar_prospects_awaiting ?? 0;
+  const hasAttentionItems =
+    portfolioApprovals.length > 0 ||
+    overdueItems.length > 0 ||
+    staleConnections.length > 0 ||
+    radarAwaiting > 0;
 
   // Client data
   const clients = externalClients(clientsData ?? []);
@@ -101,6 +109,49 @@ export function CockpitView() {
                           </button>
                         </li>
                       ))}
+                    </ul>
+                  </div>
+                )}
+
+                {staleConnections.length > 0 && (
+                  <div>
+                    <h4 className="cockpit-attention-title">
+                      <AlertTriangle size={13} color="#ffab00" /> Integrações sem sincronizar ({staleConnections.length})
+                    </h4>
+                    <ul className="cockpit-attention-list">
+                      {staleConnections.map((connection) => (
+                        <li key={`${connection.client_id}-${connection.provider}`}>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/clientes/${connection.client_id}/integracoes`)}
+                          >
+                            <strong>{connection.display_name ?? connection.provider}</strong>
+                            <span>
+                              {connection.client_name} ·{" "}
+                              {connection.days_stale === null
+                                ? "nunca sincronizou"
+                                : `parada há ${connection.days_stale} dia(s)`}
+                              {connection.last_error_message ? ` · ${connection.last_error_message.slice(0, 60)}` : ""}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {radarAwaiting > 0 && (
+                  <div>
+                    <h4 className="cockpit-attention-title">
+                      <Target size={13} color="var(--brand-accent)" /> Radar Local
+                    </h4>
+                    <ul className="cockpit-attention-list">
+                      <li>
+                        <button type="button" onClick={() => navigate("/operacao/radar-local")}>
+                          <strong>{radarAwaiting} prospect(s) auditado(s) esperando sua aprovação</strong>
+                          <span>Nenhuma mensagem sai sem você aprovar</span>
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 )}

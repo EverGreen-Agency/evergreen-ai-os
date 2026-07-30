@@ -247,6 +247,18 @@ class MonthlyTargetRequest(BaseModel):
     budget_cents: int | None = None
 
 
+class CockpitStaleConnection(BaseModel):
+    """Integração ativa que parou de sincronizar. `days_stale` é None quando a
+    conexão nunca sincronizou — ausência de sync, não zero dias."""
+    client_id: UUID
+    client_name: str
+    provider: str
+    display_name: str | None = None
+    last_synced_at: datetime | None = None
+    last_error_message: str | None = None
+    days_stale: int | None = None
+
+
 class CockpitPortfolioSummary(BaseModel):
     monthly_revenue_cents: int
     mrr_cents: int
@@ -256,6 +268,8 @@ class CockpitPortfolioSummary(BaseModel):
     clients_total: int
     overdue_items: list[CockpitOverdueItem] = []
     pending_approvals: list[CockpitPendingApproval] = []
+    stale_connections: list[CockpitStaleConnection] = []
+    radar_prospects_awaiting: int = 0
 
 
 class FinancialRecordCreateRequest(BaseModel):

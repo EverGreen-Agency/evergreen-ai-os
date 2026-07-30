@@ -585,6 +585,36 @@ def get_portfolio_summary(conn) -> dict[str, Any]:
         """
     ).fetchall()
 
+    # Conexao ativa que parou de sincronizar: a causa mais silenciosa de numero
+    # errado no painel. Sem isso, "zero investimento" e "sync parado" sao
+    # visualmente identicos. `last_synced_at is null` = nunca sincronizou.
+    stale_connections = conn.execute(
+        """
+        select pc.provider, pc.display_name, pc.last_synced_at, pc.last_error_message,
+               c.id as client_id, c.name as client_name,
+               case
+                 when pc.last_synced_at is null then null
+                 else extract(day from now() - pc.last_synced_at)::int
+               end as days_stale
+        from performance_connections pc
+        join clients c on c.id = pc.client_id
+        join organizations o on o.id = c.organization_id
+        where o.slug <> 'eg'
+          and pc.status = 'active'
+          and (pc.last_synced_at is null or pc.last_synced_at < now() - interval '3 days')
+        order by pc.last_synced_at asc nulls first
+        limit 10
+        """
+    ).fetchall()
+
+    radar_awaiting = conn.execute(
+        """
+        select count(*) as total
+        from local_radar_prospects
+        where review_status = 'audited'
+        """
+    ).fetchone()
+
     return {
         "monthly_revenue_cents": round((revenue["total"] or 0) * 100),
         "mrr_cents": round((mrr["total"] or 0) * 100),
@@ -594,6 +624,8 @@ def get_portfolio_summary(conn) -> dict[str, Any]:
         "clients_total": client_counts["total"],
         "overdue_items": [dict(row) for row in overdue_items],
         "pending_approvals": [dict(row) for row in pending_approvals],
+        "stale_connections": [dict(row) for row in stale_connections],
+        "radar_prospects_awaiting": radar_awaiting["total"],
     }
 
 

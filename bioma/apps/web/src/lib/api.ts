@@ -1218,6 +1218,16 @@ export type CockpitPortfolioSummary = {
   clients_total: number;
   overdue_items: CockpitOverdueItem[];
   pending_approvals: CockpitPendingApproval[];
+  stale_connections: Array<{
+    client_id: string;
+    client_name: string;
+    provider: string;
+    display_name: string | null;
+    last_synced_at: string | null;
+    last_error_message: string | null;
+    days_stale: number | null;
+  }>;
+  radar_prospects_awaiting: number;
 };
 
 export type HookSource = "llm_transcript" | "higgsfield_virality";
