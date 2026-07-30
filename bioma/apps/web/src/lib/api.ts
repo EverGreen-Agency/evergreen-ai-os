@@ -614,6 +614,7 @@ export type AdsCampaignSummary = {
   cost_micros: number;
   conversions: number;
   conversion_value: number;
+  search_impression_share: number | null;
   ctr: number;
   cpa_micros: number;
   roas: number;
@@ -1080,11 +1081,13 @@ export type LocalRadarProspect = {
   place_types: string[];
   presence_score: number | null;
   presence_gaps: string[];
+  changes: string[];
   audit: {
     diagnosis?: string;
     opportunities?: Array<{ issue: string; recommended_service: string; rationale: string }>;
     suggested_message?: string;
     cautions?: string[];
+    research_used?: { id: string; sector: string };
   } | null;
   audit_mode: "live" | "preview" | null;
   outreach_message: string | null;
@@ -1097,6 +1100,16 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type LocalRadarImportRow = {
+  name: string;
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  google_maps_url?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+};
+
 export type LocalRadarScan = {
   id: string;
   created_by: string | null;
@@ -1104,6 +1117,7 @@ export type LocalRadarScan = {
   city: string;
   query_text: string;
   status: "completed" | "failed";
+  source: "places" | "import";
   error_message: string | null;
   prospect_count: number;
   created_at: string;
@@ -1127,6 +1141,8 @@ export type PortfolioPerformanceRow = {
   linkedin_spend_cents: number;
   total_spend_cents: number;
   total_leads: number;
+  target_leads: number | null;
+  budget_cents: number | null;
 };
 
 export type CockpitPortfolioSummary = {
@@ -2251,6 +2267,16 @@ export const api = {
   getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
   getPortfolioPerformance: (days = 30) =>
     request<PortfolioPerformanceRow[]>(`/backoffice/portfolio-performance?days=${days}`),
+  setMonthlyTarget: (clientId: string, payload: { target_leads?: number | null; budget_cents?: number | null }, days = 30) =>
+    request<PortfolioPerformanceRow[]>(`/backoffice/clients/${clientId}/monthly-target?days=${days}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  importLocalRadarScan: (payload: { niche: string; city: string; rows: LocalRadarImportRow[] }) =>
+    request<LocalRadarScanDetail>("/backoffice/local-radar/scans/import", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   createLocalRadarScan: (payload: { niche: string; city: string; limit?: number }) =>
     request<LocalRadarScanDetail>("/backoffice/local-radar/scans", {
       method: "POST",

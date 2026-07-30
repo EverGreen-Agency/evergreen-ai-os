@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, Settings } from "lucide-react";
+import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, CalendarDays, Settings, Trash2 } from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
 import { BriefingPanel } from "../components/BriefingPanel";
+import { EditorialCalendar } from "../components/EditorialCalendar";
 import { RaioXScorePanel } from "../components/RaioXScorePanel";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useCommercialPortal, useCreateArtifact, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import {
+  useClients,
+  useClientPortal,
+  useCommercialPortal,
+  useCreateApproval,
+  useCreateArtifact,
+  useDecideApproval,
+  useDeleteDeliverable,
+  useUpdateDeliverable,
+  useCurrentUser,
+} from "../hooks/useBiomaApi";
+import { deliverableStatusLabel } from "../lib/app-config";
+import type { DeliverableStatus } from "../lib/api";
 import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
@@ -31,9 +44,16 @@ export function ClientHubView() {
   const portal = portalData ?? null;
   const decideApproval = useDecideApproval();
   const createArtifact = useCreateArtifact();
+  const createApproval = useCreateApproval();
+  const updateDeliverable = useUpdateDeliverable();
+  const deleteDeliverable = useDeleteDeliverable();
   const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(contextId);
   
-  const isBusy = decideApproval.isPending;
+  const isBusy =
+    decideApproval.isPending ||
+    createApproval.isPending ||
+    updateDeliverable.isPending ||
+    deleteDeliverable.isPending;
 
   useEffect(() => {
     if (id && useUiStore.getState().selectedClientId !== id) {
@@ -118,6 +138,85 @@ export function ClientHubView() {
               ))}
             </article>
           </div>
+
+          <article className="surface" style={{ marginTop: "24px" }}>
+            <div className="surface-header">
+              <CalendarDays size={18} />
+              <h3>Entregas da semana</h3>
+            </div>
+            <div style={{ padding: "0 20px 16px" }}>
+              <EditorialCalendar deliverables={portal.deliverables} />
+            </div>
+
+            <div style={{ padding: "0 20px 20px" }}>
+              {portal.deliverables.length === 0 && (
+                <EmptyState compact text="Nenhuma entrega cadastrada para este cliente." />
+              )}
+              {portal.deliverables.map((deliverable) => {
+                const awaitingApproval = portal.approvals.some(
+                  (approval) => approval.status === "pending" && approval.deliverable_id === deliverable.id,
+                );
+                return (
+                  <div className="work-row" key={deliverable.id}>
+                    <div>
+                      <strong>{deliverable.title}</strong>
+                      <small>
+                        {deliverableStatusLabel[deliverable.status]}
+                        {deliverable.due_at
+                          ? ` · vence ${new Date(deliverable.due_at).toLocaleDateString("pt-BR")}`
+                          : " · sem prazo"}
+                      </small>
+                    </div>
+                    {isEgAdmin && (
+                      <div className="row-actions">
+                        <select
+                          value={deliverable.status}
+                          disabled={isBusy}
+                          onChange={(event) =>
+                            updateDeliverable.mutate({
+                              clientId: contextId,
+                              deliverableId: deliverable.id,
+                              payload: { status: event.target.value as DeliverableStatus },
+                            })
+                          }
+                        >
+                          {(Object.keys(deliverableStatusLabel) as DeliverableStatus[]).map((status) => (
+                            <option key={status} value={status}>
+                              {deliverableStatusLabel[status]}
+                            </option>
+                          ))}
+                        </select>
+                        {/* Uma entrega so pode ter uma aprovacao pendente por vez;
+                            sem esse guard o cliente recebia pedidos duplicados. */}
+                        <button
+                          className="mini-button"
+                          type="button"
+                          disabled={isBusy || awaitingApproval}
+                          title={awaitingApproval ? "Ja existe aprovacao pendente" : "Pedir aprovacao ao cliente"}
+                          onClick={() =>
+                            createApproval.mutate({ clientId: contextId, deliverableId: deliverable.id })
+                          }
+                        >
+                          {awaitingApproval ? "Aguardando cliente" : "Pedir aprovação"}
+                        </button>
+                        <button
+                          className="mini-button reject"
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => {
+                            if (!window.confirm(`Excluir a entrega "${deliverable.title}"?`)) return;
+                            deleteDeliverable.mutate({ clientId: contextId, deliverableId: deliverable.id });
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </article>
 
           <div style={{ marginTop: "24px" }}>
             <RaioXScorePanel

@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Save, Settings, UserPlus, X } from "lucide-react";
+import { Archive, Save, Settings, UserPlus, X } from "lucide-react";
 import { DockTitle } from "./shared";
 import { statusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useUpdateClient, useCreateInvite } from "../hooks/useBiomaApi";
+import { useArchiveClient, useUpdateClient, useCreateInvite } from "../hooks/useBiomaApi";
 import { api } from "../lib/api";
 import type { ClientModule, ClientStatus, ClientSummary } from "../lib/api";
 
@@ -16,6 +16,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
   } = useUiStore();
 
   const updateClient = useUpdateClient();
+  const archiveClient = useArchiveClient();
   const createInvite = useCreateInvite();
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -207,6 +208,41 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
                 <button type="button" onClick={handleCopyInvite} className="secondary-button" style={{ padding: "8px" }} title="Copiar link">
                   {inviteCopied ? "Copiado!" : "Copiar"}
                 </button>
+              </div>
+            )}
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '16px 0' }} />
+
+          {/* Trocar o status para "archived" no seletor acima só muda o cliente;
+              arquivar de fato desativa também o workspace (e é pré-requisito do
+              expurgo). Sem este botão, esse caminho não existia na interface. */}
+          <div>
+            <DockTitle icon={Archive} title="Arquivar cliente" />
+            <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
+              Desativa o cliente e o workspace dele: some da carteira ativa e os usuários do cliente
+              perdem o acesso. O histórico é preservado e a operação é reversível pelo suporte.
+            </p>
+            {selectedClient?.status === "archived" ? (
+              <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Este cliente já está arquivado.</p>
+            ) : (
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={isBusy || archiveClient.isPending || !selectedClient}
+                onClick={() => {
+                  if (!selectedClient) return;
+                  if (!window.confirm(`Arquivar ${selectedClient.name}? O acesso do cliente será encerrado.`)) return;
+                  archiveClient.mutate(selectedClient.id, { onSuccess: onClose });
+                }}
+              >
+                <Archive size={16} />
+                {archiveClient.isPending ? "Arquivando..." : "Arquivar cliente"}
+              </button>
+            )}
+            {archiveClient.isError && (
+              <div className="notice error" style={{ marginTop: "10px" }}>
+                {archiveClient.error instanceof Error ? archiveClient.error.message : "Falha ao arquivar."}
               </div>
             )}
           </div>

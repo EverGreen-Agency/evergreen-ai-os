@@ -234,6 +234,17 @@
           "roas": {
             "title": "Roas",
             "type": "number"
+          },
+          "search_impression_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Impression Share"
           }
         },
         "required": [
@@ -7605,6 +7616,126 @@
         "title": "LinkPostToScriptRequest",
         "type": "object"
       },
+      "LocalRadarImportRequest": {
+        "properties": {
+          "city": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "City",
+            "type": "string"
+          },
+          "niche": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Niche",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/LocalRadarImportRow"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "niche",
+          "city",
+          "rows"
+        ],
+        "title": "LocalRadarImportRequest",
+        "type": "object"
+      },
+      "LocalRadarImportRow": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "google_maps_url": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Maps Url"
+          },
+          "name": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "rating_count": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Count"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "LocalRadarImportRow",
+        "type": "object"
+      },
       "LocalRadarProspect": {
         "properties": {
           "address": {
@@ -7655,6 +7786,14 @@
               }
             ],
             "title": "Business Status"
+          },
+          "changes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Changes",
+            "type": "array"
           },
           "created_at": {
             "format": "date-time",
@@ -7937,6 +8076,15 @@
             "title": "Query Text",
             "type": "string"
           },
+          "source": {
+            "default": "places",
+            "enum": [
+              "places",
+              "import"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
           "status": {
             "enum": [
               "completed",
@@ -8007,6 +8155,15 @@
           },
           "query_text": {
             "title": "Query Text",
+            "type": "string"
+          },
+          "source": {
+            "default": "places",
+            "enum": [
+              "places",
+              "import"
+            ],
+            "title": "Source",
             "type": "string"
           },
           "status": {
@@ -9214,6 +9371,34 @@
           "display_name"
         ],
         "title": "ModelCatalogUpsert",
+        "type": "object"
+      },
+      "MonthlyTargetRequest": {
+        "properties": {
+          "budget_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Cents"
+          },
+          "target_leads": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Leads"
+          }
+        },
+        "title": "MonthlyTargetRequest",
         "type": "object"
       },
       "MyTaskSummary": {
@@ -11168,6 +11353,17 @@
       "PortfolioPerformanceRow": {
         "description": "Uma linha por cliente: investimento por canal e leads no período.",
         "properties": {
+          "budget_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Cents"
+          },
           "client_id": {
             "format": "uuid",
             "title": "Client Id",
@@ -11199,6 +11395,17 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "target_leads": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Leads"
           },
           "total_leads": {
             "title": "Total Leads",
@@ -25505,6 +25712,74 @@
         ]
       }
     },
+    "/backoffice/clients/{client_id}/monthly-target": {
+      "put": {
+        "description": "Meta de leads e verba do mês — fecha o ciclo meta x realizado no rollup.",
+        "operationId": "set_monthly_target_backoffice_clients__client_id__monthly_target_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "client_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Client Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthlyTargetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PortfolioPerformanceRow"
+                  },
+                  "title": "Response Set Monthly Target Backoffice Clients  Client Id  Monthly Target Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Monthly Target",
+        "tags": [
+          "client-hub-backoffice"
+        ]
+      }
+    },
     "/backoffice/cockpit-summary": {
       "get": {
         "operationId": "get_cockpit_summary_backoffice_cockpit_summary_get",
@@ -26042,6 +26317,47 @@
           }
         },
         "summary": "Create Scan",
+        "tags": [
+          "local-radar"
+        ]
+      }
+    },
+    "/backoffice/local-radar/scans/import": {
+      "post": {
+        "operationId": "import_scan_backoffice_local_radar_scans_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalRadarImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalRadarScanDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Scan",
         "tags": [
           "local-radar"
         ]

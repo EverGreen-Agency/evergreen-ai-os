@@ -756,6 +756,26 @@ export interface paths {
         patch: operations["update_certification_backoffice_certifications__certification_id__patch"];
         trace?: never;
     };
+    "/backoffice/clients/{client_id}/monthly-target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Monthly Target
+         * @description Meta de leads e verba do mês — fecha o ciclo meta x realizado no rollup.
+         */
+        put: operations["set_monthly_target_backoffice_clients__client_id__monthly_target_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/cockpit-summary": {
         parameters: {
             query?: never;
@@ -956,6 +976,23 @@ export interface paths {
         put?: never;
         /** Create Scan */
         post: operations["create_scan_backoffice_local_radar_scans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/local-radar/scans/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Scan */
+        post: operations["import_scan_backoffice_local_radar_scans_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4763,6 +4800,8 @@ export interface components {
             impressions: number;
             /** Roas */
             roas: number;
+            /** Search Impression Share */
+            search_impression_share?: number | null;
         };
         /** AdsDailyPoint */
         AdsDailyPoint: {
@@ -7322,6 +7361,32 @@ export interface components {
              */
             script_id: string;
         };
+        /** LocalRadarImportRequest */
+        LocalRadarImportRequest: {
+            /** City */
+            city: string;
+            /** Niche */
+            niche: string;
+            /** Rows */
+            rows: components["schemas"]["LocalRadarImportRow"][];
+        };
+        /** LocalRadarImportRow */
+        LocalRadarImportRow: {
+            /** Address */
+            address?: string | null;
+            /** Google Maps Url */
+            google_maps_url?: string | null;
+            /** Name */
+            name: string;
+            /** Phone */
+            phone?: string | null;
+            /** Rating */
+            rating?: number | null;
+            /** Rating Count */
+            rating_count?: number | null;
+            /** Website */
+            website?: string | null;
+        };
         /** LocalRadarProspect */
         LocalRadarProspect: {
             /** Address */
@@ -7334,6 +7399,11 @@ export interface components {
             audit_mode?: ("live" | "preview") | null;
             /** Business Status */
             business_status?: string | null;
+            /**
+             * Changes
+             * @default []
+             */
+            changes: string[];
             /**
              * Created At
              * Format: date-time
@@ -7438,6 +7508,12 @@ export interface components {
             /** Query Text */
             query_text: string;
             /**
+             * Source
+             * @default places
+             * @enum {string}
+             */
+            source: "places" | "import";
+            /**
              * Status
              * @enum {string}
              */
@@ -7467,6 +7543,12 @@ export interface components {
             prospect_count: number;
             /** Query Text */
             query_text: string;
+            /**
+             * Source
+             * @default places
+             * @enum {string}
+             */
+            source: "places" | "import";
             /**
              * Status
              * @enum {string}
@@ -7918,6 +8000,13 @@ export interface components {
              * @default 50
              */
             quality_score: number;
+        };
+        /** MonthlyTargetRequest */
+        MonthlyTargetRequest: {
+            /** Budget Cents */
+            budget_cents?: number | null;
+            /** Target Leads */
+            target_leads?: number | null;
         };
         /**
          * MyTaskSummary
@@ -8672,6 +8761,8 @@ export interface components {
          * @description Uma linha por cliente: investimento por canal e leads no período.
          */
         PortfolioPerformanceRow: {
+            /** Budget Cents */
+            budget_cents?: number | null;
             /**
              * Client Id
              * Format: uuid
@@ -8690,6 +8781,8 @@ export interface components {
              * @enum {string}
              */
             status: "onboarding" | "active" | "paused" | "completed" | "archived";
+            /** Target Leads */
+            target_leads?: number | null;
             /** Total Leads */
             total_leads: number;
             /** Total Spend Cents */
@@ -14463,6 +14556,43 @@ export interface operations {
             };
         };
     };
+    set_monthly_target_backoffice_clients__client_id__monthly_target_put: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthlyTargetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioPerformanceRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_cockpit_summary_backoffice_cockpit_summary_get: {
         parameters: {
             query?: never;
@@ -14854,6 +14984,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LocalRadarScanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalRadarScanDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_scan_backoffice_local_radar_scans_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalRadarImportRequest"];
             };
         };
         responses: {

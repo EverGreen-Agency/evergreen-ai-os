@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { WhatsAppProviderType } from "../lib/api";
+import type { LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -48,6 +48,29 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useSetMonthlyTarget() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, targetLeads, budgetCents }: { clientId: string; targetLeads: number | null; budgetCents: number | null }) =>
+      api.setMonthlyTarget(clientId, { target_leads: targetLeads, budget_cents: budgetCents }),
+    onSuccess: (rows) => {
+      // A resposta ja e o rollup recalculado: evita um refetch redundante.
+      queryClient.setQueryData(["portfolio-performance", 30], rows);
+    },
+  });
+}
+
+export function useImportLocalRadarScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { niche: string; city: string; rows: LocalRadarImportRow[] }) =>
+      api.importLocalRadarScan(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
   });
 }
 
@@ -617,18 +640,6 @@ export function useAdminIdeaDoc(id: string | null) {
     queryFn: () => api.adminIdeaDoc(id ?? ""),
     enabled: Boolean(id),
     retry: false,
-  });
-}
-
-export function useSaveEngineeringDoc() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ modId, docType, content, filename }: { modId: string; docType: string; content: string; filename?: string }) => 
-      api.saveEngineeringDoc(modId, docType, content, filename),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "engineering"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "engineering", variables.modId] });
-    },
   });
 }
 

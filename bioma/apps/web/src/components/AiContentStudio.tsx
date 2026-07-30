@@ -31,6 +31,7 @@ import {
   useContentHookBank,
   useContentScripts,
   useCreateCalendarItem,
+  useLinkPostToScript,
   useGenerateContentScripts,
   useGenerateRetrospective,
   useInstagramPosts,
@@ -169,6 +170,7 @@ function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
   const generateScripts = useGenerateContentScripts();
   const updateScript = useUpdateContentScript();
   const createCalendarItem = useCreateCalendarItem();
+  const linkPostToScript = useLinkPostToScript();
 
   const [scriptCount, setScriptCount] = useState(12);
   const [competitorInput, setCompetitorInput] = useState("");
@@ -277,6 +279,64 @@ function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
               </div>
             ))}
           </div>
+        </article>
+      )}
+
+      {/* Fecha o ciclo: o roteiro que a IA gerou virou qual post, e como esse
+          post performou de verdade. Sem isso, `source_script_id` era gravável
+          pela API e invisível na interface — não havia como medir se o roteiro
+          gerado funcionou. */}
+      {hasPosts && (scripts?.length ?? 0) > 0 && (
+        <article className="surface">
+          <SectionHeader
+            eyebrow="Atribuição"
+            title="Qual roteiro virou qual post (e como performou)"
+            icon={Lightbulb}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+            Vincule o post publicado ao roteiro que o originou. As métricas ao lado são as reais
+            sincronizadas do Instagram — é assim que se sabe se o roteiro gerado performou.
+          </p>
+          <div className="table-list">
+            {(posts ?? []).slice(0, 15).map((post) => {
+              const linkedScript = (scripts ?? []).find((script) => script.id === post.source_script_id);
+              return (
+                <div className="table-row" key={post.id}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {post.caption?.slice(0, 70) || post.media_type}
+                    </strong>
+                    <small style={{ color: "var(--text-muted)" }}>
+                      {post.posted_at ? new Date(post.posted_at).toLocaleDateString("pt-BR") : "sem data"} ·{" "}
+                      {post.reach} alcance · {post.likes} likes · {post.saved} salvos
+                    </small>
+                  </div>
+                  <select
+                    value={post.source_script_id ?? ""}
+                    disabled={linkPostToScript.isPending}
+                    onChange={(event) => {
+                      if (!event.target.value) return;
+                      linkPostToScript.mutate({ workspaceId, postId: post.id, scriptId: event.target.value });
+                    }}
+                    style={{ fontSize: 12, maxWidth: 240 }}
+                  >
+                    <option value="">Sem roteiro vinculado</option>
+                    {(scripts ?? []).map((script) => (
+                      <option key={script.id} value={script.id}>
+                        {script.title}
+                      </option>
+                    ))}
+                  </select>
+                  {linkedScript && <span className="demo-badge">roteiro EG</span>}
+                </div>
+              );
+            })}
+          </div>
+          {linkPostToScript.isError && (
+            <div className="notice error" style={{ marginTop: 10 }}>
+              {linkPostToScript.error instanceof Error ? linkPostToScript.error.message : "Falha ao vincular."}
+            </div>
+          )}
         </article>
       )}
 
