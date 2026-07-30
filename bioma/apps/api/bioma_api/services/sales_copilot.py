@@ -40,7 +40,9 @@ from bioma_api.schemas.sales_copilot import (
     SalesCopilotTranscriptSegment,
 )
 from bioma_api.worker_bridge import (
+    analyze_sales_live_window_safe,
     execute_squad_pipeline_safe,
+    sales_live_suggestion_type,
     get_fathom_transcript_safe,
     list_fathom_meetings_safe,
 )
@@ -278,33 +280,35 @@ def analyze_live(
     transcript_window = "\n".join(
         f"{segment['speaker_label'] or 'Falante'}: {segment['content']}" for segment in segments
     )
-    ai_result = execute_squad_pipeline_safe(
-        pilar="conversao",
-        squad_key="sales_copilot_live",
-        input_context={
-            "objective": payload.focus or row["objective"] or "Ajudar a conduzir a reunião",
-            "project_title": row["title"],
-            "project_description": transcript_window[-12_000:],
-            "participants": participants,
-            "knowledge_context": context,
-            "source": "sales_copilot_live_window",
-        },
-        requested_by_user_id=str(user.id),
-    )
-    output = ai_result["output_data"]
-    lowered = transcript_window.lower()
-    objection_markers = ("caro", "preço", "orçamento", "não consigo", "preciso falar", "mas ")
-    suggestion_type = "objection_response" if any(marker in lowered for marker in objection_markers) else "question"
-    recommendation = (
-        output.get("recommendation")
-        or output.get("script_fechamento")
-        or output.get("summary")
-        or (
-            "Valide o impacto, o responsável pela decisão e o próximo passo antes de avançar."
-            if suggestion_type == "question"
-            else "Reconheça a preocupação, confirme o critério por trás da objeção e conecte a resposta a uma evidência."
+    # Caminho dedicado (não o squad genérico): schema fechado, janela recente e
+    # um round-trip. O tipo da sugestão vem da classificação do modelo, não de
+    # busca por palavra — "não ficou caro" deixou de virar objeção de preço.
+    try:
+        ai_result = analyze_sales_live_window_safe(
+            {
+                "objective": payload.focus or row["objective"] or "Ajudar a conduzir a reunião",
+                "title": row["title"],
+                "transcript_window": transcript_window,
+                "participants": participants,
+                "knowledge_context": context,
+            }
         )
-    )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="A análise ao vivo falhou. Tente novamente em alguns segundos.",
+        ) from exc
+
+    output = ai_result["output"]
+    suggestion_type = sales_live_suggestion_type(output.get("moment", ""))
+    recommendation = output.get("suggested_line") or ""
+    rationale_parts = [output.get("rationale") or ""]
+    if output.get("signals"):
+        rationale_parts.append("Sinais: " + " · ".join(output["signals"]))
+    if output.get("next_question"):
+        rationale_parts.append(f"Pergunta que destrava: {output['next_question']}")
+    if output.get("risk"):
+        rationale_parts.append(f"Risco agora: {output['risk']}")
     with connect() as conn:
         _find(conn, session_id, for_update=True)
         copilot_repo.add_suggestion(
@@ -312,9 +316,9 @@ def analyze_live(
             session_id,
             {
                 "suggestion_type": suggestion_type,
-                "title": "Próxima intervenção sugerida",
+                "title": f"Momento: {output.get('moment', 'indefinido')}",
                 "content": str(recommendation),
-                "rationale": "Contexto recente cruzado com cliente, proposta e participantes.",
+                "rationale": " | ".join(part for part in rationale_parts if part),
                 "confidence": None,
                 "source_refs": [
                     {"kind": "transcript_segment", "id": str(segment["id"])}

@@ -73,6 +73,23 @@ def audit_local_prospect_safe(prospect: dict[str, Any], playbook: dict[str, Any]
     return audit_local_prospect(prospect, get_settings(), playbook=playbook)
 
 
+def analyze_sales_live_window_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.sales_live import analyze_live_window
+
+    return analyze_live_window(request, get_settings())
+
+
+def sales_live_suggestion_type(moment: str) -> str:
+    if not _ensure_worker_in_path():
+        return "question"
+    from bioma_worker.sales_live import suggestion_type_for
+
+    return suggestion_type_for(moment)
+
+
 def list_fathom_meetings_safe(created_after: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
