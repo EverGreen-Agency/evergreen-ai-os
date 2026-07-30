@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CopilotSurface, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
+import type { AgentSkillStatus, CopilotSurface, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -48,6 +48,71 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useAgentMemories(workspaceId: string | null, includeGlobal = true) {
+  return useQuery({
+    queryKey: ["agent-memories", workspaceId, includeGlobal],
+    queryFn: () => api.listAgentMemories(workspaceId, includeGlobal),
+  });
+}
+
+export function useCreateAgentMemory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Parameters<typeof api.createAgentMemory>[0]) => api.createAgentMemory(payload),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useUpdateAgentMemory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, body, reason }: { memoryId: string; body: string; reason: string }) =>
+      api.updateAgentMemory(memoryId, { body, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useSetAgentMemoryStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, status, reason }: { memoryId: string; status: "active" | "archived"; reason: string }) =>
+      api.setAgentMemoryStatus(memoryId, { status, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useAgentMemoryRevisions(memoryId: string | null) {
+  return useQuery({
+    queryKey: ["agent-memory-revisions", memoryId],
+    queryFn: () => api.listAgentMemoryRevisions(memoryId as string),
+    enabled: Boolean(memoryId),
+  });
+}
+
+export function useAgentSkills(workspaceId: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) {
+  return useQuery({
+    queryKey: ["agent-skills", workspaceId, includeGlobal, statusFilter],
+    queryFn: () => api.listAgentSkills(workspaceId, includeGlobal, statusFilter),
+  });
+}
+
+export function useReviewAgentSkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ skillId, status, reviewNote }: { skillId: string; status: "approved" | "rejected"; reviewNote?: string }) =>
+      api.reviewAgentSkill(skillId, { status, review_note: reviewNote ?? null }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-skills"] }),
+  });
+}
+
+export function useRetireAgentSkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (skillId: string) => api.retireAgentSkill(skillId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-skills"] }),
   });
 }
 

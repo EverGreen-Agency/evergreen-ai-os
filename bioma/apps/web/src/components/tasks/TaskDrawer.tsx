@@ -27,7 +27,7 @@ import { groupForStatus, statusesForFrente } from "../../lib/task-frentes";
 /** Substitui o "chat da tarefa" do ClickUp: histórico preso à tarefa em vez de
  *  espalhado no WhatsApp. Comentário nasce interno; só vai ao cliente quando
  *  marcado de propósito, porque o Hub é o mesmo lugar onde ele aprova. */
-function TaskCommentsSection({ taskId }: { taskId: string }) {
+function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspaceId?: string }) {
   const { data: comments = [], isLoading } = useTaskComments(taskId);
   const createComment = useCreateTaskComment();
   const deleteComment = useDeleteTaskComment();
@@ -55,7 +55,7 @@ function TaskCommentsSection({ taskId }: { taskId: string }) {
     if (!message) return;
     setCopilotResult(null);
     runCopilot.mutate(
-      { message, surface: "task", task_id: taskId },
+      { message, surface: "task", task_id: taskId, workspace_id: workspaceId },
       {
         onSuccess: (result) => {
           setCopilotResult(result);
@@ -834,7 +834,7 @@ export function TaskDrawer({
             />
           </label>
 
-          {taskId && <TaskCommentsSection taskId={taskId} />}
+          {taskId && <TaskCommentsSection taskId={taskId} workspaceId={workspaceId} />}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>

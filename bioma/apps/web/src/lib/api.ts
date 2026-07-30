@@ -1100,6 +1100,51 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type AgentMemoryCategory = "identity" | "fact" | "preference" | "directive";
+
+export type AgentMemory = {
+  id: string;
+  workspace_id: string | null;
+  category: AgentMemoryCategory;
+  title: string;
+  body: string;
+  authored_by: string | null;
+  status: "active" | "archived";
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgentMemoryRevision = {
+  id: string;
+  memory_id: string;
+  action: "created" | "updated" | "archived" | "restored";
+  previous_body: string | null;
+  new_body: string | null;
+  actor_user_id: string | null;
+  reason: string;
+  created_at: string;
+};
+
+export type AgentSkillStatus = "pending_review" | "approved" | "rejected" | "retired";
+
+export type AgentSkill = {
+  id: string;
+  workspace_id: string | null;
+  name: string;
+  description: string;
+  procedure: string;
+  status: AgentSkillStatus;
+  proposed_by: string | null;
+  source_context: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  use_count: number;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CopilotSurface = "task" | "workspace";
 
 export type CopilotCommand = {
@@ -3081,6 +3126,29 @@ export const api = {
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
   salesCopilotSession: (sessionId: string) =>
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  listAgentMemories: (workspaceId?: string | null, includeGlobal = true) => {
+    const params = new URLSearchParams({ include_global: String(includeGlobal) });
+    if (workspaceId) params.set("workspace_id", workspaceId);
+    return request<AgentMemory[]>(`/agent-memory/memories?${params.toString()}`);
+  },
+  createAgentMemory: (payload: { workspace_id?: string | null; category: AgentMemoryCategory; title: string; body: string; reason: string }) =>
+    request<AgentMemory>("/agent-memory/memories", { method: "POST", body: JSON.stringify(payload) }),
+  updateAgentMemory: (memoryId: string, payload: { body: string; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  setAgentMemoryStatus: (memoryId: string, payload: { status: "active" | "archived"; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}/status`, { method: "PATCH", body: JSON.stringify(payload) }),
+  listAgentMemoryRevisions: (memoryId: string) =>
+    request<AgentMemoryRevision[]>(`/agent-memory/memories/${memoryId}/revisions`),
+  listAgentSkills: (workspaceId?: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) => {
+    const params = new URLSearchParams({ include_global: String(includeGlobal) });
+    if (workspaceId) params.set("workspace_id", workspaceId);
+    if (statusFilter) params.set("status", statusFilter);
+    return request<AgentSkill[]>(`/agent-memory/skills?${params.toString()}`);
+  },
+  reviewAgentSkill: (skillId: string, payload: { status: "approved" | "rejected"; review_note?: string | null }) =>
+    request<AgentSkill>(`/agent-memory/skills/${skillId}/review`, { method: "POST", body: JSON.stringify(payload) }),
+  retireAgentSkill: (skillId: string) =>
+    request<AgentSkill>(`/agent-memory/skills/${skillId}/retire`, { method: "POST" }),
   copilotCommands: (surface: CopilotSurface) =>
     request<CopilotCommand[]>(`/copilot/commands?surface=${surface}`),
   runCopilot: (payload: {

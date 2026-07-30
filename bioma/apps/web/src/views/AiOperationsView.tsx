@@ -2,6 +2,8 @@ import { FormEvent, useMemo, useState } from "react";
 import { Bot, CheckCircle2, Download, Play, ShieldCheck, Workflow } from "lucide-react";
 
 import { EmptyState, SectionHeader } from "../components/shared";
+import { AgentMemoryPanel } from "../components/AgentMemoryPanel";
+import { AgentSkillReviewPanel } from "../components/AgentSkillReviewPanel";
 import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
@@ -60,6 +62,16 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
       {error && <div className="notice error">{error.message}</div>}
 
       <AiControlPlanePanel />
+
+      {/* Memória global do copiloto (SOUL.md-equivalente + aprendizados
+          cross-cliente) e a fila de skills que ele mesmo propõe — nenhuma
+          entra em uso sem aprovação. */}
+      <AgentMemoryPanel
+        workspaceId={null}
+        title="Memória global do copiloto"
+        description="Identidade, tom e diretivas que valem em qualquer cliente — separado do tom de voz de cada conta, que fica no Contexto do cliente."
+      />
+      <AgentSkillReviewPanel workspaceId={null} />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">

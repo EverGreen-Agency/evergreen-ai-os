@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CheckCircle2, Save } from "lucide-react";
 
+import { AgentMemoryPanel } from "./AgentMemoryPanel";
+import { AgentSkillReviewPanel } from "./AgentSkillReviewPanel";
+import { useCurrentUser } from "../hooks/useBiomaApi";
 import { api, type ClientProfile, type ClientProfilePayload } from "../lib/api";
 
 
@@ -73,6 +76,8 @@ export function ClientProfilePanel({ workspaceId, accessRole }: { workspaceId: s
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canManage = MANAGE_ROLES.has(accessRole);
+  const { data: currentUser } = useCurrentUser();
+  const isEgAdmin = currentUser?.organizations.some((org: { role: string }) => org.role === "eg_admin") ?? false;
 
   useEffect(() => {
     let cancelled = false;
@@ -172,6 +177,19 @@ export function ClientProfilePanel({ workspaceId, accessRole }: { workspaceId: s
           </button>
           {profile.updated_at && <small><CheckCircle2 size={14} /> Atualizado em {new Date(profile.updated_at).toLocaleString("pt-BR")}</small>}
         </footer>
+      )}
+
+      {/* Memória do copiloto sobre ESTE cliente — EG-only mesmo dentro do hub
+          do cliente, o usuário do cliente nunca vê isso. */}
+      {isEgAdmin && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 8 }}>
+          <AgentMemoryPanel
+            workspaceId={workspaceId}
+            title="Memória do copiloto sobre este cliente"
+            description="Fatos, preferências e diretivas que o copiloto guarda entre conversas — visível só para o time EG."
+          />
+          <AgentSkillReviewPanel workspaceId={workspaceId} />
+        </div>
       )}
     </section>
   );
