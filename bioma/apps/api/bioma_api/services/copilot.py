@@ -14,12 +14,12 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime, timezone
-from uuid import UUID
 
 from fastapi import HTTPException, status
 
 from bioma_api.access import is_platform_admin, require_platform_admin
 from bioma_api.db import connect
+from bioma_api.repositories import agent_memory as memory_repo
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.repositories import workspaces as workspaces_repo
@@ -35,8 +35,11 @@ from bioma_api.worker_bridge import copilot_action_catalog, copilot_plan_safe
 # Por superfície, o que o copiloto pode propor. Uma superfície não enxerga ação
 # que não faz sentido nela — reduz o espaço de erro do modelo.
 SURFACE_ACTIONS = {
-    "task": ["create_subtasks", "set_due_date", "set_status", "add_comment", "summarize_thread", "answer_only"],
-    "workspace": ["answer_only", "summarize_thread"],
+    "task": [
+        "create_subtasks", "set_due_date", "set_status", "add_comment",
+        "summarize_thread", "answer_only", "remember_fact", "propose_skill",
+    ],
+    "workspace": ["answer_only", "summarize_thread", "remember_fact", "propose_skill"],
 }
 
 
@@ -107,7 +110,14 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
             )
             continue
 
-        actions.append(_execute(name, spec, params, proposed.get("why", ""), task_row, user))
+        actions.append(_execute(name, spec, params, proposed.get("why", ""), task_row, user, payload.workspace_id))
+
+    skill_ids_by_name: dict[str, str] = context.get("skill_ids_by_name") or {}
+    used_skill_ids = [skill_ids_by_name[name] for name in output.get("skills_used", []) if name in skill_ids_by_name]
+    if used_skill_ids:
+        with connect() as conn:
+            for skill_id in used_skill_ids:
+                memory_repo.record_skill_use(conn, skill_id)
 
     sources = [
         CopilotSource(kind=source.get("kind", "bioma"), reference=source.get("reference", ""))
@@ -179,6 +189,28 @@ def _build_dossier(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[
             "stale_connections": len(summary["stale_connections"]),
             "radar_prospects_awaiting": summary["radar_prospects_awaiting"],
         }
+
+        # Memória persistente (global da EG + do workspace, quando há um em
+        # contexto) e skills já aprovadas — é o que faz o copiloto não perguntar
+        # de novo o que já foi dito, e não redescobrir procedimento já resolvido.
+        workspace_uuid = payload.workspace_id
+        memories = memory_repo.list_memories(conn, workspace_uuid, include_global=True)
+        dossier["memories"] = [
+            {
+                "scope": "global" if row["workspace_id"] is None else "workspace",
+                "category": row["category"],
+                "title": row["title"],
+                "body": row["body"],
+                "authored_by_agent": row["authored_by"] is None,
+            }
+            for row in memories
+        ]
+        skills = memory_repo.list_skills(conn, workspace_uuid, include_global=True, status="approved")
+        dossier["approved_skills"] = [
+            {"name": row["name"], "description": row["description"], "procedure": row["procedure"]}
+            for row in skills
+        ]
+        context["skill_ids_by_name"] = {row["name"]: str(row["id"]) for row in skills}
     return dossier, context, task_row
 
 
@@ -198,6 +230,7 @@ def _execute(
     why: str,
     task_row: dict | None,
     user: CurrentUserResponse,
+    workspace_id=None,
 ) -> CopilotAction:
     """Executa ação reversível e devolve como desfazer."""
 
@@ -215,6 +248,34 @@ def _execute(
 
     if name in ("summarize_thread", "answer_only"):
         return done("Nada foi alterado.")
+
+    if name == "remember_fact":
+        category = params.get("category")
+        title = (params.get("title") or "").strip()
+        body = (params.get("body") or "").strip()
+        if category not in ("fact", "preference", "directive") or not title or not body:
+            return failed("Categoria, título e conteúdo são obrigatórios para guardar na memória.")
+        with connect() as conn:
+            memory_repo.create_memory(
+                conn, workspace_id, category, title[:200], body[:4000], None, "Escrito pelo copiloto durante a conversa."
+            )
+        scope = "deste workspace" if workspace_id else "global da EG"
+        return done(f'Memória "{title}" guardada ({scope}).', "Arquive a memória na tela de memórias para desfazer.")
+
+    if name == "propose_skill":
+        skill_name = (params.get("name") or "").strip()
+        description = (params.get("description") or "").strip()
+        procedure = (params.get("procedure") or "").strip()
+        if not skill_name or not description or not procedure:
+            return failed("Nome, descrição e procedimento são obrigatórios para propor uma skill.")
+        with connect() as conn:
+            memory_repo.create_skill(
+                conn, workspace_id, skill_name[:120], description[:300], procedure[:6000], None, why[:2000] or None
+            )
+        return done(
+            f'Skill "{skill_name}" proposta — aguardando aprovação de um admin EG.',
+            "Rejeite a skill na fila de revisão para descartar.",
+        )
 
     if not task_row:
         return failed("Esta ação exige uma tarefa em contexto.")

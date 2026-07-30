@@ -69,14 +69,37 @@ ACTION_CATALOG: dict[str, dict[str, Any]] = {
         "params": [],
         "description": "Nenhuma alteração — a pergunta é respondida com fontes.",
     },
+    "remember_fact": {
+        "label": "Guardar na memória",
+        "reversible": True,
+        "params": ["category", "title", "body"],
+        "description": (
+            "Guarda um fato/preferência/diretiva reutilizável nas próximas conversas. "
+            "category: fact|preference|directive. Fica marcado como escrito pelo agente."
+        ),
+    },
+    "propose_skill": {
+        "label": "Propor procedimento novo (skill)",
+        "reversible": True,
+        "params": ["name", "description", "procedure"],
+        "description": (
+            "Propõe um procedimento reutilizável descoberto na conversa. NÃO fica ativo "
+            "sozinho — só passa a ser seguido depois que um admin EG aprovar."
+        ),
+    },
 }
 
 PLAN_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["answer", "actions", "sources", "confidence"],
+    "required": ["answer", "actions", "sources", "confidence", "skills_used"],
     "properties": {
         "answer": {"type": "string"},
+        "skills_used": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Nomes exatos das skills de dossier.approved_skills que orientaram esta resposta.",
+        },
         "actions": {
             "type": "array",
             "items": {
@@ -126,6 +149,18 @@ Regras obrigatórias:
   de executar — proponha, nunca prometa que já fez.
 - `confidence: "baixa"` quando o dossiê não cobre a pergunta.
 - Português do Brasil, direto, sem preâmbulo.
+
+Sobre memória (dossier.memories) e procedimentos (dossier.approved_skills):
+- releia a memória e as skills aprovadas ANTES de responder — elas existem pra
+  você não perguntar de novo o que já foi dito, nem redescobrir um procedimento
+  já resolvido antes;
+- ao citar algo da memória como fonte, use `reference` no formato
+  "memória: <título>";
+- quando você descobrir, nesta conversa, um fato reutilizável sobre o cliente
+  ou a operação (não uma trivialidade de uma vez só), proponha `remember_fact`;
+- quando resolver algo que exigiu vários passos não óbvios e que provavelmente
+  vai se repetir, proponha `propose_skill` — ela só passa a valer depois que um
+  humano aprovar, então proponha sem medo de errar o tom.
 """.strip()
 
 
@@ -257,4 +292,5 @@ def _preview_plan(request: dict[str, Any]) -> dict[str, Any]:
         "actions": [],
         "sources": [{"kind": "bioma", "reference": f"dossiê: {key}"} for key in populated],
         "confidence": "baixa",
+        "skills_used": [],
     }

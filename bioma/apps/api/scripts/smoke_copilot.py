@@ -80,7 +80,9 @@ def main() -> None:
     assert "send_whatsapp" not in names, "acao visivel ao cliente nao pertence a superficie tarefa"
     workspace_commands = admin.get("/copilot/commands?surface=workspace")
     assert_status(workspace_commands, 200, "comandos do workspace")
-    assert {item["name"] for item in workspace_commands.json()} <= {"answer_only", "summarize_thread"}
+    # Superfície workspace tem ações reversíveis de memória/skill além de responder —
+    # o que ela NÃO pode ter é ação visível ao cliente (send_whatsapp etc.).
+    assert "send_whatsapp" not in {item["name"] for item in workspace_commands.json()}, "acao visivel ao cliente vazou pra superficie workspace"
     print(f"catalogo por superficie OK ({len(names)} comandos em tarefa)")
 
     # Tarefa de teste.
