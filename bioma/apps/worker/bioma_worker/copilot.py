@@ -78,6 +78,17 @@ ACTION_CATALOG: dict[str, dict[str, Any]] = {
             "category: fact|preference|directive. Fica marcado como escrito pelo agente."
         ),
     },
+    "request_improvement": {
+        "label": "Registrar necessidade de melhoria",
+        "reversible": True,
+        "params": ["title", "need", "evidence", "client_deliverable"],
+        "description": (
+            "Use quando o cliente precisa de algo que NAO existe no catalogo atual "
+            "(tipo de widget novo, modulo novo). Registra a necessidade com evidencia "
+            "para o time EG avaliar. client_deliverable=true quando for entrega que o "
+            "cliente espera; false quando for melhoria interna de plataforma."
+        ),
+    },
     "propose_skill": {
         "label": "Propor procedimento novo (skill)",
         "reversible": True,

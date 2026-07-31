@@ -21,6 +21,7 @@ from bioma_api.routers import (
     feature_flags,
     files,
     health,
+    improvement_requests,
     integrations,
     invites,
     kits,
@@ -111,6 +112,7 @@ app.include_router(briefing.router)
 app.include_router(copilot.router)
 app.include_router(agent_memory.router)
 app.include_router(feature_flags.router)
+app.include_router(improvement_requests.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)

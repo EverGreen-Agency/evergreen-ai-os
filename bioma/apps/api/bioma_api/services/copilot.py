@@ -21,6 +21,7 @@ from bioma_api.access import is_platform_admin, require_platform_admin
 from bioma_api.db import connect
 from bioma_api.repositories import agent_memory as memory_repo
 from bioma_api.repositories import client_hub as client_hub_repo
+from bioma_api.repositories import improvement_requests as improvement_repo
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -38,8 +39,12 @@ SURFACE_ACTIONS = {
     "task": [
         "create_subtasks", "set_due_date", "set_status", "add_comment",
         "summarize_thread", "answer_only", "remember_fact", "propose_skill",
+        "request_improvement",
     ],
-    "workspace": ["answer_only", "summarize_thread", "remember_fact", "propose_skill"],
+    "workspace": [
+        "answer_only", "summarize_thread", "remember_fact", "propose_skill",
+        "request_improvement",
+    ],
 }
 
 
@@ -261,6 +266,30 @@ def _execute(
             )
         scope = "deste workspace" if workspace_id else "global da EG"
         return done(f'Memória "{title}" guardada ({scope}).', "Arquive a memória na tela de memórias para desfazer.")
+
+    if name == "request_improvement":
+        title = (params.get("title") or "").strip()
+        need = (params.get("need") or "").strip()
+        if not title or not need:
+            return failed("Título e necessidade são obrigatórios para registrar a melhoria.")
+        with connect() as conn:
+            improvement_repo.create(
+                conn,
+                {
+                    "workspace_id": workspace_id,
+                    "title": title[:200],
+                    "need": need[:4000],
+                    "evidence": (params.get("evidence") or why or "")[:4000] or None,
+                    "client_deliverable": bool(params.get("client_deliverable")),
+                    # NULL = proposta pelo copiloto, não digitada por alguém.
+                    "proposed_by": None,
+                },
+            )
+        destino = "entrega do cliente" if params.get("client_deliverable") else "melhoria interna"
+        return done(
+            f'Necessidade "{title}" registrada como {destino} — aguardando sua revisão.',
+            "Rejeite na fila de melhorias para descartar.",
+        )
 
     if name == "propose_skill":
         skill_name = (params.get("name") or "").strip()
