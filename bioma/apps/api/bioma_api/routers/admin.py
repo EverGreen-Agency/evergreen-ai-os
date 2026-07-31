@@ -23,6 +23,8 @@ from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from bioma_api.access import require_platform_admin
+from bioma_api.db import connect
+from bioma_api.repositories import knowledge as knowledge_repo
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 
@@ -103,38 +105,70 @@ class EngineeringDocData(BaseModel):
     content: str
 
 
+# Stack e Ideias saíram do disco (`_opensquad/_memory/`) para o Postgres.
+# Motivo: `_opensquad/` fica fora do contexto de build do Dockerfile, então
+# essas telas nunca funcionaram em staging/produção — liam vazio e a escrita
+# devolvia 503. O conteúdo inicial é semeado por `scripts/seed_knowledge.py`.
+
+
 @router.get("/stack")
 def get_stack(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        return {"techs": []}
-    return _read_json(paths["stack"]) or {"techs": []}
+    with connect() as conn:
+        rows = knowledge_repo.list_techs(conn)
+    return {
+        "techs": [
+            {
+                "id": row["slug"],
+                "name": row["name"],
+                "ring": row["ring"],
+                "quadrant": row["quadrant"],
+                "note": row["note"],
+                "adr": row["adr"],
+                "source": row["source"],
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.post("/stack")
 def save_stack(data: StackData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Indisponível neste ambiente.")
-    _merge_save(paths["stack"], "techs", data.techs)
-    return {"status": "ok"}
+    with connect() as conn:
+        saved = knowledge_repo.upsert_techs(conn, data.techs)
+    return {"status": "ok", "saved": saved}
 
 
 @router.get("/ideas")
 def get_ideas(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        return {"ideas": []}
-    return _read_json(paths["ideas"]) or {"ideas": []}
+    with connect() as conn:
+        rows = knowledge_repo.list_ideas(conn)
+    return {
+        "ideas": [
+            {
+                "id": row["slug"],
+                "title": row["title"],
+                "desc": row["description"],
+                "category": row["category"],
+                "stage": row["stage"],
+                "horizon": row["horizon"],
+                "origin": row["origin"],
+                "source": row["source"],
+                "readiness": row["readiness"],
+                "part_of": row["part_of"],
+                "depends_on": row["depends_on"],
+                "enables": row["enables"],
+                "archived": row["archived"],
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.post("/ideas")
 def save_ideas(data: IdeasData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Indisponível neste ambiente.")
-    _merge_save(paths["ideas"], "ideas", data.ideas)
-    return {"status": "ok"}
+    with connect() as conn:
+        saved = knowledge_repo.upsert_ideas(conn, data.ideas)
+    return {"status": "ok", "saved": saved}
 
 
 @router.get("/ideas/doc")
