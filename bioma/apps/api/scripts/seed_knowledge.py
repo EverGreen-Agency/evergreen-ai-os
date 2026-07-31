@@ -11,8 +11,8 @@ vazias lá. Com o dado semeado no banco, elas passam a funcionar em qualquer
 ambiente, e o repositório pode ser limpo.
 
 Regra de sobrescrita: o seeder só atualiza o que ele mesmo semeou
-(`seeded = true` / registro sem edição posterior). Documento editado dentro do
-Bioma nunca é revertido por um redeploy.
+(`seeded = true`). Vale para ideias, stack E documentos — qualquer registro
+editado dentro do Bioma deixa de ser semente e nunca é revertido por redeploy.
 """
 
 from pathlib import Path
@@ -66,6 +66,9 @@ def seed_ideas(conn) -> int:
               enables = excluded.enables,
               archived = excluded.archived,
               updated_at = now()
+            -- Só atualiza enquanto o registro continua sendo semente. Editou
+            -- pela tela? O deploy não reverte mais.
+            where eg_ideas.seeded = true
             """,
             (
                 slug,
@@ -109,6 +112,7 @@ def seed_stack(conn) -> int:
               adr = excluded.adr,
               source = excluded.source,
               updated_at = now()
+            where eg_stack_techs.seeded = true
             """,
             (
                 slug,

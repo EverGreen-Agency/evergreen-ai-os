@@ -34,9 +34,9 @@ def upsert_ideas(conn, ideas: list[dict[str, Any]]) -> int:
             """
             insert into eg_ideas (
               slug, title, description, category, stage, horizon, origin, source,
-              readiness, part_of, depends_on, enables, archived
+              readiness, part_of, depends_on, enables, archived, seeded
             )
-            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, false)
             on conflict (slug) do update set
               title = excluded.title, description = excluded.description,
               category = excluded.category, stage = excluded.stage,
@@ -44,7 +44,8 @@ def upsert_ideas(conn, ideas: list[dict[str, Any]]) -> int:
               source = excluded.source, readiness = excluded.readiness,
               part_of = excluded.part_of, depends_on = excluded.depends_on,
               enables = excluded.enables, archived = excluded.archived,
-              updated_at = now()
+              -- Escrita pela tela tira o registro do controle do seeder.
+              seeded = false, updated_at = now()
             """,
             (
                 slug,
@@ -78,12 +79,12 @@ def upsert_techs(conn, techs: list[dict[str, Any]]) -> int:
             continue
         conn.execute(
             """
-            insert into eg_stack_techs (slug, name, ring, quadrant, note, adr, source)
-            values (%s, %s, %s, %s, %s, %s, %s)
+            insert into eg_stack_techs (slug, name, ring, quadrant, note, adr, source, seeded)
+            values (%s, %s, %s, %s, %s, %s, %s, false)
             on conflict (slug) do update set
               name = excluded.name, ring = excluded.ring, quadrant = excluded.quadrant,
               note = excluded.note, adr = excluded.adr, source = excluded.source,
-              updated_at = now()
+              seeded = false, updated_at = now()
             """,
             (
                 slug,
