@@ -126,6 +126,24 @@ def save_doc(conn, path: str, content: str, updated_by: UUID) -> dict[str, Any] 
     ).fetchone()
 
 
+def create_doc(
+    conn, path: str, category: str, title: str, content: str, updated_by: UUID
+) -> dict[str, Any]:
+    """Documento criado dentro do produto nasce com `seeded = false`: nunca foi
+    semente, então o deploy não tem o que reverter."""
+    return conn.execute(
+        f"""
+        insert into eg_knowledge_docs (path, category, title, content, seeded, updated_by)
+        values (%s, %s, %s, %s, false, %s)
+        on conflict (path) do update set
+          content = excluded.content, title = excluded.title,
+          seeded = false, updated_by = excluded.updated_by, updated_at = now()
+        returning {DOC_COLUMNS}
+        """,
+        (path, category, title, content, updated_by),
+    ).fetchone()
+
+
 def search_docs(conn, term: str, limit: int = 10) -> list[dict[str, Any]]:
     """Busca simples para o copiloto usar o conhecimento como dossiê."""
     return conn.execute(

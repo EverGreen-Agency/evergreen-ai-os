@@ -926,8 +926,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Engineering Modules */
-        get: operations["get_engineering_modules_backoffice_engineering_get"];
+        /**
+         * Get Engineering
+         * @description Módulos de engenharia, montados a partir dos documentos no banco.
+         *
+         *     O nome do arquivo achatado carrega a hierarquia original:
+         *     `engineering/<modulo>__spec.md`, `<modulo>__tasks.md`, `<modulo>__adr__*.md`.
+         */
+        get: operations["get_engineering_backoffice_engineering_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -15842,7 +15848,7 @@ export interface operations {
             };
         };
     };
-    get_engineering_modules_backoffice_engineering_get: {
+    get_engineering_backoffice_engineering_get: {
         parameters: {
             query?: never;
             header?: never;

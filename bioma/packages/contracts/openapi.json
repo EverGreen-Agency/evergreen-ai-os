@@ -27799,7 +27799,8 @@
     },
     "/backoffice/engineering": {
       "get": {
-        "operationId": "get_engineering_modules_backoffice_engineering_get",
+        "description": "Módulos de engenharia, montados a partir dos documentos no banco.\n\nO nome do arquivo achatado carrega a hierarquia original:\n`engineering/<modulo>__spec.md`, `<modulo>__tasks.md`, `<modulo>__adr__*.md`.",
+        "operationId": "get_engineering_backoffice_engineering_get",
         "responses": {
           "200": {
             "content": {
@@ -27810,7 +27811,7 @@
             "description": "Successful Response"
           }
         },
-        "summary": "Get Engineering Modules",
+        "summary": "Get Engineering",
         "tags": [
           "backoffice"
         ]

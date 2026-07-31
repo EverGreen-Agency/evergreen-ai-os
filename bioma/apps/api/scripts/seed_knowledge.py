@@ -157,6 +157,33 @@ def seed_docs(conn) -> int:
     return count
 
 
+def seed_engineering(conn) -> int:
+    """Specs, ADRs e tasks por módulo.
+
+    O nome do arquivo achatado (`mod-x__spec.md`, `mod-x__adr__0001.md`) é a
+    chave: preserva a hierarquia original sem precisar de tabela extra.
+    """
+    directory = SEED_DIR / "engineering"
+    if not directory.is_dir():
+        return 0
+    count = 0
+    for path in sorted(directory.glob("*.md")):
+        content = path.read_text(encoding="utf-8", errors="replace")
+        title = path.name.removesuffix(".md").replace("__", " / ")
+        conn.execute(
+            """
+            insert into eg_knowledge_docs (path, category, title, content, seeded)
+            values (%s, 'engineering', %s, %s, true)
+            on conflict (path) do update set
+              content = excluded.content, title = excluded.title, updated_at = now()
+            where eg_knowledge_docs.seeded = true
+            """,
+            (f"engineering/{path.name}", title, content),
+        )
+        count += 1
+    return count
+
+
 def main() -> None:
     if not SEED_DIR.is_dir():
         print("seed_knowledge: seed_data/ ausente, nada a importar.")
@@ -165,7 +192,11 @@ def main() -> None:
         ideas = seed_ideas(conn)
         techs = seed_stack(conn)
         docs = seed_docs(conn)
-    print(f"seed_knowledge: {ideas} ideia(s), {techs} tecnologia(s), {docs} documento(s).")
+        engineering = seed_engineering(conn)
+    print(
+        f"seed_knowledge: {ideas} ideia(s), {techs} tecnologia(s), "
+        f"{docs} documento(s), {engineering} arquivo(s) de engenharia."
+    )
 
 
 if __name__ == "__main__":

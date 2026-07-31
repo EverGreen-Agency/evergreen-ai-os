@@ -99,7 +99,31 @@ def main() -> None:
             assert restored["content"] != marker, "reseed deveria restaurar documento marcado como semente"
             print("reseed restaura documento marcado como semente OK")
 
-        # 4) Busca para o copiloto usar como dossiê.
+        # 4) Engenharia e arquitetura também saíram do disco.
+        engineering = client.get("/backoffice/engineering")
+        assert_status(engineering, 200, "listar engenharia")
+        modules = engineering.json()["modules"]
+        assert len(modules) > 0, "nenhum modulo de engenharia veio do banco"
+        with_spec = [row for row in modules if row["hasSpec"]]
+        assert with_spec, "nenhum modulo com spec"
+        detail = client.get(f"/backoffice/engineering/{with_spec[0]['id']}")
+        assert_status(detail, 200, "detalhe do modulo")
+        assert detail.json()["specContent"], "spec vazia"
+        print(
+            f"engenharia do Postgres OK — {len(modules)} modulos, "
+            f"{len(detail.json()['adrs'])} ADR(s) no primeiro com spec"
+        )
+
+        architecture = client.get("/backoffice/architecture")
+        assert_status(architecture, 200, "arquitetura")
+        assert len(architecture.json()["md"]) > 100, "documento de arquitetura veio vazio ou truncado"
+        print(f"arquitetura do Postgres OK — {len(architecture.json()['md'])} chars")
+
+        assert_status(client.get("/backoffice/engineering/modulo-inexistente"), 404, "modulo inexistente")
+        assert_status(client.get("/backoffice/engineering/INVALIDO"), 400, "mod_id invalido")
+        print("modulo inexistente 404 e id invalido 400 OK")
+
+        # 5) Busca para o copiloto usar como dossiê.
         with connect() as conn:
             found = repo.search_docs(conn, "Bioma", limit=5)
         print(f"busca em documentos OK — {len(found)} resultado(s) para 'Bioma'")
