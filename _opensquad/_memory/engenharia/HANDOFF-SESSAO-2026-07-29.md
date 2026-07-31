@@ -574,3 +574,53 @@ revisados:
    idêntico em 3 routers. Mudar o contrato de uma função compartilhada quebrou
    os 3 de uma vez. Sempre `grep` por outros chamadores antes de assumir que
    há só um.
+
+---
+
+## Avanço 2026-07-31 — migração do conhecimento e ciclo do copiloto
+
+- **`0073`+`0074` — conhecimento sai do disco.** Ideias (149), stack (42), docs
+  (17) e engenharia (50 arquivos, 31 módulos) agora vivem no Postgres. As telas
+  Banco de Ideias, Stack, Arquitetura e Engenharia **funcionam em staging e
+  produção pela primeira vez** — antes liam `_opensquad/_memory/` do disco, que
+  fica fora do contexto de build do Dockerfile.
+  - Como o dado viaja: `bioma/apps/api/seed_data/` (762 KB, dentro do build) +
+    `scripts/seed_knowledge.py` no boot, chamado por `start.py`.
+  - **BUG grave pego pelo Eduardo:** o guard de sobrescrita existia só em
+    documentos. Ideias e stack seriam revertidas ao arquivo **a cada deploy**,
+    apagando silenciosamente toda edição feita na tela. Corrigido: as três
+    tabelas têm `seeded`; escrita pelo produto marca `false` e o deploy nunca
+    mais toca no registro. Provado com teste explícito.
+  - Binários (PDF de 15 MB + 14 MB de inputs) **não** entram no deploy —
+    mapeados em `seed_data/binarios-para-storage.json` para irem ao storage.
+- **`0074` — visibilidade por tarefa.** Não existia (só comentários tinham).
+  Sem isso não dava para misturar entrega do cliente e trabalho interno no mesmo
+  board. Filtro no **backend** (esconder no front deixaria a tarefa interna
+  viajando no payload do cliente). Default `true` preserva o comportamento atual.
+- **`0075` — Caminho B: requisição de melhoria.** O copiloto ganhou
+  `request_improvement`: quando percebe necessidade que o catálogo não atende,
+  registra com evidência. A fila é **caixa de entrada** (transitória); aprovar
+  **converte em tarefa** e o item sai — nunca aparece nos dois lugares, que era
+  a sobreposição que o Eduardo apontou. `client_deliverable` decide a
+  visibilidade da tarefa criada.
+- **`CopilotWorkbench`** — memória, habilidades, planos, melhorias e liberação
+  de features numa aba só, com contador do que espera revisão. Antes eram
+  painéis empilhados em duas telas.
+- **Sidebar** volta a mostrar só `v0.2.0`; branch e commit saíram da interface
+  (não dizem nada ao cliente) e vivem em `window.__BIOMA_BUILD__`.
+- **Release:** PRs #6 e #7 mergeados, main em 0.2.0, develop sincronizada. O
+  release-please continua falhando por permissão **de organização** — o ajuste é
+  em `github.com/organizations/EverGreen-Agency/settings/actions`, não no repo.
+  Sem tag para a 0.2.0 porque o PR #7 foi criado à mão, sem os labels que o
+  release-please usa; o próximo ciclo resolve.
+- Validado: **33/33 smokes**, `tsc`, build, contrato regenerado, tudo pushado.
+
+### Decisões que continuam com o Eduardo
+
+1. **Cadência de aprovação do Superagent** — ele é ação visível ao cliente por
+   definição, e a regra atual exige confirmação individual. Ou o Superagent não
+   funciona, ou a regra vira "aprova o padrão uma vez".
+2. **Permissão de Actions na organização** — destrava o release automático.
+3. **Limpar `_opensquad/`** — nenhum endpoint depende mais dele, mas o
+   Opensquad como ferramenta de trabalho continua útil. Recomendação: só depois
+   que os binários subirem para o storage.

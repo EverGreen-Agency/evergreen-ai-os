@@ -366,18 +366,55 @@ sentido, entra como mais uma conta no control plane.
 
 ---
 
+## Estado da limpeza do Opensquad (2026-07-31)
+
+**Nenhum endpoint do produto depende mais de `_opensquad/` existir.** As quatro
+telas que liam do disco (Banco de Ideias, Stack, Arquitetura, Engenharia) agora
+leem do Postgres e funcionam em staging/produção pela primeira vez.
+
+Como o dado viaja: `bioma/apps/api/seed_data/` (762 KB, dentro do contexto de
+build do Dockerfile) + `scripts/seed_knowledge.py` rodando no boot. Idempotente
+e com guard de sobrescrita nas **três** tabelas — registro editado dentro do
+produto nunca é revertido por redeploy.
+
+O que ainda está no repositório e pode sair, **decisão do Eduardo**:
+
+| Alvo | Situação | Risco de apagar |
+|---|---|---|
+| `_opensquad/_browser_profile/` (32 MB) | cache do Playwright, **já gitignored** | nenhum — some local |
+| `_opensquad/core/` (1,1 MB) | framework superado pelo copiloto | nenhum para o produto; quebra rodar squads via Claude Code |
+| `_opensquad/_memory/` (30 MB) | **migrado**; 15 MB são um PDF + 14 MB de inputs | os binários precisam ir para o storage antes |
+| `squads/` (4 MB) | 6 de 9 absorvidos; só existem como string `source_ref` | nenhum para o produto |
+
+**Recomendação:** não apagar ainda. O Opensquad como *ferramenta de trabalho*
+(rodar squads via Claude Code para produzir specs e análises) continua útil, e o
+custo de mantê-lo no repositório agora é só espaço. A limpeza natural é quando
+os binários subirem para o storage.
+
+---
+
 ## Ordem sugerida de ataque
 
-1. ~~**Documentação da API + Fóton**~~ — feito em `bioma/docs/api-externa.md`
-2. ~~**Feature flags por cliente**~~ — feito (`0071`, catálogo em
-   `bioma_api/feature_flags.py`, smoke próprio)
-3. ~~**Copiloto executável multi-etapa** (§1.2)~~ — feito (`0072`,
-   `copilot_plans`, 7 regras de segurança validadas em smoke)
-4. **Migrar `_opensquad/_memory` para o Postgres** (§2-B) — destrava 4 telas que
-   hoje só funcionam em dev, e só depois disso a limpeza do repo é segura
-5. **Aba de personalização unificada** (§1.3) — hoje memória, skills e planos
-   estão em painéis separados; falta a cara de produto (estilo Claude)
-6. **Superagent / cobrança ativa** (§3.3) — depende da decisão sobre cadência
-7. **Modelo pipeline/rep da Univet** (§4) — depende da negociação
-8. **Biblioteca de widgets** (§4) — depende do modelo normalizado
-9. **PostHog** (§5) — quando houver volume de uso
+1. ~~**Documentação da API + Fóton**~~ — `bioma/docs/api-externa.md`
+2. ~~**Feature flags por cliente**~~ — `0071`, catálogo em
+   `bioma_api/feature_flags.py`
+3. ~~**Copiloto executável multi-etapa** (§1.2)~~ — `0072`, `copilot_plans`,
+   7 regras de segurança validadas em smoke
+4. ~~**Migrar `_opensquad/_memory` para o Postgres** (§2-B)~~ — `0073`+`0074`;
+   ideias, stack, docs, engenharia e arquitetura. As 4 telas funcionam em
+   produção pela primeira vez
+5. ~~**Aba de personalização unificada** (§1.3)~~ — `CopilotWorkbench` com abas
+   Memória / Habilidades / Planos / Melhorias / Liberação e contadores do que
+   espera revisão
+6. ~~**Caminho B: requisição de melhoria**~~ — `0075`; o copiloto registra o que
+   o catálogo não atende, com evidência, e a fila converte em tarefa com a
+   visibilidade certa
+7. **Superagent / cobrança ativa** (§3.3) — **depende de decisão sua** sobre
+   cadência de aprovação
+8. **Modelo pipeline/rep da Univet** (§4) — depende da negociação fechar
+9. **Biblioteca de widgets** (§4) — depende do modelo normalizado da Univet
+10. **`propose_widget` / `propose_workflow_preset`** — depende do catálogo de
+    widgets existir (item 9)
+11. **Binários para o storage** (PDF do manual de marca + inputs, 29 MB) —
+    depois disso o repo pode ser limpo
+12. **PostHog** (§5) — quando houver volume de uso
