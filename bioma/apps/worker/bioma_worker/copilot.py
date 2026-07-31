@@ -164,6 +164,120 @@ Sobre memória (dossier.memories) e procedimentos (dossier.approved_skills):
 """.strip()
 
 
+MULTISTEP_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["summary", "steps", "open_questions"],
+    "properties": {
+        "summary": {"type": "string"},
+        "steps": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["action", "label", "params", "why"],
+                "properties": {
+                    "action": {"type": "string", "enum": sorted(ACTION_CATALOG)},
+                    "label": {"type": "string"},
+                    "params": {"type": "string"},
+                    "why": {"type": "string"},
+                },
+            },
+        },
+        # O que o plano NÃO consegue responder sozinho. É o que substitui o
+        # formulário: em vez de exigir preenchimento antes, o copiloto monta o
+        # que dá e devolve as perguntas que faltam.
+        "open_questions": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
+PLANNER_INSTRUCTIONS = """
+Você é o planejador do copiloto do Bioma. Recebe um objetivo do time EG e monta
+uma SEQUÊNCIA de ações do catálogo que atinge esse objetivo.
+
+Regras obrigatórias:
+- use SOMENTE ações do catálogo recebido; nada fora dele;
+- cada `params` é uma STRING com JSON válido dos parâmetros daquela ação;
+- ordene as etapas por dependência real (o que precisa existir antes);
+- máximo de 10 etapas — se o objetivo for maior, cubra a primeira fase e diga o
+  resto em `open_questions`;
+- NÃO invente dado do cliente. Se falta informação para uma etapa, não chute:
+  coloque a pergunta em `open_questions` e deixe a etapa de fora;
+- `label` é o que um humano lê para aprovar: descreva o efeito, não a mecânica
+  ("Criar as 5 subtarefas da campanha", não "chamar create_subtasks");
+- prefira poucas etapas certas a muitas etapas plausíveis.
+""".strip()
+
+
+def plan_multistep(
+    request: dict[str, Any],
+    settings,
+    http_client: httpx.Client | None = None,
+) -> dict[str, Any]:
+    """Monta um plano de N etapas. Não executa nada — quem executa é a API,
+    depois da aprovação humana."""
+    if not settings.openai_api_key:
+        return {
+            "output": {
+                "summary": (
+                    "Prévia local: nenhum plano foi gerado (OPENAI_API_KEY não configurada). "
+                    "O objetivo foi registrado, mas as etapas exigem interpretação de IA."
+                ),
+                "steps": [],
+                "open_questions": ["Configure OPENAI_API_KEY para o copiloto montar o plano."],
+            },
+            "generation_mode": "preview",
+        }
+
+    payload = {
+        "model": settings.openai_model,
+        "instructions": PLANNER_INSTRUCTIONS,
+        "input": json.dumps(
+            {
+                "goal": request.get("goal"),
+                "context": request.get("context") or {},
+                "dossier": request.get("dossier") or {},
+                "available_actions": {
+                    name: {
+                        "description": spec["description"],
+                        "params": spec["params"],
+                        "requires_human_confirmation": not spec["reversible"],
+                    }
+                    for name, spec in ACTION_CATALOG.items()
+                    if name in (request.get("allowed_actions") or list(ACTION_CATALOG))
+                },
+            },
+            ensure_ascii=False,
+            default=str,
+        ),
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "bioma_copilot_multistep",
+                "strict": True,
+                "schema": MULTISTEP_SCHEMA,
+            }
+        },
+        "max_output_tokens": 2500,
+        "store": False,
+    }
+    headers = {"Authorization": f"Bearer {settings.openai_api_key}", "Content-Type": "application/json"}
+    owns_client = http_client is None
+    client = http_client or httpx.Client(
+        base_url="https://api.openai.com",
+        timeout=settings.openai_request_timeout_seconds,
+    )
+    try:
+        response = client.post("/v1/responses", headers=headers, json=payload)
+        response.raise_for_status()
+        response_data = response.json()
+    finally:
+        if owns_client:
+            client.close()
+
+    return {"output": json.loads(_output_text(response_data)), "generation_mode": "live"}
+
+
 def plan(request: dict[str, Any], settings, http_client: httpx.Client | None = None) -> dict[str, Any]:
     if not settings.openai_api_key:
         return {
