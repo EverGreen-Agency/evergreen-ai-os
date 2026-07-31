@@ -2132,6 +2132,8 @@ export type TaskPayload = {
   project_id?: string | null;
   /** Subtarefa real: trocou de responsável ou prazo. Checklist é `subtasks`. */
   parent_task_id?: string | null;
+  /** Falso esconde a tarefa do usuário do cliente (filtrado no backend). */
+  client_visible?: boolean;
   custom_fields?: TaskCustomField[];
   dependencies?: TaskDependency[];
   /** Itens de CHECKLIST (etapas da mesma tarefa, sem responsável/prazo). */

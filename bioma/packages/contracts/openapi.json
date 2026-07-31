@@ -21979,6 +21979,11 @@
             ],
             "title": "Assignee Id"
           },
+          "client_visible": {
+            "default": true,
+            "title": "Client Visible",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -22275,6 +22280,11 @@
               }
             ],
             "title": "Assignee Id"
+          },
+          "client_visible": {
+            "default": true,
+            "title": "Client Visible",
+            "type": "boolean"
           },
           "custom_fields": {
             "items": {
@@ -22683,6 +22693,17 @@
               }
             ],
             "title": "Assignee Id"
+          },
+          "client_visible": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Visible"
           },
           "custom_fields": {
             "anyOf": [

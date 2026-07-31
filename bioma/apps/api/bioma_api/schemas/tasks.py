@@ -92,6 +92,9 @@ class TaskBase(BaseModel):
     start_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = "none"
+    # Falso esconde a tarefa do usuário do cliente. Default True preserva o
+    # comportamento anterior (o board do cliente já era visível por inteiro).
+    client_visible: bool = True
     # Frente (lista) define os status; projeto define escopo/contrato/datas.
     project_id: Optional[UUID] = None
     # Subtarefa real: preenchido quando o trabalho trocou de responsável ou de
@@ -114,6 +117,7 @@ class TaskUpdate(BaseModel):
     start_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     recurrence: Optional[Literal["none", "weekly", "monthly"]] = None
+    client_visible: Optional[bool] = None
     project_id: Optional[UUID] = None
     parent_task_id: Optional[UUID] = None
     custom_fields: Optional[list[TaskCustomFieldBase]] = None

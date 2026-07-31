@@ -147,7 +147,22 @@ def get_tasks_in_list(list_id: UUID, user: CurrentUserResponse) -> list[Task]:
     with connect() as conn:
         context = tasks_repo.find_list_context(conn, list_id, is_platform_admin(user), user.id)
         _authorize(context, user, "view", "Lista de tarefas não encontrada.")
-        return [Task(**row) for row in tasks_repo.list_tasks(conn, list_id)]
+        rows = tasks_repo.list_tasks(conn, list_id)
+    # Filtro no backend, não na tela: esconder no front deixaria a tarefa
+    # interna viajando no payload para o navegador do cliente.
+    if not _sees_internal_tasks(user):
+        rows = [row for row in rows if row["client_visible"]]
+    return [Task(**row) for row in rows]
+
+
+def _sees_internal_tasks(user: CurrentUserResponse) -> bool:
+    """Quem é da EG vê tudo; usuário do cliente só o que é visível a ele."""
+    if is_platform_admin(user):
+        return True
+    return any(
+        organization.role in ("eg_admin", "tenant_admin") or organization.slug == "eg"
+        for organization in user.organizations
+    )
 
 
 def create_task(list_id: UUID, data: TaskCreate, user: CurrentUserResponse) -> Task:

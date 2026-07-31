@@ -12844,6 +12844,11 @@ export interface components {
             /** Assignee Id */
             assignee_id?: string | null;
             /**
+             * Client Visible
+             * @default true
+             */
+            client_visible: boolean;
+            /**
              * Created At
              * Format: date-time
              */
@@ -12947,6 +12952,11 @@ export interface components {
         TaskCreate: {
             /** Assignee Id */
             assignee_id?: string | null;
+            /**
+             * Client Visible
+             * @default true
+             */
+            client_visible: boolean;
             /** Custom Fields */
             custom_fields?: components["schemas"]["TaskCustomFieldBase"][];
             /** Dependencies */
@@ -13128,6 +13138,8 @@ export interface components {
         TaskUpdate: {
             /** Assignee Id */
             assignee_id?: string | null;
+            /** Client Visible */
+            client_visible?: boolean | null;
             /** Custom Fields */
             custom_fields?: components["schemas"]["TaskCustomFieldBase"][] | null;
             /** Dependencies */
