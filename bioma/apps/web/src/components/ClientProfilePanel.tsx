@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CheckCircle2, Save } from "lucide-react";
 
-import { AgentMemoryPanel } from "./AgentMemoryPanel";
-import { AgentSkillReviewPanel } from "./AgentSkillReviewPanel";
-import { CopilotPlansPanel } from "./CopilotPlansPanel";
-import { FeatureFlagsPanel } from "./FeatureFlagsPanel";
-import { ImprovementQueuePanel } from "./ImprovementQueuePanel";
+import { CopilotWorkbench } from "./CopilotWorkbench";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { api, type ClientProfile, type ClientProfilePayload } from "../lib/api";
 
@@ -191,19 +187,16 @@ export function ClientProfilePanel({
         </footer>
       )}
 
-      {/* Memória do copiloto sobre ESTE cliente — EG-only mesmo dentro do hub
-          do cliente, o usuário do cliente nunca vê isso. */}
+      {/* EG-only mesmo dentro do hub do cliente: o usuário do cliente nunca vê
+          a memória, os planos nem a fila de melhorias sobre ele. */}
       {isEgAdmin && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 8 }}>
-          <AgentMemoryPanel
+        <div style={{ marginTop: 16 }}>
+          <CopilotWorkbench
             workspaceId={workspaceId}
-            title="Memória do copiloto sobre este cliente"
-            description="Fatos, preferências e diretivas que o copiloto guarda entre conversas — visível só para o time EG."
+            organizationId={organizationId}
+            title="Copiloto neste cliente"
+            description="O que o copiloto sabe, o que ele já aprendeu a fazer e o que está esperando sua revisão."
           />
-          <AgentSkillReviewPanel workspaceId={workspaceId} />
-          <CopilotPlansPanel workspaceId={workspaceId} />
-          <ImprovementQueuePanel workspaceId={workspaceId} />
-          {organizationId && <FeatureFlagsPanel organizationId={organizationId} />}
         </div>
       )}
     </section>
