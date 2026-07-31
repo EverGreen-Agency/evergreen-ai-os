@@ -1100,6 +1100,25 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type ImprovementRequestStatus = "pending" | "converted" | "rejected";
+
+export type ImprovementRequest = {
+  id: string;
+  workspace_id: string | null;
+  title: string;
+  need: string;
+  evidence: string | null;
+  client_deliverable: boolean;
+  status: ImprovementRequestStatus;
+  proposed_by: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  task_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type FeatureState = "hidden" | "coming_soon" | "beta" | "active";
 
 export type FeatureFlag = {
@@ -3172,6 +3191,30 @@ export const api = {
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
   salesCopilotSession: (sessionId: string) =>
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  listImprovementRequests: (statusFilter?: ImprovementRequestStatus, workspaceId?: string | null) => {
+    const params = new URLSearchParams();
+    if (statusFilter) params.set("status", statusFilter);
+    if (workspaceId) params.set("workspace_id", workspaceId);
+    const query = params.toString();
+    return request<ImprovementRequest[]>(`/improvement-requests${query ? `?${query}` : ""}`);
+  },
+  createImprovementRequest: (payload: {
+    title: string;
+    need: string;
+    evidence?: string | null;
+    workspace_id?: string | null;
+    client_deliverable?: boolean;
+  }) => request<ImprovementRequest>("/improvement-requests", { method: "POST", body: JSON.stringify(payload) }),
+  convertImprovementRequest: (requestId: string, payload: { list_id: string; review_note?: string | null }) =>
+    request<ImprovementRequest>(`/improvement-requests/${requestId}/convert`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  rejectImprovementRequest: (requestId: string, reviewNote?: string) =>
+    request<ImprovementRequest>(`/improvement-requests/${requestId}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ review_note: reviewNote ?? null }),
+    }),
   listFeatureFlags: (organizationId: string) =>
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags`),
   upsertFeatureFlag: (organizationId: string, payload: { feature_key: string; state: FeatureState; note?: string | null }) =>

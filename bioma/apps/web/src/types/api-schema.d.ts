@@ -3056,6 +3056,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/improvement-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Requests */
+        get: operations["list_requests_improvement_requests_get"];
+        put?: never;
+        /** Create Request */
+        post: operations["create_request_improvement_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/improvement-requests/{request_id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert To Task
+         * @description Vira tarefa de verdade — com prazo e dono — e sai da fila.
+         */
+        post: operations["convert_to_task_improvement_requests__request_id__convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/improvement-requests/{request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Request */
+        post: operations["reject_request_improvement_requests__request_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/github/deliverables/{deliverable_id}/issue": {
         parameters: {
             query?: never;
@@ -7768,6 +7823,87 @@ export interface components {
             id: string;
             /** Provider */
             provider: string;
+        };
+        /** ImprovementRequest */
+        ImprovementRequest: {
+            /** Client Deliverable */
+            client_deliverable: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Evidence */
+            evidence: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Need */
+            need: string;
+            /** Proposed By */
+            proposed_by: string | null;
+            /** Review Note */
+            review_note: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "converted" | "rejected";
+            /** Task Id */
+            task_id: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /**
+         * ImprovementRequestConvert
+         * @description Converte em tarefa. `list_id` decide a frente (Tech, Growth, Social).
+         */
+        ImprovementRequestConvert: {
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * List Id
+             * Format: uuid
+             */
+            list_id: string;
+            /** Owner Id */
+            owner_id?: string | null;
+            /** Review Note */
+            review_note?: string | null;
+        };
+        /** ImprovementRequestCreate */
+        ImprovementRequestCreate: {
+            /**
+             * Client Deliverable
+             * @default false
+             */
+            client_deliverable: boolean;
+            /** Evidence */
+            evidence?: string | null;
+            /** Need */
+            need: string;
+            /** Title */
+            title: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** ImprovementRequestReject */
+        ImprovementRequestReject: {
+            /** Review Note */
+            review_note?: string | null;
         };
         /** InstagramPostSummary */
         InstagramPostSummary: {
@@ -20578,6 +20714,141 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    list_requests_improvement_requests_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                workspace_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_request_improvement_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    convert_to_task_improvement_requests__request_id__convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestConvert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_request_improvement_requests__request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestReject"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

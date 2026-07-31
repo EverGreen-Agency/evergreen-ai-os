@@ -5,6 +5,7 @@ import { EmptyState, SectionHeader } from "../components/shared";
 import { AgentMemoryPanel } from "../components/AgentMemoryPanel";
 import { AgentSkillReviewPanel } from "../components/AgentSkillReviewPanel";
 import { CopilotPlansPanel } from "../components/CopilotPlansPanel";
+import { ImprovementQueuePanel } from "../components/ImprovementQueuePanel";
 import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
@@ -77,6 +78,9 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
       {/* Planos multi-etapa: objetivo em linguagem natural vira sequencia
           de acoes reais, aprovada antes de rodar. */}
       <CopilotPlansPanel workspaceId={null} />
+
+      {/* Caminho B: necessidade que o catalogo nao atende vira tarefa aqui. */}
+      <ImprovementQueuePanel workspaceId={workspaceId} />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">

@@ -5,6 +5,7 @@ import { AgentMemoryPanel } from "./AgentMemoryPanel";
 import { AgentSkillReviewPanel } from "./AgentSkillReviewPanel";
 import { CopilotPlansPanel } from "./CopilotPlansPanel";
 import { FeatureFlagsPanel } from "./FeatureFlagsPanel";
+import { ImprovementQueuePanel } from "./ImprovementQueuePanel";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { api, type ClientProfile, type ClientProfilePayload } from "../lib/api";
 
@@ -201,6 +202,7 @@ export function ClientProfilePanel({
           />
           <AgentSkillReviewPanel workspaceId={workspaceId} />
           <CopilotPlansPanel workspaceId={workspaceId} />
+          <ImprovementQueuePanel workspaceId={workspaceId} />
           {organizationId && <FeatureFlagsPanel organizationId={organizationId} />}
         </div>
       )}
