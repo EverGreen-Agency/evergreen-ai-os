@@ -4,6 +4,7 @@ import { Bot, CheckCircle2, Download, Play, ShieldCheck, Workflow } from "lucide
 import { EmptyState, SectionHeader } from "../components/shared";
 import { AgentMemoryPanel } from "../components/AgentMemoryPanel";
 import { AgentSkillReviewPanel } from "../components/AgentSkillReviewPanel";
+import { CopilotPlansPanel } from "../components/CopilotPlansPanel";
 import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
@@ -72,6 +73,10 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
         description="Identidade, tom e diretivas que valem em qualquer cliente — separado do tom de voz de cada conta, que fica no Contexto do cliente."
       />
       <AgentSkillReviewPanel workspaceId={null} />
+
+      {/* Planos multi-etapa: objetivo em linguagem natural vira sequencia
+          de acoes reais, aprovada antes de rodar. */}
+      <CopilotPlansPanel workspaceId={null} />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">

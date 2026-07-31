@@ -18,6 +18,7 @@ from bioma_api.routers import (
     commercial,
     content_intelligence,
     copilot,
+    feature_flags,
     files,
     health,
     integrations,
@@ -109,6 +110,7 @@ app.include_router(local_radar.router)
 app.include_router(briefing.router)
 app.include_router(copilot.router)
 app.include_router(agent_memory.router)
+app.include_router(feature_flags.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)

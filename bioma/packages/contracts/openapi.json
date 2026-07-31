@@ -5141,6 +5141,198 @@
         "title": "CopilotCommand",
         "type": "object"
       },
+      "CopilotPlan": {
+        "properties": {
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "generation_mode": {
+            "enum": [
+              "live",
+              "preview"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "goal": {
+            "title": "Goal",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "open_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Questions",
+            "type": "array"
+          },
+          "requires_confirmation_count": {
+            "title": "Requires Confirmation Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending_approval",
+              "approved",
+              "running",
+              "completed",
+              "failed",
+              "rejected",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotPlanStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "goal",
+          "summary",
+          "status",
+          "generation_mode",
+          "requires_confirmation_count"
+        ],
+        "title": "CopilotPlan",
+        "type": "object"
+      },
+      "CopilotPlanRequest": {
+        "description": "Objetivo em linguagem natural — o copiloto monta a sequência.",
+        "properties": {
+          "goal": {
+            "maxLength": 2000,
+            "minLength": 2,
+            "title": "Goal",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "goal"
+        ],
+        "title": "CopilotPlanRequest",
+        "type": "object"
+      },
+      "CopilotPlanStep": {
+        "properties": {
+          "action_name": {
+            "title": "Action Name",
+            "type": "string"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "executed",
+              "failed",
+              "skipped",
+              "blocked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "undo_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Undo Hint"
+          },
+          "why": {
+            "default": "",
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "action_name",
+          "label",
+          "status"
+        ],
+        "title": "CopilotPlanStep",
+        "type": "object"
+      },
       "CopilotRequest": {
         "properties": {
           "allow_web_search": {
@@ -5971,6 +6163,112 @@
           }
         },
         "title": "FathomMeetingInvitee",
+        "type": "object"
+      },
+      "FeatureFlag": {
+        "description": "Estado efetivo de uma feature para uma organização.\n\n`is_override` distingue \"alguém decidiu isso para este cliente\" de \"está\nvalendo o default do catálogo\" — sem isso não dá para saber se um estado é\nintencional ou herdado.",
+        "properties": {
+          "accessible": {
+            "title": "Accessible",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "feature_key": {
+            "title": "Feature Key",
+            "type": "string"
+          },
+          "is_override": {
+            "title": "Is Override",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "state": {
+            "enum": [
+              "hidden",
+              "coming_soon",
+              "beta",
+              "active"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "feature_key",
+          "label",
+          "description",
+          "state",
+          "is_override",
+          "accessible"
+        ],
+        "title": "FeatureFlag",
+        "type": "object"
+      },
+      "FeatureFlagUpsert": {
+        "properties": {
+          "feature_key": {
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Feature Key",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "state": {
+            "enum": [
+              "hidden",
+              "coming_soon",
+              "beta",
+              "active"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_key",
+          "state"
+        ],
+        "title": "FeatureFlagUpsert",
         "type": "object"
       },
       "FinOpsSummaryResponse": {
@@ -34051,6 +34349,278 @@
         ]
       }
     },
+    "/copilot/plans": {
+      "get": {
+        "operationId": "list_plans_copilot_plans_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CopilotPlan"
+                  },
+                  "title": "Response List Plans Copilot Plans Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Plans",
+        "tags": [
+          "copilot"
+        ]
+      },
+      "post": {
+        "description": "Monta um plano de N etapas a partir de um objetivo. NÃO executa nada.",
+        "operationId": "create_plan_copilot_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Plan",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/plans/{plan_id}": {
+      "get": {
+        "operationId": "get_plan_copilot_plans__plan_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Plan",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/plans/{plan_id}/approve": {
+      "post": {
+        "description": "Aprova e executa as etapas reversíveis. As visíveis ao cliente continuam\nbloqueadas, aguardando confirmação individual.",
+        "operationId": "approve_plan_copilot_plans__plan_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Plan",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/plans/{plan_id}/reject": {
+      "post": {
+        "operationId": "reject_plan_copilot_plans__plan_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject Plan",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/plans/{plan_id}/steps/{step_id}/confirm": {
+      "post": {
+        "description": "Confirma individualmente uma etapa visível ao cliente.",
+        "operationId": "confirm_step_copilot_plans__plan_id__steps__step_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "step_id",
+            "required": true,
+            "schema": {
+              "title": "Step Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Step",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "healthcheck_health_get",
@@ -34560,6 +35130,166 @@
         "summary": "Setup Kommo Config",
         "tags": [
           "integrations"
+        ]
+      }
+    },
+    "/organizations/{organization_id}/feature-flags": {
+      "get": {
+        "description": "Estado efetivo de cada feature — inclui o que está 'em breve'.",
+        "operationId": "list_flags_organizations__organization_id__feature_flags_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureFlag"
+                  },
+                  "title": "Response List Flags Organizations  Organization Id  Feature Flags Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Flags",
+        "tags": [
+          "feature-flags"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_flag_organizations__organization_id__feature_flags_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureFlagUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureFlag"
+                  },
+                  "title": "Response Upsert Flag Organizations  Organization Id  Feature Flags Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Flag",
+        "tags": [
+          "feature-flags"
+        ]
+      }
+    },
+    "/organizations/{organization_id}/feature-flags/{feature_key}": {
+      "delete": {
+        "description": "Remove a exceção e volta ao default do catálogo.",
+        "operationId": "clear_flag_organizations__organization_id__feature_flags__feature_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "feature_key",
+            "required": true,
+            "schema": {
+              "title": "Feature Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureFlag"
+                  },
+                  "title": "Response Clear Flag Organizations  Organization Id  Feature Flags  Feature Key  Delete",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear Flag",
+        "tags": [
+          "feature-flags"
         ]
       }
     },

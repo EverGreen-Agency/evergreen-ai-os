@@ -1100,6 +1100,50 @@ export type LocalRadarProspect = {
   updated_at: string;
 };
 
+export type FeatureState = "hidden" | "coming_soon" | "beta" | "active";
+
+export type FeatureFlag = {
+  feature_key: string;
+  label: string;
+  description: string;
+  state: FeatureState;
+  is_override: boolean;
+  accessible: boolean;
+  note: string | null;
+  updated_at: string | null;
+};
+
+export type CopilotPlanStatus =
+  | "pending_approval" | "approved" | "running" | "completed" | "failed" | "rejected" | "cancelled";
+
+export type CopilotPlanStepStatus =
+  | "pending" | "running" | "executed" | "failed" | "skipped" | "blocked";
+
+export type CopilotPlanStep = {
+  id: string;
+  position: number;
+  action_name: string;
+  label: string;
+  params: Record<string, unknown>;
+  why: string;
+  status: CopilotPlanStepStatus;
+  detail: string | null;
+  undo_hint: string | null;
+};
+
+export type CopilotPlan = {
+  id: string;
+  workspace_id: string | null;
+  goal: string;
+  summary: string;
+  status: CopilotPlanStatus;
+  generation_mode: "live" | "preview";
+  requires_confirmation_count: number;
+  error_message: string | null;
+  steps: CopilotPlanStep[];
+  open_questions: string[];
+};
+
 export type AgentMemoryCategory = "identity" | "fact" | "preference" | "directive";
 
 export type AgentMemory = {
@@ -3126,6 +3170,24 @@ export const api = {
   salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
   salesCopilotSession: (sessionId: string) =>
     request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  listFeatureFlags: (organizationId: string) =>
+    request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags`),
+  upsertFeatureFlag: (organizationId: string, payload: { feature_key: string; state: FeatureState; note?: string | null }) =>
+    request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags`, { method: "PUT", body: JSON.stringify(payload) }),
+  clearFeatureFlag: (organizationId: string, featureKey: string) =>
+    request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags/${featureKey}`, { method: "DELETE" }),
+  createCopilotPlan: (payload: { goal: string; workspace_id?: string | null }) =>
+    request<CopilotPlan>("/copilot/plans", { method: "POST", body: JSON.stringify(payload) }),
+  listCopilotPlans: (workspaceId?: string | null) => {
+    const params = workspaceId ? `?workspace_id=${workspaceId}` : "";
+    return request<CopilotPlan[]>(`/copilot/plans${params}`);
+  },
+  approveCopilotPlan: (planId: string) =>
+    request<CopilotPlan>(`/copilot/plans/${planId}/approve`, { method: "POST" }),
+  rejectCopilotPlan: (planId: string) =>
+    request<CopilotPlan>(`/copilot/plans/${planId}/reject`, { method: "POST" }),
+  confirmCopilotPlanStep: (planId: string, stepId: string) =>
+    request<CopilotPlan>(`/copilot/plans/${planId}/steps/${stepId}/confirm`, { method: "POST" }),
   listAgentMemories: (workspaceId?: string | null, includeGlobal = true) => {
     const params = new URLSearchParams({ include_global: String(includeGlobal) });
     if (workspaceId) params.set("workspace_id", workspaceId);

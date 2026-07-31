@@ -82,6 +82,15 @@ def copilot_plan_safe(request: dict[str, Any]) -> dict[str, Any]:
     return plan(request, get_settings())
 
 
+def copilot_plan_multistep_safe(request: dict[str, Any]) -> dict[str, Any]:
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.copilot import plan_multistep
+
+    return plan_multistep(request, get_settings())
+
+
 def copilot_action_catalog() -> dict[str, Any]:
     """Catalogo de acoes do copiloto. Fonte unica: o worker. A API valida
     reversibilidade contra ele antes de executar qualquer coisa."""

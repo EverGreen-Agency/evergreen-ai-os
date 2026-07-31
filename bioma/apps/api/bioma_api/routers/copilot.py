@@ -2,8 +2,15 @@ from fastapi import APIRouter, Depends, Query
 
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.copilot import CopilotCommand, CopilotRequest, CopilotResponse
+from bioma_api.schemas.copilot import (
+    CopilotCommand,
+    CopilotPlan,
+    CopilotPlanRequest,
+    CopilotRequest,
+    CopilotResponse,
+)
 from bioma_api.services import copilot as service
+from bioma_api.services import copilot_plans as plans_service
 
 router = APIRouter(prefix="/copilot", tags=["copilot"])
 
@@ -27,3 +34,69 @@ def run_copilot(
 ) -> CopilotResponse:
     """Interpreta a mensagem, responde com fontes e executa só o reversível."""
     return service.run(payload, user)
+
+
+# ---------------------------------------------------------------- planos
+
+
+@router.post("/plans", response_model=CopilotPlan, status_code=201)
+def create_plan(
+    payload: CopilotPlanRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotPlan:
+    """Monta um plano de N etapas a partir de um objetivo. NÃO executa nada."""
+    return plans_service.create_plan(payload, user)
+
+
+@router.get("/plans", response_model=list[CopilotPlan])
+def list_plans(
+    workspace_id: str | None = Query(default=None),
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[CopilotPlan]:
+    from uuid import UUID
+
+    return plans_service.list_plans(UUID(workspace_id) if workspace_id else None, user)
+
+
+@router.get("/plans/{plan_id}", response_model=CopilotPlan)
+def get_plan(
+    plan_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotPlan:
+    from uuid import UUID
+
+    return plans_service.get_plan(UUID(plan_id), user)
+
+
+@router.post("/plans/{plan_id}/approve", response_model=CopilotPlan)
+def approve_plan(
+    plan_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotPlan:
+    """Aprova e executa as etapas reversíveis. As visíveis ao cliente continuam
+    bloqueadas, aguardando confirmação individual."""
+    from uuid import UUID
+
+    return plans_service.approve_and_run(UUID(plan_id), user)
+
+
+@router.post("/plans/{plan_id}/reject", response_model=CopilotPlan)
+def reject_plan(
+    plan_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotPlan:
+    from uuid import UUID
+
+    return plans_service.reject_plan(UUID(plan_id), user)
+
+
+@router.post("/plans/{plan_id}/steps/{step_id}/confirm", response_model=CopilotPlan)
+def confirm_step(
+    plan_id: str,
+    step_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotPlan:
+    """Confirma individualmente uma etapa visível ao cliente."""
+    from uuid import UUID
+
+    return plans_service.confirm_step(UUID(plan_id), UUID(step_id), user)

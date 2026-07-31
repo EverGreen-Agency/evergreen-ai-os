@@ -144,6 +144,67 @@ a "é uma ação, uma skill ou um workflow?".
 
 ---
 
+## 2-B. Absorção do Opensquad — análise medida (2026-07-31)
+
+**Hipótese do Eduardo:** "o Bioma já sobressaiu o Opensquad; ele foi (ou falta
+ser) absorvido, e os squads também. Daí só faltaria limpar o repo."
+
+**Está certo em dois terços, e errado no terço que mais importa.** Medição:
+
+| Parte | Tamanho | Situação real |
+|---|---|---|
+| `_opensquad/core/` (framework) | 69 arquivos | **superado** pelo copiloto + skills + planos + memória |
+| `_opensquad/_memory/` (conhecimento) | 160 arquivos | **NÃO absorvido** — lido do disco em runtime |
+| `squads/` (9 squads) | 4 MB | referenciado só como `source_ref` (string), não carregado |
+| Total | 62 MB / 724 arquivos | |
+
+### O achado que muda o plano
+
+Quatro telas do produto leem `_opensquad/_memory/` **do disco, em runtime**:
+
+- Banco de Ideias → `_memory/banco_ideias/ideas.json`
+- Banco de Stack → `_memory/banco_stack/stack.json`
+- Arquitetura → `_memory/banco_arquitetura/arquitetura.md`
+- Engenharia → `_memory/engenharia/`
+- (mais o Wiki, que importa manuais de `_memory/knowledge`)
+
+E o próprio `routers/admin.py` documenta a consequência:
+
+> "Fora do monorepo (produção Railway, onde `_opensquad/` não existe) as
+> leituras respondem vazio e as escritas retornam 503 — é um recurso do
+> ambiente de desenvolvimento EG."
+
+Ou seja: **essas telas só funcionam na máquina do Eduardo.** Em produção elas
+existem no menu e aparecem vazias. Isso é a mesma família de problema que a
+auditoria de superfície morta vinha achando — feature que existe mas não
+funciona onde importa —, só que aqui é por desenho, não por esquecimento.
+
+### Consequência para a limpeza
+
+Apagar `_opensquad/` hoje **quebra essas telas em dev** (em produção elas já não
+funcionam). Então a ordem correta não é "limpar", é:
+
+1. **Migrar o conteúdo para o Postgres** — ideias, stack, arquitetura e docs de
+   engenharia viram tabelas. As telas passam a funcionar em produção pela
+   primeira vez, e o dado deixa de depender de um clone do monorepo.
+2. **Aposentar `_opensquad/core/`** — o framework de orquestração foi mesmo
+   superado pelo que está no produto (catálogo de ações, skills aprovadas,
+   planos multi-etapa, memória versionada).
+3. **Decidir o destino de `squads/`**: os 9 squads viram *presets de workflow*
+   no produto (a direção do §2), ou continuam como referência de trabalho fora
+   dele. Hoje só existem como string em `source_ref` — nenhum código os carrega.
+4. **Só então limpar o repo.**
+
+**O que NÃO deve ser absorvido:** o Opensquad como ferramenta de trabalho da EG
+(rodar squads via Claude Code para produzir specs, análises, documentos). Isso é
+ferramenta interna de quem constrói, não feature vendável — e continua útil.
+
+**Ganho colateral da migração:** com o conhecimento em banco, o copiloto pode ler
+banco de ideias, stack e arquitetura como dossiê — hoje ele não consegue, porque
+esses dados não existem para a API em produção.
+
+---
+
 ## 3. Base44 — features mapeadas dos vídeos
 
 Fonte: dois vídeos analisados pelo Eduardo em 2026-07-31. A tese central é que
@@ -307,11 +368,16 @@ sentido, entra como mais uma conta no control plane.
 
 ## Ordem sugerida de ataque
 
-1. **Documentação da API + Fóton** — feito em `bioma/docs/api-externa.md`
-2. **Feature flags por cliente** — pequeno, destrava liberação gradual
-3. **Copiloto executável multi-etapa** (§1.2) — maior salto de valor
-4. **Aba de personalização + biblioteca de skills** (§1.3)
-5. **Superagent / cobrança ativa** (§3.3) — depende da decisão sobre cadência
-6. **Modelo pipeline/rep da Univet** (§4) — depende da negociação
-7. **Biblioteca de widgets** (§4) — depende do modelo normalizado
-8. **PostHog** (§5) — quando houver volume de uso
+1. ~~**Documentação da API + Fóton**~~ — feito em `bioma/docs/api-externa.md`
+2. ~~**Feature flags por cliente**~~ — feito (`0071`, catálogo em
+   `bioma_api/feature_flags.py`, smoke próprio)
+3. ~~**Copiloto executável multi-etapa** (§1.2)~~ — feito (`0072`,
+   `copilot_plans`, 7 regras de segurança validadas em smoke)
+4. **Migrar `_opensquad/_memory` para o Postgres** (§2-B) — destrava 4 telas que
+   hoje só funcionam em dev, e só depois disso a limpeza do repo é segura
+5. **Aba de personalização unificada** (§1.3) — hoje memória, skills e planos
+   estão em painéis separados; falta a cara de produto (estilo Claude)
+6. **Superagent / cobrança ativa** (§3.3) — depende da decisão sobre cadência
+7. **Modelo pipeline/rep da Univet** (§4) — depende da negociação
+8. **Biblioteca de widgets** (§4) — depende do modelo normalizado
+9. **PostHog** (§5) — quando houver volume de uso

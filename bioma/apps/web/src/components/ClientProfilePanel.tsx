@@ -3,6 +3,8 @@ import { Building2, CheckCircle2, Save } from "lucide-react";
 
 import { AgentMemoryPanel } from "./AgentMemoryPanel";
 import { AgentSkillReviewPanel } from "./AgentSkillReviewPanel";
+import { CopilotPlansPanel } from "./CopilotPlansPanel";
+import { FeatureFlagsPanel } from "./FeatureFlagsPanel";
 import { useCurrentUser } from "../hooks/useBiomaApi";
 import { api, type ClientProfile, type ClientProfilePayload } from "../lib/api";
 
@@ -69,7 +71,16 @@ function profilePayload(profile: ClientProfile): ClientProfilePayload {
   ) as ClientProfilePayload;
 }
 
-export function ClientProfilePanel({ workspaceId, accessRole }: { workspaceId: string; accessRole: string }) {
+export function ClientProfilePanel({
+  workspaceId,
+  accessRole,
+  organizationId,
+}: {
+  workspaceId: string;
+  accessRole: string;
+  // Feature flags são por organização, não por workspace — daí a prop extra.
+  organizationId?: string;
+}) {
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [draft, setDraft] = useState<ClientProfilePayload>({});
   const [busy, setBusy] = useState(true);
@@ -189,6 +200,8 @@ export function ClientProfilePanel({ workspaceId, accessRole }: { workspaceId: s
             description="Fatos, preferências e diretivas que o copiloto guarda entre conversas — visível só para o time EG."
           />
           <AgentSkillReviewPanel workspaceId={workspaceId} />
+          <CopilotPlansPanel workspaceId={workspaceId} />
+          {organizationId && <FeatureFlagsPanel organizationId={organizationId} />}
         </div>
       )}
     </section>

@@ -2920,6 +2920,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Plans */
+        get: operations["list_plans_copilot_plans_get"];
+        put?: never;
+        /**
+         * Create Plan
+         * @description Monta um plano de N etapas a partir de um objetivo. NÃO executa nada.
+         */
+        post: operations["create_plan_copilot_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Plan */
+        get: operations["get_plan_copilot_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/plans/{plan_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve Plan
+         * @description Aprova e executa as etapas reversíveis. As visíveis ao cliente continuam
+         *     bloqueadas, aguardando confirmação individual.
+         */
+        post: operations["approve_plan_copilot_plans__plan_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/plans/{plan_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Plan */
+        post: operations["reject_plan_copilot_plans__plan_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/plans/{plan_id}/steps/{step_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Step
+         * @description Confirma individualmente uma etapa visível ao cliente.
+         */
+        post: operations["confirm_step_copilot_plans__plan_id__steps__step_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -3070,6 +3166,47 @@ export interface paths {
         /** Setup Kommo Config */
         post: operations["setup_kommo_config_integrations__organization_id__kommo_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organization_id}/feature-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Flags
+         * @description Estado efetivo de cada feature — inclui o que está 'em breve'.
+         */
+        get: operations["list_flags_organizations__organization_id__feature_flags_get"];
+        /** Upsert Flag */
+        put: operations["upsert_flag_organizations__organization_id__feature_flags_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organization_id}/feature-flags/{feature_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clear Flag
+         * @description Remove a exceção e volta ao default do catálogo.
+         */
+        delete: operations["clear_flag_organizations__organization_id__feature_flags__feature_key__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -6679,6 +6816,80 @@ export interface components {
             /** Requires Confirmation */
             requires_confirmation: boolean;
         };
+        /** CopilotPlan */
+        CopilotPlan: {
+            /** Error Message */
+            error_message?: string | null;
+            /**
+             * Generation Mode
+             * @enum {string}
+             */
+            generation_mode: "live" | "preview";
+            /** Goal */
+            goal: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Open Questions */
+            open_questions?: string[];
+            /** Requires Confirmation Count */
+            requires_confirmation_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending_approval" | "approved" | "running" | "completed" | "failed" | "rejected" | "cancelled";
+            /** Steps */
+            steps?: components["schemas"]["CopilotPlanStep"][];
+            /** Summary */
+            summary: string;
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /**
+         * CopilotPlanRequest
+         * @description Objetivo em linguagem natural — o copiloto monta a sequência.
+         */
+        CopilotPlanRequest: {
+            /** Goal */
+            goal: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** CopilotPlanStep */
+        CopilotPlanStep: {
+            /** Action Name */
+            action_name: string;
+            /** Detail */
+            detail?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** Position */
+            position: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "executed" | "failed" | "skipped" | "blocked";
+            /** Undo Hint */
+            undo_hint?: string | null;
+            /**
+             * Why
+             * @default
+             */
+            why: string;
+        };
         /** CopilotRequest */
         CopilotRequest: {
             /**
@@ -7004,6 +7215,47 @@ export interface components {
             email?: string | null;
             /** Name */
             name?: string | null;
+        };
+        /**
+         * FeatureFlag
+         * @description Estado efetivo de uma feature para uma organização.
+         *
+         *     `is_override` distingue "alguém decidiu isso para este cliente" de "está
+         *     valendo o default do catálogo" — sem isso não dá para saber se um estado é
+         *     intencional ou herdado.
+         */
+        FeatureFlag: {
+            /** Accessible */
+            accessible: boolean;
+            /** Description */
+            description: string;
+            /** Feature Key */
+            feature_key: string;
+            /** Is Override */
+            is_override: boolean;
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "hidden" | "coming_soon" | "beta" | "active";
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /** FeatureFlagUpsert */
+        FeatureFlagUpsert: {
+            /** Feature Key */
+            feature_key: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "hidden" | "coming_soon" | "beta" | "active";
         };
         /** FinOpsSummaryResponse */
         FinOpsSummaryResponse: {
@@ -20079,6 +20331,195 @@ export interface operations {
             };
         };
     };
+    list_plans_copilot_plans_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_plan_copilot_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopilotPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_copilot_plans__plan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_plan_copilot_plans__plan_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_plan_copilot_plans__plan_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_step_copilot_plans__plan_id__steps__step_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+                step_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     healthcheck_health_get: {
         parameters: {
             query?: never;
@@ -20402,6 +20843,104 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_flags_organizations__organization_id__feature_flags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureFlag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_flag_organizations__organization_id__feature_flags_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeatureFlagUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureFlag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_flag_organizations__organization_id__feature_flags__feature_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+                feature_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureFlag"][];
                 };
             };
             /** @description Validation Error */

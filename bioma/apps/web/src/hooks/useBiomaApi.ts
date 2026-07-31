@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AgentSkillStatus, CopilotSurface, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
+import type { AgentSkillStatus, CopilotSurface, FeatureState, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -48,6 +48,81 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useFeatureFlags(organizationId: string | null) {
+  return useQuery({
+    queryKey: ["feature-flags", organizationId],
+    queryFn: () => api.listFeatureFlags(organizationId as string),
+    enabled: Boolean(organizationId),
+  });
+}
+
+export function useUpsertFeatureFlag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ organizationId, featureKey, state, note }: { organizationId: string; featureKey: string; state: FeatureState; note?: string }) =>
+      api.upsertFeatureFlag(organizationId, { feature_key: featureKey, state, note: note ?? null }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["feature-flags"] }),
+  });
+}
+
+export function useClearFeatureFlag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ organizationId, featureKey }: { organizationId: string; featureKey: string }) =>
+      api.clearFeatureFlag(organizationId, featureKey),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["feature-flags"] }),
+  });
+}
+
+export function useCopilotPlans(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["copilot-plans", workspaceId],
+    queryFn: () => api.listCopilotPlans(workspaceId),
+  });
+}
+
+export function useCreateCopilotPlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { goal: string; workspace_id?: string | null }) => api.createCopilotPlan(payload),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["copilot-plans"] }),
+  });
+}
+
+export function useApproveCopilotPlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (planId: string) => api.approveCopilotPlan(planId),
+    onSuccess: () => {
+      // Um plano aprovado pode ter mexido em memória, tarefas ou skills.
+      void queryClient.invalidateQueries({ queryKey: ["copilot-plans"] });
+      void queryClient.invalidateQueries({ queryKey: ["agent-memories"] });
+      void queryClient.invalidateQueries({ queryKey: ["agent-skills"] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+}
+
+export function useRejectCopilotPlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (planId: string) => api.rejectCopilotPlan(planId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["copilot-plans"] }),
+  });
+}
+
+export function useConfirmCopilotPlanStep() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ planId, stepId }: { planId: string; stepId: string }) =>
+      api.confirmCopilotPlanStep(planId, stepId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["copilot-plans"] });
+      void queryClient.invalidateQueries({ queryKey: ["agent-memories"] });
+    },
   });
 }
 

@@ -50,3 +50,44 @@ class CopilotCommand(BaseModel):
     label: str
     description: str
     requires_confirmation: bool
+
+
+PlanStatus = Literal[
+    "pending_approval", "approved", "running", "completed", "failed", "rejected", "cancelled"
+]
+PlanStepStatus = Literal["pending", "running", "executed", "failed", "skipped", "blocked"]
+
+
+class CopilotPlanRequest(BaseModel):
+    """Objetivo em linguagem natural — o copiloto monta a sequência."""
+    goal: str = Field(min_length=2, max_length=2000)
+    workspace_id: UUID | None = None
+
+
+class CopilotPlanStep(BaseModel):
+    id: UUID
+    position: int
+    action_name: str
+    label: str
+    params: dict[str, Any] = Field(default_factory=dict)
+    why: str = ""
+    status: PlanStepStatus
+    detail: str | None = None
+    undo_hint: str | None = None
+
+
+class CopilotPlan(BaseModel):
+    id: UUID
+    workspace_id: UUID | None
+    goal: str
+    summary: str
+    status: PlanStatus
+    generation_mode: Literal["live", "preview"]
+    # Etapas que continuam pedindo confirmação individual mesmo com o plano
+    # aprovado (ação visível ao cliente).
+    requires_confirmation_count: int
+    error_message: str | None = None
+    steps: list[CopilotPlanStep] = Field(default_factory=list)
+    # Perguntas que o plano não conseguiu responder sozinho — substituem o
+    # formulário que o usuário teria que preencher antes.
+    open_questions: list[str] = Field(default_factory=list)
