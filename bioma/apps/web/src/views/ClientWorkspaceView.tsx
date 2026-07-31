@@ -198,7 +198,11 @@ export function ClientProfileRoute() {
     <ClientModuleBoundary module="hub">
       <div className="workspace-module-panel">
         <Suspense fallback={<ModuleLoading />}>
-          <ClientProfilePanel workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
+          <ClientProfilePanel
+            workspaceId={workspace.workspaceId}
+            accessRole={workspace.accessRole}
+            organizationId={workspace.organizationId}
+          />
         </Suspense>
       </div>
     </ClientModuleBoundary>
