@@ -60,7 +60,7 @@ function formatQuota(quota: AiQuotaSnapshot | null) {
 export function FinanceView({ clientId }: { clientId: string }) {
   const { data: user } = useCurrentUser();
 
-  const isEgAdmin = user?.organizations.some((organization) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
+  const isEgAdmin = user?.organizations.some((organization: { slug: string; role: string }) => organization.slug === "eg" && organization.role === "eg_admin") ?? false;
 
   const { data: financeData, error: financeError } = useFinance(clientId);
 

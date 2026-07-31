@@ -12,7 +12,7 @@ export function ClientsView() {
   const [showNewClientModal, setShowNewClientModal] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useCurrentUser();
-  const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
+  const isEgAdmin = !loadingUser && (user?.organizations.some((org: { role: string }) => org.role === "eg_admin") ?? false);
 
   const { data: clientsData, isLoading: loadingClients } = useClients();
   const clients = externalClients(clientsData ?? []);

@@ -3,7 +3,6 @@ import { Building2 } from "lucide-react";
 import { Navigate, Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
-import { WorkspaceShell } from "../components/WorkspaceShell";
 import { clientHubNavItems } from "../lib/app-config";
 import type { ClientModule, ClientSummary } from "../lib/api";
 import { externalClients } from "../lib/client-scope";
@@ -20,6 +19,7 @@ const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then(
 const AiContentStudio = lazy(() => import("../components/AiContentStudio").then((module) => ({ default: module.AiContentStudio })));
 const AccessVault = lazy(() => import("../components/AccessVault").then((module) => ({ default: module.AccessVault })));
 const ProjectsPanel = lazy(() => import("../components/ProjectsPanel").then((module) => ({ default: module.ProjectsPanel })));
+const ClientProfilePanel = lazy(() => import("../components/ClientProfilePanel").then((module) => ({ default: module.ClientProfilePanel })));
 
 export type ClientWorkspaceOutletContext = {
   client: ClientSummary;
@@ -45,7 +45,7 @@ export function ClientWorkspaceView() {
     (workspace) => workspace.kind === "client" && workspace.client_id === client?.id,
   ) ?? null;
   const isEgAdmin = user?.organizations.some(
-    (organization) => organization.slug === "eg" && organization.role === "eg_admin",
+    (organization: { slug: string; role: string }) => organization.slug === "eg" && organization.role === "eg_admin",
   ) ?? false;
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export function ClientWorkspaceView() {
   const enabledModules = new Set(client.enabled_modules ?? ["hub"]);
   enabledModules.add("hub");
   const visibleItems = clientHubNavItems.filter(
-    (item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin),
+    (item) => enabledModules.has(item.module),
   );
   const workspace = clientWorkspaceContext(client, persistedWorkspace);
   const items = visibleItems.map((item) => ({
@@ -88,11 +88,11 @@ export function ClientWorkspaceView() {
   }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-      <div className="workspace-shell-content" style={{ flex: 1, overflow: "auto", position: "relative" }}>
+    <section className="workspace-shell">
+      <div className="workspace-shell-content">
         <Outlet context={{ client, workspace, isEgAdmin } satisfies ClientWorkspaceOutletContext} />
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -186,6 +186,19 @@ export function ClientProjectsRoute() {
       <div className="workspace-module-panel">
         <Suspense fallback={<ModuleLoading />}>
           <ProjectsPanel workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
+        </Suspense>
+      </div>
+    </ClientModuleBoundary>
+  );
+}
+
+export function ClientProfileRoute() {
+  const { workspace } = useClientWorkspace();
+  return (
+    <ClientModuleBoundary module="hub">
+      <div className="workspace-module-panel">
+        <Suspense fallback={<ModuleLoading />}>
+          <ClientProfilePanel workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
         </Suspense>
       </div>
     </ClientModuleBoundary>

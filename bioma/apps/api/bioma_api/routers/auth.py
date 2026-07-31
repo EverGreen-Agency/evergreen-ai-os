@@ -2,11 +2,18 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from bioma_api.auth import current_user_from_request, session_cookie_kwargs
+from bioma_api.auth import current_user_from_request, session_cookie_kwargs, user_from_session_token
 from bioma_api.config import get_settings
 from bioma_api.db import connect
-from bioma_api.schemas.auth import CurrentUserResponse, LoginRequest, LoginResponse
-from bioma_api.security import hash_session_token, new_session_token, verify_password
+from bioma_api.schemas.auth import (
+    CurrentUserResponse,
+    LoginRequest,
+    LoginResponse,
+    PersonalAccessTokenCreateRequest,
+    PersonalAccessTokenCreatedResponse,
+    PersonalAccessTokenSummary,
+)
+from bioma_api.security import hash_session_token, new_personal_access_token, new_session_token, verify_password
 from bioma_api.services import rate_limit
 
 
@@ -46,7 +53,8 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
     with connect() as conn:
         token = new_session_token()
         token_hash = hash_session_token(token)
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.session_ttl_hours)
+        ttl_hours = 30 * 24 if payload.remember_me else settings.session_ttl_hours
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=ttl_hours)
 
         conn.execute(
             """
@@ -64,8 +72,7 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
         )
 
     response.set_cookie(value=token, **session_cookie_kwargs(expires_at))
-    current = current_user_from_request(_request_from_token(settings.session_cookie_name, token))
-    return LoginResponse(user=current, expires_at=expires_at)
+    return LoginResponse(user=user_from_session_token(token), expires_at=expires_at)
 
 
 @router.post("/logout")
@@ -94,6 +101,148 @@ def me(user: CurrentUserResponse = Depends(current_user_from_request)) -> Curren
     return user
 
 
-class _request_from_token:
-    def __init__(self, cookie_name: str, token: str) -> None:
-        self.cookies = {cookie_name: token}
+@router.get("/sessions")
+def list_sessions(
+    request: Request,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[dict[str, object]]:
+    settings = get_settings()
+    current_token = request.cookies.get(settings.session_cookie_name)
+    current_hash = hash_session_token(current_token) if current_token else None
+
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            select id, created_at, expires_at, token_hash
+            from sessions
+            where user_id = %s
+              and revoked_at is null
+              and expires_at > now()
+            order by created_at desc
+            """,
+            (user.id,),
+        ).fetchall()
+
+    return [
+        {
+            "id": str(row["id"]),
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+            "is_current": current_hash is not None and row["token_hash"] == current_hash,
+        }
+        for row in rows
+    ]
+
+
+@router.delete("/sessions/other")
+def revoke_other_sessions(
+    request: Request,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    settings = get_settings()
+    current_token = request.cookies.get(settings.session_cookie_name)
+    current_hash = hash_session_token(current_token) if current_token else None
+
+    with connect() as conn:
+        if current_hash:
+            conn.execute(
+                """
+                update sessions
+                set revoked_at = now()
+                where user_id = %s
+                  and token_hash != %s
+                  and revoked_at is null
+                """,
+                (user.id, current_hash),
+            )
+        else:
+            conn.execute(
+                "update sessions set revoked_at = now() where user_id = %s and revoked_at is null",
+                (user.id,),
+            )
+    return {"status": "ok"}
+
+
+@router.delete("/sessions/{session_id}")
+def revoke_session(
+    session_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    with connect() as conn:
+        conn.execute(
+            """
+            update sessions
+            set revoked_at = now()
+            where id = %s::uuid and user_id = %s and revoked_at is null
+            """,
+            (session_id, user.id),
+        )
+    return {"status": "ok"}
+
+
+@router.get("/personal-access-tokens", response_model=list[PersonalAccessTokenSummary])
+def list_personal_access_tokens(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[PersonalAccessTokenSummary]:
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            select id, name, token_prefix, last_used_at, expires_at, created_at
+            from personal_access_tokens
+            where user_id = %s and revoked_at is null
+            order by created_at desc
+            """,
+            (user.id,),
+        ).fetchall()
+    return [PersonalAccessTokenSummary(**row) for row in rows]
+
+
+@router.post("/personal-access-tokens", response_model=PersonalAccessTokenCreatedResponse, status_code=status.HTTP_201_CREATED)
+def create_personal_access_token(
+    payload: PersonalAccessTokenCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> PersonalAccessTokenCreatedResponse:
+    token = new_personal_access_token()
+    token_hash = hash_session_token(token)
+    token_prefix = token[:16]
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(days=payload.expires_in_days)
+        if payload.expires_in_days
+        else None
+    )
+
+    with connect() as conn:
+        row = conn.execute(
+            """
+            insert into personal_access_tokens (user_id, name, token_hash, token_prefix, expires_at)
+            values (%s, %s, %s, %s, %s)
+            returning id, name, token_prefix, last_used_at, expires_at, created_at
+            """,
+            (user.id, payload.name.strip(), token_hash, token_prefix, expires_at),
+        ).fetchone()
+        conn.execute(
+            """
+            insert into audit_logs (actor_user_id, event_type, metadata)
+            values (%s, 'auth.personal_access_token.created', jsonb_build_object('name', %s::text))
+            """,
+            (user.id, payload.name.strip()),
+        )
+
+    return PersonalAccessTokenCreatedResponse(token=token, summary=PersonalAccessTokenSummary(**row))
+
+
+@router.delete("/personal-access-tokens/{token_id}")
+def revoke_personal_access_token(
+    token_id: str,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    with connect() as conn:
+        conn.execute(
+            """
+            update personal_access_tokens
+            set revoked_at = now()
+            where id = %s::uuid and user_id = %s and revoked_at is null
+            """,
+            (token_id, user.id),
+        )
+    return {"status": "ok"}

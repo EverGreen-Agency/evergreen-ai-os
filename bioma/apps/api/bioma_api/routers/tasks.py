@@ -3,7 +3,17 @@ from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.tasks import TaskList, TaskListCreate, Task, TaskCreate, TaskUpdate
+from bioma_api.schemas.tasks import (
+    AssignableUser,
+    MyTaskSummary,
+    Task,
+    TaskComment,
+    TaskCommentCreate,
+    TaskCreate,
+    TaskList,
+    TaskListCreate,
+    TaskUpdate,
+)
 from bioma_api.services import tasks as tasks_service
 
 router = APIRouter(prefix="", tags=["tasks"])
@@ -79,3 +89,39 @@ def delete_subtask(
 ):
     tasks_service.delete_subtask(subtask_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/tasks/{task_id}/comments", response_model=list[TaskComment])
+def list_task_comments(
+    task_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[TaskComment]:
+    return tasks_service.list_task_comments(task_id, user)
+
+@router.post("/tasks/{task_id}/comments", response_model=TaskComment, status_code=status.HTTP_201_CREATED)
+def create_task_comment(
+    task_id: UUID,
+    data: TaskCommentCreate,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> TaskComment:
+    return tasks_service.create_task_comment(task_id, data, user)
+
+@router.delete("/task-comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task_comment(
+    comment_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    tasks_service.delete_task_comment(comment_id, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/tasks/me", response_model=list[MyTaskSummary])
+def list_my_tasks(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[MyTaskSummary]:
+    return tasks_service.list_my_tasks(user)
+
+@router.get("/workspaces/{workspace_id}/assignable-users", response_model=list[AssignableUser])
+def list_assignable_users(
+    workspace_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[AssignableUser]:
+    return tasks_service.list_assignable_users(workspace_id, user)

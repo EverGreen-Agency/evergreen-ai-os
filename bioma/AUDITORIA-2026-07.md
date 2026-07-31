@@ -2,6 +2,31 @@
 
 Avaliação geral de código, segurança, negócio e próximos passos, feita por Claude Code (Sonnet 5) a pedido do Eduardo. Complementa `ROADMAP-MVP.md` (estado/backlog) e `DEPLOY.md` (runbook) — não os substitui.
 
+## Adendo de produto — 2026-07-27 (pesquisa de mercado)
+
+O primeiro módulo de referência da ferramenta Spalla foi absorvido como domínio nativo `market_research`, sem copiar suas fragilidades. A referência recebida possui bom fluxo de setor → refinamento → relatório, mas o PDF analisado não vincula afirmações a fontes e repete parte das seções. No Bioma:
+
+- cada pesquisa pertence ao workspace interno da EG, recebe versão própria e é usada exclusivamente para escolher e dominar uma vertical de prospecção;
+- refinamento e relatório usam schema estruturado, com saídas específicas para prospecção, Growth e Social;
+- execução live usa pesquisa web e só aceita URLs efetivamente observadas no retorno do provedor;
+- relatório live insuficientemente fundamentado falha em vez de ser publicado como sucesso;
+- modo sem credencial é `preview` metodológico, sem fatos, fontes ou números inventados;
+- refinamento e geração exigem `manage_work`; não existe leitura, publicação ou navegação de pesquisa no Hub do cliente;
+- tokens são registrados em FinOps e o custo fica desconhecido quando não puder ser calculado com fonte confiável;
+- nenhuma migration foi aplicada e nenhum dado local foi criado nesta implementação.
+
+O contexto de cliente foi absorvido como domínio separado de onboarding, em vez de reutilizar indevidamente a pesquisa de mercado. `workspace_client_profiles` guarda um perfil por workspace de cliente, com dados básicos, contato, negócio, marketing e recursos/preferências. A completude é calculada a partir de campos reais; leitura requer `view`, escrita requer `manage_work` e é auditada. O planejador recebe esse contexto apenas ao criar o seu rascunho aprovado internamente. Nenhum cliente, perfil ou dado demonstrativo foi criado nesta frente.
+
+No fluxo Tech, `project_documents` agora pode apontar para o contrato correspondente e guardar um resumo/trecho confirmado para planejamento. O serviço recusa contratos de outro projeto e filtra o snapshot pelo contrato selecionado. Isso permite transformar proposta, especificação e escopo em rascunho de fases/entregas sem alegar que uma URL privada foi lida automaticamente. Nenhuma migration foi aplicada e nenhum projeto ou documento local foi criado nesta frente.
+
+O estágio intermediário do planejamento deixou de ser implícito: novos itens gerados são candidatos desmarcados. A equipe pode selecioná-los e editar fase, descrição, prazo, prioridade, definição de pronto e subtarefas enquanto o plano está em rascunho. A aprovação recusa listas vazias; a materialização idempotente cria fases/entregas somente para os escolhidos, e `client_user` não recebe candidatos descartados. A migration 0053 preserva planos anteriores como selecionados e também não foi aplicada ao banco local nesta frente.
+
+Em 27/07 foi incluída a camada anterior ao backlog: `project_planning_intakes`. Ela preserva a fotografia da descoberta por iniciativa, sem criar outro cliente nem misturar a pesquisa de mercado de prospecção com onboarding. `retail_v1` fornece campos comerciais e regras condicionais de maturidade/meta que a API valida. A intake finalizada é imutável e seu snapshot normalizado acompanha o plano gerado; cliente não recebe a intake estratégica. A migration 0054, tal como as anteriores, foi apenas versionada — não aplicada a este banco local.
+
+Em 28/07 o fluxo de propostas deixou de depender apenas do radar de freelas. O wizard de carteira reutiliza cliente/workspace e `NewClientWizard`, consulta um catálogo server-owned, valida briefing e serviços, inclui o perfil estruturado do cliente no contexto dos três pilares e persiste a fotografia `commercial_proposal_v1`. A migration 0055 adiciona vínculo, série/versão e contexto comercial, mas não foi aplicada nem criou registros. Testes unitários provaram validação, vínculo e marcação `preview`; `tsc` e build passaram. Execução live, detalhe/revisão, PDF, envio, assinatura e conversão em contrato/projeto continuam sem prova operacional e não devem ser anunciados como concluídos.
+
+O `npm audit --omit=dev` de 2026-07-27 sinalizou duas ocorrências high do mesmo advisory em `react-router`/`react-router-dom` 7.18.1. O advisory afeta o modo RSC; o frontend do Bioma é uma SPA Vite e não usa RSC. O npm só oferece correção automática forçada com mudança de versão incompatível para a faixa atual, portanto não foi aplicado upgrade automático nesta frente. O alerta deve permanecer visível até uma atualização compatível e testada do roteador.
+
 ## Adendo de remediação — 2026-07-23
 
 Fechados desta rodada, dos "próximos passos" abaixo:
@@ -24,7 +49,20 @@ Implementações locais desta rodada:
 - motor nativo de projetos (`migration 0022`): projeto, contrato versionado, item de escopo, vínculo de entrega, conclusão, aceite separado e indicadores de progresso/ritmo;
 - área Projetos e Contratos no Hub, com criação inicial de projeto, contrato, escopo e entrega;
 - acompanhamento Tech (`migration 0023`): fases ordenadas, entregas por fase, links de proposta/especificação e atualizações de progresso, bloqueio, teste ou release filtradas por visibilidade do cliente;
-- GitHub Tech em leitura (`migration 0028`): mapping auditado por projeto, autorização de workspace e projeção de issues, PRs e commits; escrita externa continua inexistente;
+- GitHub Tech começou em leitura (`migration 0028`) e passou a permitir criação de issue por entrega com `confirm=true`, autorização de workspace, auditoria e replay local idempotente (`migration 0037`);
+
+## Adendo de hardening — 2026-07-27
+
+- O backoffice de propostas passou a exigir EG admin antes de acessar o banco.
+- O campo `api_key_or_token` foi removido: o radar atual consome RSS e não possui justificativa para guardar cookies/tokens de plataformas.
+- Configurações deixaram de criar/alterar schema em requisições e não gravam mais despesas incompatíveis em `financial_records`.
+- Propostas agora consomem as saídas de Oferta, Conversão e Demanda; preço, prazo e cases permanecem vazios até decisão/evidência humana.
+- Falha de auditoria, scraper, provider ou squad não é mais convertida em sucesso ou conteúdo fictício.
+- O wizard executa o squad de onboarding e incorpora sugestões de entregáveis; execução sem chave fica identificada como prévia local.
+- Em 2026-07-27, o domínio de projetos ganhou `project_plans/project_plan_items`: Tech, Growth e Social geram planos versionados de contrato, briefing ou onboarding; aprovação e materialização são separadas, e replay não duplica fases/entregas.
+- Social registra política de aprovação adaptativa; Growth/Social nunca geram candidato GitHub. Tech só cria issue após HITL individual.
+- A escrita GitHub deixou de manter transação aberta durante a rede e passou a reservar a entrega e usar marcador `[Bioma:<deliverable_id>]` para reconciliar falhas intermediárias.
+- `test_proposals_flow.py` foi convertido para teste sem banco depois que a versão anterior deixou registros no Postgres local.
 - aba **Configurações → Empresa → Acessos**, para a EG operar o mesmo cofre por workspace sem recorrer a planilhas;
 - cofre ampliado com os campos mínimos da operação (plataforma, conta, usuário, e-mail, senha, outro acesso e link), mantendo valores de acesso cifrados;
 - smoke isolado para cofre e projetos, sem dependência da HM.
@@ -126,3 +164,26 @@ Railway lançou **Railway Buckets**: object storage S3-compatible nativo, isolad
 ## Metodologia
 
 Revisão manual completa do código do backend (routers/services/repositories/schemas) e frontend (App, views, componentes, lib) já lidos integralmente durante o desenvolvimento desta sessão, cruzada com `ROADMAP-MVP.md`, `EXECUCAO-MVP.md`, `DEPLOY.md` e investigação ao vivo de Vercel (API + CLI) e GitHub Deployments API para Railway. Não rodei `/simplify` ou `/security-review` como skills automatizadas porque elas aplicam mudanças de código automaticamente no diff atual — preferi entregar primeiro a avaliação para vocês decidirem o que priorizar. Posso rodar qualquer uma das duas à parte se quiser um passe automatizado.
+
+## Adendo de implementação — 2026-07-28 (propostas, planejamentos e Copiloto)
+
+- O `PATCH` legado não altera mais status; a máquina de estados auditada exige claims aprovadas antes de aprovação/envio.
+- Consulta pública legada e lifecycle público exigem validade, revisão aprovada, proposta não arquivada e status compatível. O novo DTO público omite snapshots, autoria interna e e-mail do signatário.
+- A conversão `won → projeto + contrato + escopo` exige platform admin, confirmação HITL, cliente ativo e chave idempotente; conflito de chave é detectado antes das mutações.
+- Planejamentos Tech e Growth/Social foram separados do intake Retail e continuam rascunho/finalizado antes da geração do plano.
+- O Copiloto implementado é assíncrono/manual. Realtime, envio externo e assinatura permanecem explicitamente não configurados.
+- A migration 0056 foi criada, mas não aplicada nem usada para popular banco.
+- Validação até este ponto: pytest completo (88 testes), `npx.cmd tsc -b`, `npm.cmd run build`, import da API, `compileall`, regeneração OpenAPI/tipos e leitura sintática/textual do PDF gerado passaram. QA visual e smoke com banco após aplicar 0056 permanecem pendentes.
+- `npm.cmd audit --omit=dev` não ficou verde: reportou 2 achados high no `react-router` 7.18.1 (`GHSA-qwww-vcr4-c8h2`). O advisory limita o impacto às APIs RSC instáveis, que este SPA Vite não usa, mas a versão corrigida indicada é 8.3.0 e exige avaliação de upgrade major; nenhum `audit fix --force` foi aplicado.
+
+## Adendo de implementação — 2026-07-28 (Copiloto de reuniões e Tech)
+
+- O Copiloto deixou de ser apenas um textarea pós-call: modela participantes, equipe/cliente/parceiro, cargo, senioridade, papel decisório, consentimento, retenção e segmentos diarizados.
+- Meet/Teams têm um contrato de ingestão autenticado. O token é mostrado uma vez e somente o hash é guardado. Não há bot ou STT contratado/configurado; portanto entrada automática, acurácia de diarização e latência continuam sem prova operacional.
+- Sugestões ao vivo são persistidas com referências aos segmentos e modo de geração. A UI usa polling de quatro segundos; não existe alegação de WebSocket.
+- Compromissos exigem confirmação para criar tarefa, revisão de proposta ou atualização interna de projeto; replay não materializa novamente.
+- Conversão comercial gera projeto/contrato antes de chamar o planejador. O plano fica rascunho e não cria entregas sem seleção/aprovação/materialização já existentes.
+- Atividade GitHub pode virar atualização visível no hub somente por ação humana, com snapshot, idempotência e auditoria.
+- Provas executadas: pytest completo da API no estado final (97/97), testes focados posteriores (10/10), `compileall`, `npx.cmd tsc -b`, build Vite e `git diff --check`.
+- `npm.cmd audit --omit=dev` continua não verde: 2 achados high no modo RSC do `react-router`; esta SPA Vite não usa RSC e nenhum `audit fix --force` ou downgrade potencialmente incompatível foi aplicado.
+- Não executado: migrations 0056–0058 em banco, smoke com Postgres, QA visual humano, reunião Meet/Teams real e snapshot GitHub contra API real.

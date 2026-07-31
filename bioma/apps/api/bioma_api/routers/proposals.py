@@ -6,7 +6,11 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
     OpportunityCreatePayload,
     OpportunityIngestPayload,
+    OpportunityPlatformSummary,
+    OpportunityPlatformUpdate,
     OpportunitySummary,
+    FreelancerProfileSyncRequest,
+    ProposalBriefCreatePayload,
     ProposalCreatePayload,
     ProposalSummary,
     ProposalUpdatePayload,
@@ -16,6 +20,13 @@ from bioma_api.services import proposals as proposals_service
 
 router = APIRouter(prefix="/backoffice/proposals", tags=["proposals"])
 public_router = APIRouter(prefix="/proposals", tags=["public-proposals"])
+
+
+@router.get("/catalog")
+def get_proposal_catalog(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.get_proposal_catalog(user)
 
 
 @router.get("/opportunities", response_model=list[OpportunitySummary])
@@ -41,17 +52,25 @@ def sync_opportunities(
     return proposals_service.sync_opportunities_from_scrapers(user)
 
 
-@router.get("/platforms")
+@router.post("/opportunities/{opp_id}/evaluate-ai", response_model=OpportunitySummary)
+def evaluate_opportunity_ai(
+    opp_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.evaluate_opportunity_with_ai(opp_id, user)
+
+
+@router.get("/platforms", response_model=list[OpportunityPlatformSummary])
 def list_platforms(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.list_platform_configs(user)
 
 
-@router.put("/platforms/{platform_key}")
+@router.put("/platforms/{platform_key}", response_model=OpportunityPlatformSummary)
 def update_platform(
     platform_key: str,
-    payload: dict,
+    payload: OpportunityPlatformUpdate,
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.update_platform_config(platform_key, payload, user)
@@ -66,14 +85,14 @@ def list_freelancer_profiles(
 
 @router.post("/profiles/sync")
 def sync_freelancer_profile(
-    payload: dict,
+    payload: FreelancerProfileSyncRequest,
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
-    url = payload.get("profile_url")
-    if not url:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="profile_url é obrigatório.")
-    platform_key = payload.get("platform_key")
-    return proposals_service.sync_and_audit_freelancer_profile(url, platform_key, user)
+    return proposals_service.sync_and_audit_freelancer_profile(
+        str(payload.profile_url),
+        payload.platform_key,
+        user,
+    )
 
 
 @router.delete("/profiles/{profile_id}")
@@ -82,6 +101,37 @@ def delete_freelancer_profile(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.delete_freelancer_profile(profile_id, user)
+
+
+@router.get("/skills")
+def list_skills(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_tech_skills(user)
+
+
+@router.get("/gaps")
+def list_gaps(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.list_skill_gaps(user)
+
+
+@router.post("/gaps/{gap_id}/resolve")
+def resolve_gap(
+    gap_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.resolve_skill_gap(gap_id, user)
+
+
+@router.get("/analytics")
+def get_analytics(
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.get_proposal_analytics(user)
+
+
 
 
 
@@ -108,6 +158,14 @@ def create_proposal(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.create_proposal(payload, user)
+
+
+@router.post("/from-brief", response_model=ProposalSummary, status_code=status.HTTP_201_CREATED)
+def create_proposal_from_brief(
+    payload: ProposalBriefCreatePayload,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    return proposals_service.generate_proposal_from_brief(payload, user)
 
 
 @router.patch("/{proposal_id}", response_model=ProposalSummary)

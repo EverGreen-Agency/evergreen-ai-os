@@ -7,12 +7,26 @@ Responsabilidades iniciais:
 - auth e sessão;
 - escopo por cliente;
 - descoberta persistente de workspaces por tenant;
+# Bioma API
+
+Backend HTTP do Bioma MVP v0.
+
+Responsabilidades iniciais:
+
+- auth e sessão;
+- escopo por cliente;
+- descoberta persistente de workspaces por tenant;
 - CRM/funil de leads;
 - financeiro mínimo;
 - métricas manuais/analytics honesto;
 - audit log;
 - motor nativo de projetos, contratos, escopo, tarefas e entregas;
 - cofre de acessos cifrado e auditado;
+- radar de oportunidades por captura manual, fontes RSS públicas e feeds configuráveis;
+- **Auto-Vigilância & Auditoria Automática de Perfil por URL (`profile_auditor.py`)**;
+- **Injeção Automática de Cases & Provas Sociais nas Propostas (`attached_cases`)**;
+- **Inventário de Gaps Tecnológicos do Mercado (`opportunity_skill_gaps` e `tech_skill_inventory`)**;
+- **Big Data Comercial & Analytics de ROI/CAC por Plataforma**;
 - importador ClickUp legado, sem superfície de sincronização no produto;
 - publicação de artefatos para o Client Hub;
 - healthcheck para staging e produção.
@@ -53,6 +67,7 @@ python scripts/smoke_vault.py
 python scripts/smoke_workspace_authz.py
 python scripts/smoke_workspace_navigation.py
 python scripts/smoke_tasks.py
+python scripts/smoke_copilot.py
 ```
 
 Os smokes criam massa efêmera própria e não dependem do cliente HM no banco compartilhado. A matriz cobre health, CORS, login, CRUD, archive/purge auditado, navegação, capacidades e isolamento BOLA/IDOR entre clientes.
@@ -67,7 +82,11 @@ Carteiras e autorização usam `tenant_memberships`, `teams`, `team_memberships`
 
 Preferências do navegador ficam em `workspace_favorites` e `workspace_saved_views`. A descoberta em `GET /workspaces` informa `is_favorite` e `is_assigned`; favoritos usam `/workspaces/{id}/favorite` e visões salvas usam `/workspaces/views`.
 
-O Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
+The Estúdio IA usa `POST /workspaces/{id}/ai/content` para enfileirar e `GET` no mesmo caminho para histórico/resultados. A API não chama o modelo dentro da requisição HTTP; o worker processa `ai_content_requests` e audita em `ai_runs`.
+
+Pesquisa de mercado usa `GET/POST /workspaces/{id}/market-research`, `POST /workspaces/{id}/market-research/refine` e `GET /workspaces/{id}/market-research/{research_id}`. O serviço aceita somente o workspace interno da EG: é inteligência para uma vertical de prospecção, não conteúdo do Hub. Leitura exige `view`; refinamento e geração exigem `manage_work`. O worker usa `OPENAI_RESEARCH_MODEL` (padrão `gpt-5.6-terra`), Structured Outputs e pesquisa web. Chamadas externas não mantêm transação aberta, e fontes declaradas pelo modelo só sobrevivem se também estiverem no retorno nativo da ferramenta.
+
+O contexto estruturado do cliente usa `GET/PATCH /workspaces/{id}/client-profile`. Leitura exige `view`; alteração exige `manage_work`, é auditada e atualiza um único perfil por workspace de cliente. A completude retornada é derivada dos campos persistidos, não aceita valor enviado pelo cliente.
 
 `/backoffice/ai-operations` é exclusivo de EG admin e oferece FinOps de IA, catálogo/instalação de workflows, runs idempotentes, aprovação e conclusão ordenada de etapas. A migration `0029_ai_operations_finops.sql` não inclui seed. O smoke `scripts/smoke_ai_operations.py` valida assinatura, cota, ledger, idempotência e HITL apenas em banco `_smoke`/`_test`.
 
@@ -83,7 +102,7 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 
 ## Projetos e cofre
 
-`projects` segue router → service → repository e exige `view` para leitura e `manage_work` para escrita. O subdomínio Tech adiciona fases, documentos por URL e atualizações de progresso/bloqueio/teste/release, sempre filtrados por `client_visible`. `smoke_projects.py` cobre papéis, BOLA cliente A→B, owner, escopo/fase cruzados, contrato, entrega, ritmo, feed Tech e auditoria.
+`projects` segue router → service → repository e exige `view` para leitura e `manage_work` para escrita. A intake de planejamento é um recurso interno do projeto: rascunho pode ser criado/alterado com `manage_work`, só finaliza após validação servidora e fica imutável; `client_user` não a recebe. `retail_v1` valida campos comerciais e a compatibilidade entre maturidade e meta. Ao gerar, `planning_intake_id` precisa apontar para uma intake finalizada do mesmo projeto e a fotografia normalizada segue para o squad e para `project_plans.intake_snapshot`. O planejador cria versões a partir de contrato, briefing ou onboarding. Novos `project_plan_items` nascem com `selected=false`; `PATCH /project-plan-items/{id}` permite à equipe editar o candidato somente no rascunho e audita os campos alterados. Aprovação usa capability `approve`, recusa `client_user` e exige ao menos um item selecionado. Materialização usa `manage_work`, lock, filtra `selected=true` e mantém mapeamento por item para replay sem duplicar entregas. A resposta de cliente contém somente itens selecionados e visíveis de planos já aprovados/materializados. Documentos Tech podem receber `contract_id` e `planning_excerpt`; o serviço valida a pertença ao projeto e fornece ao planejador somente documentos gerais ou daquele contrato. URL não dispara busca nem leitura externa. O subdomínio Tech adiciona fases, documentos, atualizações e candidatos GitHub; Growth e Social usam o mesmo plano sem escrita GitHub. `smoke_projects.py` cobre papéis, BOLA cliente A→B, owner, escopo/fase cruzados, contrato, entrega, ritmo, feed Tech e auditoria.
 
 `vault` exige `SECRET_ENCRYPTION_KEY`, guarda ciphertext versionado, separa `submit_secrets`, `manage_secrets` e `reveal_secrets`, e audita criação, rotação, status, revelação e cópia. O registro suporta plataforma, conta/perfil, usuário, e-mail, senha, outra forma de acesso e link; somente o link é metadado legível. `smoke_vault.py` cobre a matriz de acesso e deve apontar para banco isolado.
 
@@ -95,4 +114,53 @@ Não configure novo token para uso cotidiano. `scripts/import_clickup_to_bioma.p
 - `GET/POST/PATCH/DELETE /clients/{client_id}/finance`
 - `GET/POST/PATCH/DELETE /clients/{client_id}/metrics`
 
-Esses endpoints cobrem o mínimo da proposta HM: funil de leads, controle financeiro e analytics manual enquanto integrações de mídia não estão conectadas.
+## Endpoints de Prospecção, Radar & Big Data (`/backoffice/proposals`)
+
+- `GET /backoffice/proposals/opportunities`: Lista oportunidades varridas.
+- `POST /backoffice/proposals/opportunities/ingest`: Triagem manual de vaga.
+- `POST /backoffice/proposals/opportunities/sync`: consulta as três fontes RSS públicas e feeds adicionais configurados.
+- `POST /backoffice/proposals/opportunities/{id}/generate`: Gera proposta em 3 pilares com injeção de cases.
+- `GET /backoffice/proposals/catalog`: Catálogo server-owned `commercial_proposal_v1`.
+- `POST /backoffice/proposals/from-brief`: Valida cliente ativo, combina perfil + briefing, executa os três pilares e persiste snapshot e modo `live`/`preview`.
+- `GET/POST/PATCH /backoffice/proposals`: Gerenciador de propostas comerciais (status `draft`, `approved`, `sent`, `negotiating`, `won`, `lost`).
+- `GET /backoffice/proposals/platforms`: Lista e configura custos de assinaturas SaaS de plataformas.
+- `GET/POST/DELETE /backoffice/proposals/profiles`: Gerencia perfis para auto-vigilância.
+- `POST /backoffice/proposals/profiles/sync`: Raspa e audita perfil freelancer por URL pública.
+- `GET /backoffice/proposals/skills`: Lista competências e cases do acervo EG.
+- `GET /backoffice/proposals/gaps` e `POST /gaps/{gap_id}/resolve`: Gerencia e incorpora gaps tecnológicos ao acervo.
+- `GET /backoffice/proposals/analytics`: Retorna métricas de Big Data (Win Rate %, CPP, CAC, Lucro Líquido e ROI % por canal).
+
+`commercial_proposals.workspace_id` é opcional para compatibilidade com o radar externo, mas obrigatório no fluxo de briefing. A migration 0055 adiciona série/versão, campos estruturados e `intake_snapshot`; não é aplicada automaticamente. O repositório usa whitelist de colunas mutáveis, evitando que chaves arbitrárias do payload componham SQL dinâmico.
+
+### Lifecycle comercial e Copiloto
+
+- `GET /backoffice/proposals/{id}`: detalhe interno com revisões, eventos, entregas e conversão.
+- `PUT /backoffice/proposals/{id}/content` e `POST /claims-review`: edição em rascunho e revisão HITL.
+- `POST /backoffice/proposals/{id}/transition`: única entrada para transições explícitas de status.
+- `POST /revisions`, `POST /deliveries`, `DELETE /{id}`: nova versão, evidência de entrega e archive.
+- `GET /{id}/pdf`: PDF gerado somente após claims aprovadas.
+- `POST /{id}/convert`: conversão idempotente e confirmada em projeto, contrato e escopo.
+- `GET /backoffice/proposals/cohorts`: coortes por mês e tempos do funil.
+- `GET/POST /proposals/public/{token}/detail|accept`: visualização pública reduzida e aceite explícito.
+- `/backoffice/sales-copilot`: sessões, preparação, eventos manuais, conclusão e métricas; `/realtime-adapter` declara `not_configured`.
+- `GET /backoffice/planning-portfolio`: portfólio EG de intakes e planos por cliente/projeto.
+
+A migration 0056 cria essas estruturas e amplia o check de `project_planning_intakes`; ela deve ser aplicada explicitamente no ambiente escolhido.
+
+### Migrations 0057 e 0058
+
+- `0057_sales_copilot_meeting_intelligence.sql`: configuração de reunião, consentimento/retenção, token de ingestão com hash, participantes, segmentos diarizados, sugestões e ações HITL.
+- `0058_github_activity_project_updates.sql`: snapshots idempotentes de atividade GitHub publicados como `project_updates`.
+
+Rotas adicionais do Copiloto:
+
+- `PUT /backoffice/sales-copilot/{id}/meeting`;
+- `POST /backoffice/sales-copilot/{id}/participants`;
+- `POST /backoffice/sales-copilot/{id}/transcript-segments`;
+- `POST /backoffice/sales-copilot/{id}/analyze-live`;
+- `POST /backoffice/sales-copilot/{id}/actions`;
+- `POST /backoffice/sales-copilot/actions/{action_id}/materialize`;
+- `POST /backoffice/sales-copilot/{id}/ingestion-credential`;
+- `POST /backoffice/sales-copilot/ingest/{id}` com `X-Copilot-Ingest-Token`.
+
+O último endpoint não usa sessão de usuário: autentica o adaptador por token rotacionável, exige consentimento e nunca retorna o conteúdo da sessão. O bot/STT é externo e ainda precisa ser selecionado.

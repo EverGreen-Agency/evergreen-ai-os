@@ -466,6 +466,169 @@ def delete_financial_record(conn, organization_id: UUID, record_id: UUID) -> boo
     return _delete_scoped_row(conn, "financial_records", organization_id, record_id)
 
 
+def get_portfolio_summary(conn) -> dict[str, Any]:
+    """Agregado real da carteira de clientes, usado no Cockpit do time EG.
+
+    Escopo: apenas organizações de CLIENTE. A EverGreen tem uma linha própria
+    em `clients` (o workspace interno), então filtrar só por
+    `organization_id in (select organization_id from clients)` **incluía** a
+    própria EG nos números — por isso todas as consultas aqui excluem
+    explicitamente `organizations.slug = 'eg'`.
+    """
+    revenue = conn.execute(
+        """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
+        select coalesce(sum(amount), 0) as total
+        from financial_records
+        where kind = 'invoice' and status = 'paid'
+          and paid_at >= date_trunc('month', now())
+          and paid_at < date_trunc('month', now()) + interval '1 month'
+          and organization_id in (select organization_id from client_orgs)
+        """
+    ).fetchone()
+
+    mrr = conn.execute(
+        """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
+        select coalesce(sum(amount), 0) as total
+        from financial_records
+        where kind = 'contract' and status in ('open', 'paid')
+          and (contract_end_at is null or contract_end_at >= current_date)
+          and organization_id in (select organization_id from client_orgs)
+        """
+    ).fetchone()
+
+    overdue_deliverables = conn.execute(
+        """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
+        select count(*) as total
+        from deliverables
+        where due_at is not null and due_at < now() and status <> 'done'
+          and organization_id in (select organization_id from client_orgs)
+        """
+    ).fetchone()
+
+    clients_at_risk = conn.execute(
+        """
+        with client_orgs as (
+          select c.organization_id
+          from clients c
+          join organizations o on o.id = c.organization_id
+          where o.slug <> 'eg'
+        )
+        select count(distinct organization_id) as total
+        from (
+          select organization_id from deliverables
+          where due_at is not null and due_at < now() and status <> 'done'
+          union
+          select organization_id from financial_records
+          where status = 'overdue'
+        ) at_risk
+        where organization_id in (select organization_id from client_orgs)
+        """
+    ).fetchone()
+
+    # Contagem por status: o Cockpit dizia "N clientes ativos" contando todos
+    # os clientes externos, inclusive onboarding/pausado/arquivado.
+    client_counts = conn.execute(
+        """
+        select
+          count(*) filter (where c.status = 'active')::int as active,
+          count(*)::int as total
+        from clients c
+        join organizations o on o.id = c.organization_id
+        where o.slug <> 'eg'
+        """
+    ).fetchone()
+
+    # Listas acionáveis: sem elas o Cockpit só mostra um número e obriga a
+    # entrar cliente por cliente pra descobrir o que fazer.
+    overdue_items = conn.execute(
+        """
+        select d.id, d.title, d.status, d.due_at, c.id as client_id, c.name as client_name
+        from deliverables d
+        join clients c on c.organization_id = d.organization_id
+        join organizations o on o.id = c.organization_id
+        where d.due_at is not null and d.due_at < now() and d.status <> 'done'
+          and o.slug <> 'eg'
+        order by d.due_at asc
+        limit 8
+        """
+    ).fetchall()
+
+    pending_approvals = conn.execute(
+        """
+        select a.id, d.title as deliverable_title, a.created_at,
+               c.id as client_id, c.name as client_name
+        from approvals a
+        left join deliverables d on d.id = a.deliverable_id
+        join clients c on c.organization_id = a.organization_id
+        join organizations o on o.id = c.organization_id
+        where a.status = 'pending' and o.slug <> 'eg'
+        order by a.created_at asc
+        limit 8
+        """
+    ).fetchall()
+
+    # Conexao ativa que parou de sincronizar: a causa mais silenciosa de numero
+    # errado no painel. Sem isso, "zero investimento" e "sync parado" sao
+    # visualmente identicos. `last_synced_at is null` = nunca sincronizou.
+    stale_connections = conn.execute(
+        """
+        select pc.provider, pc.display_name, pc.last_synced_at, pc.last_error_message,
+               c.id as client_id, c.name as client_name,
+               case
+                 when pc.last_synced_at is null then null
+                 else extract(day from now() - pc.last_synced_at)::int
+               end as days_stale
+        from performance_connections pc
+        join clients c on c.id = pc.client_id
+        join organizations o on o.id = c.organization_id
+        where o.slug <> 'eg'
+          and pc.status = 'active'
+          and (pc.last_synced_at is null or pc.last_synced_at < now() - interval '3 days')
+        order by pc.last_synced_at asc nulls first
+        limit 10
+        """
+    ).fetchall()
+
+    radar_awaiting = conn.execute(
+        """
+        select count(*) as total
+        from local_radar_prospects
+        where review_status = 'audited'
+        """
+    ).fetchone()
+
+    return {
+        "monthly_revenue_cents": round((revenue["total"] or 0) * 100),
+        "mrr_cents": round((mrr["total"] or 0) * 100),
+        "overdue_deliverables": overdue_deliverables["total"],
+        "clients_at_risk": clients_at_risk["total"],
+        "clients_active": client_counts["active"],
+        "clients_total": client_counts["total"],
+        "overdue_items": [dict(row) for row in overdue_items],
+        "pending_approvals": [dict(row) for row in pending_approvals],
+        "stale_connections": [dict(row) for row in stale_connections],
+        "radar_prospects_awaiting": radar_awaiting["total"],
+    }
+
+
 def list_performance_metrics(conn, organization_id: UUID):
     return conn.execute(
         """
@@ -628,3 +791,99 @@ def list_my_deliverables(conn, user_email: str, is_admin: bool, user_id: UUID):
         """,
         (user_email, is_admin, user_id),
     ).fetchall()
+
+
+def get_portfolio_performance(conn, days: int = 30) -> list[dict[str, Any]]:
+    """Performance de mídia da carteira inteira, um cliente por linha.
+
+    É o rollup executivo que faltava: cada cliente já tem a aba Métricas
+    unificada, mas comparar a carteira exigia entrar cliente por cliente.
+    Lê as mesmas tabelas que os syncs reais populam — sem credencial
+    configurada as linhas ficam zeradas, nunca inventadas.
+    """
+    return conn.execute(
+        """
+        with client_rows as (
+          select c.id as client_id, c.name as client_name,
+                 w.id as workspace_id, c.status
+          from clients c
+          join organizations o on o.id = c.organization_id
+          join workspaces w on w.subject_organization_id = c.organization_id
+           and w.kind = 'client' and w.status = 'active'
+          where o.slug <> 'eg'
+        ),
+        google as (
+          select client_id,
+                 coalesce(sum(cost_micros), 0) / 10000 as spend_cents,
+                 coalesce(sum(conversions), 0) as conversions
+          from ads_campaign_daily
+          where date >= current_date - %s::int
+          group by client_id
+        ),
+        meta as (
+          select workspace_id,
+                 coalesce(sum(spend_cents), 0) as spend_cents,
+                 coalesce(sum(leads), 0) as leads
+          from workspace_meta_ads_daily_metrics
+          where date >= current_date - %s::int
+          group by workspace_id
+        ),
+        li as (
+          select workspace_id,
+                 coalesce(sum(spend_cents), 0) as spend_cents,
+                 coalesce(sum(leads), 0) as leads
+          from workspace_linkedin_ads_daily_metrics
+          where date >= current_date - %s::int
+          group by workspace_id
+        ),
+        targets as (
+          select client_id, target_leads, budget_micros
+          from monthly_targets
+          where month = date_trunc('month', current_date)::date
+        )
+        select cr.client_id, cr.client_name, cr.workspace_id, cr.status,
+               coalesce(g.spend_cents, 0)::bigint as google_spend_cents,
+               coalesce(m.spend_cents, 0)::bigint as meta_spend_cents,
+               coalesce(l.spend_cents, 0)::bigint as linkedin_spend_cents,
+               (coalesce(g.spend_cents, 0) + coalesce(m.spend_cents, 0)
+                + coalesce(l.spend_cents, 0))::bigint as total_spend_cents,
+               (coalesce(g.conversions, 0) + coalesce(m.leads, 0)
+                + coalesce(l.leads, 0))::bigint as total_leads,
+               t.target_leads::float as target_leads,
+               (t.budget_micros / 10000)::bigint as budget_cents
+        from client_rows cr
+        left join google g on g.client_id = cr.client_id
+        left join meta m on m.workspace_id = cr.workspace_id
+        left join li l on l.workspace_id = cr.workspace_id
+        left join targets t on t.client_id = cr.client_id
+        order by total_spend_cents desc, cr.client_name
+        """,
+        (days, days, days),
+    ).fetchall()
+
+
+def upsert_monthly_target(
+    conn,
+    client_id: UUID,
+    target_leads: float | None,
+    budget_cents: int | None,
+) -> bool:
+    """Meta do mês corrente do cliente. As colunas existiam desde a 0003 e nunca
+    tinham tido escrita nem leitura pela API — agora fecham o ciclo meta ×
+    realizado no rollup do Cockpit."""
+    row = conn.execute(
+        """
+        insert into monthly_targets (client_id, organization_id, month, target_leads, budget_micros)
+        select c.id, c.organization_id, date_trunc('month', current_date)::date, %s, %s
+        from clients c where c.id = %s
+        on conflict (client_id, month)
+        do update set target_leads = excluded.target_leads,
+                      budget_micros = excluded.budget_micros,
+                      updated_at = now()
+        returning client_id
+        """,
+        # 1 centavo = 10.000 micros (1 unidade monetaria = 1.000.000). O rollup
+        # le com /10000, então a escrita precisa do mesmo fator.
+        (target_leads, budget_cents * 10_000 if budget_cents is not None else None, client_id),
+    ).fetchone()
+    return row is not None

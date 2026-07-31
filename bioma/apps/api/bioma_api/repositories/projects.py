@@ -78,6 +78,10 @@ def update_project(conn, project_id: UUID, updates: dict[str, Any]):
     return _dynamic_update(conn, "projects", project_id, updates)
 
 
+def lock_project(conn, project_id: UUID) -> None:
+    conn.execute("select id from projects where id = %s for update", (project_id,)).fetchone()
+
+
 def create_contract(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
     return conn.execute(
         """
@@ -201,7 +205,7 @@ def list_deliverables(conn, project_id: UUID, include_internal: bool):
         """
         select deliverable.id, deliverable.project_id, deliverable.scope_item_id, deliverable.phase_id, deliverable.title,
           deliverable.status, deliverable.due_at, deliverable.completed_at, deliverable.updated_at,
-          approval.status as approval_status
+          approval.status as approval_status, deliverable.github_issue_number, deliverable.github_issue_url
         from deliverables deliverable
         left join project_phases phase on phase.id = deliverable.phase_id
         left join lateral (
@@ -280,7 +284,7 @@ def update_phase(conn, phase_id: UUID, updates: dict[str, Any]):
 def list_documents(conn, project_id: UUID, include_internal: bool):
     return conn.execute(
         """
-        select id, project_id, kind, title, url, client_visible, created_at
+        select id, project_id, kind, title, url, contract_id, planning_excerpt, client_visible, created_at
         from project_documents
         where project_id = %s and (%s or client_visible)
         order by created_at desc
@@ -292,10 +296,14 @@ def list_documents(conn, project_id: UUID, include_internal: bool):
 def create_document(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
     return conn.execute(
         """
-        insert into project_documents (project_id, kind, title, url, client_visible, created_by)
-        values (%s, %s, %s, %s, %s, %s) returning *
+        insert into project_documents (
+          project_id, kind, title, url, contract_id, planning_excerpt, client_visible, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s) returning *
         """,
-        (project_id, payload["kind"], payload["title"], payload["url"], payload["client_visible"], user_id),
+        (
+            project_id, payload["kind"], payload["title"], payload["url"], payload.get("contract_id"),
+            payload.get("planning_excerpt"), payload["client_visible"], user_id,
+        ),
     ).fetchone()
 
 
@@ -320,6 +328,329 @@ def create_project_update(conn, project_id: UUID, user_id: UUID, payload: dict[s
         """,
         (project_id, payload.get("phase_id"), payload["kind"], payload["summary"],
          payload.get("detail"), payload["client_visible"], user_id),
+    ).fetchone()
+
+
+def list_project_plans(conn, project_id: UUID, include_internal: bool):
+    return conn.execute(
+        """
+        select id, project_id, source_contract_id, planning_intake_id, version, discipline, source_kind,
+          status, generation_mode, title, objective, assumptions, intake_snapshot, approved_at,
+          materialized_at, created_at, updated_at
+        from project_plans
+        where project_id = %s
+          and (%s or status in ('approved', 'materialized'))
+        order by version desc
+        """,
+        (project_id, include_internal),
+    ).fetchall()
+
+
+def list_project_plan_items(conn, plan_id: UUID, include_internal: bool):
+    return conn.execute(
+        """
+        select item.id, item.plan_id, item.sequence, item.source_scope_item_id,
+          item.phase_name, item.title,
+          item.description, item.item_kind, item.due_offset_days, item.client_visible,
+          item.approval_required, item.github_eligible, item.selected, item.priority,
+          item.definition_of_done, item.subtasks, item.metadata,
+          item.materialized_phase_id, item.materialized_deliverable_id,
+          deliverable.github_issue_number, deliverable.github_issue_url
+        from project_plan_items item
+        left join deliverables deliverable on deliverable.id = item.materialized_deliverable_id
+        where item.plan_id = %s and (%s or (item.client_visible and item.selected))
+        order by item.sequence
+        """,
+        (plan_id, include_internal),
+    ).fetchall()
+
+
+def find_plan_context(conn, plan_id: UUID, is_admin: bool, user_id: UUID):
+    return conn.execute(
+        """
+        select plan.*, project.workspace_id, project.organization_id, project.tenant_organization_id,
+          project.project_type, project.start_at as project_start_at,
+          project.due_at as project_due_at,
+          case when %s then 'platform_admin' else workspace_access_role(project.workspace_id, %s) end as access_role
+        from project_plans plan
+        join projects project on project.id = plan.project_id
+        where plan.id = %s
+          and (%s or workspace_access_role(project.workspace_id, %s) is not null)
+        """,
+        (is_admin, user_id, plan_id, is_admin, user_id),
+    ).fetchone()
+
+
+def list_project_planning_intakes(conn, project_id: UUID):
+    return conn.execute(
+        """
+        select id, project_id, schema_key, schema_version, status, title, objective,
+          answers, derived_context, finalized_at, created_at, updated_at
+        from project_planning_intakes
+        where project_id = %s
+        order by updated_at desc
+        """,
+        (project_id,),
+    ).fetchall()
+
+
+def find_project_planning_intake(conn, intake_id: UUID):
+    return conn.execute(
+        """
+        select intake.*, project.workspace_id, project.organization_id, project.tenant_organization_id,
+          case when %s then 'platform_admin' else workspace_access_role(project.workspace_id, %s) end as access_role
+        from project_planning_intakes intake
+        join projects project on project.id = intake.project_id
+        where intake.id = %s
+          and (%s or workspace_access_role(project.workspace_id, %s) is not null)
+        """,
+        (is_admin, user_id, intake_id, is_admin, user_id),
+    ).fetchone()
+
+
+def create_project_planning_intake(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into project_planning_intakes (
+          project_id, schema_key, schema_version, title, objective, answers,
+          derived_context, created_by
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s)
+        returning *
+        """,
+        (
+            project_id, payload["schema_key"], payload["schema_version"], payload["title"],
+            payload["objective"], Jsonb(payload["answers"]), Jsonb(payload["derived_context"]), user_id,
+        ),
+    ).fetchone()
+
+
+def list_planning_portfolio(conn):
+    return conn.execute(
+        """
+        select
+          project.id as project_id,
+          project.name as project_name,
+          project.project_type,
+          project.status as project_status,
+          project.workspace_id,
+          organization.name as client_name,
+          intake.id as intake_id,
+          intake.schema_key as intake_schema_key,
+          intake.status as intake_status,
+          plan.id as plan_id,
+          plan.title as plan_title,
+          plan.version as plan_version,
+          plan.status as plan_status,
+          plan.generation_mode,
+          greatest(
+            project.updated_at,
+            coalesce(intake.updated_at, project.updated_at),
+            coalesce(plan.updated_at, project.updated_at)
+          ) as updated_at
+        from projects project
+        join workspaces workspace on workspace.id = project.workspace_id
+        join organizations organization on organization.id = workspace.subject_organization_id
+        left join lateral (
+          select *
+          from project_planning_intakes candidate
+          where candidate.project_id = project.id
+          order by candidate.updated_at desc
+          limit 1
+        ) intake on true
+        left join lateral (
+          select *
+          from project_plans candidate
+          where candidate.project_id = project.id
+          order by candidate.version desc
+          limit 1
+        ) plan on true
+        order by updated_at desc, project.name
+        """
+    ).fetchall()
+
+
+def update_project_planning_intake(conn, intake_id: UUID, payload: dict[str, Any]):
+    assignments = ", ".join(f"{field} = %s" for field in payload)
+    values = [Jsonb(value) if field in {"answers", "derived_context"} else value for field, value in payload.items()]
+    return conn.execute(
+        f"update project_planning_intakes set {assignments}, updated_at = now() where id = %s returning *",
+        (*values, intake_id),
+    ).fetchone()
+
+
+def finalize_project_planning_intake(conn, intake_id: UUID, user_id: UUID):
+    return conn.execute(
+        """
+        update project_planning_intakes
+        set status = 'finalized', finalized_by = %s, finalized_at = now(), updated_at = now()
+        where id = %s
+        returning *
+        """,
+        (user_id, intake_id),
+    ).fetchone()
+
+
+def lock_project_plan(conn, plan_id: UUID) -> None:
+    conn.execute("select id from project_plans where id = %s for update", (plan_id,)).fetchone()
+
+
+def next_plan_version(conn, project_id: UUID) -> int:
+    row = conn.execute(
+        "select coalesce(max(version), 0)::int + 1 as version from project_plans where project_id = %s",
+        (project_id,),
+    ).fetchone()
+    return row["version"]
+
+
+def create_project_plan(conn, project_id: UUID, user_id: UUID, payload: dict[str, Any]):
+    return conn.execute(
+        """
+        insert into project_plans (
+          project_id, source_contract_id, planning_intake_id, version, discipline, source_kind,
+          status, generation_mode, title, objective, assumptions, intake_snapshot, created_by
+        ) values (%s, %s, %s, %s, %s, %s, 'draft', %s, %s, %s, %s, %s, %s)
+        returning *
+        """,
+        (
+            project_id,
+            payload.get("source_contract_id"),
+            payload.get("planning_intake_id"),
+            payload["version"],
+            payload["discipline"],
+            payload["source_kind"],
+            payload["generation_mode"],
+            payload["title"],
+            payload.get("objective"),
+            Jsonb(payload.get("assumptions", [])),
+            Jsonb(payload.get("intake_snapshot", {})),
+            user_id,
+        ),
+    ).fetchone()
+
+
+def create_project_plan_items(conn, plan_id: UUID, items: list[dict[str, Any]]) -> None:
+    for sequence, item in enumerate(items, start=1):
+        conn.execute(
+            """
+            insert into project_plan_items (
+              plan_id, sequence, source_scope_item_id, phase_name, title, description, item_kind,
+              due_offset_days, client_visible, approval_required, github_eligible, selected,
+              priority, definition_of_done, subtasks, metadata
+            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                plan_id,
+                sequence,
+                item.get("source_scope_item_id"),
+                item["phase_name"],
+                item["title"],
+                item.get("description"),
+                item["item_kind"],
+                item.get("due_offset_days"),
+                item["client_visible"],
+                item["approval_required"],
+                item["github_eligible"],
+                item.get("selected", False),
+                item.get("priority", "medium"),
+                item.get("definition_of_done"),
+                Jsonb(item.get("subtasks", [])),
+                Jsonb(item.get("metadata", {})),
+            ),
+        )
+
+
+def find_project_plan_item(conn, item_id: UUID):
+    return conn.execute(
+        "select * from project_plan_items where id = %s",
+        (item_id,),
+    ).fetchone()
+
+
+def update_project_plan_item(conn, item_id: UUID, updates: dict[str, Any]) -> None:
+    allowed = {
+        "selected",
+        "phase_name",
+        "title",
+        "description",
+        "due_offset_days",
+        "client_visible",
+        "approval_required",
+        "priority",
+        "definition_of_done",
+        "subtasks",
+    }
+    fields = [field for field in updates if field in allowed]
+    if not fields:
+        return
+    values = [Jsonb(updates[field]) if field == "subtasks" else updates[field] for field in fields]
+    assignments = ", ".join(f"{field} = %s" for field in fields)
+    conn.execute(
+        f"update project_plan_items set {assignments}, updated_at = now() where id = %s",
+        (*values, item_id),
+    )
+
+
+def count_selected_plan_items(conn, plan_id: UUID) -> int:
+    row = conn.execute(
+        "select count(*) as total from project_plan_items where plan_id = %s and selected",
+        (plan_id,),
+    ).fetchone()
+    return row["total"]
+
+
+def approve_project_plan(conn, plan_id: UUID, project_id: UUID, user_id: UUID):
+    conn.execute(
+        """
+        update project_plans
+        set status = 'superseded', updated_at = now()
+        where project_id = %s and id <> %s and status = 'approved'
+        """,
+        (project_id, plan_id),
+    )
+    return conn.execute(
+        """
+        update project_plans
+        set status = 'approved', approved_by = %s, approved_at = now(), updated_at = now()
+        where id = %s and status = 'draft'
+        returning *
+        """,
+        (user_id, plan_id),
+    ).fetchone()
+
+
+def next_phase_sequence(conn, project_id: UUID) -> int:
+    row = conn.execute(
+        "select coalesce(max(sequence), 0)::int + 1 as sequence from project_phases where project_id = %s",
+        (project_id,),
+    ).fetchone()
+    return row["sequence"]
+
+
+def mark_plan_item_materialized(
+    conn,
+    item_id: UUID,
+    phase_id: UUID,
+    deliverable_id: UUID,
+) -> None:
+    conn.execute(
+        """
+        update project_plan_items
+        set materialized_phase_id = %s, materialized_deliverable_id = %s, updated_at = now()
+        where id = %s and materialized_deliverable_id is null
+        """,
+        (phase_id, deliverable_id, item_id),
+    )
+
+
+def mark_plan_materialized(conn, plan_id: UUID):
+    return conn.execute(
+        """
+        update project_plans
+        set status = 'materialized', materialized_at = coalesce(materialized_at, now()), updated_at = now()
+        where id = %s and status in ('approved', 'materialized')
+        returning *
+        """,
+        (plan_id,),
     ).fetchone()
 
 

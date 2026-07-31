@@ -1,20 +1,312 @@
 import { useState, useEffect } from "react";
-import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat } from "lucide-react";
-import { useCreateTask, useUpdateTask, useDeleteTask, useTasksInList } from "../../hooks/useBiomaApi";
-import type { TaskDependency, TaskGroupStatus, TaskPriority, TaskCustomField, TaskSubtaskInput } from "../../lib/api";
+import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound, Sparkles } from "lucide-react";
+import {
+  useCopilotCommands,
+  useCreateTask,
+  useCreateTaskComment,
+  useRunCopilot,
+  useDeleteTask,
+  useDeleteTaskComment,
+  useTaskComments,
+  useTasksInList,
+  useUpdateTask,
+  useWorkspaceProjects,
+  useAssignableUsers,
+} from "../../hooks/useBiomaApi";
+import type {
+  CopilotResponse,
+  TaskDependency,
+  TaskGroupStatus,
+  TaskListType,
+  TaskPriority,
+  TaskCustomField,
+  TaskSubtaskInput,
+} from "../../lib/api";
+import { groupForStatus, statusesForFrente } from "../../lib/task-frentes";
+
+/** Substitui o "chat da tarefa" do ClickUp: histórico preso à tarefa em vez de
+ *  espalhado no WhatsApp. Comentário nasce interno; só vai ao cliente quando
+ *  marcado de propósito, porque o Hub é o mesmo lugar onde ele aprova. */
+function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspaceId?: string }) {
+  const { data: comments = [], isLoading } = useTaskComments(taskId);
+  const createComment = useCreateTaskComment();
+  const deleteComment = useDeleteTaskComment();
+  const [body, setBody] = useState("");
+  const [clientVisible, setClientVisible] = useState(false);
+
+  // Copiloto na própria caixa de comentário: "/" abre o menu de comandos, o
+  // resto do texto vira a mensagem. Sem tela nova — a conversa da tarefa já é
+  // o lugar onde a decisão acontece.
+  const isCommand = body.trimStart().startsWith("/");
+  const { data: commands = [] } = useCopilotCommands("task", isCommand);
+  const runCopilot = useRunCopilot();
+  const [copilotResult, setCopilotResult] = useState<CopilotResponse | null>(null);
+
+  const commandFilter = isCommand ? body.trimStart().slice(1).split(" ")[0].toLowerCase() : "";
+  const visibleCommands = commands.filter(
+    (command) =>
+      !commandFilter ||
+      command.name.includes(commandFilter) ||
+      command.label.toLowerCase().includes(commandFilter),
+  );
+
+  function askCopilot() {
+    const message = body.trim();
+    if (!message) return;
+    setCopilotResult(null);
+    runCopilot.mutate(
+      { message, surface: "task", task_id: taskId, workspace_id: workspaceId },
+      {
+        onSuccess: (result) => {
+          setCopilotResult(result);
+          setBody("");
+        },
+      },
+    );
+  }
+
+  function submit() {
+    if (!body.trim()) return;
+    createComment.mutate(
+      { taskId, body: body.trim(), clientVisible },
+      { onSuccess: () => { setBody(""); setClientVisible(false); } },
+    );
+  }
+
+  return (
+    <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+        <MessageSquare size={14} /> Conversa ({comments.length})
+      </h3>
+
+      {isLoading && <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</span>}
+
+      {!isLoading && comments.length === 0 && (
+        <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
+          Nenhum comentário. O histórico desta tarefa fica aqui, não no WhatsApp.
+        </span>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {comments.map((comment) => (
+          <div
+            key={comment.id}
+            style={{
+              background: "var(--surface-color)",
+              border: "1px solid var(--border-color)",
+              borderRadius: 4,
+              padding: "8px 10px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <strong style={{ fontSize: 12 }}>{comment.author_name ?? "Usuário removido"}</strong>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
+                  {new Date(comment.created_at).toLocaleString("pt-BR")}
+                </span>
+                {comment.client_visible ? (
+                  <span title="Visível para o cliente" style={{ display: "inline-flex", color: "var(--accent)" }}>
+                    <Eye size={12} />
+                  </span>
+                ) : (
+                  <span title="Interno da EG" style={{ display: "inline-flex", color: "var(--text-faint)" }}>
+                    <EyeOff size={12} />
+                  </span>
+                )}
+                <button
+                  className="icon-button danger"
+                  type="button"
+                  style={{ padding: 2 }}
+                  title="Excluir comentário"
+                  onClick={() => deleteComment.mutate({ commentId: comment.id, taskId })}
+                  disabled={deleteComment.isPending}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, whiteSpace: "pre-wrap" }}>{comment.body}</p>
+          </div>
+        ))}
+      </div>
+
+      {copilotResult && (
+        <div style={{ border: "1px solid var(--accent)", borderRadius: 6, padding: "10px 12px", fontSize: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Sparkles size={13} color="var(--accent)" />
+            <strong>Copiloto</strong>
+            <span style={{ color: "var(--text-faint)", fontSize: 10 }}>
+              confiança {copilotResult.confidence}
+              {copilotResult.generation_mode === "preview" ? " · prévia local (sem OPENAI_API_KEY)" : ""}
+            </span>
+            <button
+              className="icon-button"
+              type="button"
+              style={{ marginLeft: "auto", padding: 2 }}
+              onClick={() => setCopilotResult(null)}
+              title="Fechar"
+            >
+              <X size={12} />
+            </button>
+          </div>
+
+          <p style={{ margin: "0 0 6px", whiteSpace: "pre-wrap" }}>{copilotResult.answer}</p>
+
+          {copilotResult.actions.map((action, index) => (
+            <div key={`${action.name}-${index}`} style={{ marginTop: 4, paddingLeft: 8, borderLeft: "2px solid var(--border-color)" }}>
+              <strong style={{ fontSize: 11 }}>{action.label}</strong>{" "}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color:
+                    action.status === "executed"
+                      ? "#2e9e5b"
+                      : action.status === "failed"
+                        ? "#ff5252"
+                        : "#ffab00",
+                }}
+              >
+                {action.status === "executed"
+                  ? "feito"
+                  : action.status === "pending_confirmation"
+                    ? "precisa da sua confirmação"
+                    : action.status === "proposed"
+                      ? "proposto"
+                      : "falhou"}
+              </span>
+              {action.detail && <div style={{ color: "var(--text-dim)" }}>{action.detail}</div>}
+              {action.undo_hint && (
+                <div style={{ color: "var(--text-faint)", fontSize: 10 }}>Desfazer: {action.undo_hint}</div>
+              )}
+            </div>
+          ))}
+
+          {/* Toda resposta cita fonte — inclusive quando o dado vem do Bioma. */}
+          {copilotResult.sources.length > 0 && (
+            <div style={{ marginTop: 8, fontSize: 10, color: "var(--text-faint)" }}>
+              Fontes:{" "}
+              {copilotResult.sources.map((source, index) => (
+                <span key={`${source.reference}-${index}`}>
+                  {index > 0 ? " · " : ""}
+                  {source.kind === "web" ? (
+                    <a href={source.reference} target="_blank" rel="noreferrer">
+                      {source.reference}
+                    </a>
+                  ) : (
+                    source.reference
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isCommand && visibleCommands.length > 0 && (
+        <div style={{ border: "1px solid var(--border-color)", borderRadius: 6, overflow: "hidden" }}>
+          {visibleCommands.map((command) => (
+            <button
+              key={command.name}
+              type="button"
+              onClick={() => setBody(`/${command.name} `)}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                padding: "6px 10px",
+                background: "none",
+                border: "none",
+                borderBottom: "1px solid var(--border-color)",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              <strong>/{command.name}</strong>{" "}
+              <span style={{ color: "var(--text-dim)" }}>{command.description}</span>
+              {command.requires_confirmation && (
+                <span style={{ color: "#ffab00", fontSize: 10 }}> · pede confirmação</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <textarea
+          className="text-input"
+          style={{ minHeight: 60, resize: "vertical", fontSize: 13 }}
+          placeholder="Escreva um comentário... ou digite / para chamar o copiloto"
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-dim)", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={clientVisible}
+              onChange={(event) => setClientVisible(event.target.checked)}
+            />
+            Visível para o cliente
+          </label>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={askCopilot}
+              disabled={runCopilot.isPending || !body.trim()}
+              style={{ padding: "4px 12px", fontSize: 12 }}
+              title="Pedir ao copiloto (ações reversíveis são aplicadas na hora)"
+            >
+              <Sparkles size={13} /> {runCopilot.isPending ? "Pensando..." : "Copiloto"}
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={submit}
+              disabled={createComment.isPending || !body.trim()}
+              style={{ padding: "4px 12px", fontSize: 12 }}
+            >
+              <Send size={13} /> {createComment.isPending ? "Enviando..." : "Comentar"}
+            </button>
+          </div>
+        </div>
+      </div>
+      {runCopilot.isError && (
+        <div className="notice error" style={{ fontSize: 12 }}>
+          {runCopilot.error instanceof Error ? runCopilot.error.message : "O copiloto falhou."}
+        </div>
+      )}
+    </div>
+  );
+}
 
 type TaskDrawerProps = {
   listId: string;
+  listType?: TaskListType;
+  workspaceId?: string;
   taskId: string | null;
   initialStatus?: TaskGroupStatus;
+  /** Preenchido ao criar uma SUBTAREFA a partir de outra tarefa. */
+  parentTaskId?: string | null;
   onClose: () => void;
 };
 
-const GROWTH_STATUSES = ["BRAIN", "BACKLOG", "IN PROGRESS", "IN REVIEW", "REJECTED", "BLOCKED", "DONE", "CLOSED"];
-const SOCIAL_STATUSES = ["IDEAÇÃO", "ROTEIRIZAÇÃO", "EM PRODUÇÃO", "REVISÃO INTERNA", "APROVAÇÃO CLIENTE", "EM AJUSTE", "AGENDADO", "PUBLICADO", "ANALISAR", "DESCARTADO", "FINALIZADO"];
 
-export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawerProps) {
+export function TaskDrawer({
+  listId,
+  listType,
+  workspaceId,
+  taskId,
+  initialStatus,
+  parentTaskId,
+  onClose,
+}: TaskDrawerProps) {
   const { data: tasks } = useTasksInList(listId);
+  // Projetos alimentam o seletor de Projeto; sem workspaceId não há como
+  // saber quais projetos são elegíveis (o backend recusa projeto de outro).
+  const { data: projects = [] } = useWorkspaceProjects(workspaceId ?? null);
+  const { data: assignableUsers = [] } = useAssignableUsers(workspaceId ?? null);
   const existingTask = taskId ? tasks?.find(t => t.id === taskId) : null;
   const readOnlyProjection = existingTask?.external_source === "clickup";
   
@@ -27,12 +319,20 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
   const [groupStatus, setGroupStatus] = useState<TaskGroupStatus>("NOT_STARTED");
   const [specificStatus, setSpecificStatus] = useState("");
   const [priority, setPriority] = useState<TaskPriority | "">("");
+  const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [recurrence, setRecurrence] = useState<"none" | "weekly" | "monthly">("none");
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
   const [subtasks, setSubtasks] = useState<TaskSubtaskInput[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [waitingOnTaskId, setWaitingOnTaskId] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>("");
+  const [assigneeId, setAssigneeId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>("");
+  const [creatingSubtaskFor, setCreatingSubtaskFor] = useState<string | null>(null);
+
+  // Filhas vivem na mesma lista, entao saem do fetch que ja temos.
+  const childTasks = taskId ? (tasks ?? []).filter((t) => t.parent_task_id === taskId) : [];
 
   useEffect(() => {
     if (existingTask) {
@@ -41,6 +341,7 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
       setGroupStatus(existingTask.group_status);
       setSpecificStatus(existingTask.status);
       setPriority(existingTask.priority || "");
+      setStartDate(existingTask.start_date ? existingTask.start_date.split("T")[0] : "");
       setDueDate(existingTask.due_date ? existingTask.due_date.split("T")[0] : "");
       setRecurrence(existingTask.recurrence || "none");
       
@@ -52,17 +353,24 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
 
       setSubtasks(existingTask.subtasks || []);
       setWaitingOnTaskId(existingTask.dependencies?.[0]?.depends_on_task_id || "");
+      setProjectId(existingTask.project_id || "");
+      setAssigneeId(existingTask.assignee_id || "");
+      setOwnerId(existingTask.owner_id || "");
     } else {
       setTitle("");
       setDescription("");
       setGroupStatus(initialStatus || "NOT_STARTED");
       setSpecificStatus("");
       setPriority("");
+      setStartDate("");
       setDueDate("");
       setRecurrence("none");
       setCustomFields({});
       setSubtasks([]);
       setWaitingOnTaskId("");
+      setProjectId("");
+      setAssigneeId("");
+      setOwnerId("");
     }
   }, [existingTask, initialStatus]);
 
@@ -101,8 +409,12 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           group_status: groupStatus,
           status: specificStatus || "pending",
           priority: priority || null,
+          start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          project_id: projectId || null,
+          assignee_id: assigneeId || null,
+          owner_id: ownerId || null,
           custom_fields: formattedFields,
           dependencies,
           subtasks,
@@ -119,8 +431,13 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           status: specificStatus || "pending",
           group_status: groupStatus,
           priority: priority || null,
+          start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          project_id: projectId || null,
+          parent_task_id: parentTaskId || null,
+          assignee_id: assigneeId || null,
+          owner_id: ownerId || null,
           custom_fields: formattedFields,
           dependencies,
           subtasks,
@@ -205,13 +522,21 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
                 className="text-input"
                 list="status-options"
                 value={specificStatus}
-                onChange={(e) => setSpecificStatus(e.target.value)}
-                placeholder="Ex: ROTEIRIZAÇÃO"
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSpecificStatus(next);
+                  // Status conhecido da frente já traz o grupo certo: evita a
+                  // tarefa cair na coluna errada do Kanban por digitação.
+                  const group = groupForStatus(listType, next);
+                  if (group) setGroupStatus(group);
+                }}
+                placeholder={statusesForFrente(listType)[0]?.status}
                 disabled={isBusy}
               />
+              {/* Sugestões vêm da frente da lista (Manual v2). Antes o datalist
+                  misturava Growth e Social e não tinha nenhum status de Tech. */}
               <datalist id="status-options">
-                {GROWTH_STATUSES.map(s => <option key={s} value={s} />)}
-                {SOCIAL_STATUSES.map(s => <option key={s} value={s} />)}
+                {statusesForFrente(listType).map(item => <option key={item.status} value={item.status} />)}
               </datalist>
             </label>
           </div>
@@ -233,8 +558,18 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             </label>
 
             <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Data de Início</span>
+              <input
+                type="date"
+                className="text-input"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                disabled={isBusy}
+              />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>Data de Vencimento</span>
-              <input 
+              <input
                 type="date"
                 className="text-input"
                 value={dueDate}
@@ -260,9 +595,130 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             </select>
           </label>
 
+          {/* Responsável e Dono: os manuais v1 já pediam os dois, mas não
+              existia seletor nenhum na tela — sem isso "Minhas tarefas" do
+              Cockpit nunca populava, porque nada ficava atribuído. */}
+          {assignableUsers.length > 0 && (
+            <div style={{ display: "flex", gap: 16 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                  <UserRound size={14} /> Responsável
+                </span>
+                <select
+                  className="text-input"
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  disabled={isBusy}
+                >
+                  <option value="">Ninguém</option>
+                  {assignableUsers.map((person) => (
+                    <option key={person.id} value={person.id}>{person.display_name}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Dono (gestor)</span>
+                <select
+                  className="text-input"
+                  value={ownerId}
+                  onChange={(e) => setOwnerId(e.target.value)}
+                  disabled={isBusy}
+                >
+                  <option value="">Ninguém</option>
+                  {assignableUsers.map((person) => (
+                    <option key={person.id} value={person.id}>{person.display_name}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+
+          {/* Projeto: a frente define os status, o projeto define escopo e
+              contrato (Manual v2). Só aparece se o workspace tiver projetos. */}
+          {projects.length > 0 && (
+            <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                <FolderKanban size={14} /> Projeto
+              </span>
+              <select
+                className="text-input"
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                disabled={isBusy}
+              >
+                <option value="">Sem projeto</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {/* Subtarefas reais: tarefas com pai. Diferente do checklist abaixo,
+              cada uma tem responsável, prazo e status próprios — é o caso de
+              quando o trabalho passa para outra área/equipe. */}
+          {taskId && (
+            <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <GitBranch size={14} /> Subtarefas ({childTasks.length})
+              </h3>
+              <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -6 }}>
+                Use quando o trabalho troca de responsável ou de prazo. Cada uma
+                aparece no quadro com o prazo dela.
+              </span>
+
+              {childTasks.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {childTasks.map((child) => (
+                    <div
+                      key={child.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 8,
+                        background: "var(--surface-color)",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: 4,
+                        padding: "6px 10px",
+                        fontSize: 12,
+                      }}
+                    >
+                      <span>{child.title}</span>
+                      <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
+                        {child.status}
+                        {child.due_date ? ` · ${new Date(child.due_date).toLocaleDateString("pt-BR")}` : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                className="mini-button"
+                type="button"
+                onClick={() => setCreatingSubtaskFor(taskId)}
+                style={{ width: "fit-content" }}
+                disabled={readOnlyProjection}
+              >
+                <Plus size={13} /> Nova subtarefa
+              </button>
+            </div>
+          )}
+
           {/* Subtarefas / Checklists */}
           <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
-            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Checklist de Subtarefas</h3>
+            {/* Manual v2: isto é CHECKLIST — etapas da mesma tarefa, mesmo
+                responsável e mesmo prazo. Quando o trabalho troca de mão ou de
+                prazo, o certo é criar uma subtarefa (tarefa com pai), que
+                aparece no Kanban da equipe que assumiu. */}
+            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Checklist</h3>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -6 }}>
+              Etapas desta mesma tarefa. Se mudar o responsável ou o prazo, crie
+              uma subtarefa em vez de um item aqui.
+            </span>
             
             <div style={{ display: "flex", gap: 8 }}>
               <input 
@@ -361,17 +817,24 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
             </label>
           </div>
 
+          {/* Manual v2: a descrição É a Definição de Pronto — o critério que
+              autoriza mover para DONE, não um campo de texto solto. */}
           <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Descrição / Copy</span>
-            <textarea 
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Definição de Pronto</span>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", marginTop: -4 }}>
+              O que precisa ser verdade para esta tarefa poder ser fechada.
+            </span>
+            <textarea
               className="text-input"
               style={{ minHeight: 100, resize: "vertical" }}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detalhes ou roteiro da tarefa..."
+              placeholder="Ex: testes passam, PR aprovado e deploy em staging validado."
               disabled={isBusy}
             />
           </label>
+
+          {taskId && <TaskCommentsSection taskId={taskId} workspaceId={workspaceId} />}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
@@ -391,6 +854,18 @@ export function TaskDrawer({ listId, taskId, initialStatus, onClose }: TaskDrawe
           </div>
         </div>
       </div>
+
+      {/* Drawer aninhado para criar a subtarefa, já com o pai preenchido. */}
+      {creatingSubtaskFor && (
+        <TaskDrawer
+          listId={listId}
+          listType={listType}
+          workspaceId={workspaceId}
+          taskId={null}
+          parentTaskId={creatingSubtaskFor}
+          onClose={() => setCreatingSubtaskFor(null)}
+        />
+      )}
     </>
   );
 }

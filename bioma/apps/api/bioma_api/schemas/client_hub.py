@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-ClientStatus = Literal["onboarding", "active", "paused", "archived"]
+ClientStatus = Literal["onboarding", "active", "paused", "completed", "archived"]
 ArtifactVisibility = Literal["internal", "client"]
 DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done", "blocked"]
 ApprovalStatus = Literal["pending", "approved", "rejected", "cancelled"]
@@ -206,6 +206,70 @@ class FinancialRecordSummary(BaseModel):
     notes: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class CockpitOverdueItem(BaseModel):
+    id: UUID
+    title: str
+    status: DeliverableStatus
+    due_at: datetime
+    client_id: UUID
+    client_name: str
+
+
+class CockpitPendingApproval(BaseModel):
+    id: UUID
+    deliverable_title: str | None = None
+    created_at: datetime
+    client_id: UUID
+    client_name: str
+
+
+class PortfolioPerformanceRow(BaseModel):
+    """Uma linha por cliente: investimento por canal e leads no período."""
+    client_id: UUID
+    client_name: str
+    workspace_id: UUID
+    status: ClientStatus
+    google_spend_cents: int
+    meta_spend_cents: int
+    linkedin_spend_cents: int
+    total_spend_cents: int
+    total_leads: int
+    # Meta do mês corrente (monthly_targets). None = meta não definida — o
+    # painel mostra "—" em vez de fingir que a meta é zero.
+    target_leads: float | None = None
+    budget_cents: int | None = None
+
+
+class MonthlyTargetRequest(BaseModel):
+    target_leads: float | None = None
+    budget_cents: int | None = None
+
+
+class CockpitStaleConnection(BaseModel):
+    """Integração ativa que parou de sincronizar. `days_stale` é None quando a
+    conexão nunca sincronizou — ausência de sync, não zero dias."""
+    client_id: UUID
+    client_name: str
+    provider: str
+    display_name: str | None = None
+    last_synced_at: datetime | None = None
+    last_error_message: str | None = None
+    days_stale: int | None = None
+
+
+class CockpitPortfolioSummary(BaseModel):
+    monthly_revenue_cents: int
+    mrr_cents: int
+    overdue_deliverables: int
+    clients_at_risk: int
+    clients_active: int
+    clients_total: int
+    overdue_items: list[CockpitOverdueItem] = []
+    pending_approvals: list[CockpitPendingApproval] = []
+    stale_connections: list[CockpitStaleConnection] = []
+    radar_prospects_awaiting: int = 0
 
 
 class FinancialRecordCreateRequest(BaseModel):

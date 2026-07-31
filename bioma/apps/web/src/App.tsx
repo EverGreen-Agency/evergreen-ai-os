@@ -1,6 +1,7 @@
 import { FormEvent, ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { enabledModulesFor, navItems, viewModule, type ViewId } from "./lib/app-config";
+import type { UserOrganization } from "./lib/api";
 import { externalClients } from "./lib/client-scope";
 import { SettingsView } from "./views/SettingsView";
 import { CockpitView } from "./views/CockpitView";
@@ -8,6 +9,7 @@ import { LoginView } from "./views/LoginView";
 import { InviteView } from "./views/InviteView";
 import { ResetPasswordView } from "./views/ResetPasswordView";
 import { PrivacyView } from "./views/PrivacyView";
+import { PublicProposalView } from "./views/PublicProposalView";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -23,6 +25,7 @@ import {
   ClientTasksRoute,
   ClientIntegrationsRoute,
   ClientFilesRoute,
+  ClientProfileRoute,
   ClientVaultRoute,
   ClientProjectsRoute,
   ClientWorkspaceView,
@@ -35,9 +38,12 @@ const EngineeringView = lazy(() => import("./views/EngineeringView").then((modul
 const AgencyWorkspaceView = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyWorkspaceView })));
 const AgencyOverviewRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyOverviewRoute })));
 const AgencyCrmRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyCrmRoute })));
+const AgencyTasksRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyTasksRoute })));
 const AgencyFinanceRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyFinanceRoute })));
 const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAnalyticsRoute })));
 const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
+const AgencyMarketResearchRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyMarketResearchRoute })));
+const AgencyLocalRadarRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyLocalRadarRoute })));
 
 // Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
 // (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
@@ -56,6 +62,12 @@ const KitsManagerView = lazy(() =>
 const ProposalsManagerView = lazy(() =>
   import("./views/admin/proposals/ProposalsManager").then((module) => ({ default: module.ProposalsManager })),
 );
+const SalesCopilotView = lazy(() =>
+  import("./views/admin/proposals/SalesCopilotView").then((module) => ({ default: module.SalesCopilotView })),
+);
+const PlanningPortfolioView = lazy(() =>
+  import("./views/admin/proposals/PlanningPortfolioView").then((module) => ({ default: module.PlanningPortfolioView })),
+);
 
 function ViewLoadingFallback() {
   return <div className="notice">Carregando módulo...</div>;
@@ -65,8 +77,9 @@ export function App() {
   const routerNavigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState("eduardo@evergreengrowth.com.br");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [loginError, setLoginError] = useState("");
   
   const { data: healthData } = useApiHealth();
@@ -107,9 +120,8 @@ export function App() {
 
   const apiOnline = healthData?.status === "ok";
   const isEgAdmin = user
-    ? user.organizations.some((org) => org.role === "eg_admin" || org.slug === "eg") ||
-      user.email.endsWith("@evergreengrowth.com.br") ||
-      user.email.endsWith("@hmconexoes.com.br")
+    ? user.organizations.some((org: UserOrganization) => org.role === "eg_admin" || org.slug === "eg") ||
+      user.email.endsWith("@evergreengrowth.com.br")
     : false;
 
   useEffect(() => {
@@ -154,7 +166,7 @@ export function App() {
     event.preventDefault();
     setLoginError("");
     login.mutate(
-      { email, password },
+      { email, password, remember_me: rememberMe },
       {
         onSuccess: () => {
           setPassword("");
@@ -213,16 +225,20 @@ export function App() {
         <Route path="/convite/:token" element={<InviteView />} />
         <Route path="/redefinir/:token" element={<ResetPasswordView />} />
         <Route path="/privacidade" element={<PrivacyView />} />
+        <Route path="/propostas/public/:token" element={<PublicProposalView />} />
         <Route
           path="*"
           element={
             <LoginView
               email={email}
               password={password}
+              rememberMe={rememberMe}
               loginError={loginError}
               apiOnline={apiOnline}
+              isSubmitting={login.isPending}
               onEmailChange={setEmail}
               onPasswordChange={setPassword}
+              onRememberMeChange={setRememberMe}
               onSubmit={handleLogin}
             />
           }
@@ -277,10 +293,13 @@ export function App() {
             </Suspense>,
           )}>
             <Route index element={<AgencyOverviewRoute />} />
+            <Route path="tarefas" element={<AgencyTasksRoute />} />
             <Route path="crm" element={<AgencyCrmRoute />} />
             <Route path="financeiro" element={<AgencyFinanceRoute />} />
             <Route path="metricas" element={<AgencyAnalyticsRoute />} />
             <Route path="ia" element={<AgencyAiOperationsRoute />} />
+            <Route path="pesquisa-mercado" element={<AgencyMarketResearchRoute />} />
+            <Route path="radar-local" element={<AgencyLocalRadarRoute />} />
           </Route>
 
           <Route path="/clientes" element={guard("clientes",
@@ -298,6 +317,7 @@ export function App() {
             <Route path="crm" element={<ClientCrmRoute />} />
             <Route path="tarefas" element={<ClientTasksRoute />} />
             <Route path="conteudo-ia" element={<ClientAiContentRoute />} />
+            <Route path="contexto" element={<ClientProfileRoute />} />
             <Route path="financeiro" element={<ClientFinanceRoute />} />
             <Route path="analytics" element={<ClientAnalyticsRoute />} />
             <Route path="documentos" element={<ClientFilesRoute />} />
@@ -358,10 +378,21 @@ export function App() {
               <ProposalsManagerView />
             </Suspense>,
           )} />
+          <Route path="/sales_copilot" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <SalesCopilotView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-planning" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <PlanningPortfolioView />
+            </Suspense>,
+          )} />
 
           <Route path="/convite/:token" element={<InviteView />} />
           <Route path="/redefinir/:token" element={<ResetPasswordView />} />
           <Route path="/privacidade" element={<PrivacyView />} />
+          <Route path="/propostas/public/:token" element={<PublicProposalView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>

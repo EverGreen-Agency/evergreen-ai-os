@@ -8,11 +8,14 @@ import {
   Copy,
   Film,
   Image as ImageIcon,
+  Lightbulb,
   LoaderCircle,
   MessageSquareText,
   Plus,
+  Send,
   Sparkles,
   WandSparkles,
+  TrendingUp,
 } from "lucide-react";
 
 import {
@@ -20,17 +23,28 @@ import {
   type AiContentPost,
   type AiContentImage,
   type AiContentVideoScript,
+  type ContentScriptSummary,
 } from "../lib/api";
 import {
   useBrandBook,
   useSaveBrandBook,
   useCalendarItems,
+  useContentHookBank,
+  useContentScripts,
   useCreateCalendarItem,
+  useLinkPostToScript,
+  useScriptScoreboard,
+  useGenerateContentScripts,
+  useGenerateRetrospective,
+  useInstagramPosts,
+  useLatestRetrospective,
   useUpdateCalendarStage,
+  useUpdateContentScript,
 } from "../hooks/useBiomaApi";
 import { EmptyState, SectionHeader } from "./shared";
+import { StatusPill } from "./StatusPill";
 
-type MainTab = "studio" | "brand_book" | "calendar";
+type MainTab = "studio" | "brand_book" | "calendar" | "retrospective";
 type ContentType = "social_posts" | "image_generation" | "video_scripts";
 type ImageProvider = "dalle_3" | "flux" | "higgsfield" | "custom";
 
@@ -146,6 +160,335 @@ function BrandBookSection({ workspaceId }: { workspaceId: string }) {
         </div>
       </form>
     </article>
+  );
+}
+
+function RetrospectiveSection({ workspaceId }: { workspaceId: string }) {
+  const { data: posts, isLoading: loadingPosts } = useInstagramPosts(workspaceId);
+  const { data: hookBank } = useContentHookBank(workspaceId);
+  const { data: retrospective, isLoading: loadingRetro } = useLatestRetrospective(workspaceId);
+  const { data: scripts } = useContentScripts(workspaceId);
+  const generateRetrospective = useGenerateRetrospective();
+  const generateScripts = useGenerateContentScripts();
+  const updateScript = useUpdateContentScript();
+  const createCalendarItem = useCreateCalendarItem();
+  const linkPostToScript = useLinkPostToScript();
+  const { data: scoreboard } = useScriptScoreboard(workspaceId);
+
+  const [scriptCount, setScriptCount] = useState(12);
+  const [competitorInput, setCompetitorInput] = useState("");
+  const [sentToCalendar, setSentToCalendar] = useState<Record<string, boolean>>({});
+
+  const hasPosts = (posts?.length ?? 0) > 0;
+  const output = retrospective?.output_data;
+
+  function handleSendToCalendar(script: ContentScriptSummary) {
+    createCalendarItem.mutate(
+      {
+        workspaceId,
+        payload: {
+          title: script.title,
+          content_type: "video_script",
+          channel: "instagram",
+          post_text: script.script_body,
+          scheduled_at: script.scheduled_for,
+          stage: "ideation",
+        },
+      },
+      {
+        onSuccess: () => {
+          setSentToCalendar((prev) => ({ ...prev, [script.id]: true }));
+          updateScript.mutate({ workspaceId, scriptId: script.id, payload: { status: "approved" } });
+        },
+      },
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <article className="surface">
+        <SectionHeader
+          eyebrow="Retrospectiva de Conteúdo"
+          title="O que já funcionou (sem precisar de briefing)"
+          icon={Lightbulb}
+        />
+        <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+          Analisa os posts orgânicos já sincronizados do Instagram (legenda, transcrição e métricas reais) e
+          identifica temas, formatos e ganchos que performaram — sem exigir que você sugira um tema.
+        </p>
+        {!hasPosts && !loadingPosts && (
+          <div className="notice" style={{ marginBottom: 12 }}>
+            Nenhum post orgânico sincronizado ainda. Conecte o Instagram em Integrações e rode uma sincronização
+            antes de gerar a retrospectiva.
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={generateRetrospective.isPending || !hasPosts}
+            onClick={() => generateRetrospective.mutate({ workspaceId, periodDays: 60 })}
+          >
+            <Lightbulb size={15} />
+            {generateRetrospective.isPending ? "Analisando..." : "Gerar Retrospectiva (últimos 60 dias)"}
+          </button>
+          {retrospective && (
+            <StatusPill variant={retrospective.generation_mode === "live" ? "connected" : "paused"}>
+              {retrospective.generation_mode === "live" ? "Análise real de IA" : "Prévia local (sem OPENAI_API_KEY)"}
+            </StatusPill>
+          )}
+        </div>
+
+        {loadingRetro && <EmptyState compact text="Carregando retrospectiva..." />}
+
+        {output && (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{output.sintese}</p>
+            {output.themes_performantes.length > 0 && (
+              <div>
+                <strong style={{ fontSize: 13 }}>Temas que performaram:</strong>
+                <ul style={{ margin: "4px 0", paddingLeft: 20, fontSize: 13 }}>
+                  {output.themes_performantes.map((theme, i) => <li key={i}>{theme}</li>)}
+                </ul>
+              </div>
+            )}
+            {output.hooks_que_funcionam.length > 0 && (
+              <div>
+                <strong style={{ fontSize: 13 }}>Ganchos que funcionam:</strong>
+                <div className="table-list" style={{ marginTop: 6 }}>
+                  {output.hooks_que_funcionam.map((hook, i) => (
+                    <div className="table-row" key={i}>
+                      <strong>"{hook.hook_text}"</strong>
+                      <span>{hook.padrao}</span>
+                      <span>{hook.por_que_funciona}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </article>
+
+      {hookBank && hookBank.length > 0 && (
+        <article className="surface">
+          <SectionHeader eyebrow="Memória de Longo Prazo" title="Banco de Ganchos" icon={BookOpen} />
+          <div className="table-list" style={{ marginTop: 12 }}>
+            {hookBank.map((hook) => (
+              <div className="table-row" key={hook.id}>
+                <strong>"{hook.hook_text}"</strong>
+                <span>{hook.hook_pattern ?? "—"}</span>
+                <span className="demo-badge">{hook.source === "higgsfield_virality" ? "Higgsfield" : "Transcrição + IA"}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
+
+      {/* O loop de aprendizado: com a atribuição roteiro->post ligada, dá para
+          responder se a IA da casa performa acima do resto da conta. Média por
+          post (não soma) para não premiar o grupo com mais publicações. */}
+      {scoreboard && scoreboard.ai_posts > 0 && (
+        <article className="surface">
+          <SectionHeader
+            eyebrow="Aprendizado"
+            title="Roteiros da IA x resto da conta"
+            icon={TrendingUp}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+            {scoreboard.ai_posts} post(s) vindos de roteiro da IA contra {scoreboard.other_posts} post(s) do
+            restante, nos últimos 90 dias. Métricas reais sincronizadas do Instagram.
+          </p>
+
+          {scoreboard.other_posts === 0 ? (
+            <div className="notice">
+              Ainda não há posts fora da IA no período — sem base de comparação, o placar não afirma ganho.
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 12 }}>
+              {[
+                { label: "Alcance médio", ai: scoreboard.ai_avg_reach, base: scoreboard.other_avg_reach, lift: scoreboard.lift_reach_percent },
+                { label: "Engajamento médio", ai: scoreboard.ai_avg_engagement, base: scoreboard.other_avg_engagement, lift: scoreboard.lift_engagement_percent },
+                { label: "Salvamentos médios", ai: scoreboard.ai_avg_saved, base: scoreboard.other_avg_saved, lift: null },
+              ].map((metric) => (
+                <div key={metric.label} style={{ minWidth: 170 }}>
+                  <small style={{ color: "var(--text-dim)", textTransform: "uppercase", fontSize: 10 }}>{metric.label}</small>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>
+                    {metric.ai !== null ? Math.round(metric.ai) : "—"}
+                    <span style={{ fontSize: 13, fontWeight: 400, color: "var(--text-muted)" }}>
+                      {" "}vs {metric.base !== null ? Math.round(metric.base) : "—"}
+                    </span>
+                  </div>
+                  {metric.lift !== null && metric.lift !== undefined && (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: metric.lift >= 0 ? "#2e9e5b" : "#ff5252" }}>
+                      {metric.lift >= 0 ? "+" : ""}{metric.lift}%
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {scoreboard.per_script.length > 0 && (
+            <div className="table-list">
+              {scoreboard.per_script.map((row) => (
+                <div className="table-row" key={row.script_id}>
+                  <strong style={{ flex: 1 }}>{row.title}</strong>
+                  <span>{row.suggested_format ?? row.theme ?? "—"}</span>
+                  <span>{row.posts} post(s)</span>
+                  <span>{Math.round(row.avg_reach)} alcance</span>
+                  <span>{Math.round(row.avg_engagement)} engaj.</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </article>
+      )}
+
+      {/* Fecha o ciclo: o roteiro que a IA gerou virou qual post, e como esse
+          post performou de verdade. Sem isso, `source_script_id` era gravável
+          pela API e invisível na interface — não havia como medir se o roteiro
+          gerado funcionou. */}
+      {hasPosts && (scripts?.length ?? 0) > 0 && (
+        <article className="surface">
+          <SectionHeader
+            eyebrow="Atribuição"
+            title="Qual roteiro virou qual post (e como performou)"
+            icon={Lightbulb}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+            Vincule o post publicado ao roteiro que o originou. As métricas ao lado são as reais
+            sincronizadas do Instagram — é assim que se sabe se o roteiro gerado performou.
+          </p>
+          <div className="table-list">
+            {(posts ?? []).slice(0, 15).map((post) => {
+              const linkedScript = (scripts ?? []).find((script) => script.id === post.source_script_id);
+              return (
+                <div className="table-row" key={post.id}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {post.caption?.slice(0, 70) || post.media_type}
+                    </strong>
+                    <small style={{ color: "var(--text-muted)" }}>
+                      {post.posted_at ? new Date(post.posted_at).toLocaleDateString("pt-BR") : "sem data"} ·{" "}
+                      {post.reach} alcance · {post.likes} likes · {post.saved} salvos
+                    </small>
+                  </div>
+                  <select
+                    value={post.source_script_id ?? ""}
+                    disabled={linkPostToScript.isPending}
+                    onChange={(event) => {
+                      if (!event.target.value) return;
+                      linkPostToScript.mutate({ workspaceId, postId: post.id, scriptId: event.target.value });
+                    }}
+                    style={{ fontSize: 12, maxWidth: 240 }}
+                  >
+                    <option value="">Sem roteiro vinculado</option>
+                    {(scripts ?? []).map((script) => (
+                      <option key={script.id} value={script.id}>
+                        {script.title}
+                      </option>
+                    ))}
+                  </select>
+                  {linkedScript && <span className="demo-badge">roteiro EG</span>}
+                </div>
+              );
+            })}
+          </div>
+          {linkPostToScript.isError && (
+            <div className="notice error" style={{ marginTop: 10 }}>
+              {linkPostToScript.error instanceof Error ? linkPostToScript.error.message : "Falha ao vincular."}
+            </div>
+          )}
+        </article>
+      )}
+
+      <article className="surface">
+        <SectionHeader eyebrow="Roteirização Automática" title="Gerar Roteiros do Mês" icon={WandSparkles} />
+        <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "8px 0 16px" }}>
+          Cruza a retrospectiva, o banco de ganchos, o calendário de datas comemorativas e (opcionalmente) o
+          benchmark de concorrentes do Ahrefs para gerar um lote de roteiros prontos para gravação.
+        </p>
+        {!retrospective && (
+          <div className="notice" style={{ marginBottom: 12 }}>
+            Gere a retrospectiva acima primeiro — os roteiros são construídos em cima dela.
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 12 }}>
+          <label style={{ fontSize: 12 }}>
+            Quantidade de roteiros
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={scriptCount}
+              onChange={(e) => setScriptCount(Number(e.target.value))}
+              style={{ display: "block", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border-light)", marginTop: 4 }}
+            />
+          </label>
+          <label style={{ fontSize: 12, flex: 1, minWidth: 220 }}>
+            Handles de concorrentes (opcional, separados por vírgula)
+            <input
+              type="text"
+              placeholder="@concorrente1, @concorrente2"
+              value={competitorInput}
+              onChange={(e) => setCompetitorInput(e.target.value)}
+              style={{ display: "block", width: "100%", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border-light)", marginTop: 4, boxSizing: "border-box" }}
+            />
+          </label>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={generateScripts.isPending || !retrospective}
+            onClick={() =>
+              generateScripts.mutate({
+                workspaceId,
+                count: scriptCount,
+                competitorHandles: competitorInput.split(",").map((h) => h.trim()).filter(Boolean),
+              })
+            }
+          >
+            <WandSparkles size={15} />
+            {generateScripts.isPending ? "Gerando..." : "Gerar Roteiros"}
+          </button>
+        </div>
+
+        {scripts && scripts.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {scripts.map((script) => (
+              <details key={script.id} className="surface" style={{ padding: 16 }}>
+                <summary style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <span>
+                    <strong>{script.title}</strong>{" "}
+                    <span style={{ color: "var(--text-muted)", fontSize: 12 }}>· {script.suggested_format}</span>
+                  </span>
+                  <StatusPill variant={script.status === "discarded" ? "not_configured" : script.status === "suggested" ? "paused" : "connected"}>
+                    {script.status}
+                  </StatusPill>
+                </summary>
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+                  <p><strong>Gancho de abertura:</strong> {script.hook_opening}</p>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{script.script_body}</p>
+                  <p><strong>CTA:</strong> {script.cta}</p>
+                  <p style={{ color: "var(--text-muted)" }}><strong>Por quê esse tema:</strong> {script.rationale}</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="mini-button approve"
+                      type="button"
+                      disabled={sentToCalendar[script.id] || createCalendarItem.isPending}
+                      onClick={() => handleSendToCalendar(script)}
+                    >
+                      <Send size={13} />
+                      {sentToCalendar[script.id] ? "Enviado ao Calendário" : "Enviar ao Calendário Editorial"}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+        )}
+      </article>
+    </div>
   );
 }
 
@@ -371,10 +714,18 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
         >
           <Calendar size={15} /> Esteira do Calendário Editorial
         </button>
+        <button
+          className={mainTab === "retrospective" ? "performance-tab active" : "performance-tab"}
+          type="button"
+          onClick={() => setMainTab("retrospective")}
+        >
+          <Lightbulb size={15} /> Retrospectiva & Roteiros
+        </button>
       </div>
 
       {mainTab === "brand_book" && <BrandBookSection workspaceId={workspaceId} />}
       {mainTab === "calendar" && <CalendarSection workspaceId={workspaceId} />}
+      {mainTab === "retrospective" && <RetrospectiveSection workspaceId={workspaceId} />}
 
       {mainTab === "studio" && (
         <>

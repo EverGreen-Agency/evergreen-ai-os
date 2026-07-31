@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
@@ -15,6 +15,15 @@ DeliverableStatus = Literal["planned", "in_progress", "waiting_approval", "done"
 ProjectPhaseStatus = Literal["planned", "development", "blocked", "internal_testing", "client_validation", "released"]
 ProjectDocumentKind = Literal["proposal", "technical_spec", "scope", "acceptance", "release_notes"]
 ProjectUpdateKind = Literal["progress", "blocker", "testing", "release", "note"]
+ProjectPlanStatus = Literal["draft", "approved", "materialized", "superseded"]
+ProjectPlanSourceKind = Literal["contract", "briefing", "onboarding", "manual"]
+ProjectPlanGenerationMode = Literal["live", "preview", "manual"]
+ProjectPlanItemKind = Literal["milestone", "deliverable", "content", "campaign", "technical_task"]
+ProjectPlanItemPriority = Literal["low", "medium", "high", "critical"]
+SocialApprovalFlow = Literal["adaptive", "idea_before_production", "after_production", "final_only"]
+PlanningIntakeStatus = Literal["draft", "finalized"]
+PlanningIntakeSchemaKey = Literal["retail_v1", "tech_v1", "growth_social_v1"]
+ProjectPlanSubtask = Annotated[str, Field(min_length=2, max_length=500)]
 
 
 class ProjectCreate(BaseModel):
@@ -154,6 +163,8 @@ class ProjectDocumentCreate(BaseModel):
     kind: ProjectDocumentKind
     title: str = Field(min_length=2, max_length=240)
     url: str = Field(min_length=8, max_length=2_000)
+    contract_id: UUID | None = None
+    planning_excerpt: str | None = Field(default=None, max_length=20_000)
     client_visible: bool = True
 
 
@@ -163,6 +174,169 @@ class ProjectUpdateCreate(BaseModel):
     summary: str = Field(min_length=3, max_length=1_000)
     detail: str | None = Field(default=None, max_length=5_000)
     client_visible: bool = True
+
+
+class ProjectPlanGenerateRequest(BaseModel):
+    contract_id: UUID | None = None
+    planning_intake_id: UUID | None = None
+    source_kind: ProjectPlanSourceKind = "contract"
+    briefing: str | None = Field(default=None, max_length=20_000)
+    technical_context: str | None = Field(default=None, max_length=20_000)
+    objective: str | None = Field(default=None, max_length=5_000)
+    social_approval_flow: SocialApprovalFlow = "adaptive"
+
+
+class ProjectPlanningIntakeWrite(BaseModel):
+    schema_key: PlanningIntakeSchemaKey = "retail_v1"
+    title: str = Field(min_length=2, max_length=240)
+    objective: str = Field(min_length=2, max_length=5_000)
+    answers: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProjectPlanningIntakeUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=240)
+    objective: str | None = Field(default=None, min_length=2, max_length=5_000)
+    answers: dict[str, Any] | None = None
+
+
+class ProjectPlanningIntakeSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    schema_key: PlanningIntakeSchemaKey
+    schema_version: int
+    status: PlanningIntakeStatus
+    title: str
+    objective: str
+    answers: dict[str, Any] = Field(default_factory=dict)
+    derived_context: dict[str, Any] = Field(default_factory=dict)
+    finalized_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PlanningPortfolioItem(BaseModel):
+    project_id: UUID
+    project_name: str
+    project_type: ProjectType
+    project_status: ProjectStatus
+    workspace_id: UUID
+    client_name: str
+    intake_id: UUID | None = None
+    intake_schema_key: PlanningIntakeSchemaKey | None = None
+    intake_status: PlanningIntakeStatus | None = None
+    plan_id: UUID | None = None
+    plan_title: str | None = None
+    plan_version: int | None = None
+    plan_status: ProjectPlanStatus | None = None
+    generation_mode: ProjectPlanGenerationMode | None = None
+    updated_at: datetime
+
+
+class ProjectPlanItemDraft(BaseModel):
+    source_scope_item_id: UUID | None = None
+    phase_name: str = Field(min_length=2, max_length=240)
+    title: str = Field(min_length=2, max_length=240)
+    description: str | None = Field(default=None, max_length=5_000)
+    item_kind: ProjectPlanItemKind = "deliverable"
+    due_offset_days: int | None = Field(default=None, ge=0, le=730)
+    client_visible: bool = True
+    approval_required: bool = True
+    github_eligible: bool = False
+    priority: ProjectPlanItemPriority = "medium"
+    definition_of_done: str | None = Field(default=None, max_length=5_000)
+    subtasks: list[ProjectPlanSubtask] = Field(default_factory=list, max_length=50)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProjectPlanAIOutput(BaseModel):
+    plan_title: str = Field(min_length=2, max_length=240)
+    objective: str | None = Field(default=None, max_length=5_000)
+    assumptions: list[str] = Field(default_factory=list, max_length=50)
+    items: list[ProjectPlanItemDraft] = Field(min_length=1, max_length=100)
+
+
+class ProjectPlanApproveRequest(BaseModel):
+    confirm: Literal[True]
+
+
+class ProjectPlanMaterializeRequest(BaseModel):
+    confirm: Literal[True]
+
+
+class ProjectPlanItemUpdate(BaseModel):
+    selected: bool | None = None
+    phase_name: str | None = Field(default=None, min_length=2, max_length=240)
+    title: str | None = Field(default=None, min_length=2, max_length=240)
+    description: str | None = Field(default=None, max_length=5_000)
+    due_offset_days: int | None = Field(default=None, ge=0, le=730)
+    client_visible: bool | None = None
+    approval_required: bool | None = None
+    priority: ProjectPlanItemPriority | None = None
+    definition_of_done: str | None = Field(default=None, max_length=5_000)
+    subtasks: list[ProjectPlanSubtask] | None = Field(default=None, max_length=50)
+
+    @model_validator(mode="after")
+    def valid_patch(self):
+        if not self.model_fields_set:
+            raise ValueError("Informe ao menos um campo para alterar.")
+        non_nullable = {
+            "selected",
+            "phase_name",
+            "title",
+            "client_visible",
+            "approval_required",
+            "priority",
+            "subtasks",
+        }
+        invalid = sorted(field for field in self.model_fields_set if field in non_nullable and getattr(self, field) is None)
+        if invalid:
+            raise ValueError(f"Os campos não aceitam valor nulo: {', '.join(invalid)}.")
+        return self
+
+
+class ProjectPlanItemSummary(BaseModel):
+    id: UUID
+    plan_id: UUID
+    sequence: int
+    source_scope_item_id: UUID | None = None
+    phase_name: str
+    title: str
+    description: str | None = None
+    item_kind: ProjectPlanItemKind
+    due_offset_days: int | None = None
+    client_visible: bool
+    approval_required: bool
+    github_eligible: bool
+    selected: bool
+    priority: ProjectPlanItemPriority
+    definition_of_done: str | None = None
+    subtasks: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    materialized_phase_id: UUID | None = None
+    materialized_deliverable_id: UUID | None = None
+    github_issue_number: int | None = None
+    github_issue_url: str | None = None
+
+
+class ProjectPlanSummary(BaseModel):
+    id: UUID
+    project_id: UUID
+    source_contract_id: UUID | None = None
+    planning_intake_id: UUID | None = None
+    version: int
+    discipline: ProjectType
+    source_kind: ProjectPlanSourceKind
+    status: ProjectPlanStatus
+    generation_mode: ProjectPlanGenerationMode
+    title: str
+    objective: str | None = None
+    assumptions: list[str] = Field(default_factory=list)
+    intake_snapshot: dict[str, Any] = Field(default_factory=dict)
+    approved_at: datetime | None = None
+    materialized_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+    items: list[ProjectPlanItemSummary] = Field(default_factory=list)
 
 
 class ScopeItemSummary(BaseModel):
@@ -209,6 +383,8 @@ class ProjectDeliverableSummary(BaseModel):
     due_at: datetime | None = None
     completed_at: datetime | None = None
     approval_status: str | None = None
+    github_issue_number: int | None = None
+    github_issue_url: str | None = None
     updated_at: datetime
 
 
@@ -234,6 +410,8 @@ class ProjectDocumentSummary(BaseModel):
     kind: ProjectDocumentKind
     title: str
     url: str
+    contract_id: UUID | None = None
+    planning_excerpt: str | None = None
     client_visible: bool
     created_at: datetime
 
@@ -278,3 +456,4 @@ class ProjectDetail(ProjectSummary):
     phases: list[ProjectPhaseSummary] = Field(default_factory=list)
     documents: list[ProjectDocumentSummary] = Field(default_factory=list)
     updates: list[ProjectUpdateSummary] = Field(default_factory=list)
+    plans: list[ProjectPlanSummary] = Field(default_factory=list)

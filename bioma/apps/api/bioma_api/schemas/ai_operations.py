@@ -136,7 +136,8 @@ class WorkflowStepDefinition(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = Field(min_length=1, max_length=1000)
     interactive: bool = False
-    capability: str | None = Field(default=None, max_length=80)
+    task_kind: str = Field(default="content_draft", pattern=r"^[a-z0-9][a-z0-9_-]{1,79}$")
+    capability: str = Field(default="content", min_length=1, max_length=80)
 
 
 class WorkflowTemplateSummary(BaseModel):
@@ -160,10 +161,17 @@ class WorkflowStepRunSummary(BaseModel):
     step_key: str
     position: int
     name: str
+    description: str | None = None
     interactive: bool
     status: WorkflowStepStatus
+    task_kind: str | None = None
+    capability: str | None = None
     provider: str | None = None
     model: str | None = None
+    account_id: UUID | None = None
+    model_catalog_id: UUID | None = None
+    selection_reason: dict[str, Any] = Field(default_factory=dict)
+    attempts: int = 0
     output: dict[str, Any] | None = None
     cost_cents: int | None = None
     started_at: datetime | None = None

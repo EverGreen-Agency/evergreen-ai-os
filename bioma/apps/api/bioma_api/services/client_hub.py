@@ -21,6 +21,9 @@ from bioma_api.schemas.client_hub import (
     ClientPortalResponse,
     ClientSummary,
     ClientUpdateRequest,
+    CockpitPortfolioSummary,
+    MonthlyTargetRequest,
+    PortfolioPerformanceRow,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -605,3 +608,46 @@ def list_my_deliverables(user: CurrentUserResponse) -> list[dict]:
             is_platform_admin(user),
             user.id,
         )
+
+
+def get_cockpit_summary(user: CurrentUserResponse) -> CockpitPortfolioSummary:
+    require_platform_admin(user)
+    with connect() as conn:
+        row = client_hub_repo.get_portfolio_summary(conn)
+    return CockpitPortfolioSummary(**row)
+
+
+def get_portfolio_performance(user: CurrentUserResponse, days: int = 30) -> list[PortfolioPerformanceRow]:
+    require_platform_admin(user)
+    with connect() as conn:
+        rows = client_hub_repo.get_portfolio_performance(conn, days)
+    return [PortfolioPerformanceRow(**row) for row in rows]
+
+
+def set_monthly_target(
+    client_id: UUID,
+    payload: MonthlyTargetRequest,
+    user: CurrentUserResponse,
+    days: int = 30,
+) -> list[PortfolioPerformanceRow]:
+    """Define a meta do mês do cliente e devolve o rollup já recalculado."""
+    require_platform_admin(user)
+    with connect() as conn:
+        found = client_hub_repo.upsert_monthly_target(
+            conn, client_id, payload.target_leads, payload.budget_cents
+        )
+        if not found:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado.")
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            None,
+            "client.monthly_target_set",
+            {
+                "client_id": str(client_id),
+                "target_leads": payload.target_leads,
+                "budget_cents": payload.budget_cents,
+            },
+        )
+        rows = client_hub_repo.get_portfolio_performance(conn, days)
+    return [PortfolioPerformanceRow(**row) for row in rows]

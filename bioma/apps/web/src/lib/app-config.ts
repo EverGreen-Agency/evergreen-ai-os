@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, FileText, FolderOpen, GitBranch, KeyRound, LayoutDashboard, Link2, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, MapPin, Package, Sparkles, Target, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -17,7 +17,9 @@ export type ViewId =
   | "eg-architecture"
   | "eg-rh"
   | "eg-kits"
-  | "eg-propostas";
+  | "eg-propostas"
+  | "eg-planning"
+  | "sales_copilot";
 
 export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: "cockpit", label: "Cockpit", icon: LayoutDashboard },
@@ -33,21 +35,24 @@ export const navItems: Array<{ id: ViewId; label: string; icon: LucideIcon }> = 
   { id: "eg-architecture", label: "Arquitetura", icon: FileText },
   { id: "eg-rh", label: "Gestão RH", icon: UserCheck },
   { id: "eg-kits", label: "Logística Kits", icon: Package },
-  { id: "eg-propostas", label: "Radar & Propostas IA", icon: Target },
+  { id: "eg-propostas", label: "Freelas e Propostas", icon: Target },
+  { id: "eg-planning", label: "Planejamentos", icon: ClipboardList },
+  { id: "sales_copilot", label: "Copiloto de Vendas", icon: Headphones },
 ];
 
 export const clientHubNavItems: Array<{
-  id: "hub" | "projects" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
+  id: "hub" | "context" | "projects" | "ai-content" | "crm" | "finance" | "analytics" | "files" | "tasks" | "vault" | "integrations";
   label: string;
   path: string;
   module: ClientModule;
   icon: LucideIcon;
 }> = [
   { id: "hub", label: "Visão geral", path: "", module: "hub", icon: LayoutDashboard },
+  { id: "context", label: "Contexto do cliente", path: "contexto", module: "hub", icon: FileText },
   { id: "projects", label: "Projetos e contratos", path: "projetos", module: "hub", icon: BriefcaseBusiness },
   { id: "ai-content", label: "Estúdio IA", path: "conteudo-ia", module: "content", icon: Sparkles },
   { id: "crm", label: "CRM", path: "crm", module: "commercial", icon: Users },
-  { id: "finance", label: "Financeiro", path: "financeiro", module: "commercial", icon: WalletCards },
+  { id: "finance", label: "Financeiro", path: "financeiro", module: "finance", icon: WalletCards },
   { id: "analytics", label: "Métricas", path: "analytics", module: "analytics", icon: BarChart3 },
   { id: "files", label: "Documentos", path: "documentos", module: "files", icon: FolderOpen },
   { id: "tasks", label: "Tarefas", path: "tarefas", module: "hub", icon: LayoutDashboard },
@@ -62,8 +67,11 @@ export const agencyWorkspaceNavItems: Array<{
   module: ClientModule;
   icon: LucideIcon;
 }> = [
+  // "tasks" incluído: sem ele a própria EG não tinha onde gerenciar demanda
+  // interna (social/tech/growth da casa, treinamento de time, hackathon) —
+  // o workspace interno existe desde sempre, mas não havia aba para alcançá-lo.
   ...clientHubNavItems
-    .filter((item) => ["hub", "crm", "finance", "analytics"].includes(item.id))
+    .filter((item) => ["hub", "tasks", "crm", "finance", "analytics"].includes(item.id))
     .map((item) => item.id === "analytics" ? { ...item, path: "metricas" } : item),
   {
     id: "ai-operations",
@@ -71,6 +79,20 @@ export const agencyWorkspaceNavItems: Array<{
     path: "ia",
     module: "hub",
     icon: Bot,
+  },
+  {
+    id: "market-research",
+    label: "Pesquisa de mercado",
+    path: "pesquisa-mercado",
+    module: "hub",
+    icon: FileSearch,
+  },
+  {
+    id: "local-radar",
+    label: "Radar Local",
+    path: "radar-local",
+    module: "hub",
+    icon: MapPin,
   },
 ];
 
@@ -81,7 +103,7 @@ export const viewModule: Record<ViewId, ClientModule> = {
   operacao: "hub",
   clientes: "hub",
   crm: "commercial",
-  finance: "commercial",
+  finance: "finance",
   analytics: "analytics",
   engenharia: "engineering",
   // Rotas internas não devem depender de módulos de cliente,
@@ -95,21 +117,24 @@ export const viewModule: Record<ViewId, ClientModule> = {
   "eg-rh": "hub",
   "eg-kits": "hub",
   "eg-propostas": "hub",
+  "eg-planning": "hub",
+  sales_copilot: "commercial",
 };
 
 export const moduleLabels: Record<ClientModule, string> = {
-  hub: "Hub do cliente",
-  content: "Conteúdo",
-  files: "Arquivos",
-  commercial: "Comercial",
-  analytics: "Analytics",
+  hub: "Visão geral do cliente",
+  content: "Estúdio IA",
+  files: "Arquivos e Documentos",
+  commercial: "CRM (Vendas)",
+  finance: "Financeiro",
+  analytics: "Métricas e Analytics",
   integrations: "Integrações",
   engineering: "Engenharia",
 };
 
 // Módulos que o EG admin pode ligar/desligar por cliente ("hub" é o núcleo,
 // sempre ativo — o backend força isso também).
-export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "analytics", "integrations"];
+export const toggleableModules: ClientModule[] = ["content", "files", "commercial", "finance", "analytics", "integrations"];
 
 export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmin: boolean): Set<ClientModule> {
   if (isEgAdmin) {
@@ -127,8 +152,9 @@ export function enabledModulesFor(user: CurrentUser | null | undefined, isEgAdmi
 
 export const statusLabel: Record<ClientStatus, string> = {
   onboarding: "Onboarding",
-  active: "Ativo",
+  active: "Ativo (Recorrência)",
   paused: "Pausado",
+  completed: "Projeto Concluído",
   archived: "Arquivado",
 };
 

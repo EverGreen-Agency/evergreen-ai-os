@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+
+type IconLike = LucideIcon | ComponentType<{ size?: number; className?: string }>;
 
 export function ProofItem({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail: string }) {
   return (
@@ -11,7 +13,7 @@ export function ProofItem({ icon: Icon, title, detail }: { icon: LucideIcon; tit
   );
 }
 
-export function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon: LucideIcon }) {
+export function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon: IconLike }) {
   return (
     <div className="panel-heading compact">
       <div>

@@ -1,16 +1,12 @@
 import { FormEvent, useState } from "react";
 import {
   Activity,
-  BarChart3,
   Cloud,
   KeyRound,
   PenLine,
   Plus,
   RefreshCw,
-  Search,
   Server,
-  Tags,
-  TrendingUp,
   Briefcase,
 } from "lucide-react";
 import { useUiStore } from "../store/uiStore";
@@ -20,27 +16,49 @@ import {
   useIntegrationsStatus,
   usePerformanceConnections,
   useRequestPerformanceSync,
+  useSavePerformanceProviderToken,
   useUpdatePerformanceConnection,
   useKommoConfig,
   useSetupKommoConfig,
 } from "../hooks/useBiomaApi";
 import { formatDateTime } from "../lib/format";
 import type { PerformanceConnection, PerformanceProvider, OpportunityPlatformConfig } from "../lib/api";
-import { api } from "../lib/api";
+import { api, apiUrl } from "../lib/api";
 import { useEffect } from "react";
 import { WhatsAppManager } from "./WhatsAppManager";
+import { StatusPill } from "./StatusPill";
+import { IntegrationGuide } from "./IntegrationGuide";
+import {
+  Ga4Icon,
+  GoogleAdSenseIcon,
+  GoogleAdsIcon,
+  GoogleBusinessProfileIcon,
+  GtmIcon,
+  HubSpotIcon,
+  InstagramIcon,
+  KommoIcon,
+  LinkedInAdsIcon,
+  MetaAdsIcon,
+  RdStationIcon,
+  SearchConsoleIcon,
+  TikTokIcon,
+  YouTubeIcon,
+} from "./icons/BrandIcons";
 
 const PROVIDER_META: Record<PerformanceProvider, {
   label: string;
-  icon: typeof BarChart3;
+  icon: typeof GoogleAdsIcon;
   accountLabel: string;
   accountPlaceholder: string;
   parentLabel?: string;
   parentPlaceholder?: string;
+  oauthConnect?: boolean;
+  /** CRMs que autenticam por token colado (não OAuth, não account id). */
+  tokenConnect?: { label: string; placeholder: string };
 }> = {
   google_ads: {
     label: "Google Ads",
-    icon: BarChart3,
+    icon: GoogleAdsIcon,
     accountLabel: "Customer ID",
     accountPlaceholder: "123-456-7890",
     parentLabel: "MCC (login customer id) — opcional",
@@ -48,39 +66,112 @@ const PROVIDER_META: Record<PerformanceProvider, {
   },
   ga4: {
     label: "Google Analytics 4",
-    icon: TrendingUp,
+    icon: Ga4Icon,
     accountLabel: "Property ID",
     accountPlaceholder: "123456789",
   },
   search_console: {
     label: "Search Console",
-    icon: Search,
+    icon: SearchConsoleIcon,
     accountLabel: "Propriedade",
     accountPlaceholder: "sc-domain:evergreenmkt.com.br",
   },
   gtm: {
     label: "Google Tag Manager",
-    icon: Tags,
+    icon: GtmIcon,
     accountLabel: "Container ID",
     accountPlaceholder: "GTM-XXXXXXX",
     parentLabel: "Account ID",
     parentPlaceholder: "6000000000",
+  },
+  meta_ads: {
+    label: "Meta Ads",
+    icon: MetaAdsIcon,
+    accountLabel: "Ad Account ID",
+    accountPlaceholder: "act_1234567890",
+  },
+  linkedin_ads: {
+    label: "LinkedIn Ads",
+    icon: LinkedInAdsIcon,
+    accountLabel: "Sponsored Account ID",
+    accountPlaceholder: "123456789",
+  },
+  instagram_organic: {
+    label: "Instagram (orgânico)",
+    icon: InstagramIcon,
+    accountLabel: "Instagram Business Account ID",
+    accountPlaceholder: "17841400000000000",
+  },
+  google_business_profile: {
+    label: "Google Meu Negócio",
+    icon: GoogleBusinessProfileIcon,
+    accountLabel: "Location ID",
+    accountPlaceholder: "locations/1234567890",
+  },
+  google_adsense: {
+    label: "Google AdSense",
+    icon: GoogleAdSenseIcon,
+    accountLabel: "Account ID",
+    accountPlaceholder: "accounts/pub-1234567890123456",
+  },
+  youtube_organic: {
+    label: "YouTube (orgânico)",
+    icon: YouTubeIcon,
+    accountLabel: "Channel ID",
+    accountPlaceholder: "UCxxxxxxxxxxxxxxxxxxxxxx",
+  },
+  tiktok_organic: {
+    label: "TikTok (orgânico)",
+    icon: TikTokIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
+  },
+  tiktok_ads: {
+    label: "TikTok Ads",
+    icon: TikTokIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
+  },
+  linkedin_organic: {
+    label: "LinkedIn (orgânico)",
+    icon: LinkedInAdsIcon,
+    accountLabel: "Resolvido automaticamente pela autorização",
+    accountPlaceholder: "",
+    oauthConnect: true,
+  },
+  rd_station_crm: {
+    label: "RD Station CRM",
+    icon: RdStationIcon,
+    accountLabel: "Conexão por token",
+    accountPlaceholder: "",
+    tokenConnect: { label: "Token da instância", placeholder: "Cole o token gerado no RD Station CRM" },
+  },
+  hubspot: {
+    label: "HubSpot",
+    icon: HubSpotIcon,
+    accountLabel: "Conexão por token",
+    accountPlaceholder: "",
+    tokenConnect: { label: "Token do app privado", placeholder: "pat-na1-..." },
   },
 };
 
 const PROVIDERS = Object.keys(PROVIDER_META) as PerformanceProvider[];
 
 function EnvStatusPill({ configured }: { configured: boolean }) {
-  return configured
-    ? <span className="status-pill open">Configurado</span>
-    : <span className="status-pill draft">Não configurado</span>;
+  return (
+    <StatusPill variant={configured ? "connected" : "not_configured"}>
+      {configured ? "Configurado" : "Não configurado"}
+    </StatusPill>
+  );
 }
 
 function ConnectionStatusPill({ connection }: { connection: PerformanceConnection | null }) {
-  if (!connection) return <span className="status-pill draft">Sem conexão</span>;
-  if (connection.status === "error") return <span className="status-pill cancelled">Erro</span>;
-  if (connection.status === "inactive") return <span className="status-pill paused">Inativa</span>;
-  return <span className="status-pill open">Ativa</span>;
+  if (!connection) return <StatusPill variant="not_configured">Sem conexão</StatusPill>;
+  if (connection.status === "error") return <StatusPill variant="error">Erro</StatusPill>;
+  if (connection.status === "inactive") return <StatusPill variant="paused">Inativa</StatusPill>;
+  return <StatusPill variant="connected">Ativa</StatusPill>;
 }
 
 export function IntegrationsTab({
@@ -99,11 +190,11 @@ export function IntegrationsTab({
   const createConnection = useCreatePerformanceConnection();
   const updateConnection = useUpdatePerformanceConnection();
   const requestSync = useRequestPerformanceSync();
+  const saveProviderToken = useSavePerformanceProviderToken();
 
   const [oppPlatforms, setOppPlatforms] = useState<OpportunityPlatformConfig[]>([]);
   const [editingPlatformKey, setEditingPlatformKey] = useState<string | null>(null);
   const [editRssUrl, setEditRssUrl] = useState("");
-  const [editApiKey, setEditApiKey] = useState("");
   const [editStatus, setEditStatus] = useState<"active" | "paused" | "not_configured">("active");
   const [editMonthlyCost, setEditMonthlyCost] = useState(0);
   const [savingPlatform, setSavingPlatform] = useState(false);
@@ -127,9 +218,11 @@ export function IntegrationsTab({
     setSavingPlatform(true);
     try {
       await api.updateOpportunityPlatform(editingPlatformKey, {
+        platform_name:
+          oppPlatforms.find((platform) => platform.platform_key === editingPlatformKey)?.platform_name
+          ?? editingPlatformKey,
         status: editStatus,
         rss_url: editRssUrl || null,
-        api_key_or_token: editApiKey || null,
         monthly_cost_cents: Math.round(Number(editMonthlyCost) * 100),
       });
       setEditingPlatformKey(null);
@@ -142,6 +235,7 @@ export function IntegrationsTab({
   }
 
   const [editingProvider, setEditingProvider] = useState<PerformanceProvider | null>(null);
+  const [providerToken, setProviderToken] = useState("");
   const [accountId, setAccountId] = useState("");
   const [parentId, setParentId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -159,8 +253,15 @@ export function IntegrationsTab({
   const [kommoSubdomain, setKommoSubdomain] = useState("");
   const [isEditingKommo, setIsEditingKommo] = useState(false);
 
+  // Um único consentimento OAuth pode devolver várias contas (ex: TikTok Ads
+  // com N advertisers, LinkedIn com N organizações administradas). Guardamos
+  // uma conexão por conta, então o card precisa listar todas — senão as
+  // demais sincronizam invisíveis.
+  const connectionsFor = (provider: PerformanceProvider) =>
+    connections.filter((connection) => connection.provider === provider);
+
   const connectionFor = (provider: PerformanceProvider) =>
-    connections.find((connection) => connection.provider === provider) ?? null;
+    connectionsFor(provider)[0] ?? null;
 
   function startEdit(provider: PerformanceProvider) {
     const existing = connectionFor(provider);
@@ -175,6 +276,16 @@ export function IntegrationsTab({
     setAccountId("");
     setParentId("");
     setDisplayName("");
+    setProviderToken("");
+  }
+
+  function handleSaveProviderToken(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedClientId || !editingProvider || !providerToken.trim()) return;
+    saveProviderToken.mutate(
+      { workspaceId: selectedClientId, provider: editingProvider, token: providerToken.trim() },
+      { onSuccess: cancelEdit },
+    );
   }
 
   function startEditKommo() {
@@ -281,12 +392,12 @@ export function IntegrationsTab({
             <div className="health-row">
               <Cloud size={18} />
               <span>Storage de arquivos (S3) <small style={{ color: "var(--text-faint, #64748B)" }}>· STORAGE_S3_*</small></span>
-              {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <span className="status-pill draft">...</span>}
+              {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
             <div className="health-row">
               <KeyRound size={18} />
               <span>Login com Google (OAuth) <small style={{ color: "var(--text-faint, #64748B)" }}>· GOOGLE_OAUTH_*</small></span>
-              {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <span className="status-pill draft">...</span>}
+              {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
           </div>
         </section>
@@ -334,12 +445,12 @@ export function IntegrationsTab({
                 <article className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <Briefcase size={20} color={kommoConfig?.configured ? "var(--brand-accent, #3B82F6)" : "var(--text-dim, #64748B)"} />
+                      <KommoIcon size={20} />
                       <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>Kommo CRM</h4>
                     </div>
-                    {kommoConfig?.configured
-                      ? <span className="status-pill open">Configurado</span>
-                      : <span className="status-pill draft">Não configurado</span>}
+                    <StatusPill variant={kommoConfig?.configured ? "connected" : "not_configured"}>
+                      {kommoConfig?.configured ? "Configurado" : "Não configurado"}
+                    </StatusPill>
                   </div>
 
                   {loadingKommo && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
@@ -425,47 +536,119 @@ export function IntegrationsTab({
                 {PROVIDERS.map((provider) => {
                   const meta = PROVIDER_META[provider];
                   const Icon = meta.icon;
-                  const connection = connectionFor(provider);
+                  const providerConnections = connectionsFor(provider);
+                  const connection = providerConnections[0] ?? null;
+                  const hasActive = providerConnections.some((item) => item.status === "active");
                   const isEditing = editingProvider === provider;
                   return (
                     <article key={provider} className="surface" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                          <Icon size={20} color={connection?.status === "active" ? "var(--brand-accent, #3B82F6)" : "var(--text-dim, #64748B)"} />
+                          <span style={{ display: "inline-flex", opacity: hasActive ? 1 : 0.5 }}>
+                            <Icon size={20} />
+                          </span>
                           <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>{meta.label}</h4>
                         </div>
-                        <ConnectionStatusPill connection={connection} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {providerConnections.length > 1 && (
+                            <span className="demo-badge">{providerConnections.length} contas</span>
+                          )}
+                          <ConnectionStatusPill connection={connection} />
+                        </div>
                       </div>
+
+                      <IntegrationGuide provider={provider} label={meta.label} />
 
                       {loadingConnections && <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Carregando...</div>}
 
-                      {!isEditing && connection && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", display: "grid", gap: 4 }}>
-                          <div>{meta.accountLabel}: <strong>{connection.external_account_id}</strong></div>
-                          {connection.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{connection.external_parent_id}</strong></div>}
-                          {connection.display_name && <div>Nome: <strong>{connection.display_name}</strong></div>}
+                      {!isEditing && providerConnections.map((item) => (
+                        <div
+                          key={item.id}
+                          style={{
+                            fontSize: 12,
+                            color: "var(--text-muted)",
+                            display: "grid",
+                            gap: 4,
+                            paddingTop: providerConnections.length > 1 ? 8 : 0,
+                            borderTop: providerConnections.length > 1 ? "1px solid var(--border)" : undefined,
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                            <span>
+                              {meta.tokenConnect
+                                ? "Token configurado e cifrado"
+                                : <>{meta.accountLabel}: <strong>{item.external_account_id}</strong></>}
+                            </span>
+                            {providerConnections.length > 1 && <ConnectionStatusPill connection={item} />}
+                          </div>
+                          {item.external_parent_id && <div>{meta.parentLabel ?? "Conta-pai"}: <strong>{item.external_parent_id}</strong></div>}
+                          {item.display_name && <div>Nome: <strong>{item.display_name}</strong></div>}
                           <div>
                             Último sync:{" "}
-                            <strong>{connection.last_synced_at ? formatDateTime(connection.last_synced_at) : "nunca"}</strong>
+                            <strong>{item.last_synced_at ? formatDateTime(item.last_synced_at) : "nunca"}</strong>
                           </div>
-                          {connection.last_error_message && (
-                            <div style={{ color: "var(--danger-soft)" }}>Erro: {connection.last_error_message}</div>
+                          {item.last_error_message && (
+                            <div style={{ color: "var(--danger-soft)" }}>Erro: {item.last_error_message}</div>
                           )}
-                          {!connection.credentials_configured && (
-                            <div style={{ color: "var(--amber-soft)" }}>
-                              Credencial Google (service account) ainda não configurada no worker.
+                          {providerConnections.length > 1 && (
+                            <button
+                              className="mini-button"
+                              type="button"
+                              style={{ width: "fit-content", marginTop: 4 }}
+                              onClick={() => handleToggleStatus(item)}
+                              disabled={updateConnection.isPending}
+                            >
+                              {item.status === "active" ? "Desativar esta conta" : "Reativar esta conta"}
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      {!isEditing && providerConnections.length === 0 && (
+                        <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                          {meta.oauthConnect
+                            ? `Nenhuma conta ${meta.label} conectada. A conexão exige autorização OAuth — clique em "Conectar via OAuth" abaixo.`
+                            : meta.tokenConnect
+                              ? `${meta.label} ainda não conectado. Siga o guia acima para gerar o token e cole-o aqui.`
+                              : `Nenhuma conta ${meta.label} mapeada para ${selectedClient.name}.`}
+                        </div>
+                      )}
+
+                      {isEditing && meta.tokenConnect && (
+                        <form onSubmit={handleSaveProviderToken} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          <div>
+                            <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>
+                              {meta.tokenConnect.label}
+                            </label>
+                            <input
+                              type="password"
+                              value={providerToken}
+                              onChange={(event) => setProviderToken(event.target.value)}
+                              placeholder={meta.tokenConnect.placeholder}
+                              style={inputStyle}
+                              required
+                            />
+                            <p style={{ fontSize: 11, color: "var(--text-faint)", margin: "6px 0 0" }}>
+                              O token é gravado cifrado e nunca é exibido de volta. Para trocar, basta colar um novo.
+                            </p>
+                          </div>
+                          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                            <button className="primary-button" type="submit" disabled={saveProviderToken.isPending} style={{ flex: 1, padding: 8, fontSize: 13 }}>
+                              {saveProviderToken.isPending ? "Salvando..." : "Salvar token"}
+                            </button>
+                            <button className="ghost-button" type="button" onClick={cancelEdit} style={{ padding: 8, fontSize: 13 }}>
+                              Cancelar
+                            </button>
+                          </div>
+                          {saveProviderToken.isError && (
+                            <div className="notice error" style={{ fontSize: 12 }}>
+                              {(saveProviderToken.error as Error)?.message ?? "Não foi possível salvar o token."}
                             </div>
                           )}
-                        </div>
+                        </form>
                       )}
 
-                      {!isEditing && !connection && (
-                        <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
-                          Nenhuma conta {meta.label} mapeada para {selectedClient.name}.
-                        </div>
-                      )}
-
-                      {isEditing && (
+                      {isEditing && !meta.oauthConnect && !meta.tokenConnect && (
                         <form onSubmit={handleSaveConnection} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                           <div>
                             <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "var(--text-muted)" }}>{meta.accountLabel}</label>
@@ -510,27 +693,40 @@ export function IntegrationsTab({
 
                       {!isEditing && (
                         <div style={{ marginTop: "auto", display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8 }}>
-                          <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
-                            {connection ? <PenLine size={13} /> : <Plus size={13} />}
-                            {connection ? "Editar" : "Conectar"}
-                          </button>
-                          {connection && (
-                            <>
-                              <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
-                                {connection.status === "active" ? "Desativar" : "Reativar"}
-                              </button>
-                              {connection.status === "active" && (
-                                <button
-                                  className="mini-button approve"
-                                  type="button"
-                                  onClick={() => handleProviderSync(provider)}
-                                  disabled={requestSync.isPending}
-                                >
-                                  <RefreshCw size={13} />
-                                  Sincronizar
-                                </button>
-                              )}
-                            </>
+                          {meta.oauthConnect ? (
+                            <a
+                              className="mini-button"
+                              href={apiUrl(`/workspaces/${selectedClient.id}/performance/connections/${provider}/authorize`)}
+                            >
+                              <PenLine size={13} />
+                              {connection ? "Reconectar via OAuth" : "Conectar via OAuth"}
+                            </a>
+                          ) : meta.tokenConnect ? (
+                            <button className="mini-button" type="button" onClick={() => { setEditingProvider(provider); setProviderToken(""); }}>
+                              {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                              {connection ? "Trocar token" : "Conectar com token"}
+                            </button>
+                          ) : (
+                            <button className="mini-button" type="button" onClick={() => startEdit(provider)}>
+                              {connection ? <PenLine size={13} /> : <Plus size={13} />}
+                              {connection ? "Editar" : "Conectar"}
+                            </button>
+                          )}
+                          {connection && providerConnections.length === 1 && (
+                            <button className="mini-button" type="button" onClick={() => handleToggleStatus(connection)} disabled={updateConnection.isPending}>
+                              {connection.status === "active" ? "Desativar" : "Reativar"}
+                            </button>
+                          )}
+                          {hasActive && (
+                            <button
+                              className="mini-button approve"
+                              type="button"
+                              onClick={() => handleProviderSync(provider)}
+                              disabled={requestSync.isPending}
+                            >
+                              <RefreshCw size={13} />
+                              {providerConnections.length > 1 ? "Sincronizar todas" : "Sincronizar"}
+                            </button>
                           )}
                         </div>
                       )}
@@ -545,12 +741,13 @@ export function IntegrationsTab({
         </section>
       )}
 
-      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) --- */}
-      <section className="section-card" style={{ marginTop: 24 }}>
-        <header className="section-header">
-          <Briefcase size={20} color="var(--brand-accent)" />
-          <div>
-            <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
+      {/* --- Plataformas de Oportunidades & Freelancers (Radar B2B) - Apenas gestão interna EG --- */}
+      {scope !== "client" && (
+        <section className="section-card" style={{ marginTop: 24 }}>
+          <header className="section-header">
+            <Briefcase size={20} color="var(--brand-accent)" />
+            <div>
+              <h3>Plataformas de Oportunidades & Freelancers (Radar B2B)</h3>
             <p className="section-desc">
               Status das integrações, RSS customizados e lançamento automático de gastos (assinaturas SaaS) no Financeiro.
             </p>
@@ -564,7 +761,7 @@ export function IntegrationsTab({
               ? (item.monthly_cost_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
               : "Gratuito";
 
-            const statusPillClass = item.status === "active" ? "open" : item.status === "paused" ? "paused" : "draft";
+            const statusVariant = item.status === "active" ? "connected" : item.status === "paused" ? "paused" : "not_configured";
             const statusLabelText = item.status === "active" ? "Varredura Ativa" : item.status === "paused" ? "Requer Assinatura / Token" : "Não Configurado";
 
             return (
@@ -585,7 +782,7 @@ export function IntegrationsTab({
                     <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 600 }}>{item.platform_name}</h4>
                     <span style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>{item.notes || "Plataforma B2B"}</span>
                   </div>
-                  <span className={`status-pill ${statusPillClass}`}>{statusLabelText}</span>
+                  <StatusPill variant={statusVariant}>{statusLabelText}</StatusPill>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8rem", color: "var(--text-dim)" }}>
@@ -622,18 +819,7 @@ export function IntegrationsTab({
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>API Key / Token de Sessão (opcional)</label>
-                      <input
-                        type="password"
-                        value={editApiKey}
-                        onChange={(e) => setEditApiKey(e.target.value)}
-                        placeholder="Token ou Cookie de Autenticação"
-                        style={{ padding: 6, borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.8rem" }}
-                      />
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Custo Mensal do Plano (em R$) - Integra ao Financeiro</label>
+                      <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Custo mensal observado (em R$)</label>
                       <input
                         type="number"
                         step="0.01"
@@ -646,7 +832,7 @@ export function IntegrationsTab({
 
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                       <button className="primary-button" type="submit" disabled={savingPlatform} style={{ flex: 1, padding: 6, fontSize: 12 }}>
-                        {savingPlatform ? "Salvando..." : "Salvar & Lançar Gastos"}
+                        {savingPlatform ? "Salvando..." : "Salvar configuração"}
                       </button>
                       <button className="ghost-button" type="button" onClick={() => setEditingPlatformKey(null)} style={{ padding: 6, fontSize: 12 }}>
                         Cancelar
@@ -660,13 +846,12 @@ export function IntegrationsTab({
                     onClick={() => {
                       setEditingPlatformKey(item.platform_key);
                       setEditRssUrl(item.rss_url || "");
-                      setEditApiKey(item.api_key_or_token || "");
                       setEditStatus(item.status);
                       setEditMonthlyCost(item.monthly_cost_cents / 100);
                     }}
                     style={{ marginTop: "auto" }}
                   >
-                    <PenLine size={13} /> Configurar Conexão & Gastos
+                    <PenLine size={13} /> Configurar RSS e custo
                   </button>
                 )}
               </article>
@@ -674,6 +859,7 @@ export function IntegrationsTab({
           })}
         </div>
       </section>
+      )}
     </div>
   );
 }

@@ -5,9 +5,19 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-PerformanceProvider = Literal["google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads"]
+PerformanceProvider = Literal[
+    "google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads", "instagram_organic",
+    "google_business_profile", "google_adsense", "youtube_organic",
+    "tiktok_organic", "tiktok_ads", "linkedin_organic",
+    "rd_station_crm", "hubspot",
+]
 PerformanceConnectionStatus = Literal["active", "inactive", "error"]
-PerformanceSyncProvider = Literal["google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads", "all"]
+PerformanceSyncProvider = Literal[
+    "google_ads", "ga4", "search_console", "gtm", "meta_ads", "linkedin_ads", "instagram_organic",
+    "google_business_profile", "google_adsense", "youtube_organic",
+    "tiktok_organic", "tiktok_ads", "linkedin_organic",
+    "rd_station_crm", "hubspot", "all",
+]
 PerformanceSeverity = Literal["info", "low", "medium", "high", "critical", "warning"]
 
 
@@ -88,6 +98,9 @@ class AdsCampaignSummary(BaseModel):
     cost_micros: int
     conversions: float
     conversion_value: float
+    # Fracao dos leiloes elegiveis em que o anuncio apareceu (0-1). None quando
+    # o Google nao reporta o periodo — nunca 0, que significaria "nunca apareceu".
+    search_impression_share: float | None = None
     ctr: float
     cpa_micros: float
     roas: float

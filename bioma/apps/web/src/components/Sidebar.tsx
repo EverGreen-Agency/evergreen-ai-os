@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { APP_VERSION } from "../lib/version";
+import { BUILD_AT, VERSION_LABEL } from "../lib/version";
 import type { navItems } from "../lib/app-config";
 import { clientHubNavItems } from "../lib/app-config";
 import type { CurrentUser } from "../lib/api";
@@ -100,7 +100,7 @@ export function Sidebar({
     
     const workspaceNav = clientHubNavItems
       .filter((item) => item.id !== "tasks") // Tarefas agora serão renderizadas como pastas
-      .filter((item) => (isEgAdmin || enabledModules.has(item.module)) && (item.id !== "integrations" || isEgAdmin));
+      .filter((item) => enabledModules.has(item.module));
 
     return (
       <>
@@ -213,7 +213,9 @@ export function Sidebar({
           {!isCollapsed && (
             <div>
               <strong>Bioma</strong>
-              <span>v{APP_VERSION}</span>
+              <span title={BUILD_AT ? `Build de ${new Date(BUILD_AT).toLocaleString("pt-BR")}` : undefined}>
+                {VERSION_LABEL}
+              </span>
             </div>
           )}
         </div>

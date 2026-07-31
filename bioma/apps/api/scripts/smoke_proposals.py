@@ -43,8 +43,26 @@ def main():
         )
         print(f"[OK] Proposta gerada com sucesso! Public Token: {proposal['public_token']}")
 
+        # Proposta em `draft` (e com claims não revisadas) NÃO pode ser servida
+        # pelo token público: o link público é para proposta enviada e aprovada.
+        # O teste antigo esperava `is not None` aqui, ou seja, cobrava o
+        # vazamento como se fosse a funcionalidade.
+        leaked = proposals_repo.get_proposal_by_public_token(conn, proposal["public_token"])
+        assert leaked is None, "proposta em draft não deveria ser acessível pelo token público"
+        print("[OK] Token público recusa proposta em draft (proteção correta).")
+
+        # Agora no estado em que o link público existe de verdade.
+        conn.execute(
+            """
+            update commercial_proposals
+            set status = 'sent', claims_review_status = 'approved',
+                public_expires_at = now() + interval '7 days'
+            where id = %s
+            """,
+            (proposal["id"],),
+        )
         public_prop = proposals_repo.get_proposal_by_public_token(conn, proposal["public_token"])
-        assert public_prop is not None
+        assert public_prop is not None, "proposta enviada e aprovada deveria ser acessível"
         print("[OK] Consulta de proposta por token público funcionando perfeitamente!")
 
     print("\nPROPOSALS & OPPORTUNITIES SMOKE TEST PASSED!")

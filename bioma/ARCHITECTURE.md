@@ -22,7 +22,13 @@ feature-gating), `crypto.py` (segredos em repouso), `config.py` (env),
 
 O domínio `ai_content` persiste ativações por workspace e não publica conteúdo automaticamente. A API apenas enfileira; o worker escolhe o job mais antigo entre Performance e IA, registra execução em `ai_runs` e produz saída estruturada. Sem credencial externa, o modo local é explicitamente `preview`; com `OPENAI_API_KEY`, o adapter usa a Responses API com JSON Schema estrito.
 
+O domínio `market_research` usa a mesma separação router → service → repository e persiste versões em `market_researches`, com fontes normalizadas em `market_research_sources`. Ele é exclusivo do workspace interno da EG e apoia a prospecção de uma vertical; não é conteúdo de Hub e não possui publicação para cliente. O vínculo `workspace → tenant_organization_id` é validado pelo serviço e por trigger no banco. Chamadas ao provedor acontecem fora da transação; somente o resultado final ou a falha são persistidos depois. No modo `live`, o worker combina Structured Outputs com pesquisa web, aceita como citáveis apenas URLs observadas no retorno nativo do provedor e exige um conjunto mínimo de fontes. O modo `preview` não contém afirmações factuais nem referências.
+
+O domínio `client_profiles` persiste um único contexto estruturado por workspace de cliente em `workspace_client_profiles`. A leitura usa `view`, a alteração usa `manage_work` e cada alteração gera evento de auditoria. A completude é derivada no serviço, nunca gravada como valor manual. Ao gerar um plano de projeto, o serviço carrega esse contexto por organização e o inclui no snapshot do planejador; o worker só produz rascunho e não materializa fases ou entregas sem aprovação.
+
 O domínio interno `ai_operations` é o control plane dos fluxos da EG. Templates em código são instalados como definições versionadas; cada execução usa chave de idempotência, materializa etapas em ordem e volta a `pending_approval` nos checkpoints interativos. Completar uma etapa pode registrar uso/custo, mas o motor não executa escrita externa nem pula HITL. Os primeiros fluxos são proposta, onboarding nativo no Bioma, LinkedIn e entrega Tech.
+
+Propostas comerciais não possuem um cadastro paralelo de cliente. `commercial_proposals.workspace_id` aponta para o mesmo workspace usado por perfil, projetos e contratos. O catálogo `commercial_proposal_v1` vive no servidor e valida tipo, modalidade, urgência e serviços; o briefing e o contexto do cliente são fotografados em `intake_snapshot`. A geração usa os três pilares e grava `generation_mode=live|preview`, mas não cria contrato, projeto, entrega nem envio externo. Essas transições pertencem ao ciclo de vida posterior e exigem confirmação HITL e idempotência.
 
 FinOps de IA separa três fatos: `ai_provider_subscriptions` representa compromisso financeiro; `ai_usage_events` representa consumo observado; `ai_quota_snapshots` representa uma medição de capacidade com origem declarada. Valores financeiros usam centavos. Moedas não são somadas entre si e uma execução não aceita custo de etapa em moeda diferente. Autenticação em Codex, Claude ou AntiGravity não é tratada como API de quota: sem dado oficial/configurado, o saldo permanece desconhecido.
 
@@ -46,9 +52,9 @@ Glossário:
 
 Decisão completa: [`docs/adr/0001-tenant-workspace-hierarchy.md`](docs/adr/0001-tenant-workspace-hierarchy.md).
 
-Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): o Bioma é a fonte de verdade de projetos e execução; ClickUp é apenas fonte legada de migração, sem sincronização exposta na UI. Kommo, GitHub, SleekFlow e providers de Performance entram como adapters substituíveis, tenant-scoped e auditados. O adapter GitHub atual é somente leitura: `project_github_connections` mapeia um projeto Tech para `owner/repository`, e a API projeta issues, PRs e commits sem persistir ou alterar conteúdo externo. Escrita externa com impacto exige idempotência e HITL conforme o risco.
+Integrações operacionais seguem [`docs/adr/0002-clickup-kommo-integration-strategy.md`](docs/adr/0002-clickup-kommo-integration-strategy.md): o Bioma é a fonte de verdade de projetos e execução; ClickUp é apenas fonte legada de migração, sem sincronização exposta na UI. Kommo, GitHub, SleekFlow e providers de Performance entram como adapters substituíveis, tenant-scoped e auditados. `project_github_connections` mapeia um projeto Tech para `owner/repository`; a API projeta issues, PRs e commits e permite criar uma issue a partir de uma entrega com autorização de workspace, confirmação explícita, reserva local, marcador de reconciliação e auditoria. Escritas externas adicionais continuam condicionadas a idempotência e HITL.
 
-O domínio `projects` materializa `workspace → project → project_contracts → contract_scope_items → project_phases → deliverables`, com `project_documents` e `project_updates` como registros de acompanhamento. Contrato é versionado; entrega pode apontar para item de escopo e fase; conclusão e aceite são sinais distintos. Projetos Tech vinculam proposta/especificação por URL e publicam progresso, bloqueios, testes e releases com visibilidade explícita ao cliente. O progresso é calculado a partir das entregas e o ritmo considera atraso/bloqueio. O banco valida coerência de tenant/workspace/organização/projeto/escopo/fase por FKs e triggers.
+O domínio `projects` materializa `workspace → project → project_contracts → contract_scope_items → project_planning_intakes → project_plans → project_plan_items → project_phases → deliverables`, com `project_documents` e `project_updates` como registros de acompanhamento. Uma intake é um contexto pontual e versionado, não outro cadastro de cliente: começa em rascunho, é validada por esquema servidor (`retail_v1` inicial), torna-se imutável ao finalizar e deixa sua fotografia no plano gerado. As metas de marketing e comercial são condicionadas à maturidade; a API rejeita uma meta incompatível, em vez de aceitar estado obsoleto do navegador. Um documento pode apontar para um contrato específico e conservar um `planning_excerpt` confirmado; o serviço valida que o contrato pertence ao mesmo projeto e inclui apenas documentos gerais ou daquele contrato no snapshot do planejador. URL é referência navegável, não evidência de leitura automática de conteúdo privado. Contrato e plano são versionados. Cada saída da IA nasce como candidato não selecionado; a equipe pode ajustar fase, título, descrição, prazo, prioridade, definição de pronto, subtarefas, visibilidade e aceite enquanto o plano está em rascunho. Aprovação exige ao menos um candidato selecionado e a materialização idempotente ignora todos os rejeitados. Planos antigos são preservados como selecionados pela migration. A listagem de `client_user` contém somente itens selecionados, visíveis e de planos aprovados/materializados. Tech, Growth e Social usam o mesmo motor, mas somente Tech marca tarefas elegíveis ao adapter GitHub. Conclusão e aceite continuam sinais distintos. O banco valida coerência de projeto, contrato, escopo, plano e entrega por FKs, checks e triggers.
 
 O domínio `vault` guarda somente ciphertext `enc:v1:` para usuário, e-mail, senha, outro método de acesso, token, códigos de recuperação e notas. Plataforma, conta/perfil e link são metadados; a listagem nunca devolve segredos. Revelação/cópia exige capability específica, motivo e auditoria. Cliente pode depositar credenciais para o próprio workspace sem obter permissão de revelação. O frontend descarta o segredo revelado após 60 segundos, mas esse TTL de UI não substitui controles de servidor.
 
@@ -89,7 +95,7 @@ Mapa de acesso atual (quem vê o quê):
 | Público | `/` (login), `/convite/:token`, `/redefinir/:token`, `/privacidade` | nenhuma |
 | Control Plane EG | `/`, `/clientes` | sessão + `guardAdmin()` quando administrativo |
 | Operação EG | `/operacao`, `/operacao/crm`, `/operacao/financeiro`, `/operacao/metricas` | `guardAdmin()` + ponte exata da organização EG |
-| Workspace cliente | `/clientes/:id`, `/projetos`, `/tarefas`, `/acessos`, `/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
+| Workspace cliente | `/clientes/:id`, `/contexto`, `/projetos`, `/tarefas`, `/acessos`, `/crm`, `/financeiro`, `/analytics`, `/documentos`, `/integracoes` | cliente acessível + gate do módulo daquela organização |
 | Backoffice EG | `/engenharia`, `/eg-office`, `/eg-ideas`, `/eg-tech`, `/eg-architecture`, `/configuracoes` | `guardAdmin()` + lazy-load |
 
 Regras invioláveis:
@@ -105,6 +111,15 @@ Regras invioláveis:
 6. **Carteira não é navegador de módulos.** A troca em escala acontece pelo navegador pesquisável do Topbar; a Sidebar e as tabs mostram apenas o contexto corrente.
 7. **DELETE de cliente significa archive.** Purge físico é uma operação separada de platform admin, exige o cliente já arquivado e confirmação exata do nome, remove objetos S3 antes do banco e preserva o evento de auditoria.
 
+## Ciclo comercial, planejamento e Copiloto
+
+- `commercial_proposals` continua sendo o agregado de proposta; a migration 0056 acrescenta conteúdo canônico, claims revisáveis, timestamps do funil e aceite.
+- `proposal_events`, `proposal_deliveries` e `proposal_conversions` separam auditoria, evidência de envio e efeito operacional. Status não pode ser alterado pelo `PATCH` genérico.
+- A superfície pública usa um DTO reduzido e só expõe proposta revisada, não arquivada, vigente e já enviada/em negociação/ganha.
+- A conversão de proposta ganha exige confirmação HITL e chave idempotente; cria projeto, contrato e itens de escopo numa transação. O refinamento do backlog continua no planejador versionado.
+- `project_planning_intakes` aceita variantes server-owned por disciplina: `retail_v1`, `tech_v1` e `growth_social_v1`. Respostas finalizadas ficam congeladas; planos continuam candidatos até aprovação/materialização.
+- O Copiloto persiste sessões e eventos internos. Preparação e pós-call usam o worker seguro; o modo atual recebe transcrição/notas manuais. Realtime é somente uma porta de adapter e permanece `not_configured` até haver provider, orçamento, consentimento e política de retenção.
+
 ## Protocolo de sessão (humano ou IA)
 
 1. `git status` antes de começar; uma frente por sessão.
@@ -114,3 +129,16 @@ Regras invioláveis:
 4. Commit pequeno por marco, mensagem em PT, sem co-author de IA.
 5. Decisões de escopo vão para `ROADMAP-MVP.md`; fila operacional em
    `EXECUCAO-MVP.md`.
+
+## Inteligência de reunião
+
+O Copiloto separa quatro responsabilidades:
+
+1. **adaptador de reunião:** Meet/Teams ou upload envia segmentos por contrato autenticado; o Bioma não assume um fornecedor;
+2. **diarização:** `external_speaker_id` preserva a identidade técnica e pode ser associado a participante, organização, cargo, senioridade e papel decisório;
+3. **assistência:** uma janela limitada da conversa é cruzada com snapshot versionado de cliente, proposta e pesquisa, gerando sugestões com referências aos segmentos;
+4. **execução:** resumo e compromissos permanecem propostas internas até confirmação HITL; só então criam tarefa, revisão ou atualização de projeto.
+
+O token de ingestão é retornado uma vez e somente seu SHA-256 é persistido. Ingestão externa requer consentimento concedido. O transporte web atual é polling; a entrada automática de bot e o STT são adapters externos ainda não escolhidos.
+
+Na conversão comercial, o projeto/contrato é confirmado primeiro. A geração do plano ocorre depois do commit, em outra transação; indisponibilidade do worker gera evento de falha sem corromper ou reverter o contrato.

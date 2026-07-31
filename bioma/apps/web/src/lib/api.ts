@@ -7,23 +7,25 @@ export type ApiHealth = {
   checked_at: string;
 };
 
-export type ClientModule = "hub" | "content" | "files" | "commercial" | "analytics" | "integrations" | "engineering";
+export type ClientModule = "hub" | "content" | "files" | "commercial" | "finance" | "analytics" | "integrations" | "engineering";
+
+export type UserOrganization = {
+  id: string;
+  name: string;
+  slug: string;
+  role: "eg_admin" | "client_user";
+  enabled_modules: ClientModule[];
+};
 
 export type CurrentUser = {
   id: string;
   email: string;
   display_name: string;
   has_password: boolean;
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    role: "eg_admin" | "client_user";
-    enabled_modules: ClientModule[];
-  }>;
+  organizations: UserOrganization[];
 };
 
-export type ClientStatus = "onboarding" | "active" | "paused" | "archived";
+export type ClientStatus = "onboarding" | "active" | "paused" | "completed" | "archived";
 
 export type ClientSummary = {
   id: string;
@@ -169,7 +171,7 @@ export type AiContentRequest = {
   methodology_refs: string[];
   provider: string | null;
   model: string | null;
-  generation_mode: "live" | "preview" | null;
+  generation_mode: "live" | "preview" | "manual" | null;
   output: {
     strategy_note: string;
     posts?: AiContentPost[];
@@ -277,7 +279,22 @@ export type FinancialRecordPayload = {
   notes?: string | null;
 };
 
-export type PerformanceProvider = "google_ads" | "ga4" | "search_console" | "gtm";
+export type PerformanceProvider =
+  | "google_ads"
+  | "ga4"
+  | "search_console"
+  | "gtm"
+  | "meta_ads"
+  | "linkedin_ads"
+  | "instagram_organic"
+  | "google_business_profile"
+  | "google_adsense"
+  | "youtube_organic"
+  | "tiktok_organic"
+  | "tiktok_ads"
+  | "linkedin_organic"
+  | "rd_station_crm"
+  | "hubspot";
 
 export type PerformanceOverview = {
   workspace_id: string;
@@ -394,7 +411,7 @@ export type WhatsAppMessageLogSummary = {
   sent_at: string;
 };
 
-export type PilarType = "oferta" | "demanda" | "conversao";
+export type PilarType = "oferta" | "demanda" | "conversao" | "onboarding" | "planning";
 
 export type SquadDefinitionSummary = {
   id: string;
@@ -418,6 +435,7 @@ export type SquadExecutionSummary = {
   squad_name: string;
   triggered_by: string;
   status: "running" | "completed" | "failed";
+  generation_mode: "live" | "preview" | "manual";
   input_data: Record<string, unknown>;
   output_data: Record<string, unknown>;
   token_usage: {
@@ -442,6 +460,117 @@ export type FinOpsSummaryResponse = {
   completion_tokens: number;
   total_cost_cents: number;
   total_executions: number;
+};
+
+export type MarketResearchFocusOption = {
+  key: string;
+  label: string;
+  description: string;
+};
+
+export type MarketResearchRefinement = {
+  sector_interpretation: string;
+  assumptions: string[];
+  focus_options: MarketResearchFocusOption[];
+  generation_mode: "live" | "preview" | "manual";
+};
+
+export type MarketResearchSource = {
+  url: string;
+  title: string | null;
+  publisher: string | null;
+  publication_date: string | null;
+  consulted_at: string | null;
+};
+
+export type MarketResearchReport = {
+  title: string;
+  executive_summary: string;
+  market_overview: {
+    description: string;
+    market_size_and_segments: string[];
+    business_models: string[];
+    growth_outlook: string;
+    trends: string[];
+    source_urls: string[];
+  };
+  commercial_process: {
+    sales_strategies: string[];
+    acquisition_and_retention: string[];
+    buying_journey: string[];
+    qualification_signals: string[];
+    source_urls: string[];
+  };
+  challenges: Array<{
+    challenge: string;
+    business_impact: string;
+    opportunity: string;
+    source_urls: string[];
+  }>;
+  market_leaders: Array<{
+    name: string;
+    segment: string;
+    success_strategy: string;
+    source_urls: string[];
+  }>;
+  terminology: Array<{
+    term: string;
+    definition: string;
+    source_urls: string[];
+  }>;
+  growth_opportunities: Array<{
+    opportunity: string;
+    recommended_service: string;
+    rationale: string;
+    priority: "high" | "medium" | "low";
+    source_urls: string[];
+  }>;
+  prospecting_playbook: {
+    opening_angles: string[];
+    qualification_questions: string[];
+    likely_objections: string[];
+    credibility_cautions: string[];
+  };
+  content_opportunities: Array<{
+    theme: string;
+    recommended_format: string;
+    funnel_stage: "awareness" | "consideration" | "decision" | "retention";
+    rationale: string;
+    source_urls: string[];
+  }>;
+  caveats: string[];
+  sources: MarketResearchSource[];
+};
+
+export type MarketResearchSummary = {
+  id: string;
+  workspace_id: string;
+  version: number;
+  sector: string;
+  geographic_scope: string;
+  objective: string | null;
+  selected_focus: MarketResearchFocusOption[];
+  status: "running" | "completed" | "failed" | "archived";
+  generation_mode: "live" | "preview" | "manual";
+  provider: string | null;
+  model: string | null;
+  token_usage: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+  estimated_cost_cents: number | null;
+  source_count: number;
+  client_visible: boolean;
+  error_message: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketResearchDetail = MarketResearchSummary & {
+  report: MarketResearchReport | null;
+  sources: MarketResearchSource[];
 };
 
 export type BrandBookSummary = {
@@ -485,6 +614,7 @@ export type AdsCampaignSummary = {
   cost_micros: number;
   conversions: number;
   conversion_value: number;
+  search_impression_share: number | null;
   ctr: number;
   cpa_micros: number;
   roas: number;
@@ -680,6 +810,7 @@ export type KitPieceSummary = {
   supplier?: string | null;
   unit_cost_cents: number;
   stock_qty: number;
+  image_url?: string | null;
   status: "active" | "discontinued";
   metadata: Record<string, unknown>;
   created_at: string;
@@ -904,6 +1035,348 @@ export type IntegrationsStatus = {
   app_env: string;
 };
 
+export type PersonalAccessTokenSummary = {
+  id: string;
+  name: string;
+  token_prefix: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+};
+
+export type PersonalAccessTokenCreatedResponse = {
+  token: string;
+  summary: PersonalAccessTokenSummary;
+};
+
+export type CockpitOverdueItem = {
+  id: string;
+  title: string;
+  status: DeliverableStatus;
+  due_at: string;
+  client_id: string;
+  client_name: string;
+};
+
+export type CockpitPendingApproval = {
+  id: string;
+  deliverable_title: string | null;
+  created_at: string;
+  client_id: string;
+  client_name: string;
+};
+
+export type LocalRadarProspect = {
+  id: string;
+  scan_id: string;
+  place_id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  google_maps_url: string | null;
+  rating: number | null;
+  rating_count: number | null;
+  business_status: string | null;
+  place_types: string[];
+  presence_score: number | null;
+  presence_gaps: string[];
+  changes: string[];
+  audit: {
+    diagnosis?: string;
+    opportunities?: Array<{ issue: string; recommended_service: string; rationale: string }>;
+    suggested_message?: string;
+    cautions?: string[];
+    research_used?: { id: string; sector: string };
+  } | null;
+  audit_mode: "live" | "preview" | null;
+  outreach_message: string | null;
+  review_status: "new" | "audited" | "approved" | "rejected" | "sent";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  lead_id: string | null;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgentMemoryCategory = "identity" | "fact" | "preference" | "directive";
+
+export type AgentMemory = {
+  id: string;
+  workspace_id: string | null;
+  category: AgentMemoryCategory;
+  title: string;
+  body: string;
+  authored_by: string | null;
+  status: "active" | "archived";
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgentMemoryRevision = {
+  id: string;
+  memory_id: string;
+  action: "created" | "updated" | "archived" | "restored";
+  previous_body: string | null;
+  new_body: string | null;
+  actor_user_id: string | null;
+  reason: string;
+  created_at: string;
+};
+
+export type AgentSkillStatus = "pending_review" | "approved" | "rejected" | "retired";
+
+export type AgentSkill = {
+  id: string;
+  workspace_id: string | null;
+  name: string;
+  description: string;
+  procedure: string;
+  status: AgentSkillStatus;
+  proposed_by: string | null;
+  source_context: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  use_count: number;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CopilotSurface = "task" | "workspace";
+
+export type CopilotCommand = {
+  name: string;
+  label: string;
+  description: string;
+  requires_confirmation: boolean;
+};
+
+export type CopilotAction = {
+  name: string;
+  label: string;
+  params: Record<string, unknown>;
+  why: string;
+  status: "executed" | "proposed" | "pending_confirmation" | "failed";
+  detail: string | null;
+  undo_hint: string | null;
+};
+
+export type CopilotSource = {
+  kind: "bioma" | "web";
+  reference: string;
+};
+
+export type CopilotResponse = {
+  answer: string;
+  generation_mode: "live" | "preview";
+  confidence: "alta" | "media" | "baixa";
+  actions: CopilotAction[];
+  sources: CopilotSource[];
+};
+
+export type FathomMeeting = {
+  recording_id: number;
+  title: string;
+  meeting_type: string | null;
+  url: string | null;
+  created_at: string | null;
+  started_at: string | null;
+  ended_at: string | null;
+  recorded_by: string | null;
+  external_invitees: Array<{ name: string | null; email: string | null; domain: string | null }>;
+};
+
+export type FathomImportResult = {
+  session_id: string;
+  recording_id: number;
+  imported_segments: number;
+  skipped_segments: number;
+  analyzed: boolean;
+};
+
+export type ScriptScoreboardRow = {
+  script_id: string;
+  title: string;
+  theme: string | null;
+  suggested_format: string | null;
+  posts: number;
+  avg_reach: number;
+  avg_engagement: number;
+};
+
+export type ScriptScoreboard = {
+  period_start: string;
+  period_end: string;
+  ai_posts: number;
+  other_posts: number;
+  ai_avg_reach: number | null;
+  other_avg_reach: number | null;
+  ai_avg_engagement: number | null;
+  other_avg_engagement: number | null;
+  ai_avg_saved: number | null;
+  other_avg_saved: number | null;
+  lift_reach_percent: number | null;
+  lift_engagement_percent: number | null;
+  per_script: ScriptScoreboardRow[];
+};
+
+export type BriefingDraft = {
+  summary: string;
+  diagnosis: Array<{ observation: string; evidence: string }>;
+  hypotheses: string[];
+  recommended_focus: Array<{ focus: string; rationale: string; service: string }>;
+  questions_for_client: string[];
+  missing_data: string[];
+};
+
+export type BriefingDraftResponse = {
+  client_name: string;
+  generation_mode: "live" | "preview";
+  sources_used: string[];
+  missing_sources: string[];
+  draft: BriefingDraft;
+  artifact_id: string | null;
+};
+
+export type LocalRadarImportRow = {
+  name: string;
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  google_maps_url?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+};
+
+export type LocalRadarScan = {
+  id: string;
+  created_by: string | null;
+  niche: string;
+  city: string;
+  query_text: string;
+  status: "completed" | "failed";
+  source: "places" | "import";
+  error_message: string | null;
+  prospect_count: number;
+  created_at: string;
+};
+
+export type LocalRadarScanDetail = LocalRadarScan & { prospects: LocalRadarProspect[] };
+
+export type LocalRadarSendResult = {
+  prospect: LocalRadarProspect;
+  send_status: "sent" | "simulated" | "failed";
+  detail: string | null;
+};
+
+export type PortfolioPerformanceRow = {
+  client_id: string;
+  client_name: string;
+  workspace_id: string;
+  status: ClientStatus;
+  google_spend_cents: number;
+  meta_spend_cents: number;
+  linkedin_spend_cents: number;
+  total_spend_cents: number;
+  total_leads: number;
+  target_leads: number | null;
+  budget_cents: number | null;
+};
+
+export type CockpitPortfolioSummary = {
+  monthly_revenue_cents: number;
+  mrr_cents: number;
+  overdue_deliverables: number;
+  clients_at_risk: number;
+  clients_active: number;
+  clients_total: number;
+  overdue_items: CockpitOverdueItem[];
+  pending_approvals: CockpitPendingApproval[];
+  stale_connections: Array<{
+    client_id: string;
+    client_name: string;
+    provider: string;
+    display_name: string | null;
+    last_synced_at: string | null;
+    last_error_message: string | null;
+    days_stale: number | null;
+  }>;
+  radar_prospects_awaiting: number;
+};
+
+export type HookSource = "llm_transcript" | "higgsfield_virality";
+export type ContentScriptStatus = "suggested" | "approved" | "scheduled" | "recorded" | "published" | "discarded";
+
+export type InstagramPostSummary = {
+  id: string;
+  ig_media_id: string;
+  permalink: string | null;
+  media_type: string;
+  caption: string | null;
+  posted_at: string | null;
+  thumbnail_url: string | null;
+  reach: number;
+  impressions: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saved: number;
+  plays: number;
+  avg_watch_time_seconds: number | null;
+  transcript: string | null;
+  source_script_id: string | null;
+};
+
+export type HookAnalysisSummary = {
+  id: string;
+  post_id: string;
+  source: HookSource;
+  hook_text: string | null;
+  hook_pattern: string | null;
+  effectiveness_score: number | null;
+  analysis_notes: string | null;
+  created_at: string;
+};
+
+export type ContentRetrospectiveSummary = {
+  id: string;
+  period_start: string;
+  period_end: string;
+  posts_analyzed: number;
+  generation_mode: string;
+  output_data: {
+    themes_performantes: string[];
+    themes_fracos: string[];
+    formatos_recomendados: string[];
+    hooks_que_funcionam: Array<{ hook_text: string; padrao: string; post_ids: string[]; por_que_funciona: string }>;
+    hooks_que_nao_funcionam: Array<{ hook_text: string; post_ids: string[]; por_que_nao_funciona: string }>;
+    sintese: string;
+  };
+  token_usage: Record<string, unknown>;
+  estimated_cost_cents: number;
+  created_at: string;
+};
+
+export type ContentScriptSummary = {
+  id: string;
+  retrospective_id: string | null;
+  title: string;
+  theme: string | null;
+  hook_opening: string | null;
+  script_body: string;
+  suggested_format: string | null;
+  cta: string | null;
+  rationale: string | null;
+  status: ContentScriptStatus;
+  scheduled_for: string | null;
+  generation_mode: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AiQuotaSnapshot = {
   id: string;
   total_units: string | null;
@@ -989,7 +1462,8 @@ export type AiWorkflowStepDefinition = {
   name: string;
   description: string;
   interactive: boolean;
-  capability: string | null;
+  task_kind: string;
+  capability: string;
 };
 
 export type AiWorkflowTemplate = {
@@ -1032,15 +1506,142 @@ export type AiWorkflowRun = {
     step_key: string;
     position: number;
     name: string;
+    description: string | null;
     interactive: boolean;
     status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "skipped";
+    task_kind: string | null;
+    capability: string | null;
     provider: string | null;
     model: string | null;
+    account_id: string | null;
+    model_catalog_id: string | null;
+    selection_reason: Record<string, unknown>;
+    attempts: number;
     output: Record<string, unknown> | null;
     cost_cents: number | null;
     started_at: string | null;
     finished_at: string | null;
   }>;
+};
+
+export type AiProviderChannel =
+  | "codex_chatgpt"
+  | "claude_code"
+  | "antigravity_cli"
+  | "antigravity_sdk"
+  | "gemini_api"
+  | "vertex";
+
+export type AiQuotaBucket = {
+  id: string;
+  bucket_key: string;
+  scope: string;
+  model_id: string | null;
+  total_units: number | string | null;
+  used_units: number | string | null;
+  used_percent: number | string | null;
+  remaining_percent: number | string | null;
+  unit: string;
+  window_duration_minutes: number | null;
+  resets_at: string | null;
+  source: string;
+  confidence: string;
+  measured_at: string;
+  raw_metadata: Record<string, unknown>;
+  notes: string | null;
+};
+
+export type AiModelCatalogItem = {
+  id: string;
+  account_id: string;
+  model_id: string;
+  display_name: string;
+  family: string | null;
+  capability_tier: "economy" | "balanced" | "frontier" | "specialist";
+  capabilities: string[];
+  quality_score: number;
+  cost_score: number;
+  latency_score: number;
+  context_window: number | null;
+  enabled: boolean;
+  priority: number;
+  metadata: Record<string, unknown>;
+  discovered_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiProviderAccount = {
+  id: string;
+  subscription_id: string | null;
+  provider: "openai" | "anthropic" | "google";
+  channel: AiProviderChannel;
+  display_name: string;
+  auth_mode: "chatgpt" | "claude_subscription" | "google_subscription" | "api_key" | "vertex_adc" | "service_account";
+  execution_mode: "app_server" | "local_cli" | "sdk" | "api" | "manual_handoff";
+  auth_ref: string | null;
+  status: "active" | "degraded" | "unavailable" | "paused";
+  is_default: boolean;
+  capabilities: string[];
+  settings: Record<string, unknown>;
+  health_detail: string | null;
+  last_probe_at: string | null;
+  models: AiModelCatalogItem[];
+  quota_buckets: AiQuotaBucket[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiRoutingPolicy = {
+  id: string;
+  task_kind: string;
+  capability: string;
+  name: string;
+  allowed_channels: string[];
+  allowed_models: string[];
+  preferred_tiers: string[];
+  minimum_quota_headroom: number | string;
+  requires_human_approval: boolean;
+  allow_fallback: boolean;
+  status: "draft" | "active" | "retired";
+};
+
+export type AiRoutingControlPlane = {
+  accounts: AiProviderAccount[];
+  policies: AiRoutingPolicy[];
+  quota_collection_jobs: Array<{
+    id: string;
+    account_id: string;
+    collector: string;
+    status: "queued" | "running" | "completed" | "failed";
+    result: Record<string, unknown> | null;
+    error_message: string | null;
+    attempts: number;
+    started_at: string | null;
+    finished_at: string | null;
+    created_at: string;
+  }>;
+  generated_at: string;
+};
+
+export type AiRoutePreview = {
+  task_kind: string;
+  policy_id: string | null;
+  selected: AiRouteCandidate | null;
+  candidates: AiRouteCandidate[];
+};
+
+export type AiRouteCandidate = {
+  account_id: string;
+  model_catalog_id: string;
+  provider: string;
+  channel: string;
+  model_id: string;
+  display_name: string;
+  score: number | string;
+  quota_headroom: number | string | null;
+  eligible: boolean;
+  reasons: string[];
 };
 
 export type GitHubConnection = {
@@ -1060,6 +1661,47 @@ export type GitHubProjectActivity = {
   issues: Array<{ number: number; title: string; state: string; url: string; labels: string[]; updated_at: string }>;
   pull_requests: Array<{ number: number; title: string; state: string; draft: boolean; url: string; source_branch: string; target_branch: string; updated_at: string }>;
   commits: Array<{ sha: string; message: string; url: string; author_name: string | null; authored_at: string | null }>;
+};
+
+export type ClientProfilePayload = {
+  sector?: string | null;
+  primary_offer?: string | null;
+  initial_objective?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  website?: string | null;
+  business_address?: string | null;
+  business_details?: string | null;
+  target_audience?: string | null;
+  competitors?: string | null;
+  marketing_objectives?: string | null;
+  marketing_history?: string | null;
+  challenges_opportunities?: string | null;
+  resources_budget?: string | null;
+  tone_of_voice?: string | null;
+  preferences_restrictions?: string | null;
+};
+
+export type ClientProfileSectionProgress = {
+  key: string;
+  label: string;
+  filled: number;
+  total: number;
+  percentage: number;
+};
+
+export type ClientProfile = ClientProfilePayload & {
+  workspace_id: string;
+  completion_percentage: number;
+  sections: ClientProfileSectionProgress[];
+  updated_at: string | null;
+};
+
+export type GitHubIssueLink = {
+  deliverable_id: string;
+  repository: string;
+  issue_number: number;
+  issue_url: string;
 };
 
 export type ArtifactPayload = {
@@ -1258,6 +1900,8 @@ export type ProjectDeliverable = {
   due_at: string | null;
   completed_at: string | null;
   approval_status: ApprovalStatus | null;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
   updated_at: string;
 };
 
@@ -1284,6 +1928,8 @@ export type ProjectDocument = {
   kind: "proposal" | "technical_spec" | "scope" | "acceptance" | "release_notes";
   title: string;
   url: string;
+  contract_id: string | null;
+  planning_excerpt: string | null;
   client_visible: boolean;
   created_at: string;
 };
@@ -1299,12 +1945,112 @@ export type ProjectUpdateEntry = {
   created_at: string;
 };
 
+export type ProjectPlanItem = {
+  id: string;
+  plan_id: string;
+  sequence: number;
+  source_scope_item_id: string | null;
+  phase_name: string;
+  title: string;
+  description: string | null;
+  item_kind: "milestone" | "deliverable" | "content" | "campaign" | "technical_task";
+  due_offset_days: number | null;
+  client_visible: boolean;
+  approval_required: boolean;
+  github_eligible: boolean;
+  selected: boolean;
+  priority: "low" | "medium" | "high" | "critical";
+  definition_of_done: string | null;
+  subtasks: string[];
+  metadata: Record<string, unknown>;
+  materialized_phase_id: string | null;
+  materialized_deliverable_id: string | null;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
+};
+
+export type ProjectPlan = {
+  id: string;
+  project_id: string;
+  source_contract_id: string | null;
+  planning_intake_id: string | null;
+  version: number;
+  discipline: ProjectType;
+  source_kind: "contract" | "briefing" | "onboarding" | "manual";
+  status: "draft" | "approved" | "materialized" | "superseded";
+  generation_mode: "live" | "preview" | "manual";
+  title: string;
+  objective: string | null;
+  assumptions: string[];
+  intake_snapshot: Record<string, unknown>;
+  approved_at: string | null;
+  materialized_at: string | null;
+  created_at: string;
+  updated_at: string;
+  items: ProjectPlanItem[];
+};
+
+export type ProjectPlanningIntake = {
+  id: string;
+  project_id: string;
+  schema_key: PlanningIntakeSchemaKey;
+  schema_version: number;
+  status: "draft" | "finalized";
+  title: string;
+  objective: string;
+  answers: Record<string, unknown>;
+  derived_context: Record<string, unknown>;
+  finalized_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlanningIntakeSchemaKey = "retail_v1" | "tech_v1" | "growth_social_v1";
+
+export type PlanningIntakeField = {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "select" | "multi_text";
+  options?: string[];
+};
+
+export type PlanningIntakeSchema = {
+  schema_key: PlanningIntakeSchemaKey;
+  schema_version: number;
+  label: string;
+  required_fields: string[];
+  fields: PlanningIntakeField[];
+  marketing_maturities: string[];
+  commercial_maturities: string[];
+  marketing_goals_by_maturity: Record<string, string[]>;
+  commercial_goals_by_maturity: Record<string, string[]>;
+};
+
+export type PlanningPortfolioItem = {
+  project_id: string;
+  project_name: string;
+  project_type: ProjectSummary["project_type"];
+  project_status: ProjectSummary["status"];
+  workspace_id: string;
+  client_name: string;
+  intake_id: string | null;
+  intake_schema_key: PlanningIntakeSchemaKey | null;
+  intake_status: "draft" | "finalized" | null;
+  plan_id: string | null;
+  plan_title: string | null;
+  plan_version: number | null;
+  plan_status: ProjectPlan["status"] | null;
+  generation_mode: ProjectPlan["generation_mode"] | null;
+  updated_at: string;
+};
+
 export type ProjectDetail = ProjectSummary & {
   contracts: ProjectContract[];
   deliverables: ProjectDeliverable[];
   phases: ProjectPhase[];
   documents: ProjectDocument[];
   updates: ProjectUpdateEntry[];
+  plans: ProjectPlan[];
 };
 
 export type ProjectPayload = {
@@ -1327,17 +2073,60 @@ export type TaskSubtaskInput = {
 
 export type TaskPayload = {
   title: string;
+  /** Definição de Pronto — critério que autoriza mover a tarefa para DONE. */
   description?: string | null;
   status: string;
   group_status: TaskGroupStatus;
   priority?: TaskPriority | null;
   assignee_id?: string | null;
   owner_id?: string | null;
+  /** Início da barra no Gantt; sem ele a tarefa vira marco no vencimento. */
+  start_date?: string | null;
   due_date?: string | null;
   recurrence?: "none" | "weekly" | "monthly" | null;
+  /** Frente (lista) define os status; projeto define escopo/contrato/datas. */
+  project_id?: string | null;
+  /** Subtarefa real: trocou de responsável ou prazo. Checklist é `subtasks`. */
+  parent_task_id?: string | null;
   custom_fields?: TaskCustomField[];
   dependencies?: TaskDependency[];
+  /** Itens de CHECKLIST (etapas da mesma tarefa, sem responsável/prazo). */
   subtasks?: TaskSubtaskInput[];
+};
+
+export type AssignableUser = {
+  id: string;
+  display_name: string;
+  email: string;
+};
+
+export type MyTaskSummary = {
+  id: string;
+  title: string;
+  status: string;
+  group_status: TaskGroupStatus;
+  priority: TaskPriority | null;
+  due_date: string | null;
+  project_id: string | null;
+  project_name: string | null;
+  parent_task_id: string | null;
+  list_id: string;
+  list_name: string;
+  list_type: TaskListType;
+  workspace_id: string;
+  workspace_name: string;
+  workspace_kind: "agency_internal" | "client";
+};
+
+export type TaskComment = {
+  id: string;
+  task_id: string;
+  author_id: string | null;
+  author_name: string | null;
+  body: string;
+  client_visible: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type TaskSummary = TaskPayload & {
@@ -1396,6 +2185,21 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return body ? JSON.parse(body) as T : undefined as T;
 }
 
+async function requestBlob(path: string): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { credentials: "include" });
+  if (!response.ok) {
+    let message = "Falha ao baixar o arquivo.";
+    try {
+      const body = await response.json();
+      message = body.detail ?? message;
+    } catch {
+      // Keep the generic message for non-JSON failures.
+    }
+    throw new Error(message);
+  }
+  return response.blob();
+}
+
 async function requestText(path: string): Promise<string> {
   const response = await fetch(`${apiBaseUrl}${path}`, { credentials: "include" });
   if (!response.ok) {
@@ -1412,13 +2216,34 @@ async function requestText(path: string): Promise<string> {
 
 export const api = {
   health: () => request<ApiHealth>("/health"),
-  me: () => request<CurrentUser>("/auth/me"),
-  login: (email: string, password: string) =>
-    request<{ user: CurrentUser; expires_at: string }>("/auth/login", {
+  me: async () => {
+    const user = await request<CurrentUser>("/auth/me");
+    try { localStorage.setItem("bioma_user_cache", JSON.stringify(user)); } catch {}
+    return user;
+  },
+  login: async (email: string, password: string, remember_me: boolean = true) => {
+    const res = await request<{ user: CurrentUser; expires_at: string }>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember_me }),
+    });
+    try { localStorage.setItem("bioma_user_cache", JSON.stringify(res.user)); } catch {}
+    return res;
+  },
+  logout: async () => {
+    try { localStorage.removeItem("bioma_user_cache"); } catch {}
+    return request<{ status: string }>("/auth/logout", { method: "POST" });
+  },
+  sessions: () => request<Array<{ id: string; created_at: string; expires_at: string; is_current: boolean }>>("/auth/sessions"),
+  revokeSession: (sessionId: string) => request<{ status: string }>(`/auth/sessions/${sessionId}`, { method: "DELETE" }),
+  revokeOtherSessions: () => request<{ status: string }>("/auth/sessions/other", { method: "DELETE" }),
+  personalAccessTokens: () => request<PersonalAccessTokenSummary[]>("/auth/personal-access-tokens"),
+  createPersonalAccessToken: (name: string, expiresInDays?: number | null) =>
+    request<PersonalAccessTokenCreatedResponse>("/auth/personal-access-tokens", {
+      method: "POST",
+      body: JSON.stringify({ name, expires_in_days: expiresInDays ?? null }),
     }),
-  logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+  revokePersonalAccessToken: (tokenId: string) =>
+    request<{ status: string }>(`/auth/personal-access-tokens/${tokenId}`, { method: "DELETE" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   teams: (tenantOrganizationId: string) =>
     request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),
@@ -1527,12 +2352,113 @@ export const api = {
     request<ProjectDetail>(`/projects/${projectId}/deliverables`, { method: "POST", body: JSON.stringify(payload) }),
   createProjectPhase: (projectId: string, payload: { sequence: number; name: string; description?: string | null; status?: ProjectPhaseStatus; client_summary?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/phases`, { method: "POST", body: JSON.stringify(payload) }),
-  createProjectDocument: (projectId: string, payload: { kind: ProjectDocument["kind"]; title: string; url: string; client_visible?: boolean }) =>
+  createProjectDocument: (projectId: string, payload: { kind: ProjectDocument["kind"]; title: string; url: string; contract_id?: string | null; planning_excerpt?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/documents`, { method: "POST", body: JSON.stringify(payload) }),
   createProjectUpdate: (projectId: string, payload: { phase_id?: string | null; kind?: ProjectUpdateEntry["kind"]; summary: string; detail?: string | null; client_visible?: boolean }) =>
     request<ProjectDetail>(`/projects/${projectId}/updates`, { method: "POST", body: JSON.stringify(payload) }),
+  generateProjectPlan: (
+    projectId: string,
+    payload: {
+      contract_id?: string | null;
+      planning_intake_id?: string | null;
+      source_kind?: ProjectPlan["source_kind"];
+      briefing?: string | null;
+      technical_context?: string | null;
+      objective?: string | null;
+      social_approval_flow?: "adaptive" | "idea_before_production" | "after_production" | "final_only";
+    },
+  ) =>
+    request<ProjectPlan>(`/projects/${projectId}/plans/generate`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  projectPlanningIntakeSchema: (projectId: string, schemaKey: PlanningIntakeSchemaKey = "retail_v1") =>
+    request<PlanningIntakeSchema>(`/projects/${projectId}/planning-intake-schema/${schemaKey}`),
+  planningPortfolio: () => request<PlanningPortfolioItem[]>("/backoffice/planning-portfolio"),
+  projectPlanningIntakes: (projectId: string) =>
+    request<ProjectPlanningIntake[]>(`/projects/${projectId}/planning-intakes`),
+  createProjectPlanningIntake: (
+    projectId: string,
+    payload: { schema_key?: PlanningIntakeSchemaKey; title: string; objective: string; answers: Record<string, unknown> },
+  ) => request<ProjectPlanningIntake>(`/projects/${projectId}/planning-intakes`, {
+    method: "POST", body: JSON.stringify(payload),
+  }),
+  updateProjectPlanningIntake: (
+    intakeId: string,
+    payload: { title?: string; objective?: string; answers?: Record<string, unknown> },
+  ) => request<ProjectPlanningIntake>(`/project-planning-intakes/${intakeId}`, {
+    method: "PATCH", body: JSON.stringify(payload),
+  }),
+  finalizeProjectPlanningIntake: (intakeId: string) =>
+    request<ProjectPlanningIntake>(`/project-planning-intakes/${intakeId}/finalize`, { method: "POST" }),
+  approveProjectPlan: (planId: string) =>
+    request<ProjectPlan>(`/project-plans/${planId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    }),
+  updateProjectPlanItem: (
+    itemId: string,
+    payload: Partial<Pick<
+      ProjectPlanItem,
+      "selected" | "phase_name" | "title" | "description" | "due_offset_days" |
+      "client_visible" | "approval_required" | "priority" | "definition_of_done" | "subtasks"
+    >>,
+  ) =>
+    request<ProjectPlan>(`/project-plan-items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  materializeProjectPlan: (planId: string) =>
+    request<ProjectDetail>(`/project-plans/${planId}/materialize`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    }),
   clients: () => request<ClientSummary[]>("/clients"),
   getMyDeliverables: () => request<DeliverableSummary[]>("/clients/deliverables/me"),
+  getCockpitSummary: () => request<CockpitPortfolioSummary>("/backoffice/cockpit-summary"),
+  getScriptScoreboard: (workspaceId: string, periodDays = 90) =>
+    request<ScriptScoreboard>(`/workspaces/${workspaceId}/content/script-scoreboard?period_days=${periodDays}`),
+  buildBriefingDraft: (workspaceId: string, persist = false) =>
+    request<BriefingDraftResponse>(`/workspaces/${workspaceId}/briefing/draft?persist=${persist}`, {
+      method: "POST",
+    }),
+  getPortfolioPerformance: (days = 30) =>
+    request<PortfolioPerformanceRow[]>(`/backoffice/portfolio-performance?days=${days}`),
+  setMonthlyTarget: (clientId: string, payload: { target_leads?: number | null; budget_cents?: number | null }, days = 30) =>
+    request<PortfolioPerformanceRow[]>(`/backoffice/clients/${clientId}/monthly-target?days=${days}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  importLocalRadarScan: (payload: { niche: string; city: string; rows: LocalRadarImportRow[] }) =>
+    request<LocalRadarScanDetail>("/backoffice/local-radar/scans/import", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  createLocalRadarScan: (payload: { niche: string; city: string; limit?: number }) =>
+    request<LocalRadarScanDetail>("/backoffice/local-radar/scans", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getLocalRadarScans: () => request<LocalRadarScan[]>("/backoffice/local-radar/scans"),
+  getLocalRadarScan: (scanId: string) =>
+    request<LocalRadarScanDetail>(`/backoffice/local-radar/scans/${scanId}`),
+  auditLocalRadarProspect: (prospectId: string) =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/audit`, { method: "POST" }),
+  updateLocalRadarMessage: (prospectId: string, message: string) =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/message`, {
+      method: "PATCH",
+      body: JSON.stringify({ message }),
+    }),
+  decideLocalRadarProspect: (prospectId: string, decision: "approved" | "rejected") =>
+    request<LocalRadarProspect>(`/backoffice/local-radar/prospects/${prospectId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision }),
+    }),
+  sendLocalRadarProspect: (prospectId: string, providerType: WhatsAppProviderType) =>
+    request<LocalRadarSendResult>(`/backoffice/local-radar/prospects/${prospectId}/send`, {
+      method: "POST",
+      body: JSON.stringify({ provider_type: providerType }),
+    }),
   createClient: (payload: ClientPayload) =>
     request<ClientPortal>("/clients", {
       method: "POST",
@@ -1658,6 +2584,55 @@ export const api = {
     request<AiWorkflowRun>(`/backoffice/ai-operations/workflow-runs/${runId}/approve`, {
       method: "POST",
     }),
+  aiRoutingControlPlane: () =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/control-plane"),
+  createAiProviderAccount: (payload: {
+    provider: "openai" | "anthropic" | "google";
+    channel: AiProviderChannel;
+    display_name: string;
+    auth_mode: AiProviderAccount["auth_mode"];
+    execution_mode: AiProviderAccount["execution_mode"];
+    auth_ref?: string | null;
+    capabilities: string[];
+    settings?: Record<string, unknown>;
+  }) =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/accounts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  bootstrapAiModels: (accountId: string) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/models/bootstrap`, {
+      method: "POST",
+    }),
+  recordAiQuotaBucket: (accountId: string, payload: {
+    bucket_key: string;
+    scope?: string;
+    model_id?: string | null;
+    remaining_percent?: number | null;
+    unit?: string;
+    window_duration_minutes?: number | null;
+    resets_at?: string | null;
+    source: string;
+    confidence: string;
+    notes?: string | null;
+  }) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/quota-buckets`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  collectAiQuota: (accountId: string) =>
+    request<AiRoutingControlPlane>(`/backoffice/ai-operations/accounts/${accountId}/quota-collection`, {
+      method: "POST",
+    }),
+  bootstrapAiRoutingPolicies: () =>
+    request<AiRoutingControlPlane>("/backoffice/ai-operations/routing-policies/bootstrap", {
+      method: "POST",
+    }),
+  previewAiRoute: (taskKind: string) =>
+    request<AiRoutePreview>("/backoffice/ai-operations/route-preview", {
+      method: "POST",
+      body: JSON.stringify({ task_kind: taskKind }),
+    }),
   performanceOverview: (clientId: string) => request<PerformanceOverview>(`/workspaces/${clientId}/performance`),
   adsCampaigns: (clientId: string) =>
     request<AdsCampaignSummary[]>(`/workspaces/${clientId}/performance/google-ads/campaigns`),
@@ -1726,6 +2701,38 @@ export const api = {
     request<SquadExecutionSummary[]>(`/workspaces/${workspaceId}/squads/executions`),
   squadFinOps: (workspaceId: string) =>
     request<FinOpsSummaryResponse>(`/workspaces/${workspaceId}/squads/finops`),
+  marketResearches: (workspaceId: string) =>
+    request<MarketResearchSummary[]>(`/workspaces/${workspaceId}/market-research`),
+  refineMarketResearch: (
+    workspaceId: string,
+    payload: { sector: string; objective?: string | null; geographic_scope?: string },
+  ) =>
+    request<MarketResearchRefinement>(`/workspaces/${workspaceId}/market-research/refine`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  clientProfile: (workspaceId: string) =>
+    request<ClientProfile>(`/workspaces/${workspaceId}/client-profile`),
+  updateClientProfile: (workspaceId: string, payload: ClientProfilePayload) =>
+    request<ClientProfile>(`/workspaces/${workspaceId}/client-profile`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  createMarketResearch: (
+    workspaceId: string,
+    payload: {
+      sector: string;
+      objective?: string | null;
+      geographic_scope: string;
+      selected_focus: MarketResearchFocusOption[];
+    },
+  ) =>
+    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  marketResearch: (workspaceId: string, researchId: string) =>
+    request<MarketResearchDetail>(`/workspaces/${workspaceId}/market-research/${researchId}`),
   brandBook: (workspaceId: string) =>
     request<BrandBookSummary>(`/workspaces/${workspaceId}/brand-book`),
   saveBrandBook: (
@@ -1820,11 +2827,68 @@ export const api = {
       body: JSON.stringify({ provider }),
     }),
   integrationsStatus: () => request<IntegrationsStatus>("/integrations/status"),
+  savePerformanceProviderToken: (workspaceId: string, provider: PerformanceProvider, token: string) =>
+    request<PerformanceConnection[]>(`/workspaces/${workspaceId}/performance/connections/${provider}/token`, {
+      method: "PUT",
+      body: JSON.stringify({ token }),
+    }),
+  listInstagramPosts: (workspaceId: string, days = 90) =>
+    request<InstagramPostSummary[]>(`/workspaces/${workspaceId}/content/instagram-posts?days=${days}`),
+  listContentHookBank: (workspaceId: string) =>
+    request<HookAnalysisSummary[]>(`/workspaces/${workspaceId}/content/hook-bank`),
+  getLatestRetrospective: (workspaceId: string) =>
+    request<ContentRetrospectiveSummary | null>(`/workspaces/${workspaceId}/content/retrospective`),
+  generateRetrospective: (workspaceId: string, periodDays = 60) =>
+    request<ContentRetrospectiveSummary>(`/workspaces/${workspaceId}/content/retrospective`, {
+      method: "POST",
+      body: JSON.stringify({ period_days: periodDays }),
+    }),
+  listContentScripts: (workspaceId: string, status?: ContentScriptStatus) =>
+    request<ContentScriptSummary[]>(
+      `/workspaces/${workspaceId}/content/scripts${status ? `?status=${status}` : ""}`,
+    ),
+  generateContentScripts: (workspaceId: string, count = 12, competitorHandles: string[] = []) =>
+    request<ContentScriptSummary[]>(`/workspaces/${workspaceId}/content/scripts`, {
+      method: "POST",
+      body: JSON.stringify({ count, competitor_handles: competitorHandles }),
+    }),
+  updateContentScript: (workspaceId: string, scriptId: string, payload: { status?: ContentScriptStatus; scheduled_for?: string | null }) =>
+    request<ContentScriptSummary>(`/workspaces/${workspaceId}/content/scripts/${scriptId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  linkPostToScript: (workspaceId: string, postId: string, scriptId: string) =>
+    request<InstagramPostSummary>(`/workspaces/${workspaceId}/content/instagram-posts/${postId}/link-script`, {
+      method: "POST",
+      body: JSON.stringify({ script_id: scriptId }),
+    }),
   githubConnection: (projectId: string) => request<GitHubConnection>(`/integrations/github/projects/${projectId}`),
   configureGitHubConnection: (projectId: string, payload: { repository: string; default_branch: string; status?: "active" | "paused" }) =>
     request<GitHubConnection>(`/integrations/github/projects/${projectId}`, { method: "PUT", body: JSON.stringify(payload) }),
   githubProjectActivity: (projectId: string, limit = 20) =>
     request<GitHubProjectActivity>(`/integrations/github/projects/${projectId}/activity?limit=${limit}`),
+  publishGitHubProjectUpdate: (projectId: string, clientVisible = true) =>
+    request<{
+      project_id: string;
+      project_update_id: string;
+      idempotency_key: string;
+      repository: string;
+      client_visible: boolean;
+      created_at: string;
+    }>(`/integrations/github/projects/${projectId}/publish-update`, {
+      method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+        idempotency_key: `github-${projectId}-${crypto.randomUUID()}`,
+        client_visible: clientVisible,
+        limit: 20,
+      }),
+    }),
+  createGitHubIssue: (deliverableId: string, body?: string | null) =>
+    request<GitHubIssueLink>(`/integrations/github/deliverables/${deliverableId}/issue`, {
+      method: "POST",
+      body: JSON.stringify({ body: body || null, confirm: true }),
+    }),
   
   getKommoConfig: (organizationId: string) => 
     request<KommoConfigResponse>(`/integrations/${organizationId}/kommo`),
@@ -1887,6 +2951,17 @@ export const api = {
     }),
   deleteTask: (taskId: string) =>
     request<void>(`/tasks/${taskId}`, { method: "DELETE" }),
+  myTasks: () => request<MyTaskSummary[]>("/tasks/me"),
+  assignableUsers: (workspaceId: string) =>
+    request<AssignableUser[]>(`/workspaces/${workspaceId}/assignable-users`),
+  taskComments: (taskId: string) => request<TaskComment[]>(`/tasks/${taskId}/comments`),
+  createTaskComment: (taskId: string, body: string, clientVisible = false) =>
+    request<TaskComment>(`/tasks/${taskId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ body, client_visible: clientVisible }),
+    }),
+  deleteTaskComment: (commentId: string) =>
+    request<void>(`/task-comments/${commentId}`, { method: "DELETE" }),
 
   // Wiki EG (base de conhecimento interna; só EG admin)
   wikiDocuments: () => request<WikiDocumentSummary[]>("/backoffice/wiki/documents"),
@@ -1993,21 +3068,186 @@ export const api = {
     request<OpportunitySummary>("/backoffice/proposals/opportunities/ingest", { method: "POST", body: JSON.stringify(payload) }),
   syncOpportunities: () =>
     request<{ status: string; scanned: number; new: number; skipped: number }>("/backoffice/proposals/opportunities/sync", { method: "POST" }),
+  evaluateOpportunityWithAi: (oppId: string) =>
+    request<OpportunitySummary>(`/backoffice/proposals/opportunities/${oppId}/evaluate-ai`, { method: "POST" }),
   listOpportunityPlatforms: () =>
     request<OpportunityPlatformConfig[]>("/backoffice/proposals/platforms"),
   updateOpportunityPlatform: (platformKey: string, payload: Partial<OpportunityPlatformConfig>) =>
     request<OpportunityPlatformConfig>(`/backoffice/proposals/platforms/${platformKey}`, { method: "PUT", body: JSON.stringify(payload) }),
   generateProposalForOpportunity: (oppId: string) =>
     request<ProposalSummary>(`/backoffice/proposals/opportunities/${oppId}/generate`, { method: "POST" }),
+  proposalCatalog: () => request<ProposalCatalog>("/backoffice/proposals/catalog"),
+  createProposalFromBrief: (payload: ProposalBriefPayload) =>
+    request<ProposalSummary>("/backoffice/proposals/from-brief", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   listProposals: () => request<ProposalSummary[]>("/backoffice/proposals"),
-  updateProposal: (proposalId: string, payload: Partial<ProposalSummary>) =>
+  proposalDetail: (proposalId: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}`),
+  proposalCohorts: () => request<ProposalCohortAnalytics>("/backoffice/proposals/cohorts"),
+  saveProposalContent: (proposalId: string, contentMarkdown: string, claims: ProposalClaim[]) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/content`, {
+      method: "PUT",
+      body: JSON.stringify({ content_markdown: contentMarkdown, claims }),
+    }),
+  reviewProposalClaims: (proposalId: string, status: "approved" | "rejected", note?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/claims-review`, {
+      method: "POST",
+      body: JSON.stringify({ status, note: note || null }),
+    }),
+  transitionProposal: (proposalId: string, status: ProposalSummary["status"], reason?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/transition`, {
+      method: "POST",
+      body: JSON.stringify({ status, reason: reason || null }),
+    }),
+  createProposalRevision: (proposalId: string, reason?: string) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/revisions`, {
+      method: "POST",
+      body: JSON.stringify({ reason: reason || null }),
+    }),
+  createProposalDelivery: (proposalId: string, payload: ProposalDeliveryPayload) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/deliveries`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  convertProposal: (proposalId: string, payload: ProposalConversionPayload) =>
+    request<ProposalDetail>(`/backoffice/proposals/${proposalId}/convert`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  archiveProposal: (proposalId: string, reason?: string) =>
+    request<void>(`/backoffice/proposals/${proposalId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirm: true, reason: reason || null }),
+    }),
+  downloadProposalPdf: (proposalId: string) =>
+    requestBlob(`/backoffice/proposals/${proposalId}/pdf`),
+  salesCopilotSessions: () => request<SalesCopilotSession[]>("/backoffice/sales-copilot"),
+  salesCopilotSession: (sessionId: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}`),
+  listAgentMemories: (workspaceId?: string | null, includeGlobal = true) => {
+    const params = new URLSearchParams({ include_global: String(includeGlobal) });
+    if (workspaceId) params.set("workspace_id", workspaceId);
+    return request<AgentMemory[]>(`/agent-memory/memories?${params.toString()}`);
+  },
+  createAgentMemory: (payload: { workspace_id?: string | null; category: AgentMemoryCategory; title: string; body: string; reason: string }) =>
+    request<AgentMemory>("/agent-memory/memories", { method: "POST", body: JSON.stringify(payload) }),
+  updateAgentMemory: (memoryId: string, payload: { body: string; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  setAgentMemoryStatus: (memoryId: string, payload: { status: "active" | "archived"; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}/status`, { method: "PATCH", body: JSON.stringify(payload) }),
+  listAgentMemoryRevisions: (memoryId: string) =>
+    request<AgentMemoryRevision[]>(`/agent-memory/memories/${memoryId}/revisions`),
+  listAgentSkills: (workspaceId?: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) => {
+    const params = new URLSearchParams({ include_global: String(includeGlobal) });
+    if (workspaceId) params.set("workspace_id", workspaceId);
+    if (statusFilter) params.set("status", statusFilter);
+    return request<AgentSkill[]>(`/agent-memory/skills?${params.toString()}`);
+  },
+  reviewAgentSkill: (skillId: string, payload: { status: "approved" | "rejected"; review_note?: string | null }) =>
+    request<AgentSkill>(`/agent-memory/skills/${skillId}/review`, { method: "POST", body: JSON.stringify(payload) }),
+  retireAgentSkill: (skillId: string) =>
+    request<AgentSkill>(`/agent-memory/skills/${skillId}/retire`, { method: "POST" }),
+  copilotCommands: (surface: CopilotSurface) =>
+    request<CopilotCommand[]>(`/copilot/commands?surface=${surface}`),
+  runCopilot: (payload: {
+    message: string;
+    surface: CopilotSurface;
+    task_id?: string;
+    workspace_id?: string;
+    allow_web_search?: boolean;
+    dry_run?: boolean;
+  }) => request<CopilotResponse>("/copilot", { method: "POST", body: JSON.stringify(payload) }),
+  fathomMeetings: (limit = 20) =>
+    request<FathomMeeting[]>(`/backoffice/sales-copilot/fathom/meetings?limit=${limit}`),
+  importFathomMeeting: (sessionId: string, recordingId: number, analyzeAfterImport = true) =>
+    request<FathomImportResult>(`/backoffice/sales-copilot/sessions/${sessionId}/fathom-import`, {
+      method: "POST",
+      body: JSON.stringify({ recording_id: recordingId, analyze_after_import: analyzeAfterImport }),
+    }),
+  salesCopilotMetrics: () => request<SalesCopilotMetrics>("/backoffice/sales-copilot/metrics"),
+  salesCopilotRealtimeStatus: () =>
+    request<SalesCopilotRealtimeStatus>("/backoffice/sales-copilot/realtime-adapter"),
+  createSalesCopilotSession: (payload: SalesCopilotSessionPayload) =>
+    request<SalesCopilotSession>("/backoffice/sales-copilot", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  prepareSalesCopilotSession: (sessionId: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/prepare`, { method: "POST" }),
+  addSalesCopilotEvent: (
+    sessionId: string,
+    payload: { event_type: SalesCopilotEvent["event_type"]; content: string; recommendation?: string | null; source_refs?: Record<string, unknown>[] },
+  ) => request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/events`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  completeSalesCopilotSession: (sessionId: string, durationSeconds: number) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/complete`, {
+      method: "POST",
+      body: JSON.stringify({ duration_seconds: durationSeconds }),
+    }),
+  configureSalesCopilotMeeting: (sessionId: string, payload: SalesCopilotMeetingPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/meeting`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  issueSalesCopilotIngestionCredential: (sessionId: string) =>
+    request<SalesCopilotIngestionCredential>(
+      `/backoffice/sales-copilot/${sessionId}/ingestion-credential`,
+      { method: "POST" },
+    ),
+  addSalesCopilotParticipant: (sessionId: string, payload: SalesCopilotParticipantPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/participants`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  ingestSalesCopilotSegments: (sessionId: string, payload: SalesCopilotTranscriptBatchPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/transcript-segments`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  analyzeSalesCopilotLive: (sessionId: string, focus?: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/analyze-live`, {
+      method: "POST",
+      body: JSON.stringify({ window_segments: 12, focus: focus || null }),
+    }),
+  addSalesCopilotAction: (sessionId: string, payload: SalesCopilotActionPayload) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/${sessionId}/actions`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  materializeSalesCopilotAction: (actionId: string, idempotencyKey: string) =>
+    request<SalesCopilotSession>(`/backoffice/sales-copilot/actions/${actionId}/materialize`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true, idempotency_key: idempotencyKey }),
+    }),
+  updateProposal: (proposalId: string, payload: ProposalUpdatePayload) =>
     request<ProposalSummary>(`/backoffice/proposals/${proposalId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   getPublicProposal: (token: string) => request<PublicProposalResponse>(`/proposals/public/${token}`),
+  getPublicProposalDetail: (token: string) =>
+    request<PublicProposalLifecycleRecord>(`/proposals/public/${token}/detail`),
+  acceptPublicProposal: (token: string, signerName: string, signerEmail: string) =>
+    request<PublicProposalLifecycleRecord>(`/proposals/public/${token}/accept`, {
+      method: "POST",
+      body: JSON.stringify({
+        accepted: true,
+        signer_name: signerName,
+        signer_email: signerEmail,
+        confirmation: "ACEITO_OS_TERMOS_DA_PROPOSTA",
+      }),
+    }),
   listFreelancerProfiles: () => request<FreelancerProfile[]>("/backoffice/proposals/profiles"),
   syncFreelancerProfile: (payload: { profile_url: string; platform_key?: string }) =>
     request<FreelancerProfile>("/backoffice/proposals/profiles/sync", { method: "POST", body: JSON.stringify(payload) }),
   deleteFreelancerProfile: (profileId: string) =>
     request<{ status: string }>(`/backoffice/proposals/profiles/${profileId}`, { method: "DELETE" }),
+  listTechSkills: () => request<TechSkill[]>("/backoffice/proposals/skills"),
+  listSkillGaps: () => request<OpportunitySkillGap[]>("/backoffice/proposals/gaps"),
+  resolveSkillGap: (gapId: string) =>
+    request<OpportunitySkillGap>(`/backoffice/proposals/gaps/${gapId}/resolve`, { method: "POST" }),
+  getProposalAnalytics: () => request<ProposalAnalytics>("/backoffice/proposals/analytics"),
 };
 
 export type OpportunityPlatformConfig = {
@@ -2016,7 +3256,6 @@ export type OpportunityPlatformConfig = {
   platform_name: string;
   status: "active" | "paused" | "not_configured";
   rss_url: string | null;
-  api_key_or_token: string | null;
   monthly_cost_cents: number;
   notes: string | null;
   created_at: string;
@@ -2042,21 +3281,390 @@ export type OpportunitySummary = {
 export type ProposalSummary = {
   id: string;
   opportunity_id: string | null;
+  workspace_id: string | null;
+  series_id: string | null;
+  version: number;
+  title: string | null;
   client_name: string;
   target_niche: string | null;
   executive_summary: string;
   scope_offer: string | null;
   scope_conversion: string | null;
   scope_demand: string | null;
-  scope_items: Array<{ item: string; pilar?: string; prazo_dias?: number }>;
+  scope_items: Array<{ item: string; pilar?: string; prazo_dias?: number; details?: Record<string, unknown> }>;
+  attached_cases?: Array<{ case_title: string; description: string; skill: string; results_highlight: string }>;
   pricing_cents: number;
   delivery_days: number;
-  status: "draft" | "approved" | "sent" | "won" | "lost";
+  status: "draft" | "approved" | "sent" | "negotiating" | "won" | "lost";
   public_token: string;
+  public_expires_at: string;
+  generation_mode: "live" | "preview" | "manual";
+  proposal_type: string | null;
+  contractor_name: string | null;
+  team_members: string[];
+  delivery_modality: string | null;
+  selected_services: string[];
+  special_requirements: string | null;
+  estimated_budget: string | null;
+  payment_terms: string | null;
+  urgency: string | null;
+  decision_maker: string | null;
+  problem_summary: string | null;
+  additional_context: string | null;
+  intake_snapshot: Record<string, unknown>;
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type ProposalClaim = {
+  text: string;
+  evidence_ref: string | null;
+  approved: boolean;
+};
+
+export type ProposalLifecycleRecord = ProposalSummary & {
+  content_markdown: string;
+  content_sections: Record<string, unknown>[];
+  claims: ProposalClaim[];
+  claims_review_status: "pending" | "approved" | "rejected";
+  archived_at: string | null;
+  viewed_at: string | null;
+  approved_at: string | null;
+  sent_at: string | null;
+  negotiating_at: string | null;
+  won_at: string | null;
+  lost_at: string | null;
+  acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+  accepted_at: string | null;
+  accepted_by_name: string | null;
+  accepted_by_email: string | null;
+};
+
+export type PublicProposalLifecycleRecord = {
+  title: string | null;
+  client_name: string;
+  contractor_name: string | null;
+  version: number;
+  status: ProposalSummary["status"];
+  content_markdown: string;
+  claims_review_status: "pending" | "approved" | "rejected";
+  acceptance_status: "not_requested" | "pending" | "accepted" | "rejected";
+  accepted_at: string | null;
+  accepted_by_name: string | null;
+};
+
+export type ProposalEvent = {
+  id: string;
+  proposal_id: string;
+  event_type: string;
+  actor_user_id: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type ProposalDelivery = {
+  id: string;
+  proposal_id: string;
+  channel: "share_link" | "manual_email" | "signature_adapter";
+  recipient_name: string | null;
+  recipient_email: string | null;
+  provider: string | null;
+  external_id: string | null;
+  status: "prepared" | "sent" | "delivered" | "accepted" | "rejected" | "failed";
+  metadata: Record<string, unknown>;
+  sent_at: string | null;
+  delivered_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProposalConversion = {
+  id: string;
+  proposal_id: string;
+  idempotency_key: string;
+  project_id: string;
+  contract_id: string;
+  plan_id: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type ProposalDetail = {
+  proposal: ProposalLifecycleRecord;
+  revisions: ProposalLifecycleRecord[];
+  events: ProposalEvent[];
+  deliveries: ProposalDelivery[];
+  conversion: ProposalConversion | null;
+};
+
+export type ProposalDeliveryPayload = {
+  channel: ProposalDelivery["channel"];
+  recipient_name?: string | null;
+  recipient_email?: string | null;
+  provider?: string | null;
+  external_id?: string | null;
+  confirm_external_send?: boolean;
+};
+
+export type ProposalConversionPayload = {
+  confirm: boolean;
+  idempotency_key: string;
+  project_name?: string | null;
+  project_type: "tech" | "growth" | "social" | "general";
+};
+
+export type ProposalCohortAnalytics = {
+  cohorts: Array<{
+    month: string;
+    created: number;
+    sent: number;
+    won: number;
+    lost: number;
+    win_rate_percentage: number;
+    average_days_to_close: number | null;
+  }>;
+  median_days_to_first_send: number | null;
+  median_days_to_close: number | null;
+  generated_at: string;
+};
+
+export type SalesCopilotEvent = {
+  id: string;
+  session_id: string;
+  event_type: "transcript_chunk" | "objection" | "insight" | "note" | "action_item";
+  content: string;
+  recommendation: string | null;
+  source_refs: Record<string, unknown>[];
+  sequence: number;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type SalesCopilotParticipant = {
+  id: string;
+  session_id: string;
+  display_name: string;
+  participant_group: "eg_team" | "client" | "partner" | "unknown";
+  organization_name: string | null;
+  job_title: string | null;
+  seniority: "individual" | "manager" | "director" | "c_level" | "owner" | "unknown";
+  decision_role: "champion" | "decision_maker" | "influencer" | "technical" | "user" | "unknown";
+  email: string | null;
+  external_speaker_id: string | null;
+  context_notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SalesCopilotTranscriptSegment = {
+  id: string;
+  session_id: string;
+  participant_id: string | null;
+  idempotency_key: string;
+  source: string;
+  external_speaker_id: string | null;
+  speaker_label: string | null;
+  start_ms: number;
+  end_ms: number | null;
+  content: string;
+  confidence: number | null;
+  is_final: boolean;
+  sequence: number;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type SalesCopilotLiveSuggestion = {
+  id: string;
+  session_id: string;
+  suggestion_type: "question" | "objection_response" | "risk" | "opportunity" | "next_step";
+  title: string;
+  content: string;
+  rationale: string | null;
+  confidence: number | null;
+  source_refs: Record<string, unknown>[];
+  generation_mode: string;
+  status: "active" | "used" | "dismissed";
+  created_at: string;
+};
+
+export type SalesCopilotAction = {
+  id: string;
+  session_id: string;
+  action_type: "follow_up_task" | "proposal_revision" | "project_update";
+  title: string;
+  detail: string | null;
+  owner_hint: string | null;
+  due_at: string | null;
+  source_refs: Record<string, unknown>[];
+  idempotency_key: string | null;
+  status: "proposed" | "approved" | "materialized" | "dismissed" | "failed";
+  materialized_ref: Record<string, unknown>;
+  created_by: string | null;
+  approved_by: string | null;
+  materialized_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SalesCopilotSession = {
+  id: string;
+  workspace_id: string | null;
+  proposal_id: string | null;
+  title: string;
+  session_type: "sales_call" | "discovery" | "proposal_review" | "follow_up";
+  language: string;
+  status: "draft" | "prepared" | "active" | "completed" | "cancelled";
+  realtime_status: "not_configured" | "adapter_ready" | "live" | "failed";
+  objective: string | null;
+  participant_context: string | null;
+  meeting_provider: "manual" | "google_meet" | "microsoft_teams";
+  meeting_url: string | null;
+  external_meeting_id: string | null;
+  consent_status: "pending" | "granted" | "revoked";
+  consent_recorded_at: string | null;
+  retention_until: string | null;
+  live_context: Record<string, unknown>;
+  knowledge_snapshot: Record<string, unknown>;
+  preparation_brief: Record<string, unknown>;
+  transcript: string;
+  summary: string | null;
+  duration_seconds: number;
+  created_by: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  events: SalesCopilotEvent[];
+  participants: SalesCopilotParticipant[];
+  segments: SalesCopilotTranscriptSegment[];
+  suggestions: SalesCopilotLiveSuggestion[];
+  actions: SalesCopilotAction[];
+};
+
+export type SalesCopilotSessionPayload = {
+  workspace_id?: string | null;
+  proposal_id?: string | null;
+  title: string;
+  session_type: SalesCopilotSession["session_type"];
+  language?: string;
+  objective?: string | null;
+  participant_context?: string | null;
+};
+
+export type SalesCopilotMetrics = {
+  total_sessions: number;
+  total_duration_seconds: number;
+  analyses_completed: number;
+  sessions_by_status: Record<string, number>;
+};
+
+export type SalesCopilotRealtimeStatus = {
+  available: boolean;
+  status: "not_configured" | "adapter_ready";
+  message: string;
+  supported_input: string[];
+  supported_meeting_providers: Array<"manual" | "google_meet" | "microsoft_teams">;
+  transport: "polling" | "sse" | "websocket";
+};
+
+export type SalesCopilotMeetingPayload = {
+  meeting_provider: SalesCopilotSession["meeting_provider"];
+  meeting_url?: string | null;
+  external_meeting_id?: string | null;
+  consent_granted: boolean;
+  retention_days?: number;
+};
+
+export type SalesCopilotIngestionCredential = {
+  session_id: string;
+  ingest_token: string;
+  endpoint_path: string;
+  expires_at: string | null;
+};
+
+export type SalesCopilotParticipantPayload = {
+  display_name: string;
+  participant_group: SalesCopilotParticipant["participant_group"];
+  organization_name?: string | null;
+  job_title?: string | null;
+  seniority?: SalesCopilotParticipant["seniority"];
+  decision_role?: SalesCopilotParticipant["decision_role"];
+  email?: string | null;
+  external_speaker_id?: string | null;
+  context_notes?: string | null;
+};
+
+export type SalesCopilotTranscriptBatchPayload = {
+  segments: Array<{
+    idempotency_key: string;
+    participant_id?: string | null;
+    source: "manual" | "upload" | "google_meet" | "microsoft_teams" | "provider_webhook";
+    external_speaker_id?: string | null;
+    speaker_label?: string | null;
+    start_ms?: number;
+    end_ms?: number | null;
+    content: string;
+    confidence?: number | null;
+    is_final?: boolean;
+  }>;
+  analyze_after_ingest?: boolean;
+};
+
+export type SalesCopilotActionPayload = {
+  action_type: SalesCopilotAction["action_type"];
+  title: string;
+  detail?: string | null;
+  owner_hint?: string | null;
+  due_at?: string | null;
+  source_refs?: Record<string, unknown>[];
+  idempotency_key?: string | null;
+};
+
+export type ProposalCatalogOption = { key: string; label: string };
+
+export type ProposalCatalog = {
+  schema_key: "commercial_proposal_v1";
+  schema_version: number;
+  proposal_types: ProposalCatalogOption[];
+  delivery_modalities: ProposalCatalogOption[];
+  urgency_levels: ProposalCatalogOption[];
+  service_groups: Array<{
+    key: string;
+    label: string;
+    services: ProposalCatalogOption[];
+  }>;
+};
+
+export type ProposalBriefPayload = {
+  workspace_id: string;
+  title: string;
+  proposal_type: string;
+  contractor_name: string;
+  team_members: string[];
+  delivery_modality: string;
+  selected_services: string[];
+  special_requirements?: string | null;
+  estimated_budget: string;
+  payment_terms: string;
+  urgency: string;
+  decision_maker: string;
+  problem_summary: string;
+  additional_context?: string | null;
+};
+
+export type ProposalUpdatePayload = Partial<Pick<
+  ProposalSummary,
+  "title" | "client_name" | "target_niche" | "executive_summary" |
+  "scope_offer" | "scope_conversion" | "scope_demand" | "scope_items" |
+  "pricing_cents" | "delivery_days" | "contractor_name" |
+  "team_members" | "special_requirements" | "estimated_budget" |
+  "payment_terms" | "urgency" | "decision_maker" | "problem_summary" |
+  "additional_context"
+>>;
 
 export type PublicProposalResponse = {
   client_name: string;
@@ -2090,6 +3698,56 @@ export type FreelancerProfile = {
   created_at: string;
   updated_at: string;
 };
+
+export type TechSkill = {
+  id: string;
+  skill_name: string;
+  category: string;
+  status: "available" | "wanted" | "in_progress";
+  case_count: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OpportunitySkillGap = {
+  id: string;
+  opportunity_id: string | null;
+  missing_skill: string;
+  impact_level: "high" | "medium" | "low";
+  opportunity_title: string;
+  opportunity_url: string | null;
+  status: "open" | "resolved" | "ignored";
+  created_at: string;
+};
+
+export type ProposalAnalytics = {
+  total_proposals: number;
+  status_counts: { draft: number; sent: number; won: number; lost: number };
+  win_rate_percentage: number;
+  total_pipeline_value_cents: number;
+  total_won_value_cents: number;
+  average_won_ticket_cents: number;
+  total_platform_investment_cents: number;
+  net_growth_profit_cents: number;
+  overall_roi_percentage: number;
+  platform_performance: Array<{
+    platform_name: string;
+    monthly_cost_cents: number;
+    total_proposals: number;
+    won_proposals: number;
+    lost_proposals: number;
+    win_rate_percentage: number;
+    cost_per_proposal_cents: number;
+    cac_cents: number;
+    won_revenue_cents: number;
+    net_profit_cents: number;
+    roi_percentage: number;
+  }>;
+};
+
+
+
 
 
 

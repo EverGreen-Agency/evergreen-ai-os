@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AgentSkillStatus, CopilotSurface, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -17,6 +18,14 @@ export function useCurrentUser() {
     queryKey: ["user"],
     queryFn: api.me,
     retry: false,
+    initialData: () => {
+      try {
+        const raw = localStorage.getItem("bioma_user_cache");
+        return raw ? JSON.parse(raw) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
   });
 }
 
@@ -39,6 +48,227 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useAgentMemories(workspaceId: string | null, includeGlobal = true) {
+  return useQuery({
+    queryKey: ["agent-memories", workspaceId, includeGlobal],
+    queryFn: () => api.listAgentMemories(workspaceId, includeGlobal),
+  });
+}
+
+export function useCreateAgentMemory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Parameters<typeof api.createAgentMemory>[0]) => api.createAgentMemory(payload),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useUpdateAgentMemory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, body, reason }: { memoryId: string; body: string; reason: string }) =>
+      api.updateAgentMemory(memoryId, { body, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useSetAgentMemoryStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, status, reason }: { memoryId: string; status: "active" | "archived"; reason: string }) =>
+      api.setAgentMemoryStatus(memoryId, { status, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
+export function useAgentMemoryRevisions(memoryId: string | null) {
+  return useQuery({
+    queryKey: ["agent-memory-revisions", memoryId],
+    queryFn: () => api.listAgentMemoryRevisions(memoryId as string),
+    enabled: Boolean(memoryId),
+  });
+}
+
+export function useAgentSkills(workspaceId: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) {
+  return useQuery({
+    queryKey: ["agent-skills", workspaceId, includeGlobal, statusFilter],
+    queryFn: () => api.listAgentSkills(workspaceId, includeGlobal, statusFilter),
+  });
+}
+
+export function useReviewAgentSkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ skillId, status, reviewNote }: { skillId: string; status: "approved" | "rejected"; reviewNote?: string }) =>
+      api.reviewAgentSkill(skillId, { status, review_note: reviewNote ?? null }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-skills"] }),
+  });
+}
+
+export function useRetireAgentSkill() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (skillId: string) => api.retireAgentSkill(skillId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-skills"] }),
+  });
+}
+
+export function useCopilotCommands(surface: CopilotSurface, enabled: boolean) {
+  return useQuery({
+    queryKey: ["copilot-commands", surface],
+    queryFn: () => api.copilotCommands(surface),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useRunCopilot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Parameters<typeof api.runCopilot>[0]) => api.runCopilot(payload),
+    onSuccess: (data, variables) => {
+      // Só invalida quando algo foi de fato alterado — resposta sem execução
+      // não deve provocar refetch da tela inteira.
+      const changed = data.actions.some((action) => action.status === "executed");
+      if (changed && variables.task_id) {
+        void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        void queryClient.invalidateQueries({ queryKey: ["task-comments", variables.task_id] });
+      }
+    },
+  });
+}
+
+export function useScriptScoreboard(workspaceId: string | null, periodDays = 90) {
+  return useQuery({
+    queryKey: ["content-script-scoreboard", workspaceId, periodDays],
+    queryFn: () => api.getScriptScoreboard(workspaceId as string, periodDays),
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useBuildBriefingDraft() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, persist }: { workspaceId: string; persist: boolean }) =>
+      api.buildBriefingDraft(workspaceId, persist),
+    onSuccess: (data, variables) => {
+      // Só invalida o portal quando o rascunho virou artefato de verdade.
+      if (variables.persist && data.artifact_id) {
+        void queryClient.invalidateQueries({ queryKey: ["portal", variables.workspaceId] });
+      }
+    },
+  });
+}
+
+export function useSetMonthlyTarget() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, targetLeads, budgetCents }: { clientId: string; targetLeads: number | null; budgetCents: number | null }) =>
+      api.setMonthlyTarget(clientId, { target_leads: targetLeads, budget_cents: budgetCents }),
+    onSuccess: (rows) => {
+      // A resposta ja e o rollup recalculado: evita um refetch redundante.
+      queryClient.setQueryData(["portfolio-performance", 30], rows);
+    },
+  });
+}
+
+export function useImportLocalRadarScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { niche: string; city: string; rows: LocalRadarImportRow[] }) =>
+      api.importLocalRadarScan(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useLocalRadarScans(enabled: boolean) {
+  return useQuery({
+    queryKey: ["local-radar", "scans"],
+    queryFn: () => api.getLocalRadarScans(),
+    enabled,
+  });
+}
+
+export function useLocalRadarScan(scanId: string | null) {
+  return useQuery({
+    queryKey: ["local-radar", "scan", scanId],
+    queryFn: () => api.getLocalRadarScan(scanId as string),
+    enabled: Boolean(scanId),
+  });
+}
+
+export function useCreateLocalRadarScan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { niche: string; city: string; limit?: number }) =>
+      api.createLocalRadarScan(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useAuditLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (prospectId: string) => api.auditLocalRadarProspect(prospectId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useUpdateLocalRadarMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, message }: { prospectId: string; message: string }) =>
+      api.updateLocalRadarMessage(prospectId, message),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useDecideLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, decision }: { prospectId: string; decision: "approved" | "rejected" }) =>
+      api.decideLocalRadarProspect(prospectId, decision),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function useSendLocalRadarProspect() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ prospectId, providerType }: { prospectId: string; providerType: WhatsAppProviderType }) =>
+      api.sendLocalRadarProspect(prospectId, providerType),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["local-radar"] });
+    },
+  });
+}
+
+export function usePortfolioPerformance(enabled: boolean, days = 30) {
+  return useQuery({
+    queryKey: ["portfolio-performance", days],
+    queryFn: () => api.getPortfolioPerformance(days),
+    enabled,
+  });
+}
+
+export function useCockpitSummary(enabled: boolean) {
+  return useQuery({
+    queryKey: ["cockpit-summary"],
+    queryFn: api.getCockpitSummary,
+    enabled,
   });
 }
 
@@ -182,7 +412,8 @@ export function useArchiveClient() {
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => api.login(email, password),
+    mutationFn: ({ email, password, remember_me }: { email: string; password: string; remember_me?: boolean }) =>
+      api.login(email, password, remember_me),
     onSuccess: (data) => {
       queryClient.setQueryData(["user"], data.user);
     },
@@ -194,7 +425,63 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
+      try { localStorage.removeItem("bioma_user_cache"); } catch {}
       queryClient.clear();
+    },
+  });
+}
+
+export function useSessions() {
+  return useQuery({
+    queryKey: ["sessions"],
+    queryFn: api.sessions,
+  });
+}
+
+export function useRevokeSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => api.revokeSession(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+export function useRevokeOtherSessions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.revokeOtherSessions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+export function usePersonalAccessTokens() {
+  return useQuery({
+    queryKey: ["personal-access-tokens"],
+    queryFn: api.personalAccessTokens,
+  });
+}
+
+export function useCreatePersonalAccessToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, expiresInDays }: { name: string; expiresInDays?: number | null }) =>
+      api.createPersonalAccessToken(name, expiresInDays),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["personal-access-tokens"] });
+    },
+  });
+}
+
+export function useRevokePersonalAccessToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tokenId: string) => api.revokePersonalAccessToken(tokenId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["personal-access-tokens"] });
     },
   });
 }
@@ -256,6 +543,24 @@ export function useUpdatePerformanceConnection() {
   });
 }
 
+export function useSavePerformanceProviderToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      provider,
+      token,
+    }: {
+      workspaceId: string;
+      provider: Parameters<typeof api.savePerformanceProviderToken>[1];
+      token: string;
+    }) => api.savePerformanceProviderToken(workspaceId, provider, token),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["performance-connections", variables.workspaceId], data);
+    },
+  });
+}
+
 export function useRequestPerformanceSync() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -264,6 +569,105 @@ export function useRequestPerformanceSync() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["portal", variables.clientId] });
       queryClient.invalidateQueries({ queryKey: ["performance-connections", variables.clientId] });
+    },
+  });
+}
+
+// --- CONTENT INTELLIGENCE (retrospectiva, banco de ganchos, roteiros) ---
+
+export function useInstagramPosts(workspaceId: string | null, days = 90) {
+  return useQuery({
+    queryKey: ["content-instagram-posts", workspaceId, days],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listInstagramPosts(workspaceId, days);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useContentHookBank(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["content-hook-bank", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listContentHookBank(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useLatestRetrospective(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["content-retrospective", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.getLatestRetrospective(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useGenerateRetrospective() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, periodDays }: { workspaceId: string; periodDays?: number }) =>
+      api.generateRetrospective(workspaceId, periodDays),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["content-retrospective", variables.workspaceId], data);
+      queryClient.invalidateQueries({ queryKey: ["content-hook-bank", variables.workspaceId] });
+    },
+  });
+}
+
+export function useContentScripts(workspaceId: string | null, status?: import("../lib/api").ContentScriptStatus) {
+  return useQuery({
+    queryKey: ["content-scripts", workspaceId, status],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.listContentScripts(workspaceId, status);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+export function useGenerateContentScripts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, count, competitorHandles }: { workspaceId: string; count?: number; competitorHandles?: string[] }) =>
+      api.generateContentScripts(workspaceId, count, competitorHandles),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
+    },
+  });
+}
+
+export function useUpdateContentScript() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      workspaceId,
+      scriptId,
+      payload,
+    }: {
+      workspaceId: string;
+      scriptId: string;
+      payload: Parameters<typeof api.updateContentScript>[2];
+    }) => api.updateContentScript(workspaceId, scriptId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
+    },
+  });
+}
+
+export function useLinkPostToScript() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, postId, scriptId }: { workspaceId: string; postId: string; scriptId: string }) =>
+      api.linkPostToScript(workspaceId, postId, scriptId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["content-instagram-posts", variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ["content-scripts", variables.workspaceId] });
     },
   });
 }
@@ -348,18 +752,6 @@ export function useAdminIdeaDoc(id: string | null) {
     queryFn: () => api.adminIdeaDoc(id ?? ""),
     enabled: Boolean(id),
     retry: false,
-  });
-}
-
-export function useSaveEngineeringDoc() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ modId, docType, content, filename }: { modId: string; docType: string; content: string; filename?: string }) => 
-      api.saveEngineeringDoc(modId, docType, content, filename),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "engineering"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "engineering", variables.modId] });
-    },
   });
 }
 
@@ -534,7 +926,7 @@ export function useInstallAiWorkflowTemplate() {
 }
 
 export function useAiWorkflowRuns() {
-  return useQuery({ queryKey: ["ai-workflow-runs"], queryFn: api.aiWorkflowRuns });
+  return useQuery({ queryKey: ["ai-workflow-runs"], queryFn: api.aiWorkflowRuns, refetchInterval: 4000 });
 }
 
 export function useCreateAiWorkflowRun() {
@@ -551,6 +943,49 @@ export function useApproveAiWorkflowRun() {
     mutationFn: (runId: string) => api.approveAiWorkflowRun(runId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-workflow-runs"] }),
   });
+}
+
+export function useAiRoutingControlPlane() {
+  return useQuery({
+    queryKey: ["ai-routing-control-plane"],
+    queryFn: api.aiRoutingControlPlane,
+    refetchInterval: 10000,
+  });
+}
+
+function useControlPlaneMutation<T>(mutationFn: (payload: T) => Promise<Awaited<ReturnType<typeof api.aiRoutingControlPlane>>>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (data) => queryClient.setQueryData(["ai-routing-control-plane"], data),
+  });
+}
+
+export function useCreateAiProviderAccount() {
+  return useControlPlaneMutation<Parameters<typeof api.createAiProviderAccount>[0]>(api.createAiProviderAccount);
+}
+
+export function useBootstrapAiModels() {
+  return useControlPlaneMutation<string>(api.bootstrapAiModels);
+}
+
+export function useRecordAiQuotaBucket() {
+  return useControlPlaneMutation<{
+    accountId: string;
+    payload: Parameters<typeof api.recordAiQuotaBucket>[1];
+  }>(({ accountId, payload }) => api.recordAiQuotaBucket(accountId, payload));
+}
+
+export function useCollectAiQuota() {
+  return useControlPlaneMutation<string>(api.collectAiQuota);
+}
+
+export function useBootstrapAiRoutingPolicies() {
+  return useControlPlaneMutation<void>(() => api.bootstrapAiRoutingPolicies());
+}
+
+export function usePreviewAiRoute() {
+  return useMutation({ mutationFn: api.previewAiRoute });
 }
 
 // Task Management Hooks
@@ -591,10 +1026,75 @@ export function useTasksInList(listId: string | null) {
 export function useCreateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) => 
+    mutationFn: ({ listId, payload }: { listId: string; payload: TaskPayload }) =>
       api.createTask(listId, payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", variables.listId] });
+    },
+  });
+}
+
+/** Quem pode receber tarefa neste workspace — espelha a validação do backend,
+ *  então o seletor nunca oferece alguém que resultaria em 422. */
+export function useAssignableUsers(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["assignable-users", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.assignableUsers(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+/** Projetos do workspace — alimenta o seletor de Projeto da tarefa. */
+export function useWorkspaceProjects(workspaceId: string | null) {
+  return useQuery({
+    queryKey: ["projects", workspaceId],
+    queryFn: () => {
+      if (!workspaceId) throw new Error("No workspace ID provided");
+      return api.projects(workspaceId);
+    },
+    enabled: Boolean(workspaceId),
+  });
+}
+
+/** Visão pessoal: atravessa a carteira toda e o workspace interno da EG. */
+export function useMyTasks() {
+  return useQuery({
+    queryKey: ["tasks", "me"],
+    queryFn: api.myTasks,
+  });
+}
+
+export function useTaskComments(taskId: string | null) {
+  return useQuery({
+    queryKey: ["task-comments", taskId],
+    queryFn: () => {
+      if (!taskId) throw new Error("No task ID provided");
+      return api.taskComments(taskId);
+    },
+    enabled: Boolean(taskId),
+  });
+}
+
+export function useCreateTaskComment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, body, clientVisible }: { taskId: string; body: string; clientVisible?: boolean }) =>
+      api.createTaskComment(taskId, body, clientVisible),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["task-comments", variables.taskId] });
+    },
+  });
+}
+
+export function useDeleteTaskComment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId }: { commentId: string; taskId: string }) => api.deleteTaskComment(commentId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["task-comments", variables.taskId] });
     },
   });
 }

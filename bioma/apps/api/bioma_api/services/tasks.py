@@ -7,7 +7,17 @@ from bioma_api.access import is_platform_admin, require_workspace_capability
 from bioma_api.db import connect
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.schemas.auth import CurrentUserResponse
-from bioma_api.schemas.tasks import Task, TaskCreate, TaskList, TaskListCreate, TaskUpdate
+from bioma_api.schemas.tasks import (
+    AssignableUser,
+    MyTaskSummary,
+    Task,
+    TaskComment,
+    TaskCommentCreate,
+    TaskCreate,
+    TaskList,
+    TaskListCreate,
+    TaskUpdate,
+)
 
 
 def _not_found(detail: str) -> HTTPException:
@@ -39,6 +49,56 @@ def _validate_people(conn, workspace_id: UUID, values: dict) -> None:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"{label} precisa pertencer ao mesmo tenant/workspace da tarefa.",
             )
+
+
+def _validate_dates(conn, values: dict, task_id: UUID | None = None) -> None:
+    """Início depois do vencimento é 422 amigável, não 500 da constraint.
+
+    No update parcial, o outro lado da comparação pode estar só no banco —
+    por isso busca o valor atual quando falta no payload.
+    """
+    start = values.get("start_date")
+    due = values.get("due_date")
+    if (start is None or due is None) and task_id is not None and ("start_date" in values or "due_date" in values):
+        row = conn.execute("select start_date, due_date from eg_tasks where id = %s", (task_id,)).fetchone()
+        if row:
+            start = start if "start_date" in values else row["start_date"]
+            due = due if "due_date" in values else row["due_date"]
+    if start is not None and due is not None and start > due:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A data de início não pode ser depois do vencimento.",
+        )
+
+
+def _validate_project(conn, workspace_id: UUID, values: dict) -> None:
+    project_id = values.get("project_id")
+    if project_id is not None and not tasks_repo.project_belongs_to_workspace(conn, workspace_id, project_id):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="O projeto precisa pertencer ao mesmo workspace da tarefa.",
+        )
+
+
+def _validate_parent(conn, workspace_id: UUID, values: dict, task_id: UUID | None = None) -> None:
+    parent_id = values.get("parent_task_id")
+    if parent_id is None:
+        return
+    if task_id is not None and parent_id == task_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Uma tarefa não pode ser subtarefa de si mesma.",
+        )
+    if tasks_repo.task_ids_in_workspace(conn, workspace_id, [parent_id]) != {parent_id}:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A tarefa-pai precisa pertencer ao mesmo workspace.",
+        )
+    if task_id is not None and tasks_repo.parent_would_cycle(conn, task_id, parent_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O vínculo criaria um ciclo entre tarefa e subtarefa.",
+        )
 
 
 def _validate_dependencies(
@@ -106,6 +166,9 @@ def create_task(list_id: UUID, data: TaskCreate, user: CurrentUserResponse) -> T
             "Lista de tarefas não encontrada.",
         )
         _validate_people(conn, context["workspace_id"], values)
+        _validate_dates(conn, values)
+        _validate_project(conn, context["workspace_id"], values)
+        _validate_parent(conn, context["workspace_id"], values)
         _validate_dependencies(conn, context["workspace_id"], dependencies)
         row = tasks_repo.create_task(conn, list_id, values)
         task_id = row["id"]
@@ -133,6 +196,9 @@ def update_task(task_id: UUID, data: TaskUpdate, user: CurrentUserResponse) -> T
         )
         _require_local_task(context)
         _validate_people(conn, context["workspace_id"], updates)
+        _validate_dates(conn, updates, task_id)
+        _validate_project(conn, context["workspace_id"], updates)
+        _validate_parent(conn, context["workspace_id"], updates, task_id)
         if dependencies is not None:
             _validate_dependencies(conn, context["workspace_id"], dependencies, task_id)
         if not tasks_repo.update_task(conn, task_id, updates):
@@ -213,3 +279,68 @@ def delete_subtask(subtask_id: UUID, user: CurrentUserResponse) -> None:
         _require_local_task(context)
         if not tasks_repo.delete_subtask(conn, subtask_id):
             raise _not_found("Subtarefa não encontrada.")
+
+
+def list_task_comments(task_id: UUID, user: CurrentUserResponse) -> list[TaskComment]:
+    with connect() as conn:
+        context = _authorize(
+            tasks_repo.find_task_context(conn, task_id, is_platform_admin(user), user.id),
+            user,
+            "view",
+            "Tarefa não encontrada.",
+        )
+        # client_user só vê o que foi explicitamente marcado como visível.
+        include_internal = context.get("access_role") != "client_user"
+        rows = tasks_repo.list_task_comments(conn, task_id, include_internal)
+    return [TaskComment(**row) for row in rows]
+
+
+def create_task_comment(task_id: UUID, data: TaskCommentCreate, user: CurrentUserResponse) -> TaskComment:
+    body = data.body.strip()
+    if not body:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Comentário vazio.")
+    with connect() as conn:
+        context = _authorize(
+            tasks_repo.find_task_context(conn, task_id, is_platform_admin(user), user.id),
+            user,
+            "view",
+            "Tarefa não encontrada.",
+        )
+        # Cliente comenta na própria tarefa (é parte do fluxo de aprovação),
+        # mas não decide visibilidade: o que ele escreve é sempre visível a ele.
+        client_visible = True if context.get("access_role") == "client_user" else data.client_visible
+        row = tasks_repo.create_task_comment(conn, task_id, user.id, body, client_visible)
+    return TaskComment(**row)
+
+
+def delete_task_comment(comment_id: UUID, user: CurrentUserResponse) -> None:
+    with connect() as conn:
+        owner = tasks_repo.find_comment_task(conn, comment_id)
+        if not owner:
+            raise _not_found("Comentário não encontrado.")
+        _authorize(
+            tasks_repo.find_task_context(conn, owner["task_id"], is_platform_admin(user), user.id),
+            user,
+            "view",
+            "Comentário não encontrado.",
+        )
+        if not tasks_repo.delete_task_comment(conn, comment_id, user.id, is_platform_admin(user)):
+            # Não distingue "não existe" de "não é seu": não confirma a
+            # existência de comentário que o usuário não pode apagar.
+            raise _not_found("Comentário não encontrado.")
+
+
+def list_my_tasks(user: CurrentUserResponse) -> list[MyTaskSummary]:
+    """Não recebe workspace: é a visão pessoal, atravessa a carteira toda e o
+    workspace interno da EG. O escopo é garantido na própria query."""
+    with connect() as conn:
+        rows = tasks_repo.list_my_tasks(conn, user.id, is_platform_admin(user))
+    return [MyTaskSummary(**row) for row in rows]
+
+
+def list_assignable_users(workspace_id: UUID, user: CurrentUserResponse) -> list[AssignableUser]:
+    with connect() as conn:
+        context = tasks_repo.find_workspace_context(conn, workspace_id, is_platform_admin(user), user.id)
+        _authorize(context, user, "view", "Workspace não encontrado.")
+        rows = tasks_repo.list_assignable_users(conn, workspace_id)
+    return [AssignableUser(**row) for row in rows]

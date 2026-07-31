@@ -79,7 +79,11 @@ Arquivos sensíveis: `apps/web/src/lib/api.ts`, `App.tsx`, views e estilos. Uma 
 | PROJECT-001 | DONE | Full-stack | Motor nativo projeto → contrato → escopo → entrega/aceite + UI do Hub | TASK-DOM-001 | migrations 0022/0023 + `smoke_projects.py` + compile/OpenAPI + tsc/build |
 | PROJECT-TECH-001 | DONE | Full-stack | Fases ordenadas, entregas por fase, links de proposta/especificação e feed de progresso/bloqueio/teste/release para projetos Tech | PROJECT-001 | `smoke_projects.py` cobre visibilidade do cliente, conteúdo interno e fase cruzada |
 | PROJECT-GH-001 | DONE | Full-stack | Ligar projetos Tech em leitura a repositório, issues, PRs e commits sem perder o Bioma como fonte canônica | PROJECT-001 | migration 0028 + adapter mockado sem rede + compile/OpenAPI + tsc/build |
-| PROJECT-GH-002 | DONE | Full-stack | Escrita GitHub idempotente e auditada com confirmação HITL | PROJECT-GH-001 | `smoke_github_write.py` cobre replay, BOLA e confirmação explícita (`confirm` obrigatório) |
+| PROJECT-GH-002 | DONE | Full-stack | Escrita GitHub idempotente e auditada com confirmação HITL | PROJECT-GH-001 | migrations 0037/0049 + teste unitário de transação/marcador + `smoke_github_write.py` |
+| PROJECT-PLAN-001 | DONE | Full-stack | Planejador versionado contrato/briefing/onboarding → aprovação → fases e entregas para Tech, Growth e Social | PROJECT-001, AI-OPS-001 | migration 0048 + pytest sem banco + OpenAPI + tsc/build |
+| PROJECT-TECH-CONTEXT-001 | DONE | Full-stack | Proposta/especificação vinculável ao contrato; trecho técnico confirmado e contexto explícito entram no snapshot do rascunho Tech, sem leitura alegada de URL privada | PROJECT-PLAN-001 | migration 0052 + `tests/test_project_planner.py` + OpenAPI/tipos + tsc/build |
+| PROJECT-PLAN-CANDIDATES-001 | DONE | Full-stack | Backlog candidato editável e selecionável: prioridade, definição de pronto e subtarefas; aprovação exige seleção e somente itens escolhidos materializam fases/entregas | PROJECT-PLAN-001 | migration 0053 + `tests/test_project_planner.py` + OpenAPI/tipos + tsc/build |
+| INT-VOIP-001 | PLANNED | Produto/Arquitetura | Desenhar VoIP de prospecção com SIP/provedor, consentimento, gravação, LGPD, CRM e métricas | decisão de produto + requisitos comerciais | ADR e spike sem chamada real |
 | AI-METHOD-001 | DONE | Produto/Full-stack | Evoluir Estúdio IA para imagem, brand book versionado, metodologia e score cliente | AI-CONTENT-001 | entregue via cluster Raio-X/brand book/IA multimodal (Onda 5); smokes isolados + pytest + tsc/build |
 | AI-OPS-001 | DONE | Full-stack | Control plane interno com templates versionados, execução idempotente, etapas ordenadas e checkpoints HITL | AI-CONTENT-001 | pytest + smoke isolado + contrato + tsc/build |
 | FINOPS-AI-001 | DONE | Full-stack | Dashboard EG de assinaturas, custos, uso e cotas observadas de IA, sem inferir saldo indisponível | AI-OPS-001 | migration 0029 + smoke isolado + npm audit |
@@ -136,6 +140,11 @@ Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/me
 | ID | Estado | Frente | Entrega | Dependência | Validação |
 |---|---|---|---|---|---|
 | MOD-COMERCIAL-001 | DONE | Full-stack | Raio-X: score 3 pilares (Oferta/Demanda/Conversão), diagnóstico e planos de ação de 90 dias | AUTHZ-WS-001 | `smoke_commercial.py`; gate de módulo `commercial` corrigido nesta consolidação |
+| MARKET-RESEARCH-001 | DONE | Full-stack/Worker | Pesquisa de mercado da Operação EG: refinamento assistido, relatório versionado com pesquisa web e fontes verificadas, playbook de prospecção e oportunidades Growth/Social; sem publicação em Hub | AUTHZ-WS-001 + FINOPS-AI-001 | `tests/test_market_research.py` + OpenAPI/tipos + tsc/build; execução live real depende de `OPENAI_API_KEY` |
+| CLIENT-PROFILE-001 | DONE | Full-stack | Contexto estruturado no Hub: perfil por workspace de cliente, completude derivada, controle `view`/`manage_work`, auditoria e snapshot para rascunho do planejador | AUTHZ-WS-001 + PROJECT-PLAN-001 | `tests/test_client_profiles.py` + `tests/test_project_planner.py` + OpenAPI/tipos + tsc/build |
+| PROJECT-INTAKE-001 | DONE | Full-stack | Intake de planejamento `retail_v1` versionada no projeto, com rascunho persistido, finalização imutável, regras servidoras de maturidade/meta e snapshot no plano gerado | PROJECT-PLAN-001 + CLIENT-PROFILE-001 | migration 0054 + `tests/test_planning_intakes.py` + `tests/test_project_planner.py` + OpenAPI/tipos + tsc |
+| PROPOSAL-BRIEF-001 | DONE | Full-stack/Worker | Wizard de proposta usa cliente canônico, catálogo server-owned, briefing comercial e snapshot versionado; a geração consome perfil do cliente e marca `live`/`preview` | CLIENT-PROFILE-001 + MOD-SQUADS-AUTONOMOS-001 | migration 0055 + `tests/test_proposals_flow.py` + compileall + tsc/build; migration e execução live não aplicadas |
+| PROPOSAL-LIFECYCLE-001 | TODO | Full-stack | Detalhe/editoração, nova revisão da série, comparação, aprovação, envio, negociação e conversão HITL em contrato/projeto | PROPOSAL-BRIEF-001 + MOD-CONTRATOS-001 | testes de transição/idempotência + PDF/adapter sem envio fictício |
 | MOD-CONTEUDO-002 | DONE | Full-stack/Worker | Estúdio IA: geração de imagem e roteiro de vídeo além de posts sociais | AI-CONTENT-001 | `smoke_ai_content.py` (preview + schema por tipo) |
 | MOD-BI-SOCIAL-001 | DONE | Backend/Worker | Sync real de Meta Ads (Graph API insights) e LinkedIn Ads (adAnalytics + resolução de nome de campanha), ligado ao mesmo pipeline de fila/scheduler do Google Ads | WEB-PERF-002 | migration 0041 (habilita os providers + corrige tabelas sem `updated_at`) + `smoke_performance_social.py` (falha alta sem token, parse mockado, persistência); validação contra conta real fica como `INT-META-001`/`INT-LI-002`, bloqueada por credencial |
 | INT-META-001 | BLOCKED | Backend/Operação | Validar Meta Ads real | DPL-005 + `META_ADS_ACCESS_TOKEN` | comparação por campanha/data |
@@ -149,6 +158,8 @@ Módulos das Fases 2–4 do `PLANO-MESTRE.md` (`_opensquad/_memory/engenharia/me
 | MOD-SAAS-BILLING-001 | TODO | Full-stack | Stripe: planos, cupons, cotas, clientes legado, suspensão de acesso (retenção, nunca backdoor) | mod-multitenant (já herdado) | — |
 | MOD-CERTIFICACOES-001 | DONE | Full-stack | Certificações de funcionário e da própria EG (status active/expiring_soon/expired calculado, sem cron) | TEAM-001 | migration 0040 + `smoke_certifications.py` (autoatendimento vs. gate de terceiro, 3 status, certificação sem dono) |
 | MOD-CONTRATOS-001 | DONE | Arquitetura | ADR: Autentique permanece externo como adapter de assinatura; Bioma é fonte de verdade do contrato (campos já existiam em PROJECT-001) | PROJECT-001 | `docs/adr/0003-autentique-contratos.md` |
+| MOD-PROPOSTAS-RADAR-001 | IN_PROGRESS | Full-stack/Worker | Captura manual + 3 fontes RSS públicas + feeds configuráveis, scoring determinístico, auditoria por URL e rascunho assistido nos três pilares; o fluxo de carteira agora também cria briefing ligado a cliente canônico, mas conectores adicionais ainda não existem | AUTHZ-WS-001 + PROPOSAL-BRIEF-001 | migrations 0046/0055 + testes unitários sem banco; validação live de fontes e IA segue pendente |
+| MOD-BIGDATA-ROI-001 | IN_PROGRESS | Full-stack | Win rate considera apenas decisões; custo, CPP, CAC e ROI usam custos observados do período corrente. Coortes/períodos históricos ainda precisam ser modelados | MOD-PROPOSTAS-RADAR-001 | `get_proposal_analytics_metrics` + testes de divisão e ausência de custo |
 | INT-AUT-001 | BLOCKED | Backend | Escrever/ler adapter Autentique real (criar documento, webhook de assinatura) | credencial/API key Autentique | comparação com documento assinado real |
 
 ## Template de handoff
@@ -177,3 +188,33 @@ Se não houver tokens suficientes para concluir com validação e commit:
 2. Salve um handoff com comando exato de continuação.
 3. Não marque a tarefa como `DONE`.
 4. Se houver diff parcial, descreva cada arquivo e não permita que a próxima IA o reverta sem leitura.
+
+## Handoff ativo — 2026-07-28
+
+Estado: DONE no código local; PENDING para aplicar migration/validar com dados reais.
+O que foi implementado:
+- lifecycle completo de proposta com revisão de claims, máquina de estados auditada, versão, PDF, entrega registrada, aceite público e conversão HITL;
+- planejamentos server-owned para Retail, Tech e Growth/Social, com portfólio agregado da EG;
+- Copiloto de Vendas assíncrono: preparação contextual, transcrição/notas manuais, insights e resumo pós-call;
+- DTO público mínimo e bloqueio do `PATCH` legado de status.
+Limites declarados:
+- migration `0056_proposal_lifecycle_and_sales_copilot.sql` não foi aplicada;
+- não existe envio de e-mail, assinatura eletrônica nem transcrição/recomendação realtime sem provider futuro;
+- `share_link` e `manual_email` registram preparação/envio confirmado pelo humano; não simulam entrega externa.
+Próxima ação exata:
+1. aplicar 0056 em banco descartável;
+2. executar smoke do lifecycle com proposta sintética;
+3. fazer QA visual das abas Propostas, Planejamentos, Copiloto e do link público;
+4. somente depois selecionar adapters de e-mail/assinatura/realtime com custos, consentimento e retenção definidos.
+
+## Frente atual — 2026-07-28
+
+Implementado sem popular banco:
+
+1. proposta ganha → projeto/contrato/escopo → plano em rascunho, com separação transacional e auditoria de falha;
+2. Copiloto de reuniões com participantes, papéis, consentimento, retenção, diarização e sugestões sobre janela recente;
+3. contrato seguro para adaptador Meet/Teams, com token rotacionável armazenado apenas como hash;
+4. compromissos materializáveis com HITL;
+5. snapshot GitHub → atualização Tech no hub, idempotente e confirmado.
+
+Validação externa deixada para a etapa de ambiente: migrations 0056–0058, bot real em Meet/Teams, STT/diarização, latência, custo, QA visual e fluxo GitHub com token.

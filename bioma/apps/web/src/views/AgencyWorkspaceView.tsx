@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BarChart3, Bot, Users, WalletCards } from "lucide-react";
+import { BarChart3, Bot, FileSearch, MapPin, Users, WalletCards } from "lucide-react";
 import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
@@ -11,7 +11,10 @@ import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/work
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
 const CrmView = lazy(() => import("./CrmView").then((module) => ({ default: module.CrmView })));
 const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ default: module.FinanceView })));
+const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
+const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
+const LocalRadarStudio = lazy(() => import("../components/LocalRadarStudio").then((module) => ({ default: module.LocalRadarStudio })));
 
 type AgencyWorkspaceOutletContext = {
   workspace: AgencyWorkspaceContext;
@@ -32,13 +35,9 @@ export function AgencyWorkspaceView() {
 
   if (resolution.status !== "ready") {
     const description = isError
-      ? "Não foi possível consultar o contexto persistente deste workspace. Verifique a API e a migration 0010."
-      : resolution.status === "ambiguous_bridge"
-      ? "Há mais de um registro operacional ligado à organização EG. A correção precisa ser feita no backend antes de abrir este workspace."
-      : resolution.status === "missing_bridge"
-        ? "O workspace interno ainda não foi provisionado para esta organização. Execute o provisionamento administrativo antes de usar os módulos operacionais."
-        : resolution.status === "missing_workspace"
-          ? "A organização EG existe, mas ainda não possui um workspace interno persistente. Rode as migrations e o bootstrap administrativo."
+      ? "Não foi possível consultar o contexto persistente deste workspace."
+      : resolution.status === "missing_workspace"
+        ? "A organização EG existe, mas ainda não possui um workspace interno persistente."
         : "Sua sessão não possui uma organização administrativa válida para a Operação EG.";
 
     return (
@@ -78,6 +77,18 @@ export function AgencyOverviewRoute() {
       description: "Workflows versionados, aprovações e execução auditável dos squads EG.",
       to: "/operacao/ia",
       icon: Bot,
+    },
+    {
+      title: "Pesquisa de mercado",
+      description: "Pesquisa setorial com refinamento, fontes rastreáveis e aplicação em Growth, Social e prospecção.",
+      to: "/operacao/pesquisa-mercado",
+      icon: FileSearch,
+    },
+    {
+      title: "Radar Local",
+      description: "Prospecção de negócios locais via Google Maps, com auditoria de presença digital e aprovação humana antes do contato.",
+      to: "/operacao/radar-local",
+      icon: MapPin,
     },
     {
       title: "CRM da EG",
@@ -145,7 +156,32 @@ export function AgencyAnalyticsRoute() {
   );
 }
 
+/** Demanda interna da EG: social/tech/growth da própria casa, treinamento de
+ *  time, hackathon. Mesma máquina de tarefas dos clientes, apontada para o
+ *  workspace interno — sem isso a EG não conseguia usar o próprio produto. */
+export function AgencyTasksRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return <Suspense fallback={<ModuleLoading />}><TasksView workspaceId={workspace.workspaceId} /></Suspense>;
+}
+
 export function AgencyAiOperationsRoute() {
   const { workspace } = useAgencyWorkspace();
   return <Suspense fallback={<ModuleLoading />}><AiOperationsView workspaceId={workspace.workspaceId} /></Suspense>;
+}
+
+export function AgencyLocalRadarRoute() {
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <LocalRadarStudio />
+    </Suspense>
+  );
+}
+
+export function AgencyMarketResearchRoute() {
+  const { workspace } = useAgencyWorkspace();
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <MarketResearchStudio workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
+    </Suspense>
+  );
 }

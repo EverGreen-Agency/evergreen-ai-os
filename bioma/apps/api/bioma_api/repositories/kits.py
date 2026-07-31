@@ -7,9 +7,9 @@ from psycopg.types.json import Jsonb
 def create_piece(conn, tenant_organization_id: UUID, payload: dict[str, Any]):
     return conn.execute(
         """
-        insert into kit_pieces (tenant_organization_id, name, supplier, unit_cost_cents, stock_qty, status, metadata)
-        values (%s, %s, %s, %s, %s, %s, %s)
-        returning id, name, supplier, unit_cost_cents, stock_qty, status, metadata, created_at, updated_at
+        insert into kit_pieces (tenant_organization_id, name, supplier, unit_cost_cents, stock_qty, image_url, status, metadata)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        returning id, name, supplier, unit_cost_cents, stock_qty, image_url, status, metadata, created_at, updated_at
         """,
         (
             tenant_organization_id,
@@ -17,6 +17,7 @@ def create_piece(conn, tenant_organization_id: UUID, payload: dict[str, Any]):
             payload.get("supplier"),
             payload.get("unit_cost_cents", 0),
             payload.get("stock_qty", 0),
+            payload.get("image_url"),
             payload.get("status", "active"),
             Jsonb(payload.get("metadata", {})),
         ),
@@ -26,7 +27,7 @@ def create_piece(conn, tenant_organization_id: UUID, payload: dict[str, Any]):
 def list_pieces(conn, tenant_organization_id: UUID):
     return conn.execute(
         """
-        select id, name, supplier, unit_cost_cents, stock_qty, status, metadata, created_at, updated_at
+        select id, name, supplier, unit_cost_cents, stock_qty, image_url, status, metadata, created_at, updated_at
         from kit_pieces
         where tenant_organization_id = %s
         order by status, name
@@ -38,7 +39,7 @@ def list_pieces(conn, tenant_organization_id: UUID):
 def get_piece(conn, tenant_organization_id: UUID, piece_id: UUID):
     return conn.execute(
         """
-        select id, name, supplier, unit_cost_cents, stock_qty, status, metadata, created_at, updated_at
+        select id, name, supplier, unit_cost_cents, stock_qty, image_url, status, metadata, created_at, updated_at
         from kit_pieces
         where id = %s and tenant_organization_id = %s
         """,
@@ -60,7 +61,7 @@ def update_piece(conn, tenant_organization_id: UUID, piece_id: UUID, updates: di
         update kit_pieces
         set {", ".join(columns)}, updated_at = now()
         where id = %s and tenant_organization_id = %s
-        returning id, name, supplier, unit_cost_cents, stock_qty, status, metadata, created_at, updated_at
+        returning id, name, supplier, unit_cost_cents, stock_qty, image_url, status, metadata, created_at, updated_at
         """,
         params,
     ).fetchone()

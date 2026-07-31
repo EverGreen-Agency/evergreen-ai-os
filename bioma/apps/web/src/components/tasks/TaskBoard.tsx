@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Plus, MoreHorizontal } from "lucide-react";
 import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
-import type { TaskSummary, TaskGroupStatus } from "../../lib/api";
+import type { TaskSummary, TaskGroupStatus, TaskListType } from "../../lib/api";
 import { TaskCard } from "./TaskCard";
 import { TaskDrawer } from "./TaskDrawer";
 
 type TaskBoardProps = {
   listId: string;
+  listType?: TaskListType;
+  workspaceId?: string;
+  taskFilter?: (task: TaskSummary) => boolean;
 };
 
 const COLUMNS: { id: TaskGroupStatus; label: string }[] = [
@@ -16,8 +19,9 @@ const COLUMNS: { id: TaskGroupStatus; label: string }[] = [
   { id: "CLOSED", label: "Closed" },
 ];
 
-export function TaskBoard({ listId }: TaskBoardProps) {
-  const { data: tasks, isLoading } = useTasksInList(listId);
+export function TaskBoard({ listId, listType, workspaceId, taskFilter }: TaskBoardProps) {
+  const { data: allTasks, isLoading } = useTasksInList(listId);
+  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -64,6 +68,8 @@ export function TaskBoard({ listId }: TaskBoardProps) {
       {(selectedTaskId || isCreating) && (
         <TaskDrawer 
           listId={listId}
+          listType={listType}
+          workspaceId={workspaceId}
           taskId={selectedTaskId}
           initialStatus={initialStatusForNew}
           onClose={() => {

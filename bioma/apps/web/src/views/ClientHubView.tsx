@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
-import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, Settings } from "lucide-react";
+import { ClipboardCheck, CheckCircle2, AlertCircle, ArrowLeft, CalendarDays, Settings, Trash2, Sparkles} from "lucide-react";
 import { SectionHeader, EmptyState } from "../components/shared";
 import { statusLabel } from "../lib/app-config";
 import { externalClients } from "../lib/client-scope";
 import { AdminDock } from "../components/AdminDock";
+import { BriefingPanel } from "../components/BriefingPanel";
+import { EditorialCalendar } from "../components/EditorialCalendar";
+import { RaioXScorePanel } from "../components/RaioXScorePanel";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useClientPortal, useDecideApproval, useCurrentUser } from "../hooks/useBiomaApi";
+import {
+  useClients,
+  useClientPortal,
+  useCommercialPortal,
+  useCreateApproval,
+  useBuildBriefingDraft,
+  useCreateArtifact,
+  useDecideApproval,
+  useDeleteDeliverable,
+  useUpdateDeliverable,
+  useCurrentUser,
+} from "../hooks/useBiomaApi";
+import { deliverableStatusLabel } from "../lib/app-config";
+import type { DeliverableStatus } from "../lib/api";
 import type { ClientWorkspaceOutletContext } from "./ClientWorkspaceView";
 
 export function ClientHubView() {
@@ -16,10 +32,10 @@ export function ClientHubView() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   
-  const { setSelectedClientId } = useUiStore();
+  const { setSelectedClientId, setSelectedArtifact } = useUiStore();
 
   const { data: user, isLoading: loadingUser } = useCurrentUser();
-  const isEgAdmin = !loadingUser && (user?.organizations.some(org => org.role === "eg_admin") ?? false);
+  const isEgAdmin = !loadingUser && (user?.organizations.some((org: { role: string }) => org.role === "eg_admin") ?? false);
 
   const { data: clientsData } = useClients();
   const clients = externalClients(clientsData ?? []);
@@ -28,8 +44,18 @@ export function ClientHubView() {
   const { data: portalData, isLoading: loadingPortal } = useClientPortal(contextId);
   const portal = portalData ?? null;
   const decideApproval = useDecideApproval();
+  const createArtifact = useCreateArtifact();
+  const createApproval = useCreateApproval();
+  const briefingDraft = useBuildBriefingDraft();
+  const updateDeliverable = useUpdateDeliverable();
+  const deleteDeliverable = useDeleteDeliverable();
+  const { data: commercialData, refetch: refetchCommercial } = useCommercialPortal(contextId);
   
-  const isBusy = decideApproval.isPending;
+  const isBusy =
+    decideApproval.isPending ||
+    createApproval.isPending ||
+    updateDeliverable.isPending ||
+    deleteDeliverable.isPending;
 
   useEffect(() => {
     if (id && useUiStore.getState().selectedClientId !== id) {
@@ -114,6 +140,222 @@ export function ClientHubView() {
               ))}
             </article>
           </div>
+
+          <article className="surface" style={{ marginTop: "24px" }}>
+            <div className="surface-header">
+              <CalendarDays size={18} />
+              <h3>Entregas da semana</h3>
+            </div>
+            <div style={{ padding: "0 20px 16px" }}>
+              <EditorialCalendar deliverables={portal.deliverables} />
+            </div>
+
+            <div style={{ padding: "0 20px 20px" }}>
+              {portal.deliverables.length === 0 && (
+                <EmptyState compact text="Nenhuma entrega cadastrada para este cliente." />
+              )}
+              {portal.deliverables.map((deliverable) => {
+                const awaitingApproval = portal.approvals.some(
+                  (approval) => approval.status === "pending" && approval.deliverable_id === deliverable.id,
+                );
+                return (
+                  <div className="work-row" key={deliverable.id}>
+                    <div>
+                      <strong>{deliverable.title}</strong>
+                      <small>
+                        {deliverableStatusLabel[deliverable.status]}
+                        {deliverable.due_at
+                          ? ` · vence ${new Date(deliverable.due_at).toLocaleDateString("pt-BR")}`
+                          : " · sem prazo"}
+                      </small>
+                    </div>
+                    {isEgAdmin && (
+                      <div className="row-actions">
+                        <select
+                          value={deliverable.status}
+                          disabled={isBusy}
+                          onChange={(event) =>
+                            updateDeliverable.mutate({
+                              clientId: contextId,
+                              deliverableId: deliverable.id,
+                              payload: { status: event.target.value as DeliverableStatus },
+                            })
+                          }
+                        >
+                          {(Object.keys(deliverableStatusLabel) as DeliverableStatus[]).map((status) => (
+                            <option key={status} value={status}>
+                              {deliverableStatusLabel[status]}
+                            </option>
+                          ))}
+                        </select>
+                        {/* Uma entrega so pode ter uma aprovacao pendente por vez;
+                            sem esse guard o cliente recebia pedidos duplicados. */}
+                        <button
+                          className="mini-button"
+                          type="button"
+                          disabled={isBusy || awaitingApproval}
+                          title={awaitingApproval ? "Ja existe aprovacao pendente" : "Pedir aprovacao ao cliente"}
+                          onClick={() =>
+                            createApproval.mutate({ clientId: contextId, deliverableId: deliverable.id })
+                          }
+                        >
+                          {awaitingApproval ? "Aguardando cliente" : "Pedir aprovação"}
+                        </button>
+                        <button
+                          className="mini-button reject"
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => {
+                            if (!window.confirm(`Excluir a entrega "${deliverable.title}"?`)) return;
+                            deleteDeliverable.mutate({ clientId: contextId, deliverableId: deliverable.id });
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+
+          <div style={{ marginTop: "24px" }}>
+            <RaioXScorePanel
+              workspaceId={contextId}
+              data={commercialData ?? null}
+              onUpdate={refetchCommercial}
+              canEdit={isEgAdmin}
+            />
+          </div>
+
+          <article className="surface" style={{ marginTop: "24px" }}>
+            <BriefingPanel
+              briefing={portal.artifacts.find((artifact) => artifact.kind === "briefing") ?? null}
+              onEdit={setSelectedArtifact}
+            />
+            {isEgAdmin && !portal.artifacts.some((artifact) => artifact.kind === "briefing") && (
+              <div style={{ marginTop: "12px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={createArtifact.isPending}
+                  onClick={() =>
+                    createArtifact.mutate({
+                      clientId: contextId,
+                      payload: { title: "Briefing estratégico", kind: "briefing", visibility: "internal", content: "" },
+                    })
+                  }
+                >
+                  {createArtifact.isPending ? "Criando..." : "Criar briefing em branco"}
+                </button>
+                {/* Em vez de formulário em branco: monta o rascunho com os sinais
+                    que já existem (perfil, mídia paga, orgânico, busca, contratos,
+                    pesquisa do setor) e mostra na cara o que NÃO foi observado. */}
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={briefingDraft.isPending}
+                  onClick={() => briefingDraft.mutate({ workspaceId: contextId, persist: false })}
+                >
+                  <Sparkles size={15} />
+                  {briefingDraft.isPending ? "Montando rascunho..." : "Gerar rascunho com os dados do cliente"}
+                </button>
+              </div>
+            )}
+
+            {briefingDraft.isError && (
+              <div className="notice error" style={{ marginTop: "12px" }}>
+                {briefingDraft.error instanceof Error ? briefingDraft.error.message : "Falha ao gerar o rascunho."}
+              </div>
+            )}
+
+            {briefingDraft.data && (
+              <div style={{ marginTop: "16px", border: "1px solid var(--border)", borderRadius: "10px", padding: "14px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" }}>
+                  <strong>Rascunho de briefing</strong>
+                  <span className="demo-badge">
+                    {briefingDraft.data.generation_mode === "live" ? "IA" : "prévia local (sem OPENAI_API_KEY)"}
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    {briefingDraft.data.sources_used.length} fonte(s) com dado real
+                  </span>
+                </div>
+
+                <p style={{ fontSize: 13 }}>{briefingDraft.data.draft.summary}</p>
+
+                {briefingDraft.data.draft.diagnosis.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Diagnóstico (com evidência)
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.diagnosis.map((item, index) => (
+                        <li key={index}>
+                          <strong>{item.observation}</strong>{" "}
+                          <span style={{ color: "var(--text-muted)" }}>— {item.evidence}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {briefingDraft.data.draft.recommended_focus.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Foco recomendado
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.recommended_focus.map((item, index) => (
+                        <li key={index}>
+                          <strong>{item.focus}</strong> ({item.service}) —{" "}
+                          <span style={{ color: "var(--text-muted)" }}>{item.rationale}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {briefingDraft.data.draft.questions_for_client.length > 0 && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-dim)", marginTop: 12 }}>
+                      Perguntas para a próxima call
+                    </h4>
+                    <ul style={{ fontSize: 13, paddingLeft: 18 }}>
+                      {briefingDraft.data.draft.questions_for_client.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {(briefingDraft.data.missing_sources.length > 0 || briefingDraft.data.draft.missing_data.length > 0) && (
+                  <>
+                    <h4 style={{ fontSize: 12, textTransform: "uppercase", color: "#ffab00", marginTop: 12 }}>
+                      Não foi observado
+                    </h4>
+                    <ul style={{ fontSize: 12, paddingLeft: 18, color: "var(--text-muted)" }}>
+                      {[...briefingDraft.data.missing_sources, ...briefingDraft.data.draft.missing_data].map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {!briefingDraft.data.artifact_id && (
+                  <button
+                    className="primary-button"
+                    type="button"
+                    style={{ marginTop: "12px" }}
+                    disabled={briefingDraft.isPending}
+                    onClick={() => briefingDraft.mutate({ workspaceId: contextId, persist: true })}
+                  >
+                    Salvar como briefing interno
+                  </button>
+                )}
+              </div>
+            )}
+          </article>
         </div>
       )}
 

@@ -1,29 +1,41 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl, field_validator
+
+from bioma_api.proposal_catalog import (
+    DELIVERY_MODALITY_KEYS,
+    PROPOSAL_TYPE_KEYS,
+    SERVICE_KEYS,
+    URGENCY_KEYS,
+)
+
+OpportunityStatus = Literal["new", "qualified", "proposal_generated", "rejected", "archived"]
+ProposalStatus = Literal["draft", "approved", "sent", "negotiating", "won", "lost"]
+PlatformStatus = Literal["active", "paused", "not_configured"]
+GenerationMode = Literal["live", "preview", "manual"]
 
 class OpportunityBase(BaseModel):
-    source_platform: str
+    source_platform: str = Field(min_length=2, max_length=50)
     external_id: str | None = None
-    title: str
+    title: str = Field(min_length=2, max_length=255)
     url: str | None = None
-    description: str | None = None
-    budget_text: str | None = None
-    fit_score: int = 0
+    description: str | None = Field(default=None, max_length=10_000)
+    budget_text: str | None = Field(default=None, max_length=100)
+    fit_score: int = Field(default=0, ge=0, le=100)
     fit_analysis: str | None = None
-    status: str = "new"
+    status: OpportunityStatus = "new"
     raw_payload: dict[str, Any] = Field(default_factory=dict)
 
 class OpportunityCreatePayload(OpportunityBase):
     pass
 
 class OpportunityIngestPayload(BaseModel):
-    source_platform: str
-    title: str
+    source_platform: str = Field(min_length=2, max_length=50)
+    title: str = Field(min_length=2, max_length=255)
     url: str | None = None
-    description: str | None = None
-    budget_text: str | None = None
+    description: str | None = Field(default=None, max_length=10_000)
+    budget_text: str | None = Field(default=None, max_length=100)
     raw_payload: dict[str, Any] = Field(default_factory=dict)
 
 class OpportunitySummary(OpportunityBase):
@@ -33,6 +45,10 @@ class OpportunitySummary(OpportunityBase):
 
 class ProposalBase(BaseModel):
     opportunity_id: UUID | None = None
+    workspace_id: UUID | None = None
+    series_id: UUID | None = None
+    version: int = Field(default=1, ge=1)
+    title: str | None = Field(default=None, min_length=2, max_length=255)
     client_name: str
     target_niche: str | None = None
     executive_summary: str
@@ -40,14 +56,31 @@ class ProposalBase(BaseModel):
     scope_conversion: str | None = None
     scope_demand: str | None = None
     scope_items: list[dict[str, Any]] = Field(default_factory=list)
-    pricing_cents: int = 0
-    delivery_days: int = 15
-    status: str = "draft"
+    attached_cases: list[dict[str, Any]] = Field(default_factory=list)
+    win_loss_feedback: str | None = Field(default=None, max_length=5_000)
+    pricing_cents: int = Field(default=0, ge=0)
+    delivery_days: int = Field(default=0, ge=0, le=730)
+    status: ProposalStatus = "draft"
+    generation_mode: GenerationMode = "manual"
+    proposal_type: str | None = None
+    contractor_name: str | None = None
+    team_members: list[str] = Field(default_factory=list)
+    delivery_modality: str | None = None
+    selected_services: list[str] = Field(default_factory=list)
+    special_requirements: str | None = None
+    estimated_budget: str | None = None
+    payment_terms: str | None = None
+    urgency: str | None = None
+    decision_maker: str | None = None
+    problem_summary: str | None = None
+    additional_context: str | None = None
+    intake_snapshot: dict[str, Any] = Field(default_factory=dict)
 
 class ProposalCreatePayload(ProposalBase):
     pass
 
 class ProposalUpdatePayload(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=255)
     client_name: str | None = None
     target_niche: str | None = None
     executive_summary: str | None = None
@@ -55,13 +88,71 @@ class ProposalUpdatePayload(BaseModel):
     scope_conversion: str | None = None
     scope_demand: str | None = None
     scope_items: list[dict[str, Any]] | None = None
-    pricing_cents: int | None = None
-    delivery_days: int | None = None
-    status: str | None = None
+    win_loss_feedback: str | None = Field(default=None, max_length=5_000)
+    pricing_cents: int | None = Field(default=None, ge=0)
+    delivery_days: int | None = Field(default=None, ge=0, le=730)
+    status: ProposalStatus | None = None
+    contractor_name: str | None = Field(default=None, max_length=255)
+    team_members: list[str] | None = None
+    special_requirements: str | None = Field(default=None, max_length=2_000)
+    estimated_budget: str | None = Field(default=None, max_length=255)
+    payment_terms: str | None = Field(default=None, max_length=1_000)
+    urgency: str | None = None
+    decision_maker: str | None = Field(default=None, max_length=500)
+    problem_summary: str | None = Field(default=None, max_length=4_000)
+    additional_context: str | None = Field(default=None, max_length=4_000)
+
+
+class ProposalBriefCreatePayload(BaseModel):
+    workspace_id: UUID
+    title: str = Field(min_length=2, max_length=255)
+    proposal_type: str
+    contractor_name: str = Field(min_length=2, max_length=255)
+    team_members: list[str] = Field(default_factory=list, max_length=30)
+    delivery_modality: str
+    selected_services: list[str] = Field(min_length=1, max_length=30)
+    special_requirements: str | None = Field(default=None, max_length=2_000)
+    estimated_budget: str = Field(min_length=1, max_length=255)
+    payment_terms: str = Field(min_length=2, max_length=1_000)
+    urgency: str
+    decision_maker: str = Field(min_length=2, max_length=500)
+    problem_summary: str = Field(min_length=10, max_length=4_000)
+    additional_context: str | None = Field(default=None, max_length=4_000)
+
+    @field_validator("proposal_type")
+    @classmethod
+    def validate_proposal_type(cls, value: str) -> str:
+        if value not in PROPOSAL_TYPE_KEYS:
+            raise ValueError("Tipo de proposta inválido.")
+        return value
+
+    @field_validator("delivery_modality")
+    @classmethod
+    def validate_delivery_modality(cls, value: str) -> str:
+        if value not in DELIVERY_MODALITY_KEYS:
+            raise ValueError("Modalidade de entrega inválida.")
+        return value
+
+    @field_validator("urgency")
+    @classmethod
+    def validate_urgency(cls, value: str) -> str:
+        if value not in URGENCY_KEYS:
+            raise ValueError("Urgência inválida.")
+        return value
+
+    @field_validator("selected_services")
+    @classmethod
+    def validate_services(cls, value: list[str]) -> list[str]:
+        normalized = list(dict.fromkeys(value))
+        invalid = sorted(set(normalized) - SERVICE_KEYS)
+        if invalid:
+            raise ValueError(f"Serviços inválidos: {', '.join(invalid)}")
+        return normalized
 
 class ProposalSummary(ProposalBase):
     id: UUID
     public_token: str
+    public_expires_at: datetime
     created_by_user_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
@@ -77,3 +168,28 @@ class PublicProposalResponse(BaseModel):
     pricing_cents: int
     delivery_days: int
     created_at: datetime
+
+
+class OpportunityPlatformUpdate(BaseModel):
+    platform_name: str = Field(min_length=2, max_length=100)
+    status: PlatformStatus = "active"
+    rss_url: HttpUrl | None = None
+    monthly_cost_cents: int = Field(default=0, ge=0)
+    notes: str | None = Field(default=None, max_length=2_000)
+
+
+class OpportunityPlatformSummary(BaseModel):
+    id: UUID
+    platform_key: str
+    platform_name: str
+    status: PlatformStatus
+    rss_url: str | None = None
+    monthly_cost_cents: int
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class FreelancerProfileSyncRequest(BaseModel):
+    profile_url: HttpUrl
+    platform_key: str | None = Field(default=None, min_length=2, max_length=50)

@@ -32,7 +32,7 @@ class WorkspaceSummary(BaseModel):
     client_id: UUID | None = None
     legacy_client_id: UUID | None = None
     operational_client_id: UUID | None = None
-    client_status: Literal["onboarding", "active", "paused", "archived"] | None = None
+    client_status: Literal["onboarding", "active", "paused", "completed", "archived"] | None = None
     responsible_name: str | None = None
     enabled_modules: list[str] = Field(default_factory=list)
     access_role: WorkspaceAccessRole

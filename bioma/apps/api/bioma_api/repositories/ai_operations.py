@@ -284,35 +284,97 @@ def create_run(
     ).fetchone()
     if not existing_steps:
         for position, step in enumerate(definition["steps"]):
-            step_status = "waiting_approval" if position == 0 and step.get("interactive", False) else "pending"
             conn.execute(
                 """
                 insert into ai_workflow_step_runs (
-                  run_id, step_key, position, name, interactive, status
+                  run_id, step_key, position, name, description, interactive,
+                  task_kind, capability, status
                 )
-                values (%s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s, %s, 'pending')
                 """,
                 (
                     row["id"],
                     step["key"],
                     position,
                     step["name"],
+                    step.get("description"),
                     step.get("interactive", False),
-                    step_status,
+                    step.get("task_kind", "content_draft"),
+                    step.get("capability", "content"),
                 ),
             )
     return row
 
 
 def approve_run(conn, organization_id: UUID, run_id: UUID, user_id: UUID):
+    run = conn.execute(
+        """
+        select id, current_step_key
+        from ai_workflow_runs
+        where id = %s and organization_id = %s and status = 'pending_approval'
+        for update
+        """,
+        (run_id, organization_id),
+    ).fetchone()
+    if not run:
+        return None
+    current_step = conn.execute(
+        """
+        select id, position, status
+        from ai_workflow_step_runs
+        where run_id = %s and step_key = %s
+        for update
+        """,
+        (run_id, run["current_step_key"]),
+    ).fetchone()
+    if current_step and current_step["status"] == "waiting_approval":
+        conn.execute(
+            """
+            update ai_workflow_step_runs
+            set status = 'completed', finished_at = coalesce(finished_at, now()), updated_at = now()
+            where id = %s
+            """,
+            (current_step["id"],),
+        )
+        next_step = conn.execute(
+            """
+            select step_key
+            from ai_workflow_step_runs
+            where run_id = %s and position > %s and status = 'pending'
+            order by position
+            limit 1
+            """,
+            (run_id, current_step["position"]),
+        ).fetchone()
+        if not next_step:
+            return conn.execute(
+                """
+                update ai_workflow_runs
+                set status = 'completed', current_step_key = null, approved_by = %s,
+                  approved_at = now(), finished_at = now(), updated_at = now()
+                where id = %s
+                returning id
+                """,
+                (user_id, run_id),
+            ).fetchone()
+        return conn.execute(
+            """
+            update ai_workflow_runs
+            set status = 'ready', current_step_key = %s, approved_by = %s,
+              approved_at = now(), updated_at = now()
+            where id = %s
+            returning id
+            """,
+            (next_step["step_key"], user_id, run_id),
+        ).fetchone()
     return conn.execute(
         """
         update ai_workflow_runs
         set status = 'ready', approved_by = %s, approved_at = now(), updated_at = now()
-        where id = %s and organization_id = %s and status = 'pending_approval'
+        where id = %s
         returning id
         """,
-        (user_id, run_id, organization_id),
+        (user_id, run_id),
     ).fetchone()
 
 
@@ -339,8 +401,9 @@ def list_run_steps(conn, run_ids: list[UUID]):
         return []
     return conn.execute(
         """
-        select id, run_id, step_key, position, name, interactive, status,
-          provider, model, output, cost_cents, started_at, finished_at
+        select id, run_id, step_key, position, name, description, interactive, status,
+          task_kind, capability, provider, model, account_id, model_catalog_id,
+          selection_reason, attempts, output, cost_cents, started_at, finished_at
         from ai_workflow_step_runs
         where run_id = any(%s)
         order by run_id, position
@@ -408,25 +471,15 @@ def complete_step(
     ).fetchone()
     added_cost = payload.get("cost_cents") or 0
     if next_step:
-        next_status = "pending_approval" if next_step["interactive"] else "running"
-        if next_step["interactive"]:
-            conn.execute(
-                """
-                update ai_workflow_step_runs
-                set status = 'waiting_approval', updated_at = now()
-                where run_id = %s and step_key = %s
-                """,
-                (run_id, next_step["step_key"]),
-            )
         conn.execute(
             """
             update ai_workflow_runs
-            set status = %s, current_step_key = %s,
+            set status = 'ready', current_step_key = %s,
               started_at = coalesce(started_at, now()),
               actual_cost_cents = actual_cost_cents + %s, updated_at = now()
             where id = %s
             """,
-            (next_status, next_step["step_key"], added_cost, run_id),
+            (next_step["step_key"], added_cost, run_id),
         )
     else:
         conn.execute(

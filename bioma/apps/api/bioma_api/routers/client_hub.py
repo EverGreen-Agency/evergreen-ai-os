@@ -14,6 +14,9 @@ from bioma_api.schemas.client_hub import (
     ClientPurgeRequest,
     ClientSummary,
     ClientUpdateRequest,
+    CockpitPortfolioSummary,
+    MonthlyTargetRequest,
+    PortfolioPerformanceRow,
     DeliverableCreateRequest,
     DeliverableUpdateRequest,
     FinancialRecordCreateRequest,
@@ -32,11 +35,40 @@ from bioma_api.services import client_hub as client_hub_service
 
 router = APIRouter(prefix="/clients", tags=["client-hub"])
 workspace_router = APIRouter(prefix="/workspaces", tags=["workspace-client-hub"])
+backoffice_router = APIRouter(tags=["client-hub-backoffice"])
 
 
 @router.get("/deliverables/me", response_model=list[GlobalDeliverableSummary])
 def list_my_deliverables(user: CurrentUserResponse = Depends(current_user_from_request)):
     return client_hub_service.list_my_deliverables(user)
+
+
+@backoffice_router.get("/backoffice/cockpit-summary", response_model=CockpitPortfolioSummary)
+def get_cockpit_summary(user: CurrentUserResponse = Depends(current_user_from_request)):
+    return client_hub_service.get_cockpit_summary(user)
+
+
+@backoffice_router.get("/backoffice/portfolio-performance", response_model=list[PortfolioPerformanceRow])
+def get_portfolio_performance(
+    days: int = 30,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Rollup executivo: midia paga de todos os clientes lado a lado."""
+    return client_hub_service.get_portfolio_performance(user, days)
+
+
+@backoffice_router.put(
+    "/backoffice/clients/{client_id}/monthly-target",
+    response_model=list[PortfolioPerformanceRow],
+)
+def set_monthly_target(
+    client_id: UUID,
+    payload: MonthlyTargetRequest,
+    days: int = 30,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Meta de leads e verba do mês — fecha o ciclo meta x realizado no rollup."""
+    return client_hub_service.set_monthly_target(client_id, payload, user, days)
 
 
 @router.get("", response_model=list[ClientSummary])

@@ -1,9 +1,18 @@
 import { FormEvent, Suspense, lazy, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X } from "lucide-react";
+import { Camera, KeyRound, Link2, User, Building2, Unlink, Phone, Briefcase, Mail, X, Laptop, ShieldCheck, Trash2, Copy, Terminal } from "lucide-react";
 import { api, apiUrl } from "../lib/api";
-import { useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
+import {
+  useCurrentUser,
+  useWorkspaces,
+  useSessions,
+  useRevokeSession,
+  useRevokeOtherSessions,
+  usePersonalAccessTokens,
+  useCreatePersonalAccessToken,
+  useRevokePersonalAccessToken,
+} from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
@@ -126,7 +135,7 @@ export function SettingsView() {
   if (!user) return null;
 
   const initials = user.display_name.substring(0, 2).toUpperCase();
-  const isEgAdmin = user.organizations.some(org => org.role === "eg_admin");
+  const isEgAdmin = user.organizations.some((org: { role: string }) => org.role === "eg_admin");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -212,7 +221,7 @@ export function SettingsView() {
                 EG Admin
               </span>
             )}
-            {!isEgAdmin && user.organizations.map(org => (
+            {!isEgAdmin && user.organizations.map((org: { id: string; role: string }) => (
               <span key={org.id} className="level-badge" style={{ fontSize: '0.7rem' }}>
                 {org.role}
               </span>
@@ -444,6 +453,12 @@ export function SettingsView() {
               </div>
             </form>
           </article>
+
+          {/* Dispositivos & Sessões Ativas */}
+          <SessionsManagerCard />
+
+          {/* Tokens de Acesso Pessoal (apps externos, ex: Fóton) */}
+          <PersonalAccessTokensCard />
         </div>
       )}
 
@@ -542,5 +557,234 @@ export function SettingsView() {
         </div>
       )}
     </section>
+  );
+}
+
+function SessionsManagerCard() {
+  const { data: sessions = [], isLoading } = useSessions();
+  const revokeSession = useRevokeSession();
+  const revokeOther = useRevokeOtherSessions();
+
+  return (
+    <article className="surface profile-section" style={{ marginTop: "24px" }}>
+      <div className="surface-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Laptop size={18} />
+          <h3 style={{ margin: 0 }}>Dispositivos & Sessões Ativas</h3>
+        </div>
+        {sessions.filter((s) => !s.is_current).length > 0 && (
+          <button
+            className="ghost-button danger"
+            type="button"
+            style={{ fontSize: "0.8rem" }}
+            onClick={() => revokeOther.mutate()}
+            disabled={revokeOther.isPending}
+          >
+            <Trash2 size={14} /> Desconectar outros dispositivos
+          </button>
+        )}
+      </div>
+
+      <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", margin: "0 0 16px" }}>
+        Estes são os navegadores e dispositivos atualmente autorizados na sua conta.
+      </p>
+
+      {isLoading && <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Carregando sessões...</p>}
+
+      {!isLoading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {sessions.map((session) => {
+            const createdDate = session.created_at ? new Date(session.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Desconhecido";
+            const expiresDate = session.expires_at ? new Date(session.expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "30 dias";
+            return (
+              <div
+                key={session.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 16px",
+                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--surface-sunken)",
+                  border: `1px solid ${session.is_current ? "rgba(58, 201, 123, 0.3)" : "var(--border)"}`,
+                  borderRadius: "8px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <Laptop size={20} color={session.is_current ? "var(--brand-accent)" : "var(--text-dim)"} />
+                  <div>
+                    <strong style={{ fontSize: "0.9rem", color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
+                      Navegador / Dispositivo Web
+                      {session.is_current && (
+                        <span style={{ fontSize: "0.72rem", background: "rgba(58, 201, 123, 0.2)", color: "var(--mint)", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                          ESTE DISPOSITIVO (SESSÃO ATUAL)
+                        </span>
+                      )}
+                    </strong>
+                    <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
+                      Conectado em: {createdDate} • Válido até: {expiresDate}
+                    </span>
+                  </div>
+                </div>
+
+                {!session.is_current && (
+                  <button
+                    className="ghost-button danger"
+                    type="button"
+                    style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                    onClick={() => revokeSession.mutate(session.id)}
+                    disabled={revokeSession.isPending}
+                  >
+                    Encerrar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function PersonalAccessTokensCard() {
+  const { data: tokens = [], isLoading } = usePersonalAccessTokens();
+  const createToken = useCreatePersonalAccessToken();
+  const revokeToken = useRevokePersonalAccessToken();
+
+  const [name, setName] = useState("");
+  const [expiresInDays, setExpiresInDays] = useState<string>("");
+  const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function handleCreate(event: FormEvent) {
+    event.preventDefault();
+    if (!name.trim()) return;
+    createToken.mutate(
+      { name: name.trim(), expiresInDays: expiresInDays ? Number(expiresInDays) : null },
+      {
+        onSuccess: (result) => {
+          setJustCreated(result.token);
+          setCopied(false);
+          setName("");
+          setExpiresInDays("");
+        },
+      },
+    );
+  }
+
+  function handleCopy() {
+    if (!justCreated) return;
+    navigator.clipboard.writeText(justCreated);
+    setCopied(true);
+  }
+
+  return (
+    <article className="surface profile-section" style={{ marginTop: "24px" }}>
+      <div className="surface-header" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Terminal size={18} />
+        <h3 style={{ margin: 0 }}>Tokens de Acesso Pessoal</h3>
+      </div>
+      <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", margin: "0 0 16px" }}>
+        Para apps externos (ex: Fóton) chamarem a API do Bioma como você, sem depender do cookie de sessão do
+        navegador. O token herda exatamente os seus próprios direitos de acesso.
+      </p>
+
+      {justCreated && (
+        <div
+          style={{
+            background: "rgba(58, 201, 123, 0.08)",
+            border: "1px solid rgba(58, 201, 123, 0.3)",
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 16,
+          }}
+        >
+          <strong style={{ fontSize: "0.85rem", display: "block", marginBottom: 6 }}>
+            Copie agora — ele não será mostrado de novo:
+          </strong>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <code style={{ flex: 1, fontSize: "0.8rem", wordBreak: "break-all", background: "var(--surface-sunken)", padding: "6px 10px", borderRadius: 6 }}>
+              {justCreated}
+            </code>
+            <button className="mini-button" type="button" onClick={handleCopy}>
+              <Copy size={13} /> {copied ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleCreate} style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 16 }}>
+        <label style={{ fontSize: "0.8rem", flex: 1, minWidth: 180 }}>
+          Nome (ex: Fóton)
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Fóton"
+            style={{ display: "block", width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--border)", marginTop: 4, boxSizing: "border-box" }}
+            required
+          />
+        </label>
+        <label style={{ fontSize: "0.8rem" }}>
+          Expira em (dias, opcional)
+          <input
+            type="number"
+            min={1}
+            value={expiresInDays}
+            onChange={(e) => setExpiresInDays(e.target.value)}
+            placeholder="Nunca expira"
+            style={{ display: "block", width: 160, padding: "8px 10px", borderRadius: 6, border: "1px solid var(--border)", marginTop: 4, boxSizing: "border-box" }}
+          />
+        </label>
+        <button className="primary-button" type="submit" disabled={createToken.isPending}>
+          {createToken.isPending ? "Gerando..." : "Gerar token"}
+        </button>
+      </form>
+
+      {isLoading && <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Carregando tokens...</p>}
+
+      {!isLoading && tokens.length === 0 && (
+        <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Nenhum token de acesso pessoal criado ainda.</p>
+      )}
+
+      {!isLoading && tokens.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {tokens.map((token) => (
+            <div
+              key={token.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                background: "var(--surface-sunken)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+              }}
+            >
+              <div>
+                <strong style={{ fontSize: "0.9rem", color: "var(--text)" }}>{token.name}</strong>
+                <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
+                  {token.token_prefix}... · criado em {new Date(token.created_at).toLocaleDateString("pt-BR")} ·{" "}
+                  {token.last_used_at
+                    ? `último uso em ${new Date(token.last_used_at).toLocaleDateString("pt-BR")}`
+                    : "nunca usado"}{" "}
+                  · {token.expires_at ? `expira em ${new Date(token.expires_at).toLocaleDateString("pt-BR")}` : "sem expiração"}
+                </span>
+              </div>
+              <button
+                className="ghost-button danger"
+                type="button"
+                style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                onClick={() => revokeToken.mutate(token.id)}
+                disabled={revokeToken.isPending}
+              >
+                Revogar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </article>
   );
 }

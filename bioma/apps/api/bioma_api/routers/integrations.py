@@ -16,6 +16,8 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.github import (
     GitHubConnectionInput,
     GitHubConnectionSummary,
+    GitHubActivitySyncRequest,
+    GitHubActivitySyncResult,
     GitHubIssueCreateRequest,
     GitHubIssueLinkSummary,
     GitHubProjectActivity,
@@ -106,6 +108,18 @@ def get_github_activity(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> GitHubProjectActivity:
     return github_service.get_activity(project_id, user, limit)
+
+
+@router.post(
+    "/github/projects/{project_id}/publish-update",
+    response_model=GitHubActivitySyncResult,
+)
+def publish_github_activity_update(
+    project_id: UUID,
+    payload: GitHubActivitySyncRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> GitHubActivitySyncResult:
+    return github_service.publish_activity_update(project_id, payload, user)
 
 
 @router.post("/github/deliverables/{deliverable_id}/issue", response_model=GitHubIssueLinkSummary)

@@ -134,7 +134,7 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         elif name == "bioma_run_squad":
             pilar = arguments["pilar"]
             squad_name = arguments["squad_name"]
-            res = execute_squad_pipeline(pilar, squad_name, {}, get_worker_settings())
+            res = execute_squad_pipeline_safe(pilar=pilar, squad_name=squad_name, input_data={})
             log = squads_repo.create_execution(
                 conn,
                 ws_id,
@@ -160,7 +160,7 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             cfg_dict = dict(cfg) if cfg else {"provider_type": p_type}
             if cfg_dict.get("api_token"):
                 cfg_dict["api_token"] = decrypt_secret(cfg_dict["api_token"])
-            provider = get_whatsapp_provider(p_type, cfg_dict)
+            provider = get_whatsapp_provider_safe(p_type, cfg_dict)
             sent = provider.send_text_message(to_num, msg)
             log = wa_repo.log_message(
                 conn,

@@ -91,6 +91,11 @@ def main() -> None:
     assert_status(guest.get("/health/ready"), 200, "readiness")
     assert_status(guest.get("/auth/me"), 401, "missing session")
     assert_status(guest.get("/workspaces"), 401, "workspace discovery requires session")
+    # O rate limit persiste em `login_attempts`, então rodar o smoke duas vezes
+    # dentro da janela fazia a primeira tentativa ja vir 429. Limpar antes torna
+    # o teste idempotente sem enfraquecer o que ele valida.
+    with connect() as conn:
+        conn.execute("delete from login_attempts")
     for _ in range(5):
         assert_status(
             guest.post("/auth/login", json={"email": "rate-limit@example.com", "password": "wrong"}),
@@ -231,9 +236,10 @@ def main() -> None:
                     (client_user_id, internal_workspace["organization_id"]),
                 )
 
-    blocked_sync = client_user.post(f"/clients/{hm_client_id}/sync/clickup")
-    assert_status(blocked_sync, 403, "client cannot sync clickup")
-
+    # O adapter ClickUp foi retirado (migração 0034). As asserções de
+    # /sync/clickup ficaram cobrando um endpoint inexistente e mascaravam a
+    # suíte com falha permanente; o bloqueio de escrita do client_user segue
+    # coberto pelos casos de deliverable/artefato abaixo.
     approval_deliverable = admin.post(
         f"/clients/{hm_client_id}/deliverables",
         json={"title": "Entrega para aprovação smoke", "status": "in_progress"},
@@ -278,7 +284,6 @@ def main() -> None:
             "organization_slug": "internal",
             "status": "onboarding",
             "responsible_name": "Eduardo EG",
-            "clickup_folder_id": f"smoke-folder-{suffix}",
         },
     )
     assert_status(created, 201, "create client")
@@ -452,9 +457,6 @@ def main() -> None:
     metric_id = metric.json()[0]["id"]
     metric_update = admin.patch(f"/clients/{created_client_id}/metrics/{metric_id}", json={"value": 2345})
     assert_status(metric_update, 200, "update performance metric")
-
-    sync = admin.post(f"/clients/{created_client_id}/sync/clickup")
-    assert_status(sync, 200, "admin sync clickup dry-run")
 
     with connect() as conn:
         conn.execute("delete from deliverables where id = %s", (own_assigned_id,))

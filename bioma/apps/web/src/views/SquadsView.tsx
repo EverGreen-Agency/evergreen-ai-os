@@ -92,7 +92,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
           setActiveExecution(res);
           setFeedback({
             type: "success",
-            text: `Squad '${res.squad_name}' executado com sucesso! Custo est.: ${formatCents(res.estimated_cost_cents)}.`,
+            text: `Squad '${res.squad_name}' executado em modo ${res.generation_mode}. Custo est.: ${formatCents(res.estimated_cost_cents)}.`,
           });
         },
         onError: (err) => {
@@ -204,7 +204,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
       {activeExecution && (
         <article className="surface" style={{ background: "linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.05) 100%)" }}>
           <SectionHeader
-            eyebrow={`Execução em Tempo Real: ${activeExecution.pilar.toUpperCase()}`}
+            eyebrow={`Execução ${activeExecution.generation_mode.toUpperCase()}: ${activeExecution.pilar.toUpperCase()}`}
             title={activeExecution.squad_name}
             icon={Rocket}
           />

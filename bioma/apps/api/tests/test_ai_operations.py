@@ -21,17 +21,20 @@ def test_catalogo_tem_fluxos_prioritarios_e_etapas_unicas(eg_admin):
         "client-onboarding",
         "linkedin-content",
         "tech-delivery",
+        "brand-book",
+        "video-script",
     }
     for template in templates:
         keys = [step.key for step in template.steps]
         assert len(keys) == len(set(keys))
         assert any(step.interactive for step in template.steps)
+        assert all(step.task_kind and step.capability for step in template.steps)
 
 
 def test_template_onboarding_nao_depende_de_clickup():
     onboarding = WORKFLOW_TEMPLATES["client-onboarding"]
 
-    assert onboarding["version"] == 2
+    assert onboarding["version"] == 3
     assert "Bioma" in onboarding["description"]
     assert all("clickup" not in step["key"].lower() for step in onboarding["steps"])
 

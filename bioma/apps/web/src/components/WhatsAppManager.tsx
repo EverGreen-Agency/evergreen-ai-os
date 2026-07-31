@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { CheckCircle2, MessageSquare, Send, Server, ShieldCheck, Zap } from "lucide-react";
+import { MessageSquare, Send, Server, ShieldCheck, Zap } from "lucide-react";
 import { SectionHeader } from "./shared";
+import { StatusPill, type StatusPillVariant } from "./StatusPill";
+import { WhatsAppBrandIcon } from "./icons/BrandIcons";
 import {
   useSaveWhatsAppProvider,
   useSendWhatsAppMessage,
@@ -8,6 +10,14 @@ import {
   useWhatsAppProviders,
 } from "../hooks/useBiomaApi";
 import type { WhatsAppProviderType } from "../lib/api";
+
+const LOG_STATUS_VARIANT: Record<string, StatusPillVariant> = {
+  sent: "connected",
+  delivered: "connected",
+  read: "connected",
+  failed: "error",
+  queued: "paused",
+};
 
 const providerOptions: Array<{
   type: WhatsAppProviderType;
@@ -102,7 +112,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
         onSuccess: (res) => {
           setFeedback({
             type: "success",
-            text: `Mensagem disparada com sucesso via ${res.provider_type.toUpperCase()}! Log ID: ${res.id}`,
+            text: `Mensagem disparada com sucesso via ${(res.provider_type || selectedProvider).toUpperCase()}! Log ID: ${res.id}`,
           });
         },
         onError: (err) => {
@@ -138,7 +148,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
         <SectionHeader
           eyebrow="Multi-provedor WhatsApp"
           title="Arquitetura Pluggable (Evolution, Meta Cloud, Z-API)"
-          icon={MessageSquare}
+          icon={WhatsAppBrandIcon}
         />
 
         {feedback && (
@@ -189,17 +199,17 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
                     <strong style={{ fontSize: "14px", color: isSelected ? "var(--brand-accent, #3B82F6)" : "var(--text-normal, #F8FAFC)", fontWeight: 600 }}>
                       {opt.name}
                     </strong>
-                    <span className={`status-pill ${isSelected ? "open" : "draft"}`}>{opt.badge}</span>
+                    <StatusPill variant="paused">{opt.badge}</StatusPill>
                   </div>
                   <p style={{ fontSize: "12px", color: "var(--text-muted, #94A3B8)", marginTop: "8px", lineHeight: "1.4" }}>
                     {opt.description}
                   </p>
                 </div>
-                {isConnected && (
-                  <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "var(--brand-accent, #3B82F6)", fontWeight: 600 }}>
-                    <CheckCircle2 size={13} /> Conectado no Workspace
-                  </div>
-                )}
+                <div style={{ marginTop: "12px" }}>
+                  <StatusPill variant={isConnected ? "connected" : "not_configured"}>
+                    {isConnected ? "Conectado no Workspace" : "Não conectado"}
+                  </StatusPill>
+                </div>
               </button>
             );
           })}
@@ -308,7 +318,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
                 <strong style={{ color: "var(--text-normal, #F8FAFC)" }}>{log.to_number}</strong>
                 <span>{log.provider_type.toUpperCase()} ({log.message_type})</span>
                 <span>{new Date(log.sent_at).toLocaleString("pt-BR")}</span>
-                <span className={`status-pill ${log.status === "sent" || log.status === "delivered" ? "open" : "draft"}`}>{log.status}</span>
+                <StatusPill variant={LOG_STATUS_VARIANT[log.status] ?? "paused"}>{log.status}</StatusPill>
               </div>
             ))}
           </div>

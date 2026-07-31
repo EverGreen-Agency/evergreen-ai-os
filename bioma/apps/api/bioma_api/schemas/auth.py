@@ -9,6 +9,7 @@ from bioma_api.domain.models import Role
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    remember_me: bool = True
 
 
 class OrganizationSummary(BaseModel):
@@ -59,3 +60,22 @@ class PasswordResetPublicResponse(BaseModel):
 
 class PasswordResetConfirmRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
+
+
+class PersonalAccessTokenSummary(BaseModel):
+    id: UUID
+    name: str
+    token_prefix: str
+    last_used_at: datetime | None = None
+    expires_at: datetime | None = None
+    created_at: datetime
+
+
+class PersonalAccessTokenCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    expires_in_days: int | None = Field(default=None, ge=1, le=3650)
+
+
+class PersonalAccessTokenCreatedResponse(BaseModel):
+    token: str
+    summary: PersonalAccessTokenSummary
