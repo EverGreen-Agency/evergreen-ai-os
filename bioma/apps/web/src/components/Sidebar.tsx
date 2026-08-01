@@ -39,6 +39,11 @@ export function Sidebar({
 
   const { data: taskLists } = useTaskLists(activeWorkspaceId || "");
   const createTaskList = useCreateTaskList();
+  // Criação de lista inline: o `prompt()` do navegador não respeita o tema, não
+  // deixa escolher o tipo da lista e some se o usuário clica fora.
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [newListType, setNewListType] = useState<"general" | "social" | "growth" | "tech">("general");
 
   // Fechar menus ao navegar
   useEffect(() => {
@@ -129,37 +134,68 @@ export function Sidebar({
           {!isCollapsed && (
             <div className="nav-group-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>TAREFAS</span>
-              <button 
+              <button
                 type="button"
-                style={{
-                  width: 22,
-                  height: 22,
-                  padding: 0,
-                  borderRadius: 4,
-                  border: "1px solid var(--border-color)",
-                  background: "var(--surface-sunken)",
-                  color: "var(--text-normal)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer"
-                }}
+                className="sidebar-list-add"
+                disabled={!activeWorkspaceId}
                 onClick={(e) => {
                   e.stopPropagation();
-                  const name = prompt("Nome da nova lista de tarefas:");
-                  if (name && activeWorkspaceId) {
-                    createTaskList.mutate({ workspaceId: activeWorkspaceId, name, type: "general" });
-                  } else if (!activeWorkspaceId) {
-                    alert("Carregando workspace do cliente, tente novamente em um instante.");
-                  }
+                  setIsCreatingList((value) => !value);
                 }}
-                title="Nova Lista de Tarefas"
+                title={activeWorkspaceId ? "Nova lista de tarefas" : "Carregando o workspace do cliente..."}
               >
                 <Plus size={14} />
               </button>
             </div>
           )}
-          
+
+          {!isCollapsed && isCreatingList && activeWorkspaceId && (
+            <form
+              className="sidebar-list-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const name = newListName.trim();
+                if (!name) return;
+                createTaskList.mutate(
+                  { workspaceId: activeWorkspaceId, name, type: newListType },
+                  {
+                    onSuccess: () => {
+                      setNewListName("");
+                      setNewListType("general");
+                      setIsCreatingList(false);
+                    },
+                  },
+                );
+              }}
+            >
+              <input
+                autoFocus
+                required
+                minLength={2}
+                maxLength={80}
+                value={newListName}
+                placeholder="Nome da lista"
+                onChange={(event) => setNewListName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") setIsCreatingList(false);
+                }}
+              />
+              <select value={newListType} onChange={(event) => setNewListType(event.target.value as typeof newListType)}>
+                <option value="general">Geral</option>
+                <option value="social">Social media</option>
+                <option value="growth">Growth</option>
+                <option value="tech">Tech</option>
+              </select>
+              <div className="sidebar-list-form-actions">
+                <button type="submit" disabled={createTaskList.isPending || newListName.trim().length < 2}>
+                  {createTaskList.isPending ? "Criando..." : "Criar"}
+                </button>
+                <button type="button" onClick={() => setIsCreatingList(false)}>Cancelar</button>
+              </div>
+              {createTaskList.error && <span className="sidebar-list-form-error">{createTaskList.error.message}</span>}
+            </form>
+          )}
+
           {taskLists?.map(list => {
             const path = `/clientes/${selectedClient.id}/tarefas?list=${list.id}`;
             const isActive = location.pathname.includes("tarefas") && location.search.includes(list.id);

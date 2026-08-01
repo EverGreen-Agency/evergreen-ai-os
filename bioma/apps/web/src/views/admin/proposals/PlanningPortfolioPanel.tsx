@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ClipboardList } from "lucide-react";
 
 import { api, type PlanningPortfolioItem } from "../../../lib/api";
 
@@ -16,10 +15,6 @@ export function PlanningPortfolioPanel() {
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
-      <div>
-        <h2 style={{ margin: 0 }}><ClipboardList size={20} /> Portfólio de planejamentos</h2>
-        <p style={{ color: "var(--text-dim)" }}>Visão da EG por cliente, projeto, variante de intake e estado do backlog candidato.</p>
-      </div>
       <div className="surface" style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr>{["Cliente", "Projeto", "Disciplina", "Intake", "Plano", "Geração", "Atualizado"].map((label) => <th key={label} style={{ padding: 12, textAlign: "left" }}>{label}</th>)}</tr></thead>

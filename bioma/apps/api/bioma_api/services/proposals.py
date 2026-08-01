@@ -160,12 +160,14 @@ def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserRespo
                 score -= 10
                 analysis_points.append(f"⚠️ Gap de Tecnologia: Requer {tech.capitalize()}")
 
-        # Dynamic variation if score remains base 50 (based on title complexity/length)
-        if score == 50 and len(title_lower) > 20:
-            score += (len(title_lower) % 15) - 5
-
         fit_score = min(98, max(25, score))
-        fit_analysis = " | ".join(analysis_points) if analysis_points else "Alinhamento geral verificado com perfil padrão."
+        if analysis_points:
+            fit_analysis = "🧮 Triagem por palavra-chave: " + " | ".join(analysis_points)
+        else:
+            # Sem sinal nenhum, o número é a base 50 — dizer isso é mais útil que
+            # fingir análise. (Havia aqui um `score += (len(title) % 15) - 5` que
+            # espalhava os 50 em 45–60 só para o número "parecer calculado".)
+            fit_analysis = "🧮 Triagem por palavra-chave: nenhum termo do catálogo bateu — nota base, sem sinal. Use “Avaliar com IA” para uma leitura real."
 
         data = {
             "source_platform": payload.source_platform,

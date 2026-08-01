@@ -13,6 +13,7 @@ Valida:
 """
 
 from pathlib import Path
+import atexit
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +54,9 @@ def main() -> None:
     workspace = create_smoke_workspace("IMPROVEMENT")
     client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Improvement Client Smoke", PASSWORD)
     grant_client_user(workspace, client_user_id)
+    # Limpeza garantida mesmo se a falha acontecer antes do try/finally:
+    # sem isto, uma assercao quebrada deixa o workspace na carteira.
+    atexit.register(lambda: cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL]))
     workspace_id = str(workspace.workspace_id)
 
     admin = TestClient(app)

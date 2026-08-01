@@ -1,3 +1,14 @@
+"""Smoke dos geradores de PRÉVIA de conteúdo (sem OPENAI_API_KEY).
+
+Chama `bioma_worker.ai_content.generate_content` direto, sem HTTP: garante que
+sem chave o Bioma devolve prévia rotulada (`generation_mode == "preview"`) com a
+forma certa, em vez de estourar ou inventar resultado de IA.
+
+Chamava-se `smoke_ai_content` e colidia com o smoke de mesmo nome em
+`apps/worker/scripts/` — o runner indexa SKIP/MUTABLE/NEEDS_API_ENV por nome de
+arquivo, então uma decisão sobre um valeria calada para o outro.
+"""
+
 import sys
 from pathlib import Path
 

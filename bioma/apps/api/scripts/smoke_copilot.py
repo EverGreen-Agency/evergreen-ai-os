@@ -13,6 +13,7 @@ monkeypatch do bridge — assim testa a AUTORIDADE da API, não a criatividade d
 """
 
 from pathlib import Path
+import atexit
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +60,9 @@ def main() -> None:
     client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Copilot Client Smoke", PASSWORD)
     grant_client_user(workspace, client_user_id)
 
+    # Limpeza garantida mesmo se a falha acontecer antes do try/finally:
+    # sem isto, uma assercao quebrada deixa o workspace na carteira.
+    atexit.register(lambda: cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL]))
     admin = TestClient(app)
     client_user = TestClient(app)
     assert_status(admin.post("/auth/login", json={"email": ADMIN_EMAIL, "password": PASSWORD}), 200, "login admin")

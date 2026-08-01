@@ -3,15 +3,12 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 /**
- * Estado real do build, injetado em tempo de compilação.
+ * Estado do build, injetado em tempo de compilação e consumido por
+ * `src/lib/version.ts`. Não aparece na interface — vive em
+ * `window.__BIOMA_BUILD__` para quando alguém precisar saber qual build está
+ * no ar.
  *
- * O número em APP_VERSION só muda quando o release-please corta um release em
- * `main`. Enquanto o trabalho vive em `develop`, exibir apenas "v0.1.0" faz a
- * interface mentir sobre o que está no ar — por isso o rodapé passa a mostrar
- * também branch e commit, que são verdade em qualquer branch.
- *
- * Sem git disponível (container de build sem .git), os campos vêm vazios e a
- * interface mostra só a versão, em vez de inventar um hash.
+ * Sem git disponível (container de build sem .git), os campos vêm vazios.
  */
 function git(command) {
   try {
@@ -20,6 +17,55 @@ function git(command) {
     return "";
   }
 }
+
+const API_TARGET = "http://127.0.0.1:8000";
+
+/**
+ * Prefixos da API que o dev server encaminha para o backend.
+ *
+ * Por que a lista é longa e explícita: antes havia só 5 prefixos aqui, e a API
+ * tem 30. Toda chamada para um prefixo ausente caía no fallback SPA do Vite,
+ * que devolve `index.html` — e a tela quebrava com
+ * `Unexpected token '<', "<!doctype "... is not valid JSON`. Como isso só
+ * acontece em desenvolvimento (em produção o front fala com a API direto),
+ * passava despercebido até alguém abrir a tela.
+ *
+ * REGRA: ao criar um router novo na API, adicione o prefixo aqui. O teste que
+ * protege isso é `apps/api/scripts/smoke_vite_proxy.py`, rodado pelo runner.
+ */
+const API_PREFIXES = [
+  "/agent-memory",
+  "/analytics",
+  "/auth",
+  "/backoffice",
+  "/benchmark",
+  "/clients",
+  "/contracts",
+  "/copilot",
+  "/health",
+  "/improvement-requests",
+  "/integrations",
+  "/organizations",
+  "/project-phases",
+  "/project-plan-items",
+  "/project-planning-intakes",
+  "/project-plans",
+  "/projects",
+  "/proposals",
+  "/public",
+  "/scope-items",
+  "/subtasks",
+  "/task-comments",
+  "/task-lists",
+  "/tasks",
+  "/teams",
+  "/tenants",
+  "/workspaces",
+  // Documentação do FastAPI, útil para inspecionar o contrato em dev.
+  "/docs",
+  "/redoc",
+  "/openapi.json",
+];
 
 export default defineConfig({
   plugins: [react()],
@@ -30,12 +76,6 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    proxy: {
-      "/auth": "http://127.0.0.1:8000",
-      "/clients": "http://127.0.0.1:8000",
-      "/workspaces": "http://127.0.0.1:8000",
-      "/health": "http://127.0.0.1:8000",
-      "/backoffice": "http://127.0.0.1:8000"
-    }
+    proxy: Object.fromEntries(API_PREFIXES.map((prefix) => [prefix, API_TARGET])),
   },
 });
