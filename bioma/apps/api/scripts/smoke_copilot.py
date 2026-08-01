@@ -118,6 +118,15 @@ def main() -> None:
     task_id = task.json()["id"]
 
     original_plan = copilot_service.copilot_plan_safe
+    # Toda chamada ao copiloto abre uma thread; sem guardar os ids, cada execução
+    # do smoke deixaria quatro conversas na lista lateral do Eduardo.
+    thread_ids: list[str] = []
+
+    def remember_thread(response) -> None:
+        body = response.json()
+        if isinstance(body, dict) and body.get("thread_id"):
+            thread_ids.append(body["thread_id"])
+
     try:
         # 1) Ação reversível executa e informa como desfazer.
         copilot_service.copilot_plan_safe = fake_plan(
@@ -128,6 +137,7 @@ def main() -> None:
             json={"message": "quebra essa tarefa em etapas", "surface": "task", "task_id": task_id},
         )
         assert_status(response, 200, "acao reversivel")
+        remember_thread(response)
         body = response.json()
         action = body["actions"][0]
         assert action["status"] == "executed", action
@@ -147,6 +157,7 @@ def main() -> None:
             json={"message": "manda whats pro cliente", "surface": "task", "task_id": task_id},
         )
         assert_status(response, 200, "acao visivel ao cliente")
+        remember_thread(response)
         # Fora da superfície `task`, é descartada antes de qualquer coisa.
         assert response.json()["actions"] == [], response.json()["actions"]
         print("acao visivel ao cliente fora da superficie: descartada OK")
@@ -160,6 +171,7 @@ def main() -> None:
             json={"message": "apaga tudo", "surface": "task", "task_id": task_id},
         )
         assert_status(response, 200, "acao inventada")
+        remember_thread(response)
         assert response.json()["actions"] == [], "acao fora do catalogo nao pode passar"
         print("acao fora do catalogo: descartada OK")
 
@@ -172,6 +184,7 @@ def main() -> None:
             json={"message": "muda o status", "surface": "task", "task_id": task_id, "dry_run": True},
         )
         assert_status(response, 200, "dry run")
+        remember_thread(response)
         assert response.json()["actions"][0]["status"] == "proposed", response.json()["actions"][0]
         after = next(
             item for item in admin.get(f"/task-lists/{list_id}/tasks").json() if item["id"] == task_id
@@ -196,6 +209,8 @@ def main() -> None:
     finally:
         copilot_service.copilot_plan_safe = original_plan
         with connect() as conn:
+            for thread_id in thread_ids:
+                conn.execute("delete from copilot_threads where id = %s", (thread_id,))
             conn.execute("delete from eg_tasks where id = %s", (task_id,))
         cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL])
     print("limpeza OK — smoke_copilot passou")

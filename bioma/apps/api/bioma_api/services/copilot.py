@@ -13,15 +13,20 @@ inválido ou ação irreversível são recusados independentemente do que o text
 from __future__ import annotations
 
 import json
+import time
 from datetime import date, datetime, timezone
 
 from fastapi import HTTPException, status
 
 from bioma_api.access import is_platform_admin, require_platform_admin
 from bioma_api.db import connect
+from bioma_api.feature_flags import FEATURE_CATALOG
+from bioma_api.model_pricing import cost_cents
 from bioma_api.repositories import agent_memory as memory_repo
 from bioma_api.repositories import client_hub as client_hub_repo
+from bioma_api.repositories import copilot_traces as trace_repo
 from bioma_api.repositories import improvement_requests as improvement_repo
+from bioma_api.repositories import knowledge as knowledge_repo
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -54,44 +59,69 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
     catalog = copilot_action_catalog()
     allowed = SURFACE_ACTIONS.get(payload.surface, ["answer_only"])
 
+    # O dossiê vem antes de abrir a execução porque é ele que valida as
+    # referências: tarefa ou workspace inexistente tem que virar 404 limpo, não
+    # uma thread órfã apontando para um id que não existe.
+    started = time.monotonic()
     dossier, context, task_row = _build_dossier(payload, user)
+    dossier_ms = _elapsed_ms(started)
+
+    # A conversa é contínua: sem thread, cada pergunta começaria do zero e o
+    # copiloto nunca acompanharia um assunto ao longo do dia.
+    thread, run_row = _open_run(payload, user)
+    steps = _StepRecorder(run_row["id"])
+    steps.record("dossier", "Montar dossiê do escopo", "ok", None, {}, dossier_ms)
+    steps.annotate(_dossier_summary(dossier))
 
     try:
-        result = copilot_plan_safe(
-            {
-                "message": payload.message,
-                "surface": payload.surface,
-                "context": context,
-                "dossier": dossier,
-                "allowed_actions": allowed,
-                "allow_web_search": payload.allow_web_search,
-            }
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="O copiloto não conseguiu responder agora. Tente novamente.",
-        ) from exc
-
-    output = result["output"]
-    actions: list[CopilotAction] = []
-
-    for proposed in output.get("actions", []):
-        name = proposed.get("name")
-        spec = catalog.get(name)
-        if not spec or name not in allowed:
-            # Nome inventado ou fora da superfície: descartado sem executar.
-            continue
         try:
-            params = json.loads(proposed.get("params") or "{}")
-        except json.JSONDecodeError:
-            params = {}
-        if not isinstance(params, dict):
-            params = {}
+            with steps.timed("plan", f"Pedir plano ao modelo ({payload.surface})"):
+                result = copilot_plan_safe(
+                    {
+                        "message": payload.message,
+                        "surface": payload.surface,
+                        "context": context,
+                        "dossier": dossier,
+                        "allowed_actions": allowed,
+                        "allow_web_search": payload.allow_web_search,
+                        "history": _thread_history(thread["id"]),
+                    }
+                )
+        except Exception as exc:
+            steps.fail("plan", "Pedir plano ao modelo", str(exc)[:500])
+            _close_run(run_row["id"], {"status": "failed", "error_message": str(exc)[:2000],
+                                       "duration_ms": _elapsed_ms(started)})
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="O copiloto não conseguiu responder agora. Tente novamente.",
+            ) from exc
 
-        if not spec["reversible"]:
-            actions.append(
-                CopilotAction(
+        output = result["output"]
+        actions: list[CopilotAction] = []
+
+        for proposed in output.get("actions", []):
+            name = proposed.get("name")
+            spec = catalog.get(name)
+            if not spec or name not in allowed:
+                # Nome inventado ou fora da superfície: descartado sem executar.
+                # Registrado assim mesmo — descarte silencioso esconde tentativa
+                # do modelo de sair do catálogo, que é exatamente o que auditoria
+                # precisa enxergar.
+                steps.record(
+                    "action", f"Descartada: {name or '(sem nome)'}", "skipped",
+                    "Fora do catálogo ou da superfície — não executada.",
+                    {"proposed_name": name, "surface": payload.surface},
+                )
+                continue
+            try:
+                params = json.loads(proposed.get("params") or "{}")
+            except json.JSONDecodeError:
+                params = {}
+            if not isinstance(params, dict):
+                params = {}
+
+            if not spec["reversible"]:
+                action = CopilotAction(
                     name=name,
                     label=spec["label"],
                     params=params,
@@ -99,12 +129,12 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
                     status="pending_confirmation",
                     detail="Ação visível ao cliente — precisa da sua confirmação.",
                 )
-            )
-            continue
+                steps.record("action", spec["label"], "blocked", action.detail, {"params": params})
+                actions.append(action)
+                continue
 
-        if payload.dry_run:
-            actions.append(
-                CopilotAction(
+            if payload.dry_run:
+                action = CopilotAction(
                     name=name,
                     label=spec["label"],
                     params=params,
@@ -112,31 +142,198 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
                     status="proposed",
                     detail="Pré-visualização: nada foi alterado.",
                 )
+                steps.record("action", spec["label"], "skipped", action.detail, {"params": params})
+                actions.append(action)
+                continue
+
+            action_started = time.monotonic()
+            action = _execute(name, spec, params, proposed.get("why", ""), task_row, user, payload.workspace_id)
+            steps.record(
+                "action", spec["label"],
+                "ok" if action.status == "executed" else "failed",
+                action.detail,
+                {"params": params, "undo_hint": action.undo_hint},
+                _elapsed_ms(action_started),
             )
-            continue
+            actions.append(action)
 
-        actions.append(_execute(name, spec, params, proposed.get("why", ""), task_row, user, payload.workspace_id))
+        skill_ids_by_name: dict[str, str] = context.get("skill_ids_by_name") or {}
+        used_skill_names = [name for name in output.get("skills_used", []) if name in skill_ids_by_name]
+        if used_skill_names:
+            with connect() as conn:
+                for name in used_skill_names:
+                    memory_repo.record_skill_use(conn, skill_ids_by_name[name])
 
-    skill_ids_by_name: dict[str, str] = context.get("skill_ids_by_name") or {}
-    used_skill_ids = [skill_ids_by_name[name] for name in output.get("skills_used", []) if name in skill_ids_by_name]
-    if used_skill_ids:
-        with connect() as conn:
-            for skill_id in used_skill_ids:
-                memory_repo.record_skill_use(conn, skill_id)
+        sources = [
+            CopilotSource(kind=source.get("kind", "bioma"), reference=source.get("reference", ""))
+            for source in output.get("sources", [])
+            if source.get("reference")
+        ]
 
-    sources = [
-        CopilotSource(kind=source.get("kind", "bioma"), reference=source.get("reference", ""))
-        for source in output.get("sources", [])
-        if source.get("reference")
+        usage = result.get("usage") or {}
+        model = result.get("model")
+        input_tokens = usage.get("input_tokens")
+        output_tokens = usage.get("output_tokens")
+
+        _close_run(
+            run_row["id"],
+            {
+                "status": "completed",
+                "answer": output.get("answer", ""),
+                "confidence": output.get("confidence", "baixa"),
+                "generation_mode": result["generation_mode"],
+                "provider": result.get("provider"),
+                "model": model,
+                "dossier_summary": steps.dossier_summary,
+                "memories_used": [
+                    {"scope": row["scope"], "title": row["title"]} for row in dossier.get("memories", [])
+                ],
+                "skills_used": used_skill_names,
+                "sources": [source.model_dump() for source in sources],
+                "actions": [action.model_dump() for action in actions],
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "cost_cents": cost_cents(model, input_tokens, output_tokens),
+                "duration_ms": _elapsed_ms(started),
+            },
+        )
+
+        return CopilotResponse(
+            thread_id=thread["id"],
+            run_id=run_row["id"],
+            answer=output.get("answer", ""),
+            generation_mode=result["generation_mode"],
+            confidence=output.get("confidence", "baixa"),
+            actions=actions,
+            sources=sources,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Falha fora do plano (dossiê, execução, persistência) também precisa
+        # fechar a execução — run eternamente "running" na trilha é ruído.
+        _close_run(
+            run_row["id"],
+            {"status": "failed", "error_message": str(exc)[:2000], "duration_ms": _elapsed_ms(started)},
+        )
+        raise
+
+
+def _elapsed_ms(started: float) -> int:
+    return int((time.monotonic() - started) * 1000)
+
+
+def _open_run(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[dict, dict]:
+    with connect() as conn:
+        thread = trace_repo.get_thread(conn, payload.thread_id) if payload.thread_id else None
+        if thread and thread["user_id"] != user.id:
+            # Escrever na conversa de outra pessoa não é continuar um assunto.
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversa não encontrada.")
+        if not thread:
+            thread = trace_repo.create_thread(
+                conn, user.id, payload.surface, payload.workspace_id, payload.task_id, payload.message
+            )
+        trace_repo.touch_thread(conn, thread["id"], payload.message)
+        run_row = trace_repo.start_run(
+            conn,
+            {
+                "thread_id": thread["id"],
+                "user_id": user.id,
+                "surface": payload.surface,
+                "workspace_id": payload.workspace_id,
+                "task_id": payload.task_id,
+                "message": payload.message,
+            },
+        )
+    return thread, run_row
+
+
+def _close_run(run_id, data: dict) -> None:
+    with connect() as conn:
+        trace_repo.finish_run(conn, run_id, data)
+
+
+def _thread_history(thread_id, limit: int = 8) -> list[dict]:
+    """Turnos anteriores da conversa, para o modelo não repetir o que já disse.
+
+    Só pergunta e resposta — o dossiê é remontado a cada turno com dado fresco,
+    então reenviar o dossiê antigo só gastaria token com informação vencida.
+    """
+    with connect() as conn:
+        runs = trace_repo.list_runs(conn, thread_id)
+    return [
+        {"message": row["message"], "answer": row["answer"]}
+        for row in runs[-limit:]
+        if row.get("answer")
     ]
 
-    return CopilotResponse(
-        answer=output.get("answer", ""),
-        generation_mode=result["generation_mode"],
-        confidence=output.get("confidence", "baixa"),
-        actions=actions,
-        sources=sources,
-    )
+
+def _dossier_summary(dossier: dict) -> dict:
+    """Índice do que foi lido — não o conteúdo.
+
+    Guardar o dossiê inteiro faria da trilha uma segunda cópia do banco (e uma
+    cópia com dado de cliente, sem as regras de acesso do original). O que a
+    auditoria precisa é da procedência: quantas tarefas, quais memórias, quais
+    habilidades entraram na decisão.
+    """
+    return {
+        "task_in_context": bool(dossier.get("task")),
+        "task_comments": len(dossier.get("task_comments") or []),
+        "my_tasks": len(dossier.get("my_tasks") or []),
+        "memories": len(dossier.get("memories") or []),
+        "approved_skills": len(dossier.get("approved_skills") or []),
+        "bioma_features": len(dossier.get("bioma_features") or []),
+        "knowledge_docs": len(dossier.get("knowledge_index") or []),
+        "portfolio_snapshot": dossier.get("portfolio") or {},
+    }
+
+
+class _StepRecorder:
+    """Grava as etapas da execução com o tempo de cada uma.
+
+    Escreve fora da transação da ação: uma etapa que falha ainda precisa aparecer
+    na trilha, e um erro ao gravar a trilha nunca pode derrubar a resposta ao
+    usuário — auditoria que quebra o produto vira auditoria desligada.
+    """
+
+    def __init__(self, run_id) -> None:
+        self.run_id = run_id
+        self.position = 0
+        self.dossier_summary: dict = {}
+
+    def record(self, kind: str, label: str, status_val: str, detail: str | None = None,
+               payload: dict | None = None, duration_ms: int | None = None) -> None:
+        self.position += 1
+        try:
+            with connect() as conn:
+                trace_repo.add_step(
+                    conn, self.run_id, self.position,
+                    {"kind": kind, "label": label, "status": status_val, "detail": detail,
+                     "payload": payload or {}, "duration_ms": duration_ms},
+                )
+        except Exception:
+            pass
+
+    def fail(self, kind: str, label: str, detail: str) -> None:
+        self.record(kind, label, "failed", detail)
+
+    def annotate(self, summary: dict) -> None:
+        self.dossier_summary = summary
+
+    def timed(self, kind: str, label: str):
+        recorder = self
+
+        class _Timer:
+            def __enter__(self):
+                self.started = time.monotonic()
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                if exc_type is None:
+                    recorder.record(kind, label, "ok", None, {}, _elapsed_ms(self.started))
+                return False
+
+        return _Timer()
 
 
 def _build_dossier(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[dict, dict, dict | None]:
@@ -216,6 +413,20 @@ def _build_dossier(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[
             for row in skills
         ]
         context["skill_ids_by_name"] = {row["name"]: str(row["id"]) for row in skills}
+
+        # O que o produto JÁ TEM. Sem isso o copiloto propõe construir o que já
+        # existe — ele conhecia as ações que pode executar, mas não as telas que
+        # o Bioma oferece. É a diferença entre "não sei fazer isso" e "isso já
+        # está em Operação EG → Radar Local".
+        dossier["bioma_features"] = [
+            {"key": key, "label": spec["label"], "description": spec["description"]}
+            for key, spec in FEATURE_CATALOG.items()
+        ]
+
+        # Índice do conhecimento da EG — títulos, não conteúdo. O copiloto passa
+        # a saber que a resposta existe e onde; puxar o texto inteiro de tudo
+        # estouraria o contexto sem melhorar a resposta.
+        dossier["knowledge_index"] = knowledge_repo.list_doc_titles(conn)
     return dossier, context, task_row
 
 

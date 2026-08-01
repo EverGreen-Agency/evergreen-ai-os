@@ -3377,7 +3377,8 @@ export type OpportunitySummary = {
   url: string | null;
   description: string | null;
   budget_text: string | null;
-  fit_score: number;
+  /** Nulo = ninguém avaliou ainda. Zero seria "avaliada e péssima". */
+  fit_score: number | null;
   fit_analysis: string | null;
   status: "new" | "qualified" | "proposal_generated" | "rejected" | "archived";
   raw_payload: Record<string, unknown>;

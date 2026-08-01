@@ -109,6 +109,19 @@ def list_docs(conn, category: str | None = None) -> list[dict[str, Any]]:
     return conn.execute(f"select {DOC_COLUMNS} from eg_knowledge_docs order by category, title").fetchall()
 
 
+def list_doc_titles(conn, limit: int = 200) -> list[dict[str, Any]]:
+    """Índice do conhecimento da EG: categoria, título e caminho — sem conteúdo.
+
+    O copiloto usa isto para saber que a resposta existe e onde encontrá-la. O
+    texto completo de 30+ documentos não caberia no contexto, e mandar tudo a
+    cada turno pagaria token por informação que a pergunta não usa.
+    """
+    return conn.execute(
+        "select category, title, path from eg_knowledge_docs order by category, title limit %s",
+        (limit,),
+    ).fetchall()
+
+
 def get_doc(conn, path: str) -> dict[str, Any] | None:
     return conn.execute(f"select {DOC_COLUMNS} from eg_knowledge_docs where path = %s", (path,)).fetchone()
 

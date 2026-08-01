@@ -315,6 +315,10 @@ def plan(request: dict[str, Any], settings, http_client: httpx.Client | None = N
             {
                 "message": request.get("message"),
                 "surface": request.get("surface"),
+                # Turnos anteriores desta conversa. Só pergunta e resposta: o
+                # dossiê é remontado a cada turno com dado fresco, então mandar
+                # o dossiê antigo junto gastaria token com informação vencida.
+                "conversation_history": request.get("history") or [],
                 "context": request.get("context") or {},
                 "dossier": request.get("dossier") or {},
                 "available_actions": {
@@ -373,6 +377,26 @@ def plan(request: dict[str, Any], settings, http_client: httpx.Client | None = N
         "generation_mode": "live",
         "provider": "openai",
         "model": settings.openai_model,
+        # Consumo real reportado pela API. Sobe junto com a resposta para a
+        # trilha de auditoria registrar token e custo por execução em vez de
+        # estimar — estimativa de custo que ninguém consegue conferir é pior que
+        # custo em branco.
+        "usage": _usage(response_data),
+    }
+
+
+def _usage(response_data: dict[str, Any]) -> dict[str, int] | None:
+    usage = response_data.get("usage")
+    if not isinstance(usage, dict):
+        return None
+    input_tokens = usage.get("input_tokens")
+    output_tokens = usage.get("output_tokens")
+    if input_tokens is None and output_tokens is None:
+        return None
+    return {
+        "input_tokens": int(input_tokens or 0),
+        "output_tokens": int(output_tokens or 0),
+        "cached_tokens": int((usage.get("input_tokens_details") or {}).get("cached_tokens") or 0),
     }
 
 

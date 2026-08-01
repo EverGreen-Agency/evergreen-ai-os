@@ -3022,6 +3022,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run
+         * @description Auditoria de uma execução: etapas, fontes, memória, token, custo, tempo.
+         */
+        get: operations["get_run_copilot_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Threads
+         * @description Conversas do próprio usuário — alimenta a lista lateral do painel.
+         */
+        get: operations["list_threads_copilot_threads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Thread
+         * @description Turnos da conversa, cada um com a trilha completa da execução.
+         */
+        get: operations["get_thread_copilot_threads__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads/{thread_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Thread */
+        post: operations["archive_thread_copilot_threads__thread_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Usage
+         * @description Consumo do copiloto na janela — token, custo e tempo médio.
+         */
+        get: operations["usage_copilot_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -6973,6 +7070,8 @@ export interface components {
             surface: "task" | "workspace";
             /** Task Id */
             task_id?: string | null;
+            /** Thread Id */
+            thread_id?: string | null;
             /** Workspace Id */
             workspace_id?: string | null;
         };
@@ -6992,8 +7091,111 @@ export interface components {
              * @enum {string}
              */
             generation_mode: "live" | "preview";
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
             /** Sources */
             sources?: components["schemas"]["CopilotSource"][];
+            /**
+             * Thread Id
+             * Format: uuid
+             */
+            thread_id: string;
+        };
+        /** CopilotRunStep */
+        CopilotRunStep: {
+            /** Detail */
+            detail: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "dossier" | "plan" | "action" | "persist";
+            /** Label */
+            label: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /** Position */
+            position: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "skipped" | "blocked" | "failed";
+        };
+        /**
+         * CopilotRunTrace
+         * @description O que aconteceu numa execução. Não é o que o copiloto disse que fez.
+         */
+        CopilotRunTrace: {
+            /** Actions */
+            actions?: {
+                [key: string]: unknown;
+            }[];
+            /** Answer */
+            answer: string | null;
+            /** Confidence */
+            confidence: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dossier Summary */
+            dossier_summary?: {
+                [key: string]: unknown;
+            };
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Generation Mode */
+            generation_mode: ("live" | "preview") | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Memories Used */
+            memories_used?: {
+                [key: string]: unknown;
+            }[];
+            /** Message */
+            message: string;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Provider */
+            provider: string | null;
+            /** Skills Used */
+            skills_used?: string[];
+            /** Sources */
+            sources?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed";
+            /** Steps */
+            steps?: components["schemas"]["CopilotRunStep"][];
+            /**
+             * Thread Id
+             * Format: uuid
+             */
+            thread_id: string;
         };
         /**
          * CopilotSource
@@ -7007,6 +7209,63 @@ export interface components {
             kind: "bioma" | "web";
             /** Reference */
             reference: string;
+        };
+        /** CopilotThreadSummary */
+        CopilotThreadSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Message */
+            last_message: string | null;
+            /**
+             * Last Message At
+             * Format: date-time
+             */
+            last_message_at: string;
+            /** Run Count */
+            run_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "archived";
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "task" | "workspace";
+            /** Task Id */
+            task_id: string | null;
+            /** Title */
+            title: string | null;
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /** CopilotUsageSummary */
+        CopilotUsageSummary: {
+            /** Avg Duration Ms */
+            avg_duration_ms: number;
+            /** Cost Cents */
+            cost_cents: number;
+            /** Failed Runs */
+            failed_runs: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Preview Runs */
+            preview_runs: number;
+            /** Runs */
+            runs: number;
+            /** Runs Without Cost */
+            runs_without_cost: number;
         };
         /** CurrentUserResponse */
         CurrentUserResponse: {
@@ -9244,11 +9503,8 @@ export interface components {
             external_id?: string | null;
             /** Fit Analysis */
             fit_analysis?: string | null;
-            /**
-             * Fit Score
-             * @default 0
-             */
-            fit_score: number;
+            /** Fit Score */
+            fit_score?: number | null;
             /**
              * Id
              * Format: uuid
@@ -20661,6 +20917,162 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CopilotPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_copilot_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotRunTrace"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_threads_copilot_threads_get: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotThreadSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_thread_copilot_threads__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotRunTrace"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_thread_copilot_threads__thread_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotThreadSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_copilot_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                mine_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotUsageSummary"];
                 };
             };
             /** @description Validation Error */

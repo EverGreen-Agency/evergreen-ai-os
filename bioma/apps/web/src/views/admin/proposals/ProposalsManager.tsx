@@ -233,9 +233,15 @@ export function ProposalsManager() {
     if (radarPlatform !== "all" && opp.source_platform.toLowerCase() !== radarPlatform.toLowerCase()) {
       return false;
     }
-    if (radarFitFilter === "high" && opp.fit_score < 70) return false;
-    if (radarFitFilter === "medium" && (opp.fit_score < 50 || opp.fit_score >= 70)) return false;
-    if (radarFitFilter === "low" && opp.fit_score >= 50) return false;
+    // Sem avaliação não há faixa: filtrar por nota some com quem ninguém avaliou
+    // ainda, que é justamente quem precisa de atenção.
+    if (radarFitFilter !== "all") {
+      if (opp.fit_score === null) return radarFitFilter === "unrated";
+      if (radarFitFilter === "unrated") return false;
+      if (radarFitFilter === "high" && opp.fit_score < 70) return false;
+      if (radarFitFilter === "medium" && (opp.fit_score < 50 || opp.fit_score >= 70)) return false;
+      if (radarFitFilter === "low" && opp.fit_score >= 50) return false;
+    }
 
     if (radarSearch.trim()) {
       const q = radarSearch.toLowerCase().trim();
@@ -425,6 +431,7 @@ export function ProposalsManager() {
               style={{ padding: "8px 12px", background: "#182232", border: "1px solid var(--border)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem", cursor: "pointer" }}
             >
               <option value="all" style={{ background: "#182232", color: "#f8fafc" }}>Qualquer Score</option>
+              <option value="unrated" style={{ background: "#182232", color: "#f8fafc" }}>Não avaliadas</option>
               <option value="high" style={{ background: "#182232", color: "#f8fafc" }}>Alto Alinhamento (Fit ≥ 70%)</option>
               <option value="medium" style={{ background: "#182232", color: "#f8fafc" }}>Médio Alinhamento (50–69%)</option>
               <option value="low" style={{ background: "#182232", color: "#f8fafc" }}>Baixo Alinhamento (&lt; 50%)</option>
@@ -514,9 +521,15 @@ export function ProposalsManager() {
                   </div>
 
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "1.1rem", fontWeight: 700, color: opp.fit_score >= 70 ? "#10b981" : opp.fit_score >= 50 ? "#f59e0b" : "#ef4444" }}>
-                      Score de Fit: {opp.fit_score}/100
-                    </div>
+                    {opp.fit_score === null ? (
+                      <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-dim)" }}>
+                        Não avaliada
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "1.1rem", fontWeight: 700, color: opp.fit_score >= 70 ? "#10b981" : opp.fit_score >= 50 ? "#f59e0b" : "#ef4444" }}>
+                        Score de Fit: {opp.fit_score}/100
+                      </div>
+                    )}
                     <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>Orçamento: {opp.budget_text || "A combinar"}</span>
                   </div>
                 </div>
@@ -525,9 +538,14 @@ export function ProposalsManager() {
                   {opp.description || "Sem descrição informada."}
                 </p>
 
-                {opp.fit_analysis && (
+                {opp.fit_analysis ? (
                   <div style={{ background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px solid var(--border)" }}>
-                    💡 <strong>Análise de Algoritmo:</strong> {opp.fit_analysis}
+                    💡 <strong>Avaliação:</strong> {opp.fit_analysis}
+                  </div>
+                ) : (
+                  <div style={{ background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px dashed var(--border)" }}>
+                    Ninguém avaliou esta vaga ainda. Use <strong>Avaliar com IA</strong> para comparar com o
+                    que a EG sabe fazer (Tech Radar + inventário comercial + projetos concluídos).
                   </div>
                 )}
 

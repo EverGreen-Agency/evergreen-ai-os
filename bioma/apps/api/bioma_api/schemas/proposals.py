@@ -22,7 +22,8 @@ class OpportunityBase(BaseModel):
     url: str | None = None
     description: str | None = Field(default=None, max_length=10_000)
     budget_text: str | None = Field(default=None, max_length=100)
-    fit_score: int = Field(default=0, ge=0, le=100)
+    # Nulo = ninguém avaliou ainda. Diferente de 0, que seria "avaliada e péssima".
+    fit_score: int | None = Field(default=None, ge=0, le=100)
     fit_analysis: str | None = None
     status: OpportunityStatus = "new"
     raw_payload: dict[str, Any] = Field(default_factory=dict)
