@@ -244,8 +244,20 @@ def execute_antigravity_sdk(candidate: dict[str, Any], prompt: str, settings) ->
         ) from exc
 
 
-def execute_candidate(candidate: dict[str, Any], job: dict[str, Any], settings) -> dict[str, Any]:
-    prompt = build_prompt(job)
+def execute_candidate(
+    candidate: dict[str, Any],
+    job: dict[str, Any],
+    settings,
+    prompt: str | None = None,
+) -> dict[str, Any]:
+    """Executa uma etapa na conta escolhida pelo roteamento.
+
+    `prompt` pronto pula `build_prompt`: quem chama de fora do runner de
+    workflow (o copiloto, por exemplo) já tem o texto montado com o próprio
+    contrato de saída, e passar pelo template de etapa embrulharia esse texto
+    dentro de outro, confundindo o modelo sobre o que deve devolver.
+    """
+    prompt = prompt or build_prompt(job)
     started = time.monotonic()
     if candidate["channel"] == "codex_chatgpt":
         result = execute_codex(candidate, prompt, settings)

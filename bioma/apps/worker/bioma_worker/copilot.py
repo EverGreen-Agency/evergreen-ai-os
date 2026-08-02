@@ -289,6 +289,105 @@ def plan_multistep(
     return {"output": json.loads(_output_text(response_data)), "generation_mode": "live"}
 
 
+def plan_via_candidate(request: dict[str, Any], candidate: dict[str, Any], settings) -> dict[str, Any]:
+    """Executa o plano do copiloto por uma conta do plano de roteamento.
+
+    É por aqui que a cota da assinatura entra: Codex CLI, Claude Code CLI e
+    Antigravity SDK já têm executor em `ai_providers.execute_candidate`, e são
+    cobrados na assinatura do Eduardo, não numa chave de API avulsa.
+
+    A diferença para o caminho da API: aqui não existe `json_schema` com
+    `strict`. A CLI devolve texto livre, então o schema vai no prompt e a
+    resposta é extraída com tolerância — modelo que embrulha JSON em cerca de
+    markdown é a norma, não a exceção. Se mesmo assim não vier JSON válido,
+    levanta: melhor cair para o próximo candidato do que devolver texto solto
+    onde o resto do sistema espera um plano.
+    """
+    from bioma_worker.ai_providers import execute_candidate
+
+    payload = {
+        "message": request.get("message"),
+        "surface": request.get("surface"),
+        "conversation_history": request.get("history") or [],
+        "context": request.get("context") or {},
+        "dossier": request.get("dossier") or {},
+        "available_actions": {
+            name: {
+                "description": spec["description"],
+                "params": spec["params"],
+                "requires_human_confirmation": not spec["reversible"],
+            }
+            for name, spec in ACTION_CATALOG.items()
+            if name in (request.get("allowed_actions") or list(ACTION_CATALOG))
+        },
+    }
+
+    prompt = (
+        f"{INSTRUCTIONS}\n\n"
+        "Responda EXCLUSIVAMENTE com um objeto JSON que satisfaça este JSON Schema. "
+        "Sem texto antes ou depois, sem cerca de markdown, sem comentários.\n\n"
+        f"JSON Schema:\n{json.dumps(PLAN_SCHEMA, ensure_ascii=False)}\n\n"
+        f"Entrada:\n{json.dumps(payload, ensure_ascii=False, default=str)}"
+    )
+
+    # `job` fica vazio de propósito: o prompt vai pronto, e `execute_candidate`
+    # pula o template de etapa quando recebe `prompt`.
+    result = execute_candidate(candidate, {}, settings, prompt=prompt)
+
+    usage = result.get("usage") or {}
+    return {
+        "output": _parse_plan_text(result["text"]),
+        "generation_mode": "live",
+        "provider": candidate["provider"],
+        "model": candidate["model_id"],
+        "usage": {
+            "input_tokens": usage.get("input_units"),
+            "output_tokens": usage.get("output_units"),
+        },
+        # A CLI do Claude reporta custo real da execução; quando vem, é melhor
+        # que a nossa tabela de preços — é o número que ele mesmo cobrou.
+        "cost_cents": result.get("cost_cents"),
+        "routed_account": {
+            "account_id": str(candidate["account_id"]),
+            "channel": candidate["channel"],
+            "display_name": candidate["account_name"],
+        },
+    }
+
+
+def _parse_plan_text(text: str) -> dict[str, Any]:
+    """Extrai o JSON do plano de uma resposta de CLI.
+
+    Tenta o texto puro primeiro; se falhar, procura o primeiro objeto JSON
+    balanceado. Cerca de markdown (```json) é o caso comum.
+    """
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("\n", 1)[-1]
+        if cleaned.rstrip().endswith("```"):
+            cleaned = cleaned.rstrip()[:-3]
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    depth = 0
+    start = None
+    for index, char in enumerate(cleaned):
+        if char == "{":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0 and start is not None:
+                try:
+                    return json.loads(cleaned[start : index + 1])
+                except json.JSONDecodeError:
+                    start = None
+    raise RuntimeError("A conta roteada não devolveu um plano em JSON reconhecível.")
+
+
 def plan(request: dict[str, Any], settings, http_client: httpx.Client | None = None) -> dict[str, Any]:
     if not settings.openai_api_key:
         return {

@@ -23,6 +23,7 @@ from bioma_api.db import connect
 from bioma_api.feature_flags import FEATURE_CATALOG
 from bioma_api.model_pricing import cost_cents
 from bioma_api.repositories import agent_memory as memory_repo
+from bioma_api.repositories import ai_routing as ai_routing_repo
 from bioma_api.repositories import client_hub as client_hub_repo
 from bioma_api.repositories import copilot_traces as trace_repo
 from bioma_api.repositories import improvement_requests as improvement_repo
@@ -36,7 +37,12 @@ from bioma_api.schemas.copilot import (
     CopilotResponse,
     CopilotSource,
 )
-from bioma_api.worker_bridge import copilot_action_catalog, copilot_plan_safe
+from bioma_api.worker_bridge import (
+    copilot_action_catalog,
+    copilot_plan_routed_safe,
+    copilot_plan_safe,
+    rank_copilot_candidates,
+)
 
 # Por superfície, o que o copiloto pode propor. Uma superfície não enxerga ação
 # que não faz sentido nela — reduz o espaço de erro do modelo.
@@ -74,19 +80,17 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
     steps.annotate(_dossier_summary(dossier))
 
     try:
+        plan_request = {
+            "message": payload.message,
+            "surface": payload.surface,
+            "context": context,
+            "dossier": dossier,
+            "allowed_actions": allowed,
+            "allow_web_search": payload.allow_web_search,
+            "history": _thread_history(thread["id"]),
+        }
         try:
-            with steps.timed("plan", f"Pedir plano ao modelo ({payload.surface})"):
-                result = copilot_plan_safe(
-                    {
-                        "message": payload.message,
-                        "surface": payload.surface,
-                        "context": context,
-                        "dossier": dossier,
-                        "allowed_actions": allowed,
-                        "allow_web_search": payload.allow_web_search,
-                        "history": _thread_history(thread["id"]),
-                    }
-                )
+            result = _plan_with_routing(plan_request, payload.surface, steps)
         except Exception as exc:
             steps.fail("plan", "Pedir plano ao modelo", str(exc)[:500])
             _close_run(run_row["id"], {"status": "failed", "error_message": str(exc)[:2000],
@@ -174,6 +178,10 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
         model = result.get("model")
         input_tokens = usage.get("input_tokens")
         output_tokens = usage.get("output_tokens")
+        # Custo reportado pela própria conta (a CLI do Claude devolve o valor da
+        # execução) vale mais que a nossa tabela de preços — é o número que ele
+        # cobrou, não o que calculamos.
+        reported_cost = result.get("cost_cents")
 
         _close_run(
             run_row["id"],
@@ -193,7 +201,11 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
                 "actions": [action.model_dump() for action in actions],
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "cost_cents": cost_cents(model, input_tokens, output_tokens),
+                "cost_cents": (
+                    reported_cost
+                    if reported_cost is not None
+                    else cost_cents(model, input_tokens, output_tokens)
+                ),
                 "duration_ms": _elapsed_ms(started),
             },
         )
@@ -217,6 +229,72 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
             {"status": "failed", "error_message": str(exc)[:2000], "duration_ms": _elapsed_ms(started)},
         )
         raise
+
+
+def _plan_with_routing(plan_request: dict, surface: str, steps: "_StepRecorder") -> dict:
+    """Pede o plano usando a COTA DA ASSINATURA antes de gastar chave de API.
+
+    Ordem, e o porquê de cada passo:
+
+    1. Contas do plano de roteamento (`ai_provider_accounts`) — Codex CLI, Claude
+       Code CLI, Antigravity. São as assinaturas que o Eduardo já paga; usar a
+       chave de API avulsa quando existe cota contratada parada é gastar duas
+       vezes pela mesma coisa. A ordem entre elas vem de `rank_candidates`, que
+       considera a cota restante e a política ativa.
+    2. Se nenhuma conta responder, a chave de API (`OPENAI_API_KEY`).
+    3. Se não houver chave, prévia local rotulada (o próprio `copilot_plan_safe`).
+
+    Cada tentativa que falha vira uma etapa `skipped` na trilha, com o motivo.
+    Sem isso, "o copiloto usou a API" e "o copiloto tentou a CLI, ela quebrou, e
+    caiu para a API" ficam indistinguíveis — e a segunda é a que explica por que
+    a fatura subiu.
+    """
+    candidates = _routing_candidates()
+    for candidate in candidates:
+        label = f"{candidate['account_name']} ({candidate['channel']})"
+        attempt_started = time.monotonic()
+        try:
+            result = copilot_plan_routed_safe(plan_request, candidate)
+            steps.record(
+                "plan", f"Plano via {label}", "ok",
+                f"Cota da assinatura — modelo {candidate['model_id']}.",
+                {"account_id": str(candidate["account_id"]), "channel": candidate["channel"]},
+                _elapsed_ms(attempt_started),
+            )
+            return result
+        except Exception as exc:
+            steps.record(
+                "plan", f"Plano via {label}", "skipped", str(exc)[:400],
+                {"channel": candidate["channel"]}, _elapsed_ms(attempt_started),
+            )
+
+    attempt_started = time.monotonic()
+    result = copilot_plan_safe(plan_request)
+    steps.record(
+        "plan", f"Plano pela chave de API ({surface})",
+        "ok",
+        "Nenhuma conta de assinatura disponível." if candidates else None,
+        {}, _elapsed_ms(attempt_started),
+    )
+    return result
+
+
+def _routing_candidates() -> list[dict]:
+    """Contas de assinatura da EG, ordenadas por cota e política.
+
+    Falha de leitura não pode derrubar o copiloto: sem plano de roteamento
+    configurado, a lista vazia leva direto para a chave de API, que é o
+    comportamento de antes.
+    """
+    try:
+        with connect() as conn:
+            organization_id = workspaces_repo.find_eg_tenant_id(conn)
+            if not organization_id:
+                return []
+            rows = ai_routing_repo.list_copilot_candidates(conn, organization_id)
+        return rank_copilot_candidates([dict(row) for row in rows])
+    except Exception:
+        return []
 
 
 def _elapsed_ms(started: float) -> int:

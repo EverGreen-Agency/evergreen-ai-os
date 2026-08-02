@@ -82,6 +82,33 @@ def copilot_plan_safe(request: dict[str, Any]) -> dict[str, Any]:
     return plan(request, get_settings())
 
 
+def copilot_plan_routed_safe(request: dict[str, Any], candidate: dict[str, Any]) -> dict[str, Any]:
+    """Plano do copiloto por uma conta do plano de roteamento.
+
+    É o caminho que usa a COTA DA ASSINATURA (Codex CLI, Claude Code CLI,
+    Antigravity) em vez de queimar chave de API avulsa.
+    """
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.copilot import plan_via_candidate
+
+    return plan_via_candidate(request, candidate, get_settings())
+
+
+def rank_copilot_candidates(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Ordena as contas para o copiloto pelo mesmo critério dos workflows.
+
+    `task_kind = reasoning`: o copiloto interpreta e decide, não gera conteúdo
+    longo. Se houver política ativa para esse tipo, ela manda.
+    """
+    if not _ensure_worker_in_path():
+        return []
+    from bioma_worker.ai_routing import rank_candidates
+
+    return rank_candidates({"task_kind": "reasoning", "capability": "reasoning"}, rows)
+
+
 def copilot_plan_multistep_safe(request: dict[str, Any]) -> dict[str, Any]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
