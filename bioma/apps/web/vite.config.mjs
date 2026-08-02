@@ -46,6 +46,7 @@ const API_PREFIXES = [
   "/improvement-requests",
   "/integrations",
   "/organizations",
+  "/platform-studies",
   "/project-phases",
   "/project-plan-items",
   "/project-planning-intakes",

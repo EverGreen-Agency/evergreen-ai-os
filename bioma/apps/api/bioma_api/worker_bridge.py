@@ -91,6 +91,30 @@ def copilot_plan_multistep_safe(request: dict[str, Any]) -> dict[str, Any]:
     return plan_multistep(request, get_settings())
 
 
+def platform_study_analyze_safe(request: dict[str, Any]) -> dict[str, Any]:
+    """Pesquisa uma plataforma para decisão build vs. buy.
+
+    Deixa a exceção subir: sem chave ou sem página legível, o serviço vira erro
+    visível. Uma análise de "devo parar de construir o Bioma?" com resposta
+    inventada seria o pior tipo de dado errado — o que parece decisão.
+    """
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.platform_study import analyze
+
+    return analyze(request, get_settings())
+
+
+def platform_study_helpers() -> tuple[Any, Any]:
+    """`derive_name` e `test_priority` — puro cálculo, sem rede nem modelo."""
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.platform_study import derive_name, test_priority
+
+    return derive_name, test_priority
+
+
 def copilot_action_catalog() -> dict[str, Any]:
     """Catalogo de acoes do copiloto. Fonte unica: o worker. A API valida
     reversibilidade contra ele antes de executar qualquer coisa."""

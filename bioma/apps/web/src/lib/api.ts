@@ -1233,11 +1233,142 @@ export type CopilotSource = {
 };
 
 export type CopilotResponse = {
+  thread_id: string;
+  /** Chave da trilha desta resposta — abre a auditoria sem caçar por data. */
+  run_id: string;
   answer: string;
   generation_mode: "live" | "preview";
   confidence: "alta" | "media" | "baixa";
   actions: CopilotAction[];
   sources: CopilotSource[];
+};
+
+export type CopilotThreadSummary = {
+  id: string;
+  title: string | null;
+  surface: CopilotSurface;
+  workspace_id: string | null;
+  task_id: string | null;
+  status: "active" | "archived";
+  run_count: number;
+  last_message: string | null;
+  last_message_at: string;
+  created_at: string;
+};
+
+export type CopilotRunStep = {
+  position: number;
+  kind: "dossier" | "plan" | "action" | "persist";
+  label: string;
+  status: "ok" | "skipped" | "blocked" | "failed";
+  detail: string | null;
+  payload: Record<string, unknown>;
+  duration_ms: number | null;
+};
+
+/** O que aconteceu numa execução — não o que o copiloto disse que fez. */
+export type CopilotRunTrace = {
+  id: string;
+  thread_id: string;
+  message: string;
+  answer: string | null;
+  status: "running" | "completed" | "failed";
+  error_message: string | null;
+  generation_mode: "live" | "preview" | null;
+  provider: string | null;
+  model: string | null;
+  confidence: string | null;
+  dossier_summary: Record<string, unknown>;
+  memories_used: { scope: string; title: string }[];
+  skills_used: string[];
+  sources: { kind: string; reference: string }[];
+  actions: CopilotAction[];
+  input_tokens: number | null;
+  output_tokens: number | null;
+  /** Nulo = modelo sem preço conhecido. Nunca estimado. */
+  cost_cents: number | null;
+  duration_ms: number | null;
+  created_at: string;
+  steps: CopilotRunStep[];
+};
+
+export type CopilotUsageSummary = {
+  runs: number;
+  failed_runs: number;
+  preview_runs: number;
+  runs_without_cost: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_cents: number;
+  avg_duration_ms: number;
+};
+
+// --- Estudo de plataformas (build vs. buy) ---
+export type PlatformVerdict =
+  | "assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar";
+export type PlatformThreatLevel = "nenhuma" | "baixa" | "media" | "alta" | "critica";
+
+export type PlatformStudy = {
+  id: string;
+  url: string;
+  name: string;
+  targets: string[];
+  added_note: string | null;
+  research_status: "pending" | "researching" | "researched" | "failed";
+  research_error: string | null;
+  category: string | null;
+  one_liner: string | null;
+  pricing_summary: string | null;
+  findings: {
+    what_it_does?: string[];
+    who_its_for?: string;
+    has_that_bioma_lacks?: string[];
+    bioma_has_that_it_lacks?: string[];
+    recommended_verdict?: PlatformVerdict;
+    verdict_reason?: string;
+    worth_hands_on_test?: boolean;
+    open_questions?: string[];
+  };
+  /** URLs realmente buscadas — sem elas a análise é opinião sobre um domínio. */
+  sources: string[];
+  preview_image_url: string | null;
+  overlap_score: number | null;
+  threat_level: PlatformThreatLevel | null;
+  test_priority: number | null;
+  verdict: PlatformVerdict | null;
+  verdict_note: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  generation_mode: string | null;
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_cents: number | null;
+  researched_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlatformStudyOverview = {
+  total: number;
+  pending: number;
+  researched: number;
+  failed: number;
+  decided: number;
+  high_threat: number;
+  rethink_bioma: number;
+  cost_cents: number;
+  avg_overlap: number;
+  critical_overlap: {
+    id: string;
+    name: string;
+    url: string;
+    one_liner: string | null;
+    overlap_score: number | null;
+    threat_level: PlatformThreatLevel | null;
+    verdict: PlatformVerdict | null;
+  }[];
 };
 
 export type FathomMeeting = {
@@ -3263,9 +3394,37 @@ export const api = {
     surface: CopilotSurface;
     task_id?: string;
     workspace_id?: string;
+    thread_id?: string;
     allow_web_search?: boolean;
     dry_run?: boolean;
   }) => request<CopilotResponse>("/copilot", { method: "POST", body: JSON.stringify(payload) }),
+  copilotThreads: (status: "active" | "archived" = "active") =>
+    request<CopilotThreadSummary[]>(`/copilot/threads?status=${status}`),
+  copilotThreadRuns: (threadId: string) =>
+    request<CopilotRunTrace[]>(`/copilot/threads/${threadId}`),
+  archiveCopilotThread: (threadId: string) =>
+    request<CopilotThreadSummary>(`/copilot/threads/${threadId}/archive`, { method: "POST" }),
+  copilotRun: (runId: string) => request<CopilotRunTrace>(`/copilot/runs/${runId}`),
+  copilotUsage: (days = 30, mineOnly = false) =>
+    request<CopilotUsageSummary>(`/copilot/usage?days=${days}&mine_only=${mineOnly}`),
+
+  platformStudies: (filters: { research_status?: string; verdict?: string; target?: string } = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => value && params.set(key, value));
+    const query = params.toString();
+    return request<PlatformStudy[]>(`/platform-studies${query ? `?${query}` : ""}`);
+  },
+  platformStudyOverview: () => request<PlatformStudyOverview>("/platform-studies/overview"),
+  addPlatformStudy: (payload: { url: string; targets?: string[]; added_note?: string | null }) =>
+    request<PlatformStudy>("/platform-studies", { method: "POST", body: JSON.stringify(payload) }),
+  addPlatformStudies: (payload: { urls: string[]; targets?: string[] }) =>
+    request<PlatformStudy[]>("/platform-studies/bulk", { method: "POST", body: JSON.stringify(payload) }),
+  researchPlatformStudy: (studyId: string) =>
+    request<PlatformStudy>(`/platform-studies/${studyId}/research`, { method: "POST" }),
+  decidePlatformStudy: (studyId: string, payload: { verdict: PlatformVerdict; verdict_note?: string | null }) =>
+    request<PlatformStudy>(`/platform-studies/${studyId}/verdict`, { method: "POST", body: JSON.stringify(payload) }),
+  deletePlatformStudy: (studyId: string) =>
+    request<{ status: string }>(`/platform-studies/${studyId}`, { method: "DELETE" }),
   fathomMeetings: (limit = 20) =>
     request<FathomMeeting[]>(`/backoffice/sales-copilot/fathom/meetings?limit=${limit}`),
   importFathomMeeting: (sessionId: string, recordingId: number, analyzeAfterImport = true) =>

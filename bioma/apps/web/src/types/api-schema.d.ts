@@ -3370,6 +3370,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/platform-studies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Platforms
+         * @description Fila ordenada por prioridade de teste — quem pode mudar a estratégia primeiro.
+         */
+        get: operations["list_platforms_platform_studies_get"];
+        put?: never;
+        /** Add Platform */
+        post: operations["add_platform_platform_studies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Many
+         * @description Cola a lista inteira. Captura é barata; a pesquisa é disparada uma a uma.
+         */
+        post: operations["add_many_platform_studies_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description Agregado: quantas ameaçam o escopo do Bioma, e quais.
+         */
+        get: operations["overview_platform_studies_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Platform */
+        get: operations["get_platform_platform_studies__study_id__get"];
+        put?: never;
+        post?: never;
+        /** Remove */
+        delete: operations["remove_platform_studies__study_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Research
+         * @description Busca as páginas públicas e produz a leitura estruturada com fontes.
+         */
+        post: operations["research_platform_studies__study_id__research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}/verdict": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_platform_studies__study_id__verdict_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/project-phases/{phase_id}": {
         parameters: {
             query?: never;
@@ -7267,6 +7383,26 @@ export interface components {
             /** Runs Without Cost */
             runs_without_cost: number;
         };
+        /** CriticalOverlapItem */
+        CriticalOverlapItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** One Liner */
+            one_liner: string | null;
+            /** Overlap Score */
+            overlap_score: number | null;
+            /** Threat Level */
+            threat_level: ("nenhuma" | "baixa" | "media" | "alta" | "critica") | null;
+            /** Url */
+            url: string;
+            /** Verdict */
+            verdict: ("assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar") | null;
+        };
         /** CurrentUserResponse */
         CurrentUserResponse: {
             /** Display Name */
@@ -10043,6 +10179,133 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /**
+         * PlatformStudyBulkCreate
+         * @description Colar a lista inteira de uma vez — é assim que ela chega na prática.
+         */
+        PlatformStudyBulkCreate: {
+            /** Targets */
+            targets?: ("bioma" | "foton" | "eg")[];
+            /** Urls */
+            urls: string[];
+        };
+        /** PlatformStudyCreate */
+        PlatformStudyCreate: {
+            /** Added Note */
+            added_note?: string | null;
+            /** Targets */
+            targets?: ("bioma" | "foton" | "eg")[];
+            /** Url */
+            url: string;
+        };
+        /** PlatformStudyOverview */
+        PlatformStudyOverview: {
+            /** Avg Overlap */
+            avg_overlap: number;
+            /** Cost Cents */
+            cost_cents: number;
+            /** Critical Overlap */
+            critical_overlap?: components["schemas"]["CriticalOverlapItem"][];
+            /** Decided */
+            decided: number;
+            /** Failed */
+            failed: number;
+            /** High Threat */
+            high_threat: number;
+            /** Pending */
+            pending: number;
+            /** Researched */
+            researched: number;
+            /** Rethink Bioma */
+            rethink_bioma: number;
+            /** Total */
+            total: number;
+        };
+        /** PlatformStudySummary */
+        PlatformStudySummary: {
+            /** Added Note */
+            added_note: string | null;
+            /** Category */
+            category: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By */
+            decided_by: string | null;
+            /** Findings */
+            findings?: {
+                [key: string]: unknown;
+            };
+            /** Generation Mode */
+            generation_mode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Model */
+            model: string | null;
+            /** Name */
+            name: string;
+            /** One Liner */
+            one_liner: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Overlap Score */
+            overlap_score: number | null;
+            /** Preview Image Url */
+            preview_image_url: string | null;
+            /** Pricing Summary */
+            pricing_summary: string | null;
+            /** Provider */
+            provider: string | null;
+            /** Research Error */
+            research_error: string | null;
+            /**
+             * Research Status
+             * @enum {string}
+             */
+            research_status: "pending" | "researching" | "researched" | "failed";
+            /** Researched At */
+            researched_at: string | null;
+            /** Sources */
+            sources?: string[];
+            /** Targets */
+            targets: string[];
+            /** Test Priority */
+            test_priority: number | null;
+            /** Threat Level */
+            threat_level: ("nenhuma" | "baixa" | "media" | "alta" | "critica") | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+            /** Verdict */
+            verdict: ("assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar") | null;
+            /** Verdict Note */
+            verdict_note: string | null;
+        };
+        /** PlatformStudyVerdict */
+        PlatformStudyVerdict: {
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar";
+            /** Verdict Note */
+            verdict_note?: string | null;
         };
         /**
          * PortfolioPerformanceRow
@@ -21642,6 +21905,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeatureFlag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platforms_platform_studies_get: {
+        parameters: {
+            query?: {
+                research_status?: string | null;
+                verdict?: string | null;
+                target?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_platform_platform_studies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_many_platform_studies_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyBulkCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_platform_studies_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudyOverview"];
+                };
+            };
+        };
+    };
+    get_platform_platform_studies__study_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_platform_studies__study_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_platform_studies__study_id__research_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_platform_studies__study_id__verdict_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyVerdict"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
                 };
             };
             /** @description Validation Error */

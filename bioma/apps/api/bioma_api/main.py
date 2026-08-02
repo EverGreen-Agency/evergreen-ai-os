@@ -30,6 +30,7 @@ from bioma_api.routers import (
     oauth,
     passwords,
     performance,
+    platform_studies,
     projects,
     rh,
     teams,
@@ -120,6 +121,7 @@ app.include_router(proposals.public_router)
 app.include_router(proposal_lifecycle.router)
 app.include_router(proposal_lifecycle.public_router)
 app.include_router(sales_copilot.router)
+app.include_router(platform_studies.router)
 
 
 @app.get("/")

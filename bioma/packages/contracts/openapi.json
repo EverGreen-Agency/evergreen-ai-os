@@ -5909,6 +5909,94 @@
         "title": "CopilotUsageSummary",
         "type": "object"
       },
+      "CriticalOverlapItem": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "one_liner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "One Liner"
+          },
+          "overlap_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Score"
+          },
+          "threat_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "nenhuma",
+                  "baixa",
+                  "media",
+                  "alta",
+                  "critica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Level"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "assinar",
+                  "integrar",
+                  "absorver",
+                  "comprar",
+                  "monitorar",
+                  "descartar",
+                  "repensar"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "one_liner",
+          "overlap_score",
+          "threat_level",
+          "verdict"
+        ],
+        "title": "CriticalOverlapItem",
+        "type": "object"
+      },
       "CurrentUserResponse": {
         "properties": {
           "display_name": {
@@ -13421,6 +13509,496 @@
           "updated_at"
         ],
         "title": "PlanningPortfolioItem",
+        "type": "object"
+      },
+      "PlatformStudyBulkCreate": {
+        "description": "Colar a lista inteira de uma vez — é assim que ela chega na prática.",
+        "properties": {
+          "targets": {
+            "items": {
+              "enum": [
+                "bioma",
+                "foton",
+                "eg"
+              ],
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 300,
+            "minItems": 1,
+            "title": "Urls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "urls"
+        ],
+        "title": "PlatformStudyBulkCreate",
+        "type": "object"
+      },
+      "PlatformStudyCreate": {
+        "properties": {
+          "added_note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Note"
+          },
+          "targets": {
+            "items": {
+              "enum": [
+                "bioma",
+                "foton",
+                "eg"
+              ],
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "url": {
+            "maxLength": 500,
+            "minLength": 4,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "PlatformStudyCreate",
+        "type": "object"
+      },
+      "PlatformStudyOverview": {
+        "properties": {
+          "avg_overlap": {
+            "title": "Avg Overlap",
+            "type": "integer"
+          },
+          "cost_cents": {
+            "title": "Cost Cents",
+            "type": "integer"
+          },
+          "critical_overlap": {
+            "items": {
+              "$ref": "#/components/schemas/CriticalOverlapItem"
+            },
+            "title": "Critical Overlap",
+            "type": "array"
+          },
+          "decided": {
+            "title": "Decided",
+            "type": "integer"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "high_threat": {
+            "title": "High Threat",
+            "type": "integer"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          },
+          "researched": {
+            "title": "Researched",
+            "type": "integer"
+          },
+          "rethink_bioma": {
+            "title": "Rethink Bioma",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "pending",
+          "researched",
+          "failed",
+          "decided",
+          "high_threat",
+          "rethink_bioma",
+          "cost_cents",
+          "avg_overlap"
+        ],
+        "title": "PlatformStudyOverview",
+        "type": "object"
+      },
+      "PlatformStudySummary": {
+        "properties": {
+          "added_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Note"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "findings": {
+            "additionalProperties": true,
+            "title": "Findings",
+            "type": "object"
+          },
+          "generation_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Mode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "one_liner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "One Liner"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "overlap_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Score"
+          },
+          "preview_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Image Url"
+          },
+          "pricing_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Summary"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "research_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Error"
+          },
+          "research_status": {
+            "enum": [
+              "pending",
+              "researching",
+              "researched",
+              "failed"
+            ],
+            "title": "Research Status",
+            "type": "string"
+          },
+          "researched_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Researched At"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "test_priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Priority"
+          },
+          "threat_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "nenhuma",
+                  "baixa",
+                  "media",
+                  "alta",
+                  "critica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Level"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "assinar",
+                  "integrar",
+                  "absorver",
+                  "comprar",
+                  "monitorar",
+                  "descartar",
+                  "repensar"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "verdict_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict Note"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "name",
+          "targets",
+          "added_note",
+          "research_status",
+          "research_error",
+          "category",
+          "one_liner",
+          "pricing_summary",
+          "preview_image_url",
+          "overlap_score",
+          "threat_level",
+          "test_priority",
+          "verdict",
+          "verdict_note",
+          "decided_by",
+          "decided_at",
+          "generation_mode",
+          "provider",
+          "model",
+          "input_tokens",
+          "output_tokens",
+          "cost_cents",
+          "researched_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PlatformStudySummary",
+        "type": "object"
+      },
+      "PlatformStudyVerdict": {
+        "properties": {
+          "verdict": {
+            "enum": [
+              "assinar",
+              "integrar",
+              "absorver",
+              "comprar",
+              "monitorar",
+              "descartar",
+              "repensar"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          },
+          "verdict_note": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict Note"
+          }
+        },
+        "required": [
+          "verdict"
+        ],
+        "title": "PlatformStudyVerdict",
         "type": "object"
       },
       "PortfolioPerformanceRow": {
@@ -36483,6 +37061,384 @@
         "summary": "Clear Flag",
         "tags": [
           "feature-flags"
+        ]
+      }
+    },
+    "/platform-studies": {
+      "get": {
+        "description": "Fila ordenada por prioridade de teste — quem pode mudar a estratégia primeiro.",
+        "operationId": "list_platforms_platform_studies_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "research_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Research Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "verdict",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Verdict"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformStudySummary"
+                  },
+                  "title": "Response List Platforms Platform Studies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Platforms",
+        "tags": [
+          "platform-studies"
+        ]
+      },
+      "post": {
+        "operationId": "add_platform_platform_studies_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Platform",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/bulk": {
+      "post": {
+        "description": "Cola a lista inteira. Captura é barata; a pesquisa é disparada uma a uma.",
+        "operationId": "add_many_platform_studies_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyBulkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformStudySummary"
+                  },
+                  "title": "Response Add Many Platform Studies Bulk Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Many",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/overview": {
+      "get": {
+        "description": "Agregado: quantas ameaçam o escopo do Bioma, e quais.",
+        "operationId": "overview_platform_studies_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudyOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Overview",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}": {
+      "delete": {
+        "operationId": "remove_platform_studies__study_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Platform Studies  Study Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove",
+        "tags": [
+          "platform-studies"
+        ]
+      },
+      "get": {
+        "operationId": "get_platform_platform_studies__study_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Platform",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}/research": {
+      "post": {
+        "description": "Busca as páginas públicas e produz a leitura estruturada com fontes.",
+        "operationId": "research_platform_studies__study_id__research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}/verdict": {
+      "post": {
+        "operationId": "decide_platform_studies__study_id__verdict_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyVerdict"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "platform-studies"
         ]
       }
     },
