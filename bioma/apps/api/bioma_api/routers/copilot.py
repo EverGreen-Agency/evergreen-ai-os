@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.copilot import (
+    CopilotAttachment,
     CopilotCommand,
     CopilotPlan,
     CopilotPlanRequest,
@@ -15,6 +16,7 @@ from bioma_api.schemas.copilot import (
     CopilotUsageSummary,
 )
 from bioma_api.services import copilot as service
+from bioma_api.services import copilot_attachments as attachments_service
 from bioma_api.services import copilot_plans as plans_service
 from bioma_api.services import copilot_traces as traces_service
 
@@ -40,6 +42,39 @@ def run_copilot(
 ) -> CopilotResponse:
     """Interpreta a mensagem, responde com fontes e executa só o reversível."""
     return service.run(payload, user)
+
+
+# ------------------------------------------------------------- anexos
+
+
+@router.post("/attachments", response_model=CopilotAttachment, status_code=201)
+def upload_attachment(
+    file: UploadFile = File(...),
+    thread_id: UUID | None = Form(default=None),
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> CopilotAttachment:
+    """Anexa imagem, áudio ou documento. Extrai o texto na hora, quando dá.
+
+    Extrair no upload (e não no envio) faz o usuário descobrir agora que o PDF
+    é escaneado — em vez de perguntar algo sobre ele e receber resposta vaga.
+    """
+    return attachments_service.upload(file, thread_id, user)
+
+
+@router.get("/attachments/{attachment_id}/download")
+def download_attachment(
+    attachment_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    return attachments_service.download_url(attachment_id, user)
+
+
+@router.delete("/attachments/{attachment_id}")
+def delete_attachment(
+    attachment_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> dict[str, str]:
+    return attachments_service.remove(attachment_id, user)
 
 
 # ------------------------------------------------- conversas e auditoria

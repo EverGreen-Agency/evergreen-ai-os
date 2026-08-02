@@ -2,24 +2,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Archive, ChevronDown, ChevronRight, Clock, ExternalLink, Loader2,
-  MessageSquarePlus, PanelRightClose, Send, Sparkles, X,
+  Archive, ChevronDown, ChevronRight, Clock, ExternalLink, FileText, Image as ImageIcon,
+  Loader2, MessageSquarePlus, Mic, Paperclip, PanelRightClose, Send, Sparkles, TriangleAlert, X,
 } from "lucide-react";
 
-import { api, type CopilotRunTrace, type CopilotSurface } from "../lib/api";
+import { api, type CopilotAttachment, type CopilotRunTrace, type CopilotSurface } from "../lib/api";
 import { useUiStore } from "../store/uiStore";
 
 /**
  * Painel fixo do copiloto — a "sala" da conversa.
  *
- * Decisão do Eduardo (DECISOES-ABERTAS #3): painel lateral colapsável + `Cmd+K`
+ * Decisão do Eduardo (DECISOES-ABERTAS #3): painel lateral colapsável + `Ctrl+K`
  * como porta de entrada. Não são alternativas — o atalho abre o painel com o
  * foco no campo, como Gemini/Docs e Cursor fazem.
  *
  * A conversa acompanha você ao trocar de tela: o fio do assunto continua e o
- * escopo (workspace/tarefa) passa a ser o da tela nova. A alternativa —
- * conversa por tela — faz perder o assunto a cada navegação, que é o problema
- * que este painel existe para resolver.
+ * escopo (workspace/tarefa) passa a ser o da tela nova.
  */
 
 const STORAGE_KEY = "bioma_copilot_panel_open";
@@ -33,6 +31,36 @@ function formatCost(cents: number | null) {
   // Nulo é "modelo sem preço na tabela", não "de graça". Dizer isso importa.
   if (cents === null) return "sem preço na tabela";
   return `US$ ${(cents / 100).toFixed(4)}`;
+}
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const KIND_ICON = { image: ImageIcon, audio: Mic, document: FileText } as const;
+
+/**
+ * Markdown mínimo: negrito, itálico, código e lista.
+ *
+ * Uma biblioteca completa traria sanitização, tabelas e 40 KB para renderizar o
+ * que o copiloto de fato devolve. Escapamos o HTML primeiro — a resposta vem de
+ * um modelo, e modelo repete o que leu, inclusive `<script>` que estava num
+ * anexo.
+ */
+function renderAnswer(text: string) {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const html = escaped
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|\s)\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/^[-*]\s+(.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g, "<ul>$1</ul>");
+  return { __html: html.replace(/\n{2,}/g, "<br/><br/>").replace(/\n/g, "<br/>") };
 }
 
 /** Escopo derivado da rota: o copiloto enxerga a tela em que você está. */
@@ -56,6 +84,31 @@ function useScopeFromRoute(): { surface: CopilotSurface; workspaceId?: string; l
   }, [location.pathname, params.clientId, selectedClientId, workspaces]);
 }
 
+function AttachmentChip({
+  attachment,
+  onRemove,
+}: {
+  attachment: CopilotAttachment;
+  onRemove?: () => void;
+}) {
+  const Icon = KIND_ICON[attachment.kind];
+  // Anexo que o copiloto não consegue ler continua visível, com o motivo. Sumir
+  // com ele faria a pessoa achar que foi lido.
+  const unreadable = !attachment.has_text && attachment.kind !== "image";
+  return (
+    <span className={`copilot-chip ${unreadable ? "warn" : ""}`} title={attachment.extraction_error ?? undefined}>
+      {unreadable ? <TriangleAlert size={12} /> : <Icon size={12} />}
+      <span className="copilot-chip-name">{attachment.file_name}</span>
+      <small>{formatSize(attachment.size_bytes)}</small>
+      {onRemove && (
+        <button type="button" onClick={onRemove} aria-label={`Remover ${attachment.file_name}`}>
+          <X size={11} />
+        </button>
+      )}
+    </span>
+  );
+}
+
 function StepList({ trace }: { trace: CopilotRunTrace }) {
   const statusColor: Record<string, string> = {
     ok: "#2e9e5b", skipped: "var(--text-dim)", blocked: "#ffab00", failed: "#ff5252",
@@ -65,7 +118,7 @@ function StepList({ trace }: { trace: CopilotRunTrace }) {
       <div className="copilot-trace-meta">
         <span><Clock size={12} /> {formatDuration(trace.duration_ms)}</span>
         {trace.generation_mode === "preview" ? (
-          <span title="Sem OPENAI_API_KEY: resposta gerada localmente, nenhum token gasto.">
+          <span title="Sem provedor configurado: resposta gerada localmente, nenhum token gasto.">
             prévia local
           </span>
         ) : (
@@ -119,16 +172,20 @@ export function CopilotPanel() {
   });
   const [threadId, setThreadId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [pending, setPending] = useState<CopilotAttachment[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [openTrace, setOpenTrace] = useState<string | null>(null);
   const [showThreads, setShowThreads] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, String(isOpen)); } catch { /* modo privado */ }
   }, [isOpen]);
 
-  // `Cmd+K` (ou `Ctrl+K`) abre o painel já com o foco no campo — é a porta.
+  // `Ctrl+K` (ou `Cmd+K`) abre o painel já com o foco no campo — é a porta.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -156,6 +213,15 @@ export function CopilotPanel() {
     enabled: isOpen && Boolean(threadId),
   });
 
+  const upload = useMutation({
+    mutationFn: (file: File) => api.uploadCopilotAttachment(file, threadId ?? undefined),
+    onSuccess: (attachment) => {
+      setUploadError(null);
+      setPending((current) => [...current, attachment]);
+    },
+    onError: (error: Error) => setUploadError(error.message),
+  });
+
   const send = useMutation({
     mutationFn: (text: string) =>
       api.runCopilot({
@@ -163,10 +229,12 @@ export function CopilotPanel() {
         surface: scope.surface,
         workspace_id: scope.workspaceId,
         thread_id: threadId ?? undefined,
+        attachment_ids: pending.map((item) => item.id),
       }),
     onSuccess: async (response) => {
       setThreadId(response.thread_id);
       setMessage("");
+      setPending([]);
       await queryClient.invalidateQueries({ queryKey: ["copilot-thread", response.thread_id] });
       await queryClient.invalidateQueries({ queryKey: ["copilot-threads"] });
       if (response.actions.some((action) => action.status === "executed")) {
@@ -188,6 +256,16 @@ export function CopilotPanel() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [runs.data?.length, send.isPending]);
 
+  function attachFiles(files: FileList | File[] | null) {
+    if (!files) return;
+    for (const file of Array.from(files)) upload.mutate(file);
+  }
+
+  function submit() {
+    const text = message.trim();
+    if (text && !send.isPending) send.mutate(text);
+  }
+
   if (!isOpen) {
     return (
       <button
@@ -202,7 +280,16 @@ export function CopilotPanel() {
   }
 
   return (
-    <aside className="copilot-panel">
+    <aside
+      className={`copilot-panel ${isDragging ? "dragging" : ""}`}
+      onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setIsDragging(false);
+        attachFiles(event.dataTransfer.files);
+      }}
+    >
       <header className="copilot-panel-header">
         <div>
           <strong><Sparkles size={15} /> Copiloto</strong>
@@ -257,12 +344,30 @@ export function CopilotPanel() {
               <li>“quais entregas deste cliente estão atrasadas?”</li>
               <li>“resume o que aconteceu nesta tarefa”</li>
             </ul>
+            <p className="copilot-intro-hint">
+              Arraste um arquivo, cole uma imagem, ou use o clipe. Documento vira texto e funciona
+              em qualquer provedor.
+            </p>
           </div>
         )}
 
         {runs.data?.map((trace) => (
           <div className="copilot-turn" key={trace.id}>
-            <div className="copilot-message user">{trace.message}</div>
+            <div className="copilot-message user">
+              {trace.message}
+              {trace.attachments.length > 0 && (
+                <div className="copilot-chips">
+                  {trace.attachments.map((item) => {
+                    const Icon = KIND_ICON[item.kind as keyof typeof KIND_ICON] ?? FileText;
+                    return (
+                      <span className="copilot-chip small" key={item.id}>
+                        <Icon size={11} /> {item.file_name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {trace.status === "failed" ? (
               <div className="copilot-message error">
@@ -270,7 +375,13 @@ export function CopilotPanel() {
               </div>
             ) : (
               <div className="copilot-message agent">
-                <p>{trace.answer}</p>
+                {trace.generation_mode === "preview" && (
+                  <div className="copilot-preview-flag">
+                    Prévia local — nenhum modelo foi consultado. Configure uma conta em
+                    Operação&nbsp;EG&nbsp;→&nbsp;IA para usar a cota da sua assinatura.
+                  </div>
+                )}
+                <div className="copilot-answer" dangerouslySetInnerHTML={renderAnswer(trace.answer ?? "")} />
 
                 {trace.actions.length > 0 && (
                   <ul className="copilot-actions">
@@ -328,30 +439,74 @@ export function CopilotPanel() {
 
       <form
         className="copilot-composer"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const text = message.trim();
-          if (text) send.mutate(text);
-        }}
+        onSubmit={(event) => { event.preventDefault(); submit(); }}
       >
-        <textarea
-          ref={inputRef}
-          rows={2}
-          value={message}
-          placeholder="Pergunte ou peça algo…  (Ctrl+K)"
-          onChange={(event) => setMessage(event.target.value)}
-          onKeyDown={(event) => {
-            // Enter envia, Shift+Enter quebra linha — o padrão que a mão espera.
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-              const text = message.trim();
-              if (text && !send.isPending) send.mutate(text);
-            }
-          }}
-        />
-        <button type="submit" disabled={send.isPending || !message.trim()} title="Enviar">
-          <Send size={15} />
-        </button>
+        {(pending.length > 0 || upload.isPending || uploadError) && (
+          <div className="copilot-chips">
+            {pending.map((attachment) => (
+              <AttachmentChip
+                key={attachment.id}
+                attachment={attachment}
+                onRemove={() => {
+                  setPending((current) => current.filter((item) => item.id !== attachment.id));
+                  void api.deleteCopilotAttachment(attachment.id).catch(() => undefined);
+                }}
+              />
+            ))}
+            {upload.isPending && (
+              <span className="copilot-chip"><Loader2 size={11} className="spin" /> enviando…</span>
+            )}
+            {uploadError && (
+              <span className="copilot-chip warn">
+                <TriangleAlert size={11} /> {uploadError}
+                <button type="button" onClick={() => setUploadError(null)}><X size={11} /></button>
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="copilot-composer-row">
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(event) => { attachFiles(event.target.files); event.target.value = ""; }}
+          />
+          <button
+            type="button"
+            className="copilot-attach"
+            onClick={() => fileRef.current?.click()}
+            title="Anexar arquivo, imagem ou áudio"
+          >
+            <Paperclip size={15} />
+          </button>
+          <textarea
+            ref={inputRef}
+            rows={2}
+            value={message}
+            placeholder="Pergunte ou peça algo…  (Ctrl+K)"
+            onChange={(event) => setMessage(event.target.value)}
+            onPaste={(event) => {
+              // Colar print é como a maioria manda imagem — mais que arrastar.
+              const files = Array.from(event.clipboardData.files);
+              if (files.length) {
+                event.preventDefault();
+                attachFiles(files);
+              }
+            }}
+            onKeyDown={(event) => {
+              // Enter envia, Shift+Enter quebra linha — o padrão que a mão espera.
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+          />
+          <button type="submit" disabled={send.isPending || !message.trim()} title="Enviar">
+            <Send size={15} />
+          </button>
+        </div>
       </form>
     </aside>
   );

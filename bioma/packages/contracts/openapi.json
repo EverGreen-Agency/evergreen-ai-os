@@ -2688,6 +2688,32 @@
         "title": "Body_upload_attachment_backoffice_wiki_documents__document_id__attachments_post",
         "type": "object"
       },
+      "Body_upload_attachment_copilot_attachments_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_attachment_copilot_attachments_post",
+        "type": "object"
+      },
       "Body_upload_file_clients__client_id__files_post": {
         "properties": {
           "file": {
@@ -5112,6 +5138,106 @@
         "title": "CopilotAction",
         "type": "object"
       },
+      "CopilotAttachment": {
+        "description": "Arquivo anexado a uma mensagem.\n\n`has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:\ndocumento vira texto e roda em qualquer provedor; imagem precisa de modelo\ncom visão; áudio precisa de transcrição.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "extraction_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Error"
+          },
+          "extraction_status": {
+            "enum": [
+              "pending",
+              "extracted",
+              "unsupported",
+              "failed",
+              "not_needed"
+            ],
+            "title": "Extraction Status",
+            "type": "string"
+          },
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "has_text": {
+            "title": "Has Text",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "image",
+              "audio",
+              "document"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "truncated_chars": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Truncated Chars"
+          }
+        },
+        "required": [
+          "id",
+          "thread_id",
+          "file_name",
+          "content_type",
+          "size_bytes",
+          "kind",
+          "extraction_status",
+          "extraction_error",
+          "truncated_chars",
+          "has_text",
+          "created_at"
+        ],
+        "title": "CopilotAttachment",
+        "type": "object"
+      },
       "CopilotCommand": {
         "description": "Item do menu de `/` na interface.",
         "properties": {
@@ -5340,6 +5466,15 @@
             "title": "Allow Web Search",
             "type": "boolean"
           },
+          "attachment_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Attachment Ids",
+            "type": "array"
+          },
           "dry_run": {
             "default": false,
             "title": "Dry Run",
@@ -5551,6 +5686,14 @@
               }
             ],
             "title": "Answer"
+          },
+          "attachments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Attachments",
+            "type": "array"
           },
           "confidence": {
             "anyOf": [
@@ -35611,6 +35754,142 @@
           }
         },
         "summary": "Run Copilot",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/attachments": {
+      "post": {
+        "description": "Anexa imagem, áudio ou documento. Extrai o texto na hora, quando dá.\n\nExtrair no upload (e não no envio) faz o usuário descobrir agora que o PDF\né escaneado — em vez de perguntar algo sobre ele e receber resposta vaga.",
+        "operationId": "upload_attachment_copilot_attachments_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_attachment_copilot_attachments_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotAttachment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Attachment",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/attachments/{attachment_id}": {
+      "delete": {
+        "operationId": "delete_attachment_copilot_attachments__attachment_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attachment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attachment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Attachment Copilot Attachments  Attachment Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Attachment",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/attachments/{attachment_id}/download": {
+      "get": {
+        "operationId": "download_attachment_copilot_attachments__attachment_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attachment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attachment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Download Attachment Copilot Attachments  Attachment Id  Download Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Attachment",
         "tags": [
           "copilot"
         ]

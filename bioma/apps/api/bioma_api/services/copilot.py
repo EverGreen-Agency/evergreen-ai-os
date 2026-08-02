@@ -25,11 +25,13 @@ from bioma_api.model_pricing import cost_cents
 from bioma_api.repositories import agent_memory as memory_repo
 from bioma_api.repositories import ai_routing as ai_routing_repo
 from bioma_api.repositories import client_hub as client_hub_repo
+from bioma_api.repositories import copilot_attachments as attachments_repo
 from bioma_api.repositories import copilot_traces as trace_repo
 from bioma_api.repositories import improvement_requests as improvement_repo
 from bioma_api.repositories import knowledge as knowledge_repo
 from bioma_api.repositories import tasks as tasks_repo
 from bioma_api.repositories import workspaces as workspaces_repo
+from bioma_api.services import copilot_attachments as attachments_service
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.copilot import (
     CopilotAction,
@@ -70,6 +72,21 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
     # uma thread órfã apontando para um id que não existe.
     started = time.monotonic()
     dossier, context, task_row = _build_dossier(payload, user)
+
+    # Anexos entram no dossiê como conteúdo, e na trilha como índice. Documento
+    # vira texto e roda em qualquer provedor — inclusive na CLI, na cota da
+    # assinatura. Imagem e áudio entram com o motivo de não terem sido lidos,
+    # porque o modelo precisa saber o que NÃO tem: sem isso ele responde sobre
+    # o arquivo como se tivesse lido.
+    attachments_for_trace: list[dict] = []
+    if payload.attachment_ids:
+        with connect() as conn:
+            for_prompt, attachments_for_trace = attachments_service.load_for_prompt(
+                conn, payload.attachment_ids, user.id
+            )
+        if for_prompt:
+            dossier["attachments"] = for_prompt
+
     dossier_ms = _elapsed_ms(started)
 
     # A conversa é contínua: sem thread, cada pergunta começaria do zero e o
@@ -199,6 +216,7 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
                 "skills_used": used_skill_names,
                 "sources": [source.model_dump() for source in sources],
                 "actions": [action.model_dump() for action in actions],
+                "attachments": attachments_for_trace,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
                 "cost_cents": (
@@ -312,6 +330,9 @@ def _open_run(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[dict,
                 conn, user.id, payload.surface, payload.workspace_id, payload.task_id, payload.message
             )
         trace_repo.touch_thread(conn, thread["id"], payload.message)
+        # O anexo é enviado enquanto a pessoa ainda escreve, antes de a thread
+        # existir. Nasce solto e é adotado aqui.
+        attachments_repo.bind_to_thread(conn, payload.attachment_ids, thread["id"])
         run_row = trace_repo.start_run(
             conn,
             {
@@ -362,6 +383,7 @@ def _dossier_summary(dossier: dict) -> dict:
         "approved_skills": len(dossier.get("approved_skills") or []),
         "bioma_features": len(dossier.get("bioma_features") or []),
         "knowledge_docs": len(dossier.get("knowledge_index") or []),
+        "attachments": len(dossier.get("attachments") or []),
         "portfolio_snapshot": dossier.get("portfolio") or {},
     }
 

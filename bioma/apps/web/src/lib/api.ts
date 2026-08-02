@@ -1243,6 +1243,21 @@ export type CopilotResponse = {
   sources: CopilotSource[];
 };
 
+export type CopilotAttachment = {
+  id: string;
+  thread_id: string | null;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+  kind: "image" | "audio" | "document";
+  extraction_status: "pending" | "extracted" | "unsupported" | "failed" | "not_needed";
+  extraction_error: string | null;
+  truncated_chars: number | null;
+  /** Se falso, o copiloto não consegue ler o conteúdo — só sabe que existe. */
+  has_text: boolean;
+  created_at: string;
+};
+
 export type CopilotThreadSummary = {
   id: string;
   title: string | null;
@@ -1283,6 +1298,13 @@ export type CopilotRunTrace = {
   skills_used: string[];
   sources: { kind: string; reference: string }[];
   actions: CopilotAction[];
+  /** O que estava anexado NAQUELE turno — anexar depois não reescreve a resposta. */
+  attachments: {
+    id: string;
+    file_name: string;
+    kind: string;
+    extraction_status: string;
+  }[];
   input_tokens: number | null;
   output_tokens: number | null;
   /** Nulo = modelo sem preço conhecido. Nunca estimado. */
@@ -3395,9 +3417,20 @@ export const api = {
     task_id?: string;
     workspace_id?: string;
     thread_id?: string;
+    attachment_ids?: string[];
     allow_web_search?: boolean;
     dry_run?: boolean;
   }) => request<CopilotResponse>("/copilot", { method: "POST", body: JSON.stringify(payload) }),
+  uploadCopilotAttachment: (file: File, threadId?: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (threadId) formData.append("thread_id", threadId);
+    return request<CopilotAttachment>("/copilot/attachments", { method: "POST", body: formData });
+  },
+  deleteCopilotAttachment: (attachmentId: string) =>
+    request<{ status: string }>(`/copilot/attachments/${attachmentId}`, { method: "DELETE" }),
+  copilotAttachmentUrl: (attachmentId: string) =>
+    request<{ url: string }>(`/copilot/attachments/${attachmentId}/download`),
   copilotThreads: (status: "active" | "archived" = "active") =>
     request<CopilotThreadSummary[]>(`/copilot/threads?status=${status}`),
   copilotThreadRuns: (threadId: string) =>

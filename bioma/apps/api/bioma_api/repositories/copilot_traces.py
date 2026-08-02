@@ -122,6 +122,7 @@ def finish_run(conn, run_id: UUID, data: dict[str, Any]) -> None:
               answer = %s, confidence = %s, generation_mode = %s, provider = %s, model = %s,
               status = %s, error_message = %s,
               dossier_summary = %s, memories_used = %s, skills_used = %s, sources = %s, actions = %s,
+              attachments = %s,
               input_tokens = %s, output_tokens = %s, cost_cents = %s, duration_ms = %s
             where id = %s
             """,
@@ -138,6 +139,7 @@ def finish_run(conn, run_id: UUID, data: dict[str, Any]) -> None:
                 Jsonb(data.get("skills_used") or []),
                 Jsonb(data.get("sources") or []),
                 Jsonb(data.get("actions") or []),
+                Jsonb(data.get("attachments") or []),
                 data.get("input_tokens"),
                 data.get("output_tokens"),
                 data.get("cost_cents"),

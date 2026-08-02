@@ -8,6 +8,26 @@ CopilotSurface = Literal["task", "workspace"]
 ActionStatus = Literal["executed", "proposed", "pending_confirmation", "failed"]
 
 
+class CopilotAttachment(BaseModel):
+    """Arquivo anexado a uma mensagem.
+
+    `has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:
+    documento vira texto e roda em qualquer provedor; imagem precisa de modelo
+    com visão; áudio precisa de transcrição.
+    """
+    id: UUID
+    thread_id: UUID | None
+    file_name: str
+    content_type: str
+    size_bytes: int
+    kind: Literal["image", "audio", "document"]
+    extraction_status: Literal["pending", "extracted", "unsupported", "failed", "not_needed"]
+    extraction_error: str | None
+    truncated_chars: int | None
+    has_text: bool
+    created_at: datetime
+
+
 class CopilotRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     surface: CopilotSurface = "workspace"
@@ -15,6 +35,8 @@ class CopilotRequest(BaseModel):
     workspace_id: UUID | None = None
     # Continua uma conversa existente. Ausente = abre uma nova.
     thread_id: UUID | None = None
+    # Anexos enviados antes desta mensagem, adotados pela thread no envio.
+    attachment_ids: list[UUID] = Field(default_factory=list, max_length=10)
     # Busca na web é permitida por decisão do Eduardo, mas sempre com fonte.
     allow_web_search: bool = True
     # dry_run devolve o plano sem executar nada — usado na pré-visualização.
@@ -92,6 +114,9 @@ class CopilotRunTrace(BaseModel):
     skills_used: list[str] = Field(default_factory=list)
     sources: list[dict[str, Any]] = Field(default_factory=list)
     actions: list[dict[str, Any]] = Field(default_factory=list)
+    # Índice do que estava anexado NAQUELE turno. Anexar depois não pode
+    # reescrever a história de uma resposta dada sem o arquivo.
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
     input_tokens: int | None
     output_tokens: int | None
     # Nulo = modelo sem preço conhecido em `model_pricing.py`. Nunca estimado.

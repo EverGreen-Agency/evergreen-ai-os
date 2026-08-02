@@ -2906,6 +2906,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Attachment
+         * @description Anexa imagem, áudio ou documento. Extrai o texto na hora, quando dá.
+         *
+         *     Extrair no upload (e não no envio) faz o usuário descobrir agora que o PDF
+         *     é escaneado — em vez de perguntar algo sobre ele e receber resposta vaga.
+         */
+        post: operations["upload_attachment_copilot_attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Attachment */
+        delete: operations["delete_attachment_copilot_attachments__attachment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/attachments/{attachment_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Attachment */
+        get: operations["download_attachment_copilot_attachments__attachment_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/copilot/commands": {
         parameters: {
             query?: never;
@@ -6280,6 +6337,16 @@ export interface components {
              */
             file: string;
         };
+        /** Body_upload_attachment_copilot_attachments_post */
+        Body_upload_attachment_copilot_attachments_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /** Thread Id */
+            thread_id?: string | null;
+        };
         /** Body_upload_file_clients__client_id__files_post */
         Body_upload_file_clients__client_id__files_post: {
             /**
@@ -7077,6 +7144,50 @@ export interface components {
             why: string;
         };
         /**
+         * CopilotAttachment
+         * @description Arquivo anexado a uma mensagem.
+         *
+         *     `has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:
+         *     documento vira texto e roda em qualquer provedor; imagem precisa de modelo
+         *     com visão; áudio precisa de transcrição.
+         */
+        CopilotAttachment: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Extraction Error */
+            extraction_error: string | null;
+            /**
+             * Extraction Status
+             * @enum {string}
+             */
+            extraction_status: "pending" | "extracted" | "unsupported" | "failed" | "not_needed";
+            /** File Name */
+            file_name: string;
+            /** Has Text */
+            has_text: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "image" | "audio" | "document";
+            /** Size Bytes */
+            size_bytes: number;
+            /** Thread Id */
+            thread_id: string | null;
+            /** Truncated Chars */
+            truncated_chars: number | null;
+        };
+        /**
          * CopilotCommand
          * @description Item do menu de `/` na interface.
          */
@@ -7171,6 +7282,8 @@ export interface components {
              * @default true
              */
             allow_web_search: boolean;
+            /** Attachment Ids */
+            attachment_ids?: string[];
             /**
              * Dry Run
              * @default false
@@ -7256,6 +7369,10 @@ export interface components {
             }[];
             /** Answer */
             answer: string | null;
+            /** Attachments */
+            attachments?: {
+                [key: string]: unknown;
+            }[];
             /** Confidence */
             confidence: string | null;
             /** Cost Cents */
@@ -20960,6 +21077,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CopilotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_attachment_copilot_attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_attachment_copilot_attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotAttachment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attachment_copilot_attachments__attachment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_attachment_copilot_attachments__attachment_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */

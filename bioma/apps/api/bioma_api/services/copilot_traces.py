@@ -78,7 +78,7 @@ def _trace(run: dict, steps: list[dict]) -> CopilotRunTrace:
         **{key: run[key] for key in (
             "id", "thread_id", "message", "answer", "status", "error_message",
             "generation_mode", "provider", "model", "confidence",
-            "dossier_summary", "memories_used", "skills_used", "sources", "actions",
+            "dossier_summary", "memories_used", "skills_used", "sources", "actions", "attachments",
             "input_tokens", "output_tokens", "cost_cents", "duration_ms", "created_at",
         )},
         steps=[CopilotRunStep(**{key: step[key] for key in (
