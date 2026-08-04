@@ -1,0 +1,36 @@
+# Dockerignore do contexto de build da API (bioma/) — ver comentário no
+# Dockerfile de apps/api/ sobre por que o contexto subiu de apps/api/ para
+# aqui: precisa alcançar apps/worker/bioma_worker também.
+#
+# apps/web é o maior risco de esquecer: o node_modules dele sozinho é maior
+# que todo o resto do monorepo, e a API não usa nada de lá.
+apps/web
+
+apps/api/.venv
+apps/api/__pycache__
+apps/api/.pytest_cache
+apps/api/.mypy_cache
+apps/api/.ruff_cache
+apps/api/.env
+apps/api/.env.*
+
+apps/worker/.venv
+apps/worker/__pycache__
+apps/worker/.pytest_cache
+apps/worker/.env
+apps/worker/.env.*
+apps/worker/tests
+apps/worker/scripts
+
+**/__pycache__
+**/*.py[cod]
+**/.git
+
+# Barra na frente é obrigatória aqui: sem ela, o padrão casa em QUALQUER
+# profundidade (mesma regra do .gitignore) — `scripts` sem `/` apagaria
+# `apps/api/scripts/`, que o `CMD` do Dockerfile precisa (`scripts/start.py`).
+/docs
+/scripts
+/packages
+/infra
+/*.md
