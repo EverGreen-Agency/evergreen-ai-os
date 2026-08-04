@@ -75,10 +75,50 @@ Estrutura recomendada no Railway:
 Root directory da API:
 
 ```text
-bioma/apps/api
+bioma
 ```
 
-O arquivo `bioma/apps/api/railway.json` define Dockerfile, start command e healthcheck `/health/ready`.
+Atencao: mudou de `bioma/apps/api` (era assim antes de 2026-08-04). O contexto
+de build precisa alcancar `apps/worker/bioma_worker` alem de `apps/api` — o
+copiloto, Radar Local, geracao de conteudo por IA, pesquisa de mercado e o
+estudo de plataformas importam `bioma_worker` em processo dentro da API (nao e
+uma chamada de rede para o service `bioma-worker`, que e um processo separado
+consumindo a fila `sync_runs`). Com o root antigo, `bioma_worker` nunca existia
+no container da API, e todo endpoint que depende dele respondia 502 "worker nao
+encontrado" em produacao — silenciosamente, porque a previa local so existe
+DENTRO de `bioma_worker.copilot.plan()`, que nunca era alcancado.
+
+No painel do Railway, no service `bioma-api`, em Settings -> Build:
+
+- **Root Directory**: `bioma`
+- **Dockerfile Path**: confirmar que aparece `apps/api/Dockerfile` (o
+  `bioma/apps/api/railway.json` declara isso; se o Railway mostrar outra coisa,
+  sobrescreva manualmente no campo da UI)
+
+O `.dockerignore` que vale agora e `bioma/.dockerignore` (fica na raiz do novo
+contexto), nao mais `bioma/apps/api/.dockerignore` (removido). Ele exclui
+`apps/web` de proposito — o `node_modules` dele e maior que o resto do monorepo
+e a API nao usa nada de la.
+
+Depois de mudar o Root Directory, redeploy e conferir no log de build que as
+duas linhas de `COPY` aparecem (`apps/api/` e `apps/worker/bioma_worker`) e que
+o healthcheck `/health/ready` fica verde.
+
+**Variaveis de ambiente:** como `bioma_worker` passa a rodar dentro do MESMO
+processo da API, as variaveis que ele le (`OPENAI_API_KEY`,
+`GOOGLE_PLACES_API_KEY`, `AHREFS_API_KEY`, `FATHOM_API_KEY`, etc.) precisam
+estar no service `bioma-api`, nao so no `bioma-worker`. Conferir
+`apps/worker/bioma_worker/config.py` para a lista completa; copiar do
+`bioma-worker` as que fizerem sentido para os endpoints que a API expoe
+(copiloto, radar local, pesquisa de mercado — nao precisa das credenciais de
+Google Ads/Meta Ads, que so o `bioma-worker` usa).
+
+O que NAO fica resolvido por isto: roteamento do copiloto por CLI de assinatura
+(Codex/Claude Code) exige o binario instalado e autenticado no container, que
+esta imagem slim nao tem. Contas desse tipo, se cadastradas, falham
+silenciosamente (o `subprocess` nao acha o binario) e o copiloto cai para a
+chave de API — funciona, so nao usa a cota da assinatura em produacao. Rodar
+localmente continua sendo o unico jeito de usar a cota hoje.
 
 Start command da API:
 

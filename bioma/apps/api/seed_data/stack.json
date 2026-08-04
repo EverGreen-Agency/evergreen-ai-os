@@ -1,0 +1,397 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-07-17",
+  "note": "EG Tech Radar (ThoughtWorks model). Living catalog of technologies for the projects we build. RINGS: assess (worth investigating) / trial (testing now in a real project) / adopt (house standard) / hold (avoid for new work). QUADRANTS: languages / frameworks / tools / platforms-infra. When a tech is promoted trial->adopt in a project, the decision becomes an ADR in squad eg_engenharia. The Guardiao (eg_guardiao) reads this radar in its Stack Gate. Keys/enums in English; notes stay in PT.",
+  "rings": [
+    "assess",
+    "trial",
+    "adopt",
+    "hold"
+  ],
+  "quadrants": [
+    "languages",
+    "frameworks",
+    "tools",
+    "platforms-infra"
+  ],
+  "techs": [
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "quadrant": "languages",
+      "ring": "adopt",
+      "note": "Padrão de todo frontend e tooling. Tipagem pega erro em tempo de edição — vide o dashboard.",
+      "adr": "",
+      "source": "dashboard/"
+    },
+    {
+      "id": "javascript",
+      "name": "JavaScript",
+      "quadrant": "languages",
+      "ring": "adopt",
+      "note": "Base do runtime Node e do browser. Preferir TS para código novo.",
+      "adr": "",
+      "source": "dashboard/, plugins Vite"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "quadrant": "languages",
+      "ring": "adopt",
+      "note": "Aposta natural para backend de projetos de cliente (APIs, automação, IA). Primeira validação real: projeto Rian/PJe-TRF1 (web app + automação).",
+      "adr": "ADR-0001@rian-pje-trf1",
+      "source": "sessão jun/2026; projeto rian-pje-trf1"
+    },
+    {
+      "id": "markdown-yaml",
+      "name": "Markdown + YAML",
+      "quadrant": "languages",
+      "ring": "adopt",
+      "note": "A 'linguagem' do framework Opensquad: squads, agentes e pipelines são MD/YAML interpretados pelo Claude Code.",
+      "adr": "",
+      "source": "_opensquad/"
+    },
+    {
+      "id": "react",
+      "name": "React 19",
+      "quadrant": "frameworks",
+      "ring": "adopt",
+      "note": "UI declarativa do cockpit. Padrão para qualquer interface da casa.",
+      "adr": "",
+      "source": "dashboard/"
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "quadrant": "frameworks",
+      "ring": "adopt",
+      "note": "Dev server + bundler. Boot ~300ms. Padrão para ferramenta local sem necessidade de SSR.",
+      "adr": "",
+      "source": "dashboard/"
+    },
+    {
+      "id": "zustand",
+      "name": "Zustand",
+      "quadrant": "frameworks",
+      "ring": "assess",
+      "note": "Store global sem boilerplate. Fit para estado simples em tempo real (squads, ideias).",
+      "adr": "",
+      "source": "dashboard/"
+    },
+    {
+      "id": "phaser",
+      "name": "Phaser 3",
+      "quadrant": "frameworks",
+      "ring": "adopt",
+      "note": "Game engine 2D para os sprites do escritório. Escolha de nicho — único jeito sensato de animar com game loop. Revisitar se a metáfora do escritório não pegar.",
+      "adr": "",
+      "source": "dashboard/office/"
+    },
+    {
+      "id": "fastapi",
+      "name": "FastAPI",
+      "quadrant": "frameworks",
+      "ring": "adopt",
+      "note": "Padrão de API Python para projetos de cliente (async, typing, OpenAPI grátis). Validado no 1º projeto via ADR-0001 (Rian/PJe-TRF1).",
+      "adr": "ADR-0001@rian-pje-trf1",
+      "source": "sessão jun/2026; projeto rian-pje-trf1"
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "quadrant": "frameworks",
+      "ring": "adopt",
+      "note": "NÃO usar no dashboard (não há SSR/SEO/deploy público). Reconsiderar só se 'cockpit interno → produto' virar SaaS público.",
+      "adr": "",
+      "source": "sessão jun/2026"
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright",
+      "quadrant": "tools",
+      "ring": "trial",
+      "note": "Automação de browser com sessão persistente. Base do Sherlock e de coletas (via MCP). Promovido assess→trial: motor de automação do PJe no projeto Rian/TRF1 (Playwright-Python, certificado A1 como client-cert).",
+      "adr": "ADR-0002@rian-pje-trf1",
+      "source": ".mcp.json; projeto rian-pje-trf1"
+    },
+    {
+      "id": "ws-chokidar",
+      "name": "ws + chokidar",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "WebSocket + file watcher do dashboard. Tempo real sobre arquivos (state.json, ideas.json).",
+      "adr": "",
+      "source": "dashboard/plugin/"
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "quadrant": "tools",
+      "ring": "adopt",
+      "note": "IDE/runtime onde o Opensquad roda. Interpreta squads e executa pipelines.",
+      "adr": "",
+      "source": ".claude/"
+    },
+    {
+      "id": "codegraph",
+      "name": "CodeGraph",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "MCP que indexa o repo (tree-sitter + SQLite) e daria mapa de código automático ao Arquiteto. Local, auto-sync. Testar adoção.",
+      "adr": "",
+      "source": "github.com/colbymchenry/codegraph"
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "quadrant": "tools",
+      "ring": "adopt",
+      "note": "Orquestração externa via webhook (auto-hospedado, opcional). Slot já existe no .env. Avaliar onde compensa vs. squad nativo.",
+      "adr": "",
+      "source": ".env.example"
+    },
+    {
+      "id": "anthropic-claude",
+      "name": "Anthropic Claude",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "Cérebro principal da casa (Opus/Sonnet). Default para qualquer app de IA.",
+      "adr": "",
+      "source": ".env (ANTHROPIC_API_KEY)"
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "Segundo cérebro / fallback e tarefas específicas. Slot no .env.",
+      "adr": "",
+      "source": ".env (OPENAI_API_KEY)"
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "Terceiro modelo, avaliar em tarefas multimodais/contexto longo. Slot no .env.",
+      "adr": "",
+      "source": ".env (GEMINI_API_KEY)"
+    },
+    {
+      "id": "clickup",
+      "name": "ClickUp",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "Gestão de projeto centralizada da EG. Skill própria. Um portal por cliente.",
+      "adr": "",
+      "source": "_opensquad/skills/clickup"
+    },
+    {
+      "id": "kommo",
+      "name": "Kommo",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "CRM. Uma conta isolada por cliente (token em clients/<id>/). Skill própria.",
+      "adr": "",
+      "source": "_opensquad/skills/kommo"
+    },
+    {
+      "id": "meta-google-ads",
+      "name": "Meta Ads + Google Ads",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "Plataformas de mídia que operamos para clientes. Ainda sem skill nativa — candidatas a integração.",
+      "adr": "",
+      "source": "banco_arquitetura §6"
+    },
+    {
+      "id": "pgvector",
+      "name": "pgvector",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Vector store para corpus EG com isolamento por client_id (RAG). Mapeado no Banco de Ideias (vector-store).",
+      "adr": "",
+      "source": "banco_ideias: vector-store"
+    },
+    {
+      "id": "evolution-api",
+      "name": "Evolution API",
+      "quadrant": "platforms-infra",
+      "ring": "adopt",
+      "note": "WhatsApp não-oficial para prospecção/log de áudio. Mapeado no Banco de Ideias. Avaliar risco de bloqueio.",
+      "adr": "",
+      "source": "banco_ideias: prospeccao-wpp"
+    },
+    {
+      "id": "zep",
+      "name": "Zep",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Stack de memória de longo prazo para agentes. Mapeado no Banco de Ideias. Comparar com solução própria sobre pgvector.",
+      "adr": "",
+      "source": "banco_ideias: stack-memoria-zep"
+    },
+    {
+      "name": "Data For SEO",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "",
+      "adr": "",
+      "source": "",
+      "id": "data-for-seo"
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite",
+      "quadrant": "platforms-infra",
+      "ring": "trial",
+      "note": "Persistência transacional zero-config (arquivo único) para apps pequenos self-hosted. Em validação no projeto Rian/PJe-TRF1 (modelos, estado, checkpoint) atrás de SQLAlchemy, com caminho de migração para Postgres na Fase 2.",
+      "adr": "ADR-0004@rian-pje-trf1",
+      "source": "projeto rian-pje-trf1"
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Banco relacional padrão para quando o projeto exige concorrência/multi-user. Planejado como destino de migração na Fase 2 do projeto Rian (multi-user/permissões). Ainda não usado em produção na casa.",
+      "adr": "",
+      "source": "projeto rian-pje-trf1 (Fase 2)"
+    },
+    {
+      "name": "Argil.ai",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Generate engaging AI videos",
+      "adr": "",
+      "source": "https://www.argil.ai/",
+      "id": "argil-ai"
+    },
+    {
+      "name": "Delphi Ai",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Par segundo Cérebro. Digitize Your Mind Turn your knowledge into an interactive profile people can talk to. Showcase your  expertise, answer repetitive questions, and discover what people want to know next.",
+      "adr": "",
+      "source": "https://www.delphi.ai/",
+      "id": "delphi-ai"
+    },
+    {
+      "name": "Zernio",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "The social media and messaging API for developers and AI agents. API para whatsapp.",
+      "adr": "",
+      "source": "https://zernio.com/",
+      "id": "zernio"
+    },
+    {
+      "name": "MindPal",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "Turn your expertise into branded AI agents and multi-agent workflows.",
+      "adr": "",
+      "source": "https://mindpal.space/",
+      "id": "mindpal"
+    },
+    {
+      "name": "Assis.co",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM com IA",
+      "adr": "",
+      "source": "https://assis.co/",
+      "id": "assis-co"
+    },
+    {
+      "name": "Attio",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM for the next generation of teams. Powerful, flexible and data-driven, Attio makes it easy to build the CRM to drive revenue forwards.",
+      "adr": "",
+      "source": "https://attio.com/",
+      "id": "attio"
+    },
+    {
+      "name": "Helena CRM",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "CRM para WhatsApp que aprende a cada conversa A plataforma White Label para desenvolver o seu negócio  Conecte equipes com clientes e leads. Combine agentes de IA, atendimento humano e um CRM que aprende a cada conversa. Uma tecnologia conversacional robusta que sustenta o crescimento do seu negócio.",
+      "adr": "",
+      "source": "https://www.helenacrm.com/",
+      "id": "helena-crm"
+    },
+    {
+      "name": "Storyblok",
+      "quadrant": "tools",
+      "ring": "assess",
+      "note": "The last CMS you’ll ever buy. And the first one you'll actually enjoy. Built for developers, loved by marketers. Code in any framework, edit and publish without a developer on standby.",
+      "adr": "",
+      "source": "https://www.storyblok.com/",
+      "id": "storyblok"
+    },
+    {
+      "name": "Supabase",
+      "quadrant": "platforms-infra",
+      "ring": "trial",
+      "note": "Auth+Postgres+RLS+Storage, região São Paulo. Fundação do Bioma (mod-multitenant). Isolamento multi-tenant por RLS forçada; plano de saída documentado em STACK-RUNTIME-BIOMA.md.",
+      "adr": "ADR-0002@mod-multitenant",
+      "source": "https://supabase.com",
+      "id": "supabase"
+    },
+    {
+      "name": "Drizzle ORM",
+      "quadrant": "frameworks",
+      "ring": "trial",
+      "note": "Queries tipadas no Bioma; DDL+RLS ficam em SQL canônico nas migrations (o melhor dos dois). Leve p/ serverless.",
+      "adr": "ADR-0001@mod-multitenant",
+      "source": "https://orm.drizzle.team",
+      "id": "drizzle-orm"
+    },
+    {
+      "name": "BullMQ",
+      "quadrant": "frameworks",
+      "ring": "trial",
+      "note": "Fila de jobs do Bioma (payload tenantId+correlationId, retries, DLQ→incidente). Gatilho de simplificação p/ pg-boss se Redis ficar ocioso no MVP.",
+      "adr": "ADR-0007@mod-multitenant",
+      "source": "https://bullmq.io",
+      "id": "bullmq"
+    },
+    {
+      "name": "Render",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Your fastest path to production for APIs & web apps Intuitive infrastructure to scale any app or agent from your first user to your billionth.",
+      "adr": "",
+      "source": "https://render.com/",
+      "id": "render"
+    },
+    {
+      "name": "Netlify",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Push your ideas to the web Create with AI or code, deploy instantly on production infrastructure. One platform to build and ship.",
+      "adr": "",
+      "source": "https://www.netlify.com/",
+      "id": "netlify"
+    },
+    {
+      "name": "Salvy",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Planos de celular para empresas: sem burocracia e sem fidelidade Chip, eSIM ou número virtual. A Salvy é a solução de telefonia móvel para times que não querem perder tempo e dinheiro com as velhas operadoras. Acho que compete com minha ideia de Operado para Devs...",
+      "adr": "",
+      "source": "https://salvy.com.br/",
+      "id": "salvy"
+    },
+    {
+      "name": "DocuSeal",
+      "quadrant": "platforms-infra",
+      "ring": "assess",
+      "note": "Document Signing for Everyone Free forever for individuals, extensible for businesses and developers.  #1 Open Source Alternative to DocuSign, PandaDoc and more. Útil na mega plataforma. Tem MCP com anthropic.",
+      "adr": "",
+      "source": "https://www.docuseal.com/",
+      "id": "docuseal"
+    }
+  ]
+}

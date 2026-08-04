@@ -330,6 +330,9 @@ export function TaskDrawer({
   const [assigneeId, setAssigneeId] = useState<string>("");
   const [ownerId, setOwnerId] = useState<string>("");
   const [creatingSubtaskFor, setCreatingSubtaskFor] = useState<string | null>(null);
+  // Entrega do cliente vive no board dele; trabalho interno de plataforma some
+  // da visão dele. O filtro real acontece no backend — isto é só o controle.
+  const [clientVisible, setClientVisible] = useState(true);
 
   // Filhas vivem na mesma lista, entao saem do fetch que ja temos.
   const childTasks = taskId ? (tasks ?? []).filter((t) => t.parent_task_id === taskId) : [];
@@ -338,6 +341,7 @@ export function TaskDrawer({
     if (existingTask) {
       setTitle(existingTask.title);
       setDescription(existingTask.description || "");
+      setClientVisible(existingTask.client_visible ?? true);
       setGroupStatus(existingTask.group_status);
       setSpecificStatus(existingTask.status);
       setPriority(existingTask.priority || "");
@@ -412,6 +416,7 @@ export function TaskDrawer({
           start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          client_visible: clientVisible,
           project_id: projectId || null,
           assignee_id: assigneeId || null,
           owner_id: ownerId || null,
@@ -434,6 +439,7 @@ export function TaskDrawer({
           start_date: startDate ? new Date(startDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           recurrence,
+          client_visible: clientVisible,
           project_id: projectId || null,
           parent_task_id: parentTaskId || null,
           assignee_id: assigneeId || null,
@@ -578,6 +584,33 @@ export function TaskDrawer({
               />
             </label>
           </div>
+
+          {/* Entrega contratada mora no board do cliente; trabalho interno de
+              plataforma fica escondido dele. O filtro é aplicado no backend. */}
+          <label
+            style={{
+              display: "flex", alignItems: "center", gap: 8, fontSize: 13,
+              padding: "10px 12px", borderRadius: 6,
+              background: clientVisible ? "transparent" : "rgba(255,171,0,0.08)",
+              border: `1px solid ${clientVisible ? "var(--border-color)" : "#ffab00"}`,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={clientVisible}
+              onChange={(event) => setClientVisible(event.target.checked)}
+              disabled={isBusy}
+            />
+            {clientVisible ? <Eye size={14} /> : <EyeOff size={14} color="#ffab00" />}
+            <span style={{ flex: 1 }}>
+              <strong>{clientVisible ? "Visível para o cliente" : "Interna da EG"}</strong>
+              <span style={{ display: "block", fontSize: 11, color: "var(--text-dim)" }}>
+                {clientVisible
+                  ? "Aparece no board do cliente — use para entregas que ele espera."
+                  : "Some do board do cliente — use para trabalho interno de plataforma."}
+              </span>
+            </span>
+          </label>
 
           <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>

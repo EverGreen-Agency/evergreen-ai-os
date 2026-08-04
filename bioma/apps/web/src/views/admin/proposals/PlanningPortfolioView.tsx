@@ -8,7 +8,9 @@ export function PlanningPortfolioView() {
           Portfólio de Planejamentos
         </h1>
         <p style={{ margin: "4px 0 0", color: "var(--text-dim)", fontSize: "0.9rem" }}>
-          Intakes operacionais, diagnósticos técnicos e estimativas de alocação dos projetos.
+          Uma linha por projeto da EG: em que estágio está a intake de planejamento, se o plano já
+          foi gerado e por qual via (IA ou prévia local). Serve para achar projeto parado sem
+          precisar abrir cliente por cliente.
         </p>
       </div>
 

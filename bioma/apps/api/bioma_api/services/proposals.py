@@ -122,71 +122,80 @@ def delete_freelancer_profile(profile_id: UUID, user: CurrentUserResponse) -> di
 
 
 def ingest_opportunity(payload: OpportunityIngestPayload, user: CurrentUserResponse) -> OpportunitySummary:
+    """Guarda a oportunidade como ela chegou. NÃO pontua.
+
+    Havia aqui uma triagem por palavra-chave (base 50, +7 por termo de uma lista
+    fixa, −10 por tecnologia de outra lista fixa) que produzia um número com cara
+    de avaliação sem ser uma. Duas coisas estavam erradas: o número não media
+    nada — "growth" no título valia o mesmo que "growth" como o serviço inteiro —
+    e o gap vinha de sete termos escritos à mão, que nunca acompanhavam o que a
+    EG de fato passou a saber fazer.
+
+    Agora `fit_score` fica NULO até alguém pedir "Avaliar com IA". Nulo é
+    "ninguém avaliou ainda", que é a verdade, e é diferente de zero.
+    """
     _require_admin(user)
     with connect() as conn:
         existing = proposals_repo.find_existing_opportunity(conn, payload.url, payload.source_platform, payload.title)
         if existing:
             return OpportunitySummary(**existing)
 
-        # Calculate initial Fit Score
-        title_lower = payload.title.lower()
-        desc_lower = (payload.description or "").lower()
-        full_text = f"{title_lower} {desc_lower}"
-
-        score = 50
-        analysis_points = []
-        high_value_keywords = [
-            "growth", "tráfego", "meta ads", "google ads", "crm", "n8n", "automação",
-            "landing page", "funil", "react", "fastapi", "python", "typescript", "figma",
-            "ui/ux", "copywriting", "seo", "hubspot", "analytics", "gestão", "full stack"
-        ]
-        matched_keywords = []
-        for kw in high_value_keywords:
-            if kw in full_text:
-                score += 7
-                matched_keywords.append(kw)
-        
-        if matched_keywords:
-            analysis_points.append(f"Palavras-chave alinhadas: {', '.join(matched_keywords[:4])}")
-
-        # Detect technology gaps against EG inventory
-        inventory_skills = [s["skill_name"].lower() for s in proposals_repo.list_tech_skills(conn) if s["status"] == "available"]
-        known_tech_keywords = ["marketo", "salesforce", "magento", "shopify", "activecampaign", "klaviyo", "pipedrive"]
-        
-        detected_gaps = []
-        for tech in known_tech_keywords:
-            if tech in full_text and tech not in inventory_skills:
-                detected_gaps.append(tech.capitalize())
-                score -= 10
-                analysis_points.append(f"⚠️ Gap de Tecnologia: Requer {tech.capitalize()}")
-
-        # Dynamic variation if score remains base 50 (based on title complexity/length)
-        if score == 50 and len(title_lower) > 20:
-            score += (len(title_lower) % 15) - 5
-
-        fit_score = min(98, max(25, score))
-        fit_analysis = " | ".join(analysis_points) if analysis_points else "Alinhamento geral verificado com perfil padrão."
-
-        data = {
-            "source_platform": payload.source_platform,
-            "title": payload.title,
-            "url": payload.url,
-            "description": payload.description,
-            "budget_text": payload.budget_text,
-            "fit_score": fit_score,
-            "fit_analysis": fit_analysis,
-            "status": "qualified" if fit_score >= 70 else "new",
-            "raw_payload": payload.raw_payload,
-        }
-
-        created = proposals_repo.create_opportunity(conn, data)
-        opp_id = UUID(created["id"]) if isinstance(created["id"], str) else created["id"]
-
-        # Save detected skill gaps into repository
-        for missing in detected_gaps:
-            proposals_repo.create_skill_gap(conn, opp_id, missing, payload.title, payload.url)
-
+        created = proposals_repo.create_opportunity(
+            conn,
+            {
+                "source_platform": payload.source_platform,
+                "title": payload.title,
+                "url": payload.url,
+                "description": payload.description,
+                "budget_text": payload.budget_text,
+                "fit_score": None,
+                "fit_analysis": None,
+                "status": "new",
+                "raw_payload": payload.raw_payload,
+            },
+        )
         return OpportunitySummary(**created)
+
+
+def agency_skills_inventory(conn) -> list[dict[str, str]]:
+    """O que a EG sabe fazer, com a evidência de onde isso está registrado.
+
+    Antes o inventário era só `tech_skill_inventory` — sete linhas digitadas à
+    mão que ninguém reabastecia. Um gap detectado contra essa lista dizia mais
+    sobre a lista estar desatualizada do que sobre a EG não saber fazer.
+
+    Agora é a união de três fontes que se mantêm sozinhas conforme a operação
+    acontece, e cada item carrega de onde veio — para o gap ser discutível
+    ("isso é gap mesmo ou o radar que está velho?") em vez de um veredito cego:
+
+    - Tech Radar (`eg_stack_techs`, anéis adopt/trial): decisão técnica tomada e
+      registrada em ADR. É a fonte mais forte, e já é editável pelo produto.
+    - Inventário comercial (`tech_skill_inventory`): o que a EG vende, que nem
+      sempre é uma tecnologia (ex.: "Landing Pages de Alta Conversão").
+    - Projetos concluídos: entrega feita é a evidência mais dura que existe.
+
+    Ainda não deriva competência de dentro das tarefas — o volume de projetos
+    concluídos é pequeno demais para isso significar algo hoje. Quando crescer,
+    é aqui que entra.
+    """
+    inventory: dict[str, dict[str, str]] = {}
+
+    def add(name: str | None, evidence: str) -> None:
+        clean = (name or "").strip()
+        if not clean:
+            return
+        # Primeira evidência ganha: as fontes estão em ordem de força.
+        inventory.setdefault(clean.lower(), {"skill": clean, "evidence": evidence})
+
+    for row in proposals_repo.list_adopted_stack_techs(conn):
+        add(row["name"], f"Tech Radar · anel {row['ring']}" + (f" · {row['adr']}" if row.get("adr") else ""))
+    for row in proposals_repo.list_tech_skills(conn):
+        if row.get("status") == "available":
+            add(row["skill_name"], "Inventário comercial da EG")
+    for row in proposals_repo.list_completed_project_types(conn):
+        add(row["label"], f"{row['count']} projeto(s) concluído(s) deste tipo")
+
+    return sorted(inventory.values(), key=lambda item: item["skill"].lower())
 
 
 def evaluate_opportunity_with_ai(opp_id: UUID, user: CurrentUserResponse) -> OpportunitySummary:
@@ -196,7 +205,7 @@ def evaluate_opportunity_with_ai(opp_id: UUID, user: CurrentUserResponse) -> Opp
         if not opp:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Oportunidade não encontrada.")
 
-        available_skills = [s["skill_name"] for s in proposals_repo.list_tech_skills(conn) if s["status"] == "available"]
+        inventory = agency_skills_inventory(conn)
         freelancers = [f.get("display_name") for f in proposals_repo.list_freelancer_profiles(conn)]
 
     input_context = {
@@ -204,7 +213,9 @@ def evaluate_opportunity_with_ai(opp_id: UUID, user: CurrentUserResponse) -> Opp
         "opportunity_description": opp.get("description") or "Sem descrição detalhada",
         "budget_text": opp.get("budget_text") or "A combinar",
         "source_platform": opp["source_platform"],
-        "agency_skills_inventory": available_skills,
+        # Vai com a evidência junto: o modelo precisa saber que "React 19" está no
+        # anel adopt do radar, não que alguém digitou "react" numa lista.
+        "agency_skills_inventory": inventory,
         "team_profiles": freelancers,
     }
 
@@ -235,6 +246,19 @@ def evaluate_opportunity_with_ai(opp_id: UUID, user: CurrentUserResponse) -> Opp
             conn, opp_id, status_val="qualified" if ai_score >= 70 else opp["status"],
             fit_score=ai_score, fit_analysis=ai_analysis,
         )
+        # Gap agora nasce da avaliação, não de uma lista fixa de sete termos:
+        # o modelo comparou a vaga com o inventário com evidência e disse o que
+        # falta. Sem duplicar o que já está aberto para a mesma oportunidade.
+        already_open = {
+            row["missing_skill"].strip().lower()
+            for row in proposals_repo.list_skill_gaps(conn)
+            if str(row.get("opportunity_id")) == str(opp_id)
+        }
+        for missing in output.get("skill_gaps") or []:
+            clean = str(missing).strip()
+            if clean and clean.lower() not in already_open:
+                proposals_repo.create_skill_gap(conn, opp_id, clean, opp["title"], opp.get("url"))
+                already_open.add(clean.lower())
     return OpportunitySummary(**updated)
 
 

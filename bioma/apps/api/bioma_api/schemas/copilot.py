@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
@@ -7,11 +8,35 @@ CopilotSurface = Literal["task", "workspace"]
 ActionStatus = Literal["executed", "proposed", "pending_confirmation", "failed"]
 
 
+class CopilotAttachment(BaseModel):
+    """Arquivo anexado a uma mensagem.
+
+    `has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:
+    documento vira texto e roda em qualquer provedor; imagem precisa de modelo
+    com visão; áudio precisa de transcrição.
+    """
+    id: UUID
+    thread_id: UUID | None
+    file_name: str
+    content_type: str
+    size_bytes: int
+    kind: Literal["image", "audio", "document"]
+    extraction_status: Literal["pending", "extracted", "unsupported", "failed", "not_needed"]
+    extraction_error: str | None
+    truncated_chars: int | None
+    has_text: bool
+    created_at: datetime
+
+
 class CopilotRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     surface: CopilotSurface = "workspace"
     task_id: UUID | None = None
     workspace_id: UUID | None = None
+    # Continua uma conversa existente. Ausente = abre uma nova.
+    thread_id: UUID | None = None
+    # Anexos enviados antes desta mensagem, adotados pela thread no envio.
+    attachment_ids: list[UUID] = Field(default_factory=list, max_length=10)
     # Busca na web é permitida por decisão do Eduardo, mas sempre com fonte.
     allow_web_search: bool = True
     # dry_run devolve o plano sem executar nada — usado na pré-visualização.
@@ -37,11 +62,81 @@ class CopilotSource(BaseModel):
 
 
 class CopilotResponse(BaseModel):
+    thread_id: UUID
+    # Chave da trilha desta resposta: com ela a interface abre a auditoria do
+    # que aconteceu sem precisar caçar por data e hora.
+    run_id: UUID
     answer: str
     generation_mode: Literal["live", "preview"]
     confidence: Literal["alta", "media", "baixa"]
     actions: list[CopilotAction] = Field(default_factory=list)
     sources: list[CopilotSource] = Field(default_factory=list)
+
+
+class CopilotThreadSummary(BaseModel):
+    id: UUID
+    title: str | None
+    surface: CopilotSurface
+    workspace_id: UUID | None
+    task_id: UUID | None
+    status: Literal["active", "archived"]
+    run_count: int
+    last_message: str | None
+    last_message_at: datetime
+    created_at: datetime
+
+
+class CopilotRunStep(BaseModel):
+    position: int
+    kind: Literal["dossier", "plan", "action", "persist"]
+    label: str
+    status: Literal["ok", "skipped", "blocked", "failed"]
+    detail: str | None
+    payload: dict[str, Any] = Field(default_factory=dict)
+    duration_ms: int | None
+
+
+class CopilotRunTrace(BaseModel):
+    """O que aconteceu numa execução. Não é o que o copiloto disse que fez."""
+    id: UUID
+    thread_id: UUID
+    message: str
+    answer: str | None
+    status: Literal["running", "completed", "failed"]
+    error_message: str | None
+    # `preview` = prévia local, nenhum token gasto e nenhum modelo consultado.
+    generation_mode: Literal["live", "preview"] | None
+    provider: str | None
+    model: str | None
+    confidence: str | None
+    dossier_summary: dict[str, Any] = Field(default_factory=dict)
+    memories_used: list[dict[str, Any]] = Field(default_factory=list)
+    skills_used: list[str] = Field(default_factory=list)
+    sources: list[dict[str, Any]] = Field(default_factory=list)
+    actions: list[dict[str, Any]] = Field(default_factory=list)
+    # Índice do que estava anexado NAQUELE turno. Anexar depois não pode
+    # reescrever a história de uma resposta dada sem o arquivo.
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
+    input_tokens: int | None
+    output_tokens: int | None
+    # Nulo = modelo sem preço conhecido em `model_pricing.py`. Nunca estimado.
+    cost_cents: int | None
+    duration_ms: int | None
+    created_at: datetime
+    steps: list[CopilotRunStep] = Field(default_factory=list)
+
+
+class CopilotUsageSummary(BaseModel):
+    runs: int
+    failed_runs: int
+    preview_runs: int
+    # Execuções ao vivo cujo modelo não tem preço na tabela — ficam de fora do
+    # total em vez de entrarem como zero.
+    runs_without_cost: int
+    input_tokens: int
+    output_tokens: int
+    cost_cents: int
+    avg_duration_ms: int
 
 
 class CopilotCommand(BaseModel):

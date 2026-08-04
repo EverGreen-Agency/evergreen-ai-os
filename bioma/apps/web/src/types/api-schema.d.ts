@@ -926,8 +926,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Engineering Modules */
-        get: operations["get_engineering_modules_backoffice_engineering_get"];
+        /**
+         * Get Engineering
+         * @description Módulos de engenharia, montados a partir dos documentos no banco.
+         *
+         *     O nome do arquivo achatado carrega a hierarquia original:
+         *     `engineering/<modulo>__spec.md`, `<modulo>__tasks.md`, `<modulo>__adr__*.md`.
+         */
+        get: operations["get_engineering_backoffice_engineering_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2900,6 +2906,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Attachment
+         * @description Anexa imagem, áudio ou documento. Extrai o texto na hora, quando dá.
+         *
+         *     Extrair no upload (e não no envio) faz o usuário descobrir agora que o PDF
+         *     é escaneado — em vez de perguntar algo sobre ele e receber resposta vaga.
+         */
+        post: operations["upload_attachment_copilot_attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Attachment */
+        delete: operations["delete_attachment_copilot_attachments__attachment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/attachments/{attachment_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Attachment */
+        get: operations["download_attachment_copilot_attachments__attachment_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/copilot/commands": {
         parameters: {
             query?: never;
@@ -3016,6 +3079,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/copilot/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run
+         * @description Auditoria de uma execução: etapas, fontes, memória, token, custo, tempo.
+         */
+        get: operations["get_run_copilot_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Threads
+         * @description Conversas do próprio usuário — alimenta a lista lateral do painel.
+         */
+        get: operations["list_threads_copilot_threads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Thread
+         * @description Turnos da conversa, cada um com a trilha completa da execução.
+         */
+        get: operations["get_thread_copilot_threads__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/threads/{thread_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Thread */
+        post: operations["archive_thread_copilot_threads__thread_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/copilot/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Usage
+         * @description Consumo do copiloto na janela — token, custo e tempo médio.
+         */
+        get: operations["usage_copilot_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -3044,6 +3204,61 @@ export interface paths {
         get: operations["readiness_health_ready_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/improvement-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Requests */
+        get: operations["list_requests_improvement_requests_get"];
+        put?: never;
+        /** Create Request */
+        post: operations["create_request_improvement_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/improvement-requests/{request_id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert To Task
+         * @description Vira tarefa de verdade — com prazo e dono — e sai da fila.
+         */
+        post: operations["convert_to_task_improvement_requests__request_id__convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/improvement-requests/{request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Request */
+        post: operations["reject_request_improvement_requests__request_id__reject_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3207,6 +3422,122 @@ export interface paths {
          * @description Remove a exceção e volta ao default do catálogo.
          */
         delete: operations["clear_flag_organizations__organization_id__feature_flags__feature_key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Platforms
+         * @description Fila ordenada por prioridade de teste — quem pode mudar a estratégia primeiro.
+         */
+        get: operations["list_platforms_platform_studies_get"];
+        put?: never;
+        /** Add Platform */
+        post: operations["add_platform_platform_studies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Many
+         * @description Cola a lista inteira. Captura é barata; a pesquisa é disparada uma a uma.
+         */
+        post: operations["add_many_platform_studies_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description Agregado: quantas ameaçam o escopo do Bioma, e quais.
+         */
+        get: operations["overview_platform_studies_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Platform */
+        get: operations["get_platform_platform_studies__study_id__get"];
+        put?: never;
+        post?: never;
+        /** Remove */
+        delete: operations["remove_platform_studies__study_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Research
+         * @description Busca as páginas públicas e produz a leitura estruturada com fontes.
+         */
+        post: operations["research_platform_studies__study_id__research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-studies/{study_id}/verdict": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_platform_studies__study_id__verdict_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3775,6 +4106,122 @@ export interface paths {
         /** Upsert Tenant Membership */
         put: operations["upsert_tenant_membership_tenants__tenant_id__members_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Wins
+         * @description EG vê tudo; cliente vê só o que foi liberado do workspace dele.
+         */
+        get: operations["list_wins_wins_get"];
+        put?: never;
+        /**
+         * Create
+         * @description Registro manual — para o que não está em tabela nenhuma.
+         */
+        post: operations["create_wins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/detect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Detect
+         * @description Varre os detectores desde a última execução de cada um.
+         */
+        post: operations["detect_wins_detect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/export/foton": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export For Foton
+         * @description Pacote de vitórias do CEO — exportação explícita, com trilha de auditoria.
+         */
+        get: operations["export_for_foton_wins_export_foton_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_wins_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/{win_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove */
+        delete: operations["remove_wins__win_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["update_wins__win_id__patch"];
+        trace?: never;
+    };
+    "/wins/{win_id}/react": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** React */
+        post: operations["react_wins__win_id__react_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6006,6 +6453,16 @@ export interface components {
              */
             file: string;
         };
+        /** Body_upload_attachment_copilot_attachments_post */
+        Body_upload_attachment_copilot_attachments_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /** Thread Id */
+            thread_id?: string | null;
+        };
         /** Body_upload_file_clients__client_id__files_post */
         Body_upload_file_clients__client_id__files_post: {
             /**
@@ -6803,6 +7260,50 @@ export interface components {
             why: string;
         };
         /**
+         * CopilotAttachment
+         * @description Arquivo anexado a uma mensagem.
+         *
+         *     `has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:
+         *     documento vira texto e roda em qualquer provedor; imagem precisa de modelo
+         *     com visão; áudio precisa de transcrição.
+         */
+        CopilotAttachment: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Extraction Error */
+            extraction_error: string | null;
+            /**
+             * Extraction Status
+             * @enum {string}
+             */
+            extraction_status: "pending" | "extracted" | "unsupported" | "failed" | "not_needed";
+            /** File Name */
+            file_name: string;
+            /** Has Text */
+            has_text: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "image" | "audio" | "document";
+            /** Size Bytes */
+            size_bytes: number;
+            /** Thread Id */
+            thread_id: string | null;
+            /** Truncated Chars */
+            truncated_chars: number | null;
+        };
+        /**
          * CopilotCommand
          * @description Item do menu de `/` na interface.
          */
@@ -6897,6 +7398,8 @@ export interface components {
              * @default true
              */
             allow_web_search: boolean;
+            /** Attachment Ids */
+            attachment_ids?: string[];
             /**
              * Dry Run
              * @default false
@@ -6912,6 +7415,8 @@ export interface components {
             surface: "task" | "workspace";
             /** Task Id */
             task_id?: string | null;
+            /** Thread Id */
+            thread_id?: string | null;
             /** Workspace Id */
             workspace_id?: string | null;
         };
@@ -6931,8 +7436,115 @@ export interface components {
              * @enum {string}
              */
             generation_mode: "live" | "preview";
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
             /** Sources */
             sources?: components["schemas"]["CopilotSource"][];
+            /**
+             * Thread Id
+             * Format: uuid
+             */
+            thread_id: string;
+        };
+        /** CopilotRunStep */
+        CopilotRunStep: {
+            /** Detail */
+            detail: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "dossier" | "plan" | "action" | "persist";
+            /** Label */
+            label: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /** Position */
+            position: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "skipped" | "blocked" | "failed";
+        };
+        /**
+         * CopilotRunTrace
+         * @description O que aconteceu numa execução. Não é o que o copiloto disse que fez.
+         */
+        CopilotRunTrace: {
+            /** Actions */
+            actions?: {
+                [key: string]: unknown;
+            }[];
+            /** Answer */
+            answer: string | null;
+            /** Attachments */
+            attachments?: {
+                [key: string]: unknown;
+            }[];
+            /** Confidence */
+            confidence: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dossier Summary */
+            dossier_summary?: {
+                [key: string]: unknown;
+            };
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Generation Mode */
+            generation_mode: ("live" | "preview") | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Memories Used */
+            memories_used?: {
+                [key: string]: unknown;
+            }[];
+            /** Message */
+            message: string;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Provider */
+            provider: string | null;
+            /** Skills Used */
+            skills_used?: string[];
+            /** Sources */
+            sources?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "completed" | "failed";
+            /** Steps */
+            steps?: components["schemas"]["CopilotRunStep"][];
+            /**
+             * Thread Id
+             * Format: uuid
+             */
+            thread_id: string;
         };
         /**
          * CopilotSource
@@ -6946,6 +7558,83 @@ export interface components {
             kind: "bioma" | "web";
             /** Reference */
             reference: string;
+        };
+        /** CopilotThreadSummary */
+        CopilotThreadSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Message */
+            last_message: string | null;
+            /**
+             * Last Message At
+             * Format: date-time
+             */
+            last_message_at: string;
+            /** Run Count */
+            run_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "archived";
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "task" | "workspace";
+            /** Task Id */
+            task_id: string | null;
+            /** Title */
+            title: string | null;
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /** CopilotUsageSummary */
+        CopilotUsageSummary: {
+            /** Avg Duration Ms */
+            avg_duration_ms: number;
+            /** Cost Cents */
+            cost_cents: number;
+            /** Failed Runs */
+            failed_runs: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Preview Runs */
+            preview_runs: number;
+            /** Runs */
+            runs: number;
+            /** Runs Without Cost */
+            runs_without_cost: number;
+        };
+        /** CriticalOverlapItem */
+        CriticalOverlapItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** One Liner */
+            one_liner: string | null;
+            /** Overlap Score */
+            overlap_score: number | null;
+            /** Threat Level */
+            threat_level: ("nenhuma" | "baixa" | "media" | "alta" | "critica") | null;
+            /** Url */
+            url: string;
+            /** Verdict */
+            verdict: ("assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar") | null;
         };
         /** CurrentUserResponse */
         CurrentUserResponse: {
@@ -7762,6 +8451,87 @@ export interface components {
             id: string;
             /** Provider */
             provider: string;
+        };
+        /** ImprovementRequest */
+        ImprovementRequest: {
+            /** Client Deliverable */
+            client_deliverable: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Evidence */
+            evidence: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Need */
+            need: string;
+            /** Proposed By */
+            proposed_by: string | null;
+            /** Review Note */
+            review_note: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "converted" | "rejected";
+            /** Task Id */
+            task_id: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /**
+         * ImprovementRequestConvert
+         * @description Converte em tarefa. `list_id` decide a frente (Tech, Growth, Social).
+         */
+        ImprovementRequestConvert: {
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * List Id
+             * Format: uuid
+             */
+            list_id: string;
+            /** Owner Id */
+            owner_id?: string | null;
+            /** Review Note */
+            review_note?: string | null;
+        };
+        /** ImprovementRequestCreate */
+        ImprovementRequestCreate: {
+            /**
+             * Client Deliverable
+             * @default false
+             */
+            client_deliverable: boolean;
+            /** Evidence */
+            evidence?: string | null;
+            /** Need */
+            need: string;
+            /** Title */
+            title: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** ImprovementRequestReject */
+        ImprovementRequestReject: {
+            /** Review Note */
+            review_note?: string | null;
         };
         /** InstagramPostSummary */
         InstagramPostSummary: {
@@ -9102,11 +9872,8 @@ export interface components {
             external_id?: string | null;
             /** Fit Analysis */
             fit_analysis?: string | null;
-            /**
-             * Fit Score
-             * @default 0
-             */
-            fit_score: number;
+            /** Fit Score */
+            fit_score?: number | null;
             /**
              * Id
              * Format: uuid
@@ -9645,6 +10412,133 @@ export interface components {
              * Format: uuid
              */
             workspace_id: string;
+        };
+        /**
+         * PlatformStudyBulkCreate
+         * @description Colar a lista inteira de uma vez — é assim que ela chega na prática.
+         */
+        PlatformStudyBulkCreate: {
+            /** Targets */
+            targets?: ("bioma" | "foton" | "eg")[];
+            /** Urls */
+            urls: string[];
+        };
+        /** PlatformStudyCreate */
+        PlatformStudyCreate: {
+            /** Added Note */
+            added_note?: string | null;
+            /** Targets */
+            targets?: ("bioma" | "foton" | "eg")[];
+            /** Url */
+            url: string;
+        };
+        /** PlatformStudyOverview */
+        PlatformStudyOverview: {
+            /** Avg Overlap */
+            avg_overlap: number;
+            /** Cost Cents */
+            cost_cents: number;
+            /** Critical Overlap */
+            critical_overlap?: components["schemas"]["CriticalOverlapItem"][];
+            /** Decided */
+            decided: number;
+            /** Failed */
+            failed: number;
+            /** High Threat */
+            high_threat: number;
+            /** Pending */
+            pending: number;
+            /** Researched */
+            researched: number;
+            /** Rethink Bioma */
+            rethink_bioma: number;
+            /** Total */
+            total: number;
+        };
+        /** PlatformStudySummary */
+        PlatformStudySummary: {
+            /** Added Note */
+            added_note: string | null;
+            /** Category */
+            category: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By */
+            decided_by: string | null;
+            /** Findings */
+            findings?: {
+                [key: string]: unknown;
+            };
+            /** Generation Mode */
+            generation_mode: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Model */
+            model: string | null;
+            /** Name */
+            name: string;
+            /** One Liner */
+            one_liner: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Overlap Score */
+            overlap_score: number | null;
+            /** Preview Image Url */
+            preview_image_url: string | null;
+            /** Pricing Summary */
+            pricing_summary: string | null;
+            /** Provider */
+            provider: string | null;
+            /** Research Error */
+            research_error: string | null;
+            /**
+             * Research Status
+             * @enum {string}
+             */
+            research_status: "pending" | "researching" | "researched" | "failed";
+            /** Researched At */
+            researched_at: string | null;
+            /** Sources */
+            sources?: string[];
+            /** Targets */
+            targets: string[];
+            /** Test Priority */
+            test_priority: number | null;
+            /** Threat Level */
+            threat_level: ("nenhuma" | "baixa" | "media" | "alta" | "critica") | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+            /** Verdict */
+            verdict: ("assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar") | null;
+            /** Verdict Note */
+            verdict_note: string | null;
+        };
+        /** PlatformStudyVerdict */
+        PlatformStudyVerdict: {
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "assinar" | "integrar" | "absorver" | "comprar" | "monitorar" | "descartar" | "repensar";
+            /** Verdict Note */
+            verdict_note?: string | null;
         };
         /**
          * PortfolioPerformanceRow
@@ -12844,6 +13738,11 @@ export interface components {
             /** Assignee Id */
             assignee_id?: string | null;
             /**
+             * Client Visible
+             * @default true
+             */
+            client_visible: boolean;
+            /**
              * Created At
              * Format: date-time
              */
@@ -12947,6 +13846,11 @@ export interface components {
         TaskCreate: {
             /** Assignee Id */
             assignee_id?: string | null;
+            /**
+             * Client Visible
+             * @default true
+             */
+            client_visible: boolean;
             /** Custom Fields */
             custom_fields?: components["schemas"]["TaskCustomFieldBase"][];
             /** Dependencies */
@@ -13128,6 +14032,8 @@ export interface components {
         TaskUpdate: {
             /** Assignee Id */
             assignee_id?: string | null;
+            /** Client Visible */
+            client_visible?: boolean | null;
             /** Custom Fields */
             custom_fields?: components["schemas"]["TaskCustomFieldBase"][] | null;
             /** Dependencies */
@@ -13704,6 +14610,169 @@ export interface components {
             imported: string[];
             /** Skipped */
             skipped: string[];
+        };
+        /** WinCreate */
+        WinCreate: {
+            /**
+             * Category
+             * @default operacao
+             * @enum {string}
+             */
+            category: "comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro";
+            /** Credited User Ids */
+            credited_user_ids?: string[];
+            /** Description */
+            description?: string | null;
+            /**
+             * Is Ceo
+             * @default false
+             */
+            is_ceo: boolean;
+            /** Metric Unit */
+            metric_unit?: string | null;
+            /** Metric Value */
+            metric_value?: number | string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default eg
+             * @enum {string}
+             */
+            visibility: "eg" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /**
+         * WinDetectionResult
+         * @description Resultado de uma varredura dos detectores.
+         */
+        WinDetectionResult: {
+            /** By Rule */
+            by_rule?: {
+                [key: string]: number;
+            };
+            /** Created */
+            created: number;
+            /** Errors */
+            errors?: {
+                [key: string]: string;
+            };
+            /** Scanned Rules */
+            scanned_rules: number;
+            /** Skipped Duplicates */
+            skipped_duplicates: number;
+        };
+        /** WinOverview */
+        WinOverview: {
+            /** Automatic */
+            automatic: number;
+            /** By Category */
+            by_category?: {
+                [key: string]: unknown;
+            }[];
+            /** Ceo */
+            ceo: number;
+            /** Last 7 Days */
+            last_7_days: number;
+            /** Manual */
+            manual: number;
+            /** Total */
+            total: number;
+        };
+        /** WinReaction */
+        WinReaction: {
+            /** Emoji */
+            emoji: string;
+        };
+        /** WinSummary */
+        WinSummary: {
+            /** Benchmark Link */
+            benchmark_link: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Credited User Ids */
+            credited_user_ids?: string[];
+            /** Description */
+            description: string | null;
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Ceo */
+            is_ceo: boolean;
+            /** Metric Unit */
+            metric_unit: string | null;
+            /** Metric Value */
+            metric_value: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Pinned */
+            pinned: boolean;
+            /** Reactions */
+            reactions?: {
+                [key: string]: string[];
+            };
+            /** Rule Key */
+            rule_key: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "manual" | "automatic";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "eg" | "client";
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /** WinUpdate */
+        WinUpdate: {
+            /** Category */
+            category?: ("comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro") | null;
+            /** Description */
+            description?: string | null;
+            /** Is Ceo */
+            is_ceo?: boolean | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Pinned */
+            pinned?: boolean | null;
+            /** Title */
+            title?: string | null;
+            /** Visibility */
+            visibility?: ("eg" | "client") | null;
         };
         /** WorkflowDefinitionSummary */
         WorkflowDefinitionSummary: {
@@ -15830,7 +16899,7 @@ export interface operations {
             };
         };
     };
-    get_engineering_modules_backoffice_engineering_get: {
+    get_engineering_backoffice_engineering_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -20300,6 +21369,105 @@ export interface operations {
             };
         };
     };
+    upload_attachment_copilot_attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_attachment_copilot_attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotAttachment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attachment_copilot_attachments__attachment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_attachment_copilot_attachments__attachment_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_commands_copilot_commands_get: {
         parameters: {
             query?: {
@@ -20520,6 +21688,162 @@ export interface operations {
             };
         };
     };
+    get_run_copilot_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotRunTrace"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_threads_copilot_threads_get: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotThreadSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_thread_copilot_threads__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotRunTrace"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_thread_copilot_threads__thread_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotThreadSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_copilot_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                mine_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotUsageSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     healthcheck_health_get: {
         parameters: {
             query?: never;
@@ -20560,6 +21884,141 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    list_requests_improvement_requests_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                workspace_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_request_improvement_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    convert_to_task_improvement_requests__request_id__convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestConvert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_request_improvement_requests__request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImprovementRequestReject"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImprovementRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -20941,6 +22400,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeatureFlag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platforms_platform_studies_get: {
+        parameters: {
+            query?: {
+                research_status?: string | null;
+                verdict?: string | null;
+                target?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_platform_platform_studies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_many_platform_studies_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyBulkCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_platform_studies_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudyOverview"];
+                };
+            };
+        };
+    };
+    get_platform_platform_studies__study_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_platform_studies__study_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_platform_studies__study_id__research_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_platform_studies__study_id__verdict_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformStudyVerdict"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformStudySummary"];
                 };
             };
             /** @description Validation Error */
@@ -22272,6 +23980,260 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenantMembershipSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_wins_wins_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+                workspace_id?: string | null;
+                ceo_only?: boolean;
+                days?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_wins_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detect_wins_detect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinDetectionResult"];
+                };
+            };
+        };
+    };
+    export_for_foton_wins_export_foton_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_wins_overview_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_wins__win_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_wins__win_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    react_wins__win_id__react_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinReaction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
                 };
             };
             /** @description Validation Error */

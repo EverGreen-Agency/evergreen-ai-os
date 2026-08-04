@@ -23,6 +23,8 @@ from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from bioma_api.access import require_platform_admin
+from bioma_api.db import connect
+from bioma_api.repositories import knowledge as knowledge_repo
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 
@@ -103,38 +105,70 @@ class EngineeringDocData(BaseModel):
     content: str
 
 
+# Stack e Ideias saíram do disco (`_opensquad/_memory/`) para o Postgres.
+# Motivo: `_opensquad/` fica fora do contexto de build do Dockerfile, então
+# essas telas nunca funcionaram em staging/produção — liam vazio e a escrita
+# devolvia 503. O conteúdo inicial é semeado por `scripts/seed_knowledge.py`.
+
+
 @router.get("/stack")
 def get_stack(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        return {"techs": []}
-    return _read_json(paths["stack"]) or {"techs": []}
+    with connect() as conn:
+        rows = knowledge_repo.list_techs(conn)
+    return {
+        "techs": [
+            {
+                "id": row["slug"],
+                "name": row["name"],
+                "ring": row["ring"],
+                "quadrant": row["quadrant"],
+                "note": row["note"],
+                "adr": row["adr"],
+                "source": row["source"],
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.post("/stack")
 def save_stack(data: StackData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Indisponível neste ambiente.")
-    _merge_save(paths["stack"], "techs", data.techs)
-    return {"status": "ok"}
+    with connect() as conn:
+        saved = knowledge_repo.upsert_techs(conn, data.techs)
+    return {"status": "ok", "saved": saved}
 
 
 @router.get("/ideas")
 def get_ideas(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        return {"ideas": []}
-    return _read_json(paths["ideas"]) or {"ideas": []}
+    with connect() as conn:
+        rows = knowledge_repo.list_ideas(conn)
+    return {
+        "ideas": [
+            {
+                "id": row["slug"],
+                "title": row["title"],
+                "desc": row["description"],
+                "category": row["category"],
+                "stage": row["stage"],
+                "horizon": row["horizon"],
+                "origin": row["origin"],
+                "source": row["source"],
+                "readiness": row["readiness"],
+                "part_of": row["part_of"],
+                "depends_on": row["depends_on"],
+                "enables": row["enables"],
+                "archived": row["archived"],
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.post("/ideas")
 def save_ideas(data: IdeasData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Indisponível neste ambiente.")
-    _merge_save(paths["ideas"], "ideas", data.ideas)
-    return {"status": "ok"}
+    with connect() as conn:
+        saved = knowledge_repo.upsert_ideas(conn, data.ideas)
+    return {"status": "ok", "saved": saved}
 
 
 @router.get("/ideas/doc")
@@ -193,11 +227,16 @@ def _load_squads(squads_dir: Path) -> list[dict]:
 
 @router.get("/architecture")
 def get_architecture(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths:
-        return {"md": "", "squads": []}
-    md_content = paths["architecture"].read_text(encoding="utf-8") if paths["architecture"].exists() else ""
-    return {"md": md_content, "squads": _load_squads(paths["squads"])}
+    with connect() as conn:
+        docs = knowledge_repo.list_docs(conn, "architecture")
+    # O documento principal é `arquitetura.md`; os demais entram como anexos na
+    # mesma resposta para a tela não precisar de outra chamada.
+    main = next((row for row in docs if row["path"].endswith("arquitetura.md")), None)
+    return {
+        "md": main["content"] if main else "",
+        "squads": [],
+        "documents": [{"path": row["path"], "title": row["title"]} for row in docs],
+    }
 
 
 @router.get("/squads")
@@ -228,132 +267,128 @@ def parse_spec_metadata(content: str):
     return {"title": title, "status": status, "date": date}
 
 @router.get("/engineering")
-def get_engineering_modules(_user: CurrentUserResponse = Depends(_require_eg_admin)):
-    paths = _paths()
-    if not paths or "engineering" not in paths:
-        return {"modules": [], "matrix": {}}
-    eng_dir = paths["engineering"]
-    if not eng_dir.exists():
-        return {"modules": [], "matrix": {}}
-        
-    modules = []
-    for entry in eng_dir.iterdir():
-        if entry.is_dir() and entry.name != "mega-plataforma":
-            mod_id = entry.name
-            spec_path = entry / "spec.md"
-            tasks_path = entry / "tasks.md"
-            adr_dir = entry / "adr"
-            
-            has_spec = spec_path.exists()
-            spec_title, spec_status, spec_date = None, None, None
-            if has_spec:
-                content = spec_path.read_text(encoding='utf-8')
-                meta = parse_spec_metadata(content)
-                spec_title = meta.get("title")
-                spec_status = meta.get("status")
-                spec_date = meta.get("date")
-                
-            has_tasks = tasks_path.exists()
-            adr_count = 0
-            if adr_dir.exists():
-                adr_count = len([f for f in adr_dir.iterdir() if f.is_file() and f.name.endswith(".md")])
-                
-            modules.append({
-                "id": mod_id,
-                "hasSpec": has_spec,
-                "specTitle": spec_title,
-                "specStatus": spec_status,
-                "specDate": spec_date,
-                "adrCount": adr_count,
-                "hasTasks": has_tasks
-            })
-            
-    matrix = {}
-    matrix_path = eng_dir / "mega-plataforma" / "matriz-maturidade-modulos.md"
-    if matrix_path.exists():
-        content = matrix_path.read_text(encoding='utf-8')
-        import re
-        for match in re.finditer(r'^\|\s*([\w-]+)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|', content, re.MULTILINE):
+def get_engineering(_user: CurrentUserResponse = Depends(_require_eg_admin)):
+    """Módulos de engenharia, montados a partir dos documentos no banco.
+
+    O nome do arquivo achatado carrega a hierarquia original:
+    `engineering/<modulo>__spec.md`, `<modulo>__tasks.md`, `<modulo>__adr__*.md`.
+    """
+    with connect() as conn:
+        docs = knowledge_repo.list_docs(conn, "engineering")
+
+    modules: dict[str, dict[str, Any]] = {}
+    for row in docs:
+        filename = row["path"].removeprefix("engineering/").removesuffix(".md")
+        parts = filename.split("__")
+        if len(parts) < 2:
+            continue
+        mod_id = parts[0]
+        entry = modules.setdefault(
+            mod_id,
+            {"id": mod_id, "hasSpec": False, "specTitle": None, "specStatus": None,
+             "specDate": None, "adrCount": 0, "hasTasks": False},
+        )
+        kind = parts[1]
+        if kind == "spec":
+            entry["hasSpec"] = True
+            meta = parse_spec_metadata(row["content"])
+            entry["specTitle"] = meta.get("title")
+            entry["specStatus"] = meta.get("status")
+            entry["specDate"] = meta.get("date")
+        elif kind == "tasks":
+            entry["hasTasks"] = True
+        elif kind == "adr":
+            entry["adrCount"] += 1
+
+    matrix: dict[str, Any] = {}
+    matrix_doc = next(
+        (row for row in docs if "matriz-maturidade-modulos" in row["path"]), None
+    )
+    if matrix_doc:
+        for match in re.finditer(
+            r"^\|\s*([\w-]+)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|",
+            matrix_doc["content"],
+            re.MULTILINE,
+        ):
             mod_id = match.group(1).strip()
             matrix[mod_id] = {
                 "id": mod_id,
                 "phase": match.group(2).strip(),
                 "maturity": match.group(3).strip(),
-                "nextGate": match.group(4).strip()
+                "nextGate": match.group(4).strip(),
             }
-            
-    modules.sort(key=lambda x: x["id"])
-    return {"modules": modules, "matrix": matrix}
+
+    return {"modules": sorted(modules.values(), key=lambda item: item["id"]), "matrix": matrix}
+
 
 @router.get("/engineering/{mod_id}")
 def get_engineering_detail(mod_id: str, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    import re
-    if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
+    if not re.match(r"^[a-z0-9][a-z0-9_-]*$", mod_id):
         raise HTTPException(status_code=400, detail="Invalid mod_id")
-        
-    paths = _paths()
-    if not paths or "engineering" not in paths:
-        raise HTTPException(status_code=404, detail="Engineering directory not found")
-    eng_dir = paths["engineering"]
-    mod_dir = eng_dir / mod_id
-    if not mod_dir.is_dir():
+
+    with connect() as conn:
+        docs = knowledge_repo.list_docs(conn, "engineering")
+
+    prefix = f"engineering/{mod_id}__"
+    owned = [row for row in docs if row["path"].startswith(prefix)]
+    if not owned:
         raise HTTPException(status_code=404, detail="Module not found")
-        
-    spec_path = mod_dir / "spec.md"
-    tasks_path = mod_dir / "tasks.md"
-    
-    spec_content = spec_path.read_text(encoding='utf-8') if spec_path.exists() else None
-    tasks_content = tasks_path.read_text(encoding='utf-8') if tasks_path.exists() else None
-    
+
+    spec_content = None
+    tasks_content = None
     adrs = []
-    adr_dir = mod_dir / "adr"
-    if adr_dir.exists():
-        for f in sorted(adr_dir.iterdir()):
-            if f.is_file() and f.name.endswith(".md"):
-                content = f.read_text(encoding='utf-8')
-                title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
-                title = title_match.group(1).strip() if title_match else f.name
-                adrs.append({
-                    "file": f.name,
-                    "title": title,
-                    "content": content
-                })
-                
+    for row in owned:
+        rest = row["path"].removeprefix(prefix).removesuffix(".md")
+        if rest == "spec":
+            spec_content = row["content"]
+        elif rest == "tasks":
+            tasks_content = row["content"]
+        elif rest.startswith("adr__"):
+            title_match = re.search(r"^#\s+(.+)$", row["content"], re.MULTILINE)
+            adrs.append({
+                "file": rest.removeprefix("adr__") + ".md",
+                "title": title_match.group(1).strip() if title_match else rest,
+                "content": row["content"],
+            })
+
     return {
         "id": mod_id,
         "specContent": spec_content,
         "tasksContent": tasks_content,
-        "adrs": adrs
+        "adrs": sorted(adrs, key=lambda item: item["file"]),
     }
 
 
 @router.put("/engineering/{mod_id}/doc")
-def save_engineering_doc(mod_id: str, data: EngineeringDocData, _user: CurrentUserResponse = Depends(_require_eg_admin)):
-    import re
-    if not re.match(r'^[a-z0-9][a-z0-9_-]*$', mod_id):
+def save_engineering_doc(
+    mod_id: str,
+    data: EngineeringDocData,
+    user: CurrentUserResponse = Depends(_require_eg_admin),
+):
+    if not re.match(r"^[a-z0-9][a-z0-9_-]*$", mod_id):
         raise HTTPException(status_code=400, detail="Invalid mod_id")
-        
-    paths = _paths()
-    if not paths or "engineering" not in paths:
-        raise HTTPException(status_code=404, detail="Engineering directory not found")
-        
-    eng_dir = paths["engineering"]
-    mod_dir = eng_dir / mod_id
-    if not mod_dir.is_dir():
-        raise HTTPException(status_code=404, detail="Module not found")
-        
+
     if data.doc_type == "spec":
-        file_path = mod_dir / "spec.md"
+        path = f"engineering/{mod_id}__spec.md"
+        title = f"{mod_id} / spec"
     elif data.doc_type == "tasks":
-        file_path = mod_dir / "tasks.md"
+        path = f"engineering/{mod_id}__tasks.md"
+        title = f"{mod_id} / tasks"
     elif data.doc_type == "adr":
         if not data.filename or not data.filename.endswith(".md"):
             raise HTTPException(status_code=400, detail="Invalid ADR filename")
-        file_path = mod_dir / "adr" / data.filename
+        if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_.-]*\.md$", data.filename):
+            raise HTTPException(status_code=400, detail="Invalid ADR filename")
+        path = f"engineering/{mod_id}__adr__{data.filename}"
+        title = f"{mod_id} / adr / {data.filename.removesuffix('.md')}"
     else:
         raise HTTPException(status_code=400, detail="Invalid doc_type")
-        
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(data.content, encoding="utf-8")
-    
+
+    with connect() as conn:
+        updated = knowledge_repo.save_doc(conn, path, data.content, user.id)
+        if not updated:
+            # Documento novo (ADR criada agora, por exemplo): nasce já fora do
+            # controle do seeder, porque foi escrito aqui dentro.
+            knowledge_repo.create_doc(conn, path, "engineering", title, data.content, user.id)
+
     return {"status": "ok"}

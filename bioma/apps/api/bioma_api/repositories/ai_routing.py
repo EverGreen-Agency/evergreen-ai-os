@@ -18,6 +18,64 @@ def list_accounts(conn, organization_id: UUID):
     ).fetchall()
 
 
+def list_copilot_candidates(conn, organization_id: UUID):
+    """Contas + modelos habilitados para o copiloto usar a cota da assinatura.
+
+    Mesma forma que `storage.list_ai_route_candidates` do worker (que serve os
+    workflows), para `rank_candidates` conseguir ordenar as duas com o mesmo
+    código. `task_kind = 'reasoning'`: o copiloto interpreta e decide.
+
+    Contas de `manual_handoff` ficam de fora — por definição elas exigem um
+    humano no meio, e o copiloto responde na hora. É o caso do Antigravity CLI,
+    que não documenta execução headless.
+    """
+    return conn.execute(
+        """
+        select account.id as account_id, account.provider, account.channel,
+          account.display_name as account_name, account.auth_mode,
+          account.execution_mode, account.auth_ref, account.status as account_status,
+          account.capabilities as account_capabilities, account.settings as account_settings,
+          model.id as model_catalog_id, model.model_id, model.display_name as model_name,
+          model.capability_tier, model.capabilities as model_capabilities,
+          model.quality_score, model.cost_score, model.latency_score, model.priority,
+          policy.id as policy_id, policy.allowed_channels, policy.allowed_models,
+          policy.preferred_tiers, policy.quality_weight, policy.quota_weight,
+          policy.cost_weight, policy.reliability_weight, policy.latency_weight,
+          policy.minimum_quota_headroom, policy.requires_human_approval,
+          policy.allow_fallback,
+          coalesce((
+            select jsonb_agg(latest_quota.payload order by latest_quota.bucket_key)
+            from (
+              select distinct on (quota.bucket_key, coalesce(quota.model_id, ''))
+                quota.bucket_key,
+                jsonb_build_object(
+                  'bucket_key', quota.bucket_key,
+                  'model_id', quota.model_id,
+                  'remaining_percent', quota.remaining_percent,
+                  'resets_at', quota.resets_at,
+                  'confidence', quota.confidence,
+                  'measured_at', quota.measured_at
+                ) as payload
+              from ai_quota_buckets quota
+              where quota.account_id = account.id
+              order by quota.bucket_key, coalesce(quota.model_id, ''), quota.measured_at desc
+            ) latest_quota
+          ), '[]'::jsonb) as quota_buckets
+        from ai_provider_accounts account
+        join ai_model_catalog model on model.account_id = account.id and model.enabled
+        left join ai_routing_policies policy
+          on policy.organization_id = account.organization_id
+          and policy.task_kind = 'reasoning'
+          and policy.status = 'active'
+        where account.organization_id = %s
+          and account.status in ('active', 'degraded')
+          and account.execution_mode <> 'manual_handoff'
+        order by model.priority, account.display_name, model.display_name
+        """,
+        (organization_id,),
+    ).fetchall()
+
+
 def list_models(conn, organization_id: UUID):
     return conn.execute(
         """

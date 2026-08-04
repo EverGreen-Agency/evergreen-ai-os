@@ -25,6 +25,34 @@ def upsert_tech_skill(conn, skill_name: str, category: str = "general", notes: s
         )
         return dict(cur.fetchone())
 
+def list_adopted_stack_techs(conn) -> list[dict[str, Any]]:
+    """Tecnologias que a EG decidiu usar, do Tech Radar.
+
+    `hold` e `assess` ficam de fora de propósito: assess é "estamos olhando" e
+    hold é "decidimos não" — nenhum dos dois é competência instalada.
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            "select name, ring, adr from eg_stack_techs where ring in ('adopt', 'trial') order by name"
+        )
+        return list(cur.fetchall())
+
+
+def list_completed_project_types(conn) -> list[dict[str, Any]]:
+    """Disciplinas em que a EG já entregou projeto até o fim."""
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select project_type as label, count(*) as count
+            from projects
+            where status = 'completed'
+            group by project_type
+            order by count desc
+            """
+        )
+        return list(cur.fetchall())
+
+
 def list_skill_gaps(conn, status_val: str = "open") -> list[dict[str, Any]]:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute("select * from opportunity_skill_gaps where status = %s order by created_at desc", (status_val,))
@@ -193,7 +221,7 @@ def create_opportunity(conn, data: dict[str, Any]) -> dict[str, Any]:
                 data.get("url"),
                 data.get("description"),
                 data.get("budget_text"),
-                data.get("fit_score", 0),
+                data.get("fit_score"),
                 data.get("fit_analysis"),
                 data.get("status", "new"),
                 json.dumps(data.get("raw_payload", {})),

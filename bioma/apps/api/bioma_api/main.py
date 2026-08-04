@@ -21,6 +21,7 @@ from bioma_api.routers import (
     feature_flags,
     files,
     health,
+    improvement_requests,
     integrations,
     invites,
     kits,
@@ -29,11 +30,13 @@ from bioma_api.routers import (
     oauth,
     passwords,
     performance,
+    platform_studies,
     projects,
     rh,
     teams,
     vault,
     wiki,
+    wins,
     workspaces,
     tasks,
     whatsapp,
@@ -111,6 +114,7 @@ app.include_router(briefing.router)
 app.include_router(copilot.router)
 app.include_router(agent_memory.router)
 app.include_router(feature_flags.router)
+app.include_router(improvement_requests.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)
 app.include_router(proposals.router)
@@ -118,6 +122,8 @@ app.include_router(proposals.public_router)
 app.include_router(proposal_lifecycle.router)
 app.include_router(proposal_lifecycle.public_router)
 app.include_router(sales_copilot.router)
+app.include_router(platform_studies.router)
+app.include_router(wins.router)
 
 
 @app.get("/")

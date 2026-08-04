@@ -11,6 +11,7 @@ import { ResetPasswordView } from "./views/ResetPasswordView";
 import { PrivacyView } from "./views/PrivacyView";
 import { PublicProposalView } from "./views/PublicProposalView";
 import { ArtifactModal } from "./components/ArtifactModal";
+import { CopilotPanel } from "./components/CopilotPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { useUiStore } from "./store/uiStore";
@@ -64,6 +65,12 @@ const ProposalsManagerView = lazy(() =>
 );
 const SalesCopilotView = lazy(() =>
   import("./views/admin/proposals/SalesCopilotView").then((module) => ({ default: module.SalesCopilotView })),
+);
+const WinsView = lazy(() =>
+  import("./views/admin/WinsView").then((module) => ({ default: module.WinsView })),
+);
+const PlatformStudiesView = lazy(() =>
+  import("./views/admin/PlatformStudiesView").then((module) => ({ default: module.PlatformStudiesView })),
 );
 const PlanningPortfolioView = lazy(() =>
   import("./views/admin/proposals/PlanningPortfolioView").then((module) => ({ default: module.PlanningPortfolioView })),
@@ -388,6 +395,16 @@ export function App() {
               <PlanningPortfolioView />
             </Suspense>,
           )} />
+          <Route path="/eg-vitorias" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <WinsView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-plataformas" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <PlatformStudiesView />
+            </Suspense>,
+          )} />
 
           <Route path="/convite/:token" element={<InviteView />} />
           <Route path="/redefinir/:token" element={<ResetPasswordView />} />
@@ -396,6 +413,11 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </section>
+
+      {/* Copiloto: só EG. O painel fala com `/copilot`, que responde 403 para
+          usuário de cliente — renderizar para eles seria oferecer uma porta
+          fechada. */}
+      {isEgAdmin && <CopilotPanel />}
 
       {selectedArtifact && (
         <ArtifactModal

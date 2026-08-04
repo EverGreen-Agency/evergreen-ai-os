@@ -1,5 +1,11 @@
 from dataclasses import dataclass
+from pathlib import Path
 from uuid import UUID, uuid4
+import sys
+
+# Importado pelos smokes (que já ajustam o sys.path) e também executado direto
+# pelo runner, para a varredura de resíduo — daí o ajuste aqui.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from psycopg.types.json import Jsonb
 
@@ -89,3 +95,49 @@ def cleanup_smoke_data(organization_ids: list[UUID], emails: list[str]) -> None:
             conn.execute("delete from organizations where id = any(%s)", (organization_ids,))
         if emails:
             conn.execute("delete from users where lower(email) = any(%s)", ([email.lower() for email in emails],))
+
+
+def purge_smoke_residue() -> dict[str, int]:
+    """Varredura final do runner: apaga tudo que segue a convenção de nome de smoke.
+
+    Por que existe: a limpeza de cada smoke roda no `finally`, então uma asserção
+    que quebra ANTES do `try` deixa o workspace na carteira — foi assim que cinco
+    clientes "Smoke COPILOT xxx" apareceram na carteira local. Cada smoke agora
+    registra um `atexit`, mas isso só cobre os smokes que usam `smoke_support`;
+    `smoke_invites` e `smoke_password` criam usuários `@smoke.dev` avulsos e nunca
+    limparam nada (48 usuários acumulados até 2026-07-31).
+
+    Esta função é a rede embaixo do trapézio: roda uma vez no fim do runner e
+    responde por convenção de nome, não por bookkeeping de cada script. Só apaga
+    o que nenhum dado real pode se chamar.
+    """
+    removed = {"organizations": 0, "users": 0, "local_radar_scans": 0}
+    with connect() as conn:
+        rows = conn.execute(
+            "select id from organizations where name like 'Smoke %' and type = 'client'"
+        ).fetchall()
+        if rows:
+            conn.execute("delete from organizations where id = any(%s)", ([row["id"] for row in rows],))
+            removed["organizations"] = len(rows)
+
+        rows = conn.execute(
+            "select id from users where email like %s or email like %s",
+            ("%@smoke.dev", "smoke-%@bioma.example.com"),
+        ).fetchall()
+        if rows:
+            conn.execute("delete from users where id = any(%s)", ([row["id"] for row in rows],))
+            removed["users"] = len(rows)
+
+        rows = conn.execute(
+            "select id from local_radar_scans where niche = 'smoke' or city = 'smoke'"
+        ).fetchall()
+        if rows:
+            scan_ids = [row["id"] for row in rows]
+            conn.execute("delete from local_radar_prospects where scan_id = any(%s)", (scan_ids,))
+            conn.execute("delete from local_radar_scans where id = any(%s)", (scan_ids,))
+            removed["local_radar_scans"] = len(rows)
+    return removed
+
+
+if __name__ == "__main__":
+    print(purge_smoke_residue())

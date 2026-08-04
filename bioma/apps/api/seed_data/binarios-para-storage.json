@@ -1,0 +1,13 @@
+{
+  "note": "Arquivos binarios que NAO entram no deploy da API. Devem ir para o storage de arquivos (S3) e ser referenciados por storage_key.",
+  "files": [
+    {
+      "path": "_opensquad/_memory/knowledge/EverGreen - Manual de Marca.pdf",
+      "size_kb": 15010
+    },
+    {
+      "path": "_opensquad/_memory/knowledge/inputs-mega-plataforma/Proposta_EverGreen_HM_Conexoes_Poderosas_v3.pdf",
+      "size_kb": 10409
+    }
+  ]
+}

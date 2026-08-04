@@ -2,9 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { Bot, CheckCircle2, Download, Play, ShieldCheck, Workflow } from "lucide-react";
 
 import { EmptyState, SectionHeader } from "../components/shared";
-import { AgentMemoryPanel } from "../components/AgentMemoryPanel";
-import { AgentSkillReviewPanel } from "../components/AgentSkillReviewPanel";
-import { CopilotPlansPanel } from "../components/CopilotPlansPanel";
+import { CopilotWorkbench } from "../components/CopilotWorkbench";
 import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
@@ -64,19 +62,13 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
 
       <AiControlPlanePanel />
 
-      {/* Memória global do copiloto (SOUL.md-equivalente + aprendizados
-          cross-cliente) e a fila de skills que ele mesmo propõe — nenhuma
-          entra em uso sem aprovação. */}
-      <AgentMemoryPanel
+      {/* Personalização do copiloto num lugar só: memória, habilidades, planos
+          multi-etapa e a fila de melhorias. Antes eram painéis empilhados. */}
+      <CopilotWorkbench
         workspaceId={null}
-        title="Memória global do copiloto"
-        description="Identidade, tom e diretivas que valem em qualquer cliente — separado do tom de voz de cada conta, que fica no Contexto do cliente."
+        title="Copiloto da EG"
+        description="Identidade, procedimentos e planos que valem em qualquer cliente. Nada entra em uso sem sua aprovação."
       />
-      <AgentSkillReviewPanel workspaceId={null} />
-
-      {/* Planos multi-etapa: objetivo em linguagem natural vira sequencia
-          de acoes reais, aprovada antes de rodar. */}
-      <CopilotPlansPanel workspaceId={null} />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">

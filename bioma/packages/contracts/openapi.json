@@ -2688,6 +2688,32 @@
         "title": "Body_upload_attachment_backoffice_wiki_documents__document_id__attachments_post",
         "type": "object"
       },
+      "Body_upload_attachment_copilot_attachments_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_attachment_copilot_attachments_post",
+        "type": "object"
+      },
       "Body_upload_file_clients__client_id__files_post": {
         "properties": {
           "file": {
@@ -5112,6 +5138,106 @@
         "title": "CopilotAction",
         "type": "object"
       },
+      "CopilotAttachment": {
+        "description": "Arquivo anexado a uma mensagem.\n\n`has_text` é o que decide se o copiloto consegue de fato usar o conteúdo:\ndocumento vira texto e roda em qualquer provedor; imagem precisa de modelo\ncom visão; áudio precisa de transcrição.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "extraction_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Error"
+          },
+          "extraction_status": {
+            "enum": [
+              "pending",
+              "extracted",
+              "unsupported",
+              "failed",
+              "not_needed"
+            ],
+            "title": "Extraction Status",
+            "type": "string"
+          },
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "has_text": {
+            "title": "Has Text",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "image",
+              "audio",
+              "document"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "truncated_chars": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Truncated Chars"
+          }
+        },
+        "required": [
+          "id",
+          "thread_id",
+          "file_name",
+          "content_type",
+          "size_bytes",
+          "kind",
+          "extraction_status",
+          "extraction_error",
+          "truncated_chars",
+          "has_text",
+          "created_at"
+        ],
+        "title": "CopilotAttachment",
+        "type": "object"
+      },
       "CopilotCommand": {
         "description": "Item do menu de `/` na interface.",
         "properties": {
@@ -5340,6 +5466,15 @@
             "title": "Allow Web Search",
             "type": "boolean"
           },
+          "attachment_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Attachment Ids",
+            "type": "array"
+          },
           "dry_run": {
             "default": false,
             "title": "Dry Run",
@@ -5371,6 +5506,18 @@
               }
             ],
             "title": "Task Id"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
           },
           "workspace_id": {
             "anyOf": [
@@ -5421,20 +5568,318 @@
             "title": "Generation Mode",
             "type": "string"
           },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
           "sources": {
             "items": {
               "$ref": "#/components/schemas/CopilotSource"
             },
             "title": "Sources",
             "type": "array"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "title": "Thread Id",
+            "type": "string"
           }
         },
         "required": [
+          "thread_id",
+          "run_id",
           "answer",
           "generation_mode",
           "confidence"
         ],
         "title": "CopilotResponse",
+        "type": "object"
+      },
+      "CopilotRunStep": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "kind": {
+            "enum": [
+              "dossier",
+              "plan",
+              "action",
+              "persist"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "skipped",
+              "blocked",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "position",
+          "kind",
+          "label",
+          "status",
+          "detail",
+          "duration_ms"
+        ],
+        "title": "CopilotRunStep",
+        "type": "object"
+      },
+      "CopilotRunTrace": {
+        "description": "O que aconteceu numa execução. Não é o que o copiloto disse que fez.",
+        "properties": {
+          "actions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "attachments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Attachments",
+            "type": "array"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dossier_summary": {
+            "additionalProperties": true,
+            "title": "Dossier Summary",
+            "type": "object"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "generation_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "live",
+                  "preview"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Mode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "memories_used": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Memories Used",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "skills_used": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skills Used",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotRunStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "thread_id",
+          "message",
+          "answer",
+          "status",
+          "error_message",
+          "generation_mode",
+          "provider",
+          "model",
+          "confidence",
+          "input_tokens",
+          "output_tokens",
+          "cost_cents",
+          "duration_ms",
+          "created_at"
+        ],
+        "title": "CopilotRunTrace",
         "type": "object"
       },
       "CopilotSource": {
@@ -5458,6 +5903,241 @@
           "reference"
         ],
         "title": "CopilotSource",
+        "type": "object"
+      },
+      "CopilotThreadSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message"
+          },
+          "last_message_at": {
+            "format": "date-time",
+            "title": "Last Message At",
+            "type": "string"
+          },
+          "run_count": {
+            "title": "Run Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "surface": {
+            "enum": [
+              "task",
+              "workspace"
+            ],
+            "title": "Surface",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "surface",
+          "workspace_id",
+          "task_id",
+          "status",
+          "run_count",
+          "last_message",
+          "last_message_at",
+          "created_at"
+        ],
+        "title": "CopilotThreadSummary",
+        "type": "object"
+      },
+      "CopilotUsageSummary": {
+        "properties": {
+          "avg_duration_ms": {
+            "title": "Avg Duration Ms",
+            "type": "integer"
+          },
+          "cost_cents": {
+            "title": "Cost Cents",
+            "type": "integer"
+          },
+          "failed_runs": {
+            "title": "Failed Runs",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "preview_runs": {
+            "title": "Preview Runs",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "runs_without_cost": {
+            "title": "Runs Without Cost",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runs",
+          "failed_runs",
+          "preview_runs",
+          "runs_without_cost",
+          "input_tokens",
+          "output_tokens",
+          "cost_cents",
+          "avg_duration_ms"
+        ],
+        "title": "CopilotUsageSummary",
+        "type": "object"
+      },
+      "CriticalOverlapItem": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "one_liner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "One Liner"
+          },
+          "overlap_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Score"
+          },
+          "threat_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "nenhuma",
+                  "baixa",
+                  "media",
+                  "alta",
+                  "critica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Level"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "assinar",
+                  "integrar",
+                  "absorver",
+                  "comprar",
+                  "monitorar",
+                  "descartar",
+                  "repensar"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "one_liner",
+          "overlap_score",
+          "threat_level",
+          "verdict"
+        ],
+        "title": "CriticalOverlapItem",
         "type": "object"
       },
       "CurrentUserResponse": {
@@ -7550,6 +8230,266 @@
           "created_at"
         ],
         "title": "IdentitySummary",
+        "type": "object"
+      },
+      "ImprovementRequest": {
+        "properties": {
+          "client_deliverable": {
+            "title": "Client Deliverable",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "need": {
+            "title": "Need",
+            "type": "string"
+          },
+          "proposed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed By"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "converted",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "title",
+          "need",
+          "evidence",
+          "client_deliverable",
+          "status",
+          "proposed_by",
+          "reviewed_by",
+          "reviewed_at",
+          "review_note",
+          "task_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ImprovementRequest",
+        "type": "object"
+      },
+      "ImprovementRequestConvert": {
+        "description": "Converte em tarefa. `list_id` decide a frente (Tech, Growth, Social).",
+        "properties": {
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "list_id": {
+            "format": "uuid",
+            "title": "List Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "required": [
+          "list_id"
+        ],
+        "title": "ImprovementRequestConvert",
+        "type": "object"
+      },
+      "ImprovementRequestCreate": {
+        "properties": {
+          "client_deliverable": {
+            "default": false,
+            "title": "Client Deliverable",
+            "type": "boolean"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "need": {
+            "maxLength": 4000,
+            "minLength": 2,
+            "title": "Need",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "title",
+          "need"
+        ],
+        "title": "ImprovementRequestCreate",
+        "type": "object"
+      },
+      "ImprovementRequestReject": {
+        "properties": {
+          "review_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "title": "ImprovementRequestReject",
         "type": "object"
       },
       "InstagramPostSummary": {
@@ -11272,11 +12212,17 @@
             "title": "Fit Analysis"
           },
           "fit_score": {
-            "default": 0,
-            "maximum": 100.0,
-            "minimum": 0.0,
-            "title": "Fit Score",
-            "type": "integer"
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit Score"
           },
           "id": {
             "format": "uuid",
@@ -12706,6 +13652,496 @@
           "updated_at"
         ],
         "title": "PlanningPortfolioItem",
+        "type": "object"
+      },
+      "PlatformStudyBulkCreate": {
+        "description": "Colar a lista inteira de uma vez — é assim que ela chega na prática.",
+        "properties": {
+          "targets": {
+            "items": {
+              "enum": [
+                "bioma",
+                "foton",
+                "eg"
+              ],
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 300,
+            "minItems": 1,
+            "title": "Urls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "urls"
+        ],
+        "title": "PlatformStudyBulkCreate",
+        "type": "object"
+      },
+      "PlatformStudyCreate": {
+        "properties": {
+          "added_note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Note"
+          },
+          "targets": {
+            "items": {
+              "enum": [
+                "bioma",
+                "foton",
+                "eg"
+              ],
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "url": {
+            "maxLength": 500,
+            "minLength": 4,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "PlatformStudyCreate",
+        "type": "object"
+      },
+      "PlatformStudyOverview": {
+        "properties": {
+          "avg_overlap": {
+            "title": "Avg Overlap",
+            "type": "integer"
+          },
+          "cost_cents": {
+            "title": "Cost Cents",
+            "type": "integer"
+          },
+          "critical_overlap": {
+            "items": {
+              "$ref": "#/components/schemas/CriticalOverlapItem"
+            },
+            "title": "Critical Overlap",
+            "type": "array"
+          },
+          "decided": {
+            "title": "Decided",
+            "type": "integer"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "high_threat": {
+            "title": "High Threat",
+            "type": "integer"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          },
+          "researched": {
+            "title": "Researched",
+            "type": "integer"
+          },
+          "rethink_bioma": {
+            "title": "Rethink Bioma",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "pending",
+          "researched",
+          "failed",
+          "decided",
+          "high_threat",
+          "rethink_bioma",
+          "cost_cents",
+          "avg_overlap"
+        ],
+        "title": "PlatformStudyOverview",
+        "type": "object"
+      },
+      "PlatformStudySummary": {
+        "properties": {
+          "added_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Note"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "findings": {
+            "additionalProperties": true,
+            "title": "Findings",
+            "type": "object"
+          },
+          "generation_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Mode"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "one_liner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "One Liner"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "overlap_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Score"
+          },
+          "preview_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Image Url"
+          },
+          "pricing_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Summary"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "research_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Error"
+          },
+          "research_status": {
+            "enum": [
+              "pending",
+              "researching",
+              "researched",
+              "failed"
+            ],
+            "title": "Research Status",
+            "type": "string"
+          },
+          "researched_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Researched At"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "test_priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Priority"
+          },
+          "threat_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "nenhuma",
+                  "baixa",
+                  "media",
+                  "alta",
+                  "critica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threat Level"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "assinar",
+                  "integrar",
+                  "absorver",
+                  "comprar",
+                  "monitorar",
+                  "descartar",
+                  "repensar"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "verdict_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict Note"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "name",
+          "targets",
+          "added_note",
+          "research_status",
+          "research_error",
+          "category",
+          "one_liner",
+          "pricing_summary",
+          "preview_image_url",
+          "overlap_score",
+          "threat_level",
+          "test_priority",
+          "verdict",
+          "verdict_note",
+          "decided_by",
+          "decided_at",
+          "generation_mode",
+          "provider",
+          "model",
+          "input_tokens",
+          "output_tokens",
+          "cost_cents",
+          "researched_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PlatformStudySummary",
+        "type": "object"
+      },
+      "PlatformStudyVerdict": {
+        "properties": {
+          "verdict": {
+            "enum": [
+              "assinar",
+              "integrar",
+              "absorver",
+              "comprar",
+              "monitorar",
+              "descartar",
+              "repensar"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          },
+          "verdict_note": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict Note"
+          }
+        },
+        "required": [
+          "verdict"
+        ],
+        "title": "PlatformStudyVerdict",
         "type": "object"
       },
       "PortfolioPerformanceRow": {
@@ -21979,6 +23415,11 @@
             ],
             "title": "Assignee Id"
           },
+          "client_visible": {
+            "default": true,
+            "title": "Client Visible",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -22275,6 +23716,11 @@
               }
             ],
             "title": "Assignee Id"
+          },
+          "client_visible": {
+            "default": true,
+            "title": "Client Visible",
+            "type": "boolean"
           },
           "custom_fields": {
             "items": {
@@ -22683,6 +24129,17 @@
               }
             ],
             "title": "Assignee Id"
+          },
+          "client_visible": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Visible"
           },
           "custom_fields": {
             "anyOf": [
@@ -24254,6 +25711,502 @@
           "available"
         ],
         "title": "WikiImportResult",
+        "type": "object"
+      },
+      "WinCreate": {
+        "properties": {
+          "category": {
+            "default": "operacao",
+            "enum": [
+              "comercial",
+              "operacao",
+              "produto",
+              "cliente",
+              "time",
+              "financeiro"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "credited_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Credited User Ids",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_ceo": {
+            "default": false,
+            "title": "Is Ceo",
+            "type": "boolean"
+          },
+          "metric_unit": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Unit"
+          },
+          "metric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Value"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "eg",
+            "enum": [
+              "eg",
+              "client"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "WinCreate",
+        "type": "object"
+      },
+      "WinDetectionResult": {
+        "description": "Resultado de uma varredura dos detectores.",
+        "properties": {
+          "by_rule": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Rule",
+            "type": "object"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "errors": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "object"
+          },
+          "scanned_rules": {
+            "title": "Scanned Rules",
+            "type": "integer"
+          },
+          "skipped_duplicates": {
+            "title": "Skipped Duplicates",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scanned_rules",
+          "created",
+          "skipped_duplicates"
+        ],
+        "title": "WinDetectionResult",
+        "type": "object"
+      },
+      "WinOverview": {
+        "properties": {
+          "automatic": {
+            "title": "Automatic",
+            "type": "integer"
+          },
+          "by_category": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "By Category",
+            "type": "array"
+          },
+          "ceo": {
+            "title": "Ceo",
+            "type": "integer"
+          },
+          "last_7_days": {
+            "title": "Last 7 Days",
+            "type": "integer"
+          },
+          "manual": {
+            "title": "Manual",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "automatic",
+          "manual",
+          "ceo",
+          "last_7_days"
+        ],
+        "title": "WinOverview",
+        "type": "object"
+      },
+      "WinReaction": {
+        "properties": {
+          "emoji": {
+            "maxLength": 8,
+            "minLength": 1,
+            "title": "Emoji",
+            "type": "string"
+          }
+        },
+        "required": [
+          "emoji"
+        ],
+        "title": "WinReaction",
+        "type": "object"
+      },
+      "WinSummary": {
+        "properties": {
+          "benchmark_link": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Benchmark Link"
+          },
+          "category": {
+            "enum": [
+              "comercial",
+              "operacao",
+              "produto",
+              "cliente",
+              "time",
+              "financeiro"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "credited_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Credited User Ids",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_ceo": {
+            "title": "Is Ceo",
+            "type": "boolean"
+          },
+          "metric_unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Unit"
+          },
+          "metric_value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Value"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "reactions": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Reactions",
+            "type": "object"
+          },
+          "rule_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Key"
+          },
+          "source": {
+            "enum": [
+              "manual",
+              "automatic"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "visibility": {
+            "enum": [
+              "eg",
+              "client"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "category",
+          "source",
+          "rule_key",
+          "metric_value",
+          "metric_unit",
+          "benchmark_link",
+          "workspace_id",
+          "is_ceo",
+          "visibility",
+          "pinned",
+          "occurred_at",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "WinSummary",
+        "type": "object"
+      },
+      "WinUpdate": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "comercial",
+                  "operacao",
+                  "produto",
+                  "cliente",
+                  "time",
+                  "financeiro"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_ceo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Ceo"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "pinned": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "visibility": {
+            "anyOf": [
+              {
+                "enum": [
+                  "eg",
+                  "client"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility"
+          }
+        },
+        "title": "WinUpdate",
         "type": "object"
       },
       "WorkflowDefinitionSummary": {
@@ -27778,7 +29731,8 @@
     },
     "/backoffice/engineering": {
       "get": {
-        "operationId": "get_engineering_modules_backoffice_engineering_get",
+        "description": "Módulos de engenharia, montados a partir dos documentos no banco.\n\nO nome do arquivo achatado carrega a hierarquia original:\n`engineering/<modulo>__spec.md`, `<modulo>__tasks.md`, `<modulo>__adr__*.md`.",
+        "operationId": "get_engineering_backoffice_engineering_get",
         "responses": {
           "200": {
             "content": {
@@ -27789,7 +29743,7 @@
             "description": "Successful Response"
           }
         },
-        "summary": "Get Engineering Modules",
+        "summary": "Get Engineering",
         "tags": [
           "backoffice"
         ]
@@ -34301,6 +36255,142 @@
         ]
       }
     },
+    "/copilot/attachments": {
+      "post": {
+        "description": "Anexa imagem, áudio ou documento. Extrai o texto na hora, quando dá.\n\nExtrair no upload (e não no envio) faz o usuário descobrir agora que o PDF\né escaneado — em vez de perguntar algo sobre ele e receber resposta vaga.",
+        "operationId": "upload_attachment_copilot_attachments_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_attachment_copilot_attachments_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotAttachment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Attachment",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/attachments/{attachment_id}": {
+      "delete": {
+        "operationId": "delete_attachment_copilot_attachments__attachment_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attachment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attachment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Attachment Copilot Attachments  Attachment Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Attachment",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/attachments/{attachment_id}/download": {
+      "get": {
+        "operationId": "download_attachment_copilot_attachments__attachment_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attachment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attachment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Download Attachment Copilot Attachments  Attachment Id  Download Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Attachment",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
     "/copilot/commands": {
       "get": {
         "description": "Alimenta o menu de `/` — o front nunca inventa comando.",
@@ -34621,6 +36711,246 @@
         ]
       }
     },
+    "/copilot/runs/{run_id}": {
+      "get": {
+        "description": "Auditoria de uma execução: etapas, fontes, memória, token, custo, tempo.",
+        "operationId": "get_run_copilot_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotRunTrace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Run",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/threads": {
+      "get": {
+        "description": "Conversas do próprio usuário — alimenta a lista lateral do painel.",
+        "operationId": "list_threads_copilot_threads_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "active",
+              "pattern": "^(active|archived)$",
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CopilotThreadSummary"
+                  },
+                  "title": "Response List Threads Copilot Threads Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Threads",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/threads/{thread_id}": {
+      "get": {
+        "description": "Turnos da conversa, cada um com a trilha completa da execução.",
+        "operationId": "get_thread_copilot_threads__thread_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CopilotRunTrace"
+                  },
+                  "title": "Response Get Thread Copilot Threads  Thread Id  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Thread",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/threads/{thread_id}/archive": {
+      "post": {
+        "operationId": "archive_thread_copilot_threads__thread_id__archive_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotThreadSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive Thread",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
+    "/copilot/usage": {
+      "get": {
+        "description": "Consumo do copiloto na janela — token, custo e tempo médio.",
+        "operationId": "usage_copilot_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mine_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Mine Only",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotUsageSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Usage",
+        "tags": [
+          "copilot"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "healthcheck_health_get",
@@ -34668,6 +36998,222 @@
         "summary": "Readiness",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/improvement-requests": {
+      "get": {
+        "operationId": "list_requests_improvement_requests_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ImprovementRequest"
+                  },
+                  "title": "Response List Requests Improvement Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Requests",
+        "tags": [
+          "improvement-requests"
+        ]
+      },
+      "post": {
+        "operationId": "create_request_improvement_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImprovementRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImprovementRequest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Request",
+        "tags": [
+          "improvement-requests"
+        ]
+      }
+    },
+    "/improvement-requests/{request_id}/convert": {
+      "post": {
+        "description": "Vira tarefa de verdade — com prazo e dono — e sai da fila.",
+        "operationId": "convert_to_task_improvement_requests__request_id__convert_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImprovementRequestConvert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImprovementRequest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Convert To Task",
+        "tags": [
+          "improvement-requests"
+        ]
+      }
+    },
+    "/improvement-requests/{request_id}/reject": {
+      "post": {
+        "operationId": "reject_request_improvement_requests__request_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImprovementRequestReject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImprovementRequest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject Request",
+        "tags": [
+          "improvement-requests"
         ]
       }
     },
@@ -35290,6 +37836,384 @@
         "summary": "Clear Flag",
         "tags": [
           "feature-flags"
+        ]
+      }
+    },
+    "/platform-studies": {
+      "get": {
+        "description": "Fila ordenada por prioridade de teste — quem pode mudar a estratégia primeiro.",
+        "operationId": "list_platforms_platform_studies_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "research_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Research Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "verdict",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Verdict"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformStudySummary"
+                  },
+                  "title": "Response List Platforms Platform Studies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Platforms",
+        "tags": [
+          "platform-studies"
+        ]
+      },
+      "post": {
+        "operationId": "add_platform_platform_studies_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Platform",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/bulk": {
+      "post": {
+        "description": "Cola a lista inteira. Captura é barata; a pesquisa é disparada uma a uma.",
+        "operationId": "add_many_platform_studies_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyBulkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformStudySummary"
+                  },
+                  "title": "Response Add Many Platform Studies Bulk Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Many",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/overview": {
+      "get": {
+        "description": "Agregado: quantas ameaçam o escopo do Bioma, e quais.",
+        "operationId": "overview_platform_studies_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudyOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Overview",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}": {
+      "delete": {
+        "operationId": "remove_platform_studies__study_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Platform Studies  Study Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove",
+        "tags": [
+          "platform-studies"
+        ]
+      },
+      "get": {
+        "operationId": "get_platform_platform_studies__study_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Platform",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}/research": {
+      "post": {
+        "description": "Busca as páginas públicas e produz a leitura estruturada com fontes.",
+        "operationId": "research_platform_studies__study_id__research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research",
+        "tags": [
+          "platform-studies"
+        ]
+      }
+    },
+    "/platform-studies/{study_id}/verdict": {
+      "post": {
+        "operationId": "decide_platform_studies__study_id__verdict_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "study_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Study Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStudyVerdict"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStudySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "platform-studies"
         ]
       }
     },
@@ -37230,6 +40154,411 @@
         "summary": "Upsert Tenant Membership",
         "tags": [
           "teams"
+        ]
+      }
+    },
+    "/wins": {
+      "get": {
+        "description": "EG vê tudo; cliente vê só o que foi liberado do workspace dele.",
+        "operationId": "list_wins_wins_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ceo_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Ceo Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 365,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WinSummary"
+                  },
+                  "title": "Response List Wins Wins Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Wins",
+        "tags": [
+          "wins"
+        ]
+      },
+      "post": {
+        "description": "Registro manual — para o que não está em tabela nenhuma.",
+        "operationId": "create_wins_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WinCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WinSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "wins"
+        ]
+      }
+    },
+    "/wins/detect": {
+      "post": {
+        "description": "Varre os detectores desde a última execução de cada um.",
+        "operationId": "detect_wins_detect_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WinDetectionResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Detect",
+        "tags": [
+          "wins"
+        ]
+      }
+    },
+    "/wins/export/foton": {
+      "get": {
+        "description": "Pacote de vitórias do CEO — exportação explícita, com trilha de auditoria.",
+        "operationId": "export_for_foton_wins_export_foton_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Export For Foton Wins Export Foton Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export For Foton",
+        "tags": [
+          "wins"
+        ]
+      }
+    },
+    "/wins/overview": {
+      "get": {
+        "operationId": "overview_wins_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WinOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Overview",
+        "tags": [
+          "wins"
+        ]
+      }
+    },
+    "/wins/{win_id}": {
+      "delete": {
+        "operationId": "remove_wins__win_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "win_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Win Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Wins  Win Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove",
+        "tags": [
+          "wins"
+        ]
+      },
+      "patch": {
+        "operationId": "update_wins__win_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "win_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Win Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WinUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WinSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update",
+        "tags": [
+          "wins"
+        ]
+      }
+    },
+    "/wins/{win_id}/react": {
+      "post": {
+        "operationId": "react_wins__win_id__react_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "win_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Win Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WinReaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WinSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "React",
+        "tags": [
+          "wins"
         ]
       }
     },

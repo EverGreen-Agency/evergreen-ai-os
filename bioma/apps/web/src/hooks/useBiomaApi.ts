@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AgentSkillStatus, CopilotSurface, FeatureState, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
+import type { AgentSkillStatus, CopilotSurface, FeatureState, ImprovementRequestStatus, LocalRadarImportRow, WhatsAppProviderType } from "../lib/api";
 import { api, ClientPayload, ArtifactPayload, DeliverablePayload, LeadPayload, FinancialRecordPayload, AiSubscriptionPayload, AiQuotaPayload, TaskPayload, TaskListType } from "../lib/api";
 import type { Idea } from "../types/idea";
 import type { Tech } from "../types/stack";
@@ -48,6 +48,35 @@ export function useMyDeliverables() {
   return useQuery({
     queryKey: ["deliverables", "me"],
     queryFn: api.getMyDeliverables,
+  });
+}
+
+export function useImprovementRequests(statusFilter?: ImprovementRequestStatus, workspaceId?: string | null) {
+  return useQuery({
+    queryKey: ["improvement-requests", statusFilter, workspaceId],
+    queryFn: () => api.listImprovementRequests(statusFilter, workspaceId),
+  });
+}
+
+export function useConvertImprovementRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ requestId, listId, reviewNote }: { requestId: string; listId: string; reviewNote?: string }) =>
+      api.convertImprovementRequest(requestId, { list_id: listId, review_note: reviewNote ?? null }),
+    onSuccess: () => {
+      // Converter cria tarefa: a fila encolhe e o board cresce.
+      void queryClient.invalidateQueries({ queryKey: ["improvement-requests"] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+}
+
+export function useRejectImprovementRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ requestId, reviewNote }: { requestId: string; reviewNote?: string }) =>
+      api.rejectImprovementRequest(requestId, reviewNote),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["improvement-requests"] }),
   });
 }
 

@@ -92,6 +92,28 @@ def discover(group: str) -> list[Path]:
     return sorted(found, key=lambda item: (rank.get(item.stem, len(rank)), item.stem))
 
 
+def purge_residue() -> None:
+    """Varre o resíduo dos smokes que falharam no meio.
+
+    A limpeza de cada smoke roda no `finally`; uma asserção quebrada ANTES do
+    `try` escapa dela e o workspace fica na carteira. Roda no venv da API porque
+    é lá que `smoke_support` importa `bioma_api.db`.
+    """
+    support = REPO / "apps" / "api" / "scripts" / "smoke_support.py"
+    result = subprocess.run(
+        [interpreter_for(support), str(support)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=str(support.parent.parent),
+    )
+    if result.returncode != 0:
+        print(f"  aviso: varredura de resíduo falhou — {(result.stderr or '').strip()[-300:]}")
+        return
+    print(f"  faxina  resíduo de smoke: {(result.stdout or '').strip()}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--group", choices=["all", "standard", "mutable"], default="standard")
@@ -130,6 +152,8 @@ def main() -> None:
             print(f"  FALHOU  {label}  ({elapsed:.1f}s)")
             tail = (result.stdout or "") + (result.stderr or "")
             failures.append((label, tail.strip()[-1500:]))
+
+    purge_residue()
 
     print()
     if failures:

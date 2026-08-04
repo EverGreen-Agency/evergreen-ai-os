@@ -54,6 +54,42 @@ function countOf(line: string, character: string) {
   return line.split(character).length - 1;
 }
 
+/**
+ * Quebra uma linha respeitando aspas.
+ *
+ * `line.split(separator)` parecia bastar até aparecer o caso normal do Google
+ * Maps: `"Av. Rondon Pacheco, 1234, Uberlândia"` numa exportação CSV. Aquele
+ * split partia o endereço em três células e empurrava todas as colunas
+ * seguintes para o lado — telefone virava pedaço de endereço, nota virava
+ * telefone. Silenciosamente: cada linha continuava "válida".
+ *
+ * Aspas duplicadas (`""`) são o escape do formato CSV para uma aspa literal.
+ */
+function splitRespectingQuotes(line: string, separator: string): string[] {
+  const cells: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    if (char === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === separator && !inQuotes) {
+      cells.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
 function parsePastedProspects(raw: string): { rows: LocalRadarImportRow[]; ignored: number } {
   const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (lines.length < 2) return { rows: [], ignored: 0 };
@@ -66,7 +102,7 @@ function parsePastedProspects(raw: string): { rows: LocalRadarImportRow[]; ignor
   ];
   const separator = candidates.sort((a, b) => b[1] - a[1])[0][0];
 
-  const headers = lines[0].split(separator).map(normalizeHeader);
+  const headers = splitRespectingQuotes(lines[0], separator).map(normalizeHeader);
   const indexFor = (field: keyof LocalRadarImportRow) =>
     headers.findIndex((header) => HEADER_ALIASES[field].some((alias) => header === normalizeHeader(alias)));
 
@@ -87,7 +123,7 @@ function parsePastedProspects(raw: string): { rows: LocalRadarImportRow[]; ignor
   const rows: LocalRadarImportRow[] = [];
   let ignored = 0;
   for (const line of lines.slice(1)) {
-    const cells = line.split(separator).map((cell) => cell.trim().replace(/^"|"$/g, ""));
+    const cells = splitRespectingQuotes(line, separator).map((cell) => cell.trim());
     const name = cells[columns.name];
     if (!name) {
       ignored += 1;

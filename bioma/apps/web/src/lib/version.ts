@@ -8,25 +8,24 @@
  */
 export const APP_VERSION = "0.2.0"; // x-release-please-version
 
-/** Estado real do build, injetado pelo Vite (ver vite.config.mjs).
+/** Estado do build, injetado pelo Vite (ver vite.config.mjs).
  *
- *  Por que existe: o release-please só sobe APP_VERSION quando corta release em
- *  `main`. Todo o desenvolvimento vive em `develop`, então a versão fica parada
- *  e o rodapé passaria a impressão de que nada mudou. Commit e branch dizem a
- *  verdade sobre o que está rodando em qualquer branch.
+ *  NÃO é exibido na interface: branch e hash de commit não dizem nada para o
+ *  cliente e poluem a marca. Fica exposto em `window.__BIOMA_BUILD__` para
+ *  quando alguém precisar saber exatamente qual build está no ar — que é o
+ *  único momento em que essa informação importa.
  */
 declare const __BUILD_COMMIT__: string;
 declare const __BUILD_BRANCH__: string;
 declare const __BUILD_AT__: string;
 
-export const BUILD_COMMIT = typeof __BUILD_COMMIT__ === "string" ? __BUILD_COMMIT__ : "";
-export const BUILD_BRANCH = typeof __BUILD_BRANCH__ === "string" ? __BUILD_BRANCH__ : "";
-export const BUILD_AT = typeof __BUILD_AT__ === "string" ? __BUILD_AT__ : "";
+export const BUILD_INFO = {
+  version: APP_VERSION,
+  commit: typeof __BUILD_COMMIT__ === "string" ? __BUILD_COMMIT__ : "",
+  branch: typeof __BUILD_BRANCH__ === "string" ? __BUILD_BRANCH__ : "",
+  builtAt: typeof __BUILD_AT__ === "string" ? __BUILD_AT__ : "",
+};
 
-/** É um build de release (cortado em main) ou de desenvolvimento? */
-export const IS_RELEASE_BUILD = BUILD_BRANCH === "main" || BUILD_BRANCH === "";
-
-/** Rótulo curto para o rodapé: "v0.1.0" em release, "v0.1.0 · develop 95f5f0c" fora. */
-export const VERSION_LABEL = IS_RELEASE_BUILD
-  ? `v${APP_VERSION}`
-  : `v${APP_VERSION} · ${BUILD_BRANCH}${BUILD_COMMIT ? ` ${BUILD_COMMIT}` : ""}`;
+if (typeof window !== "undefined") {
+  (window as unknown as Record<string, unknown>).__BIOMA_BUILD__ = BUILD_INFO;
+}
