@@ -66,6 +66,9 @@ const ProposalsManagerView = lazy(() =>
 const SalesCopilotView = lazy(() =>
   import("./views/admin/proposals/SalesCopilotView").then((module) => ({ default: module.SalesCopilotView })),
 );
+const WinsView = lazy(() =>
+  import("./views/admin/WinsView").then((module) => ({ default: module.WinsView })),
+);
 const PlatformStudiesView = lazy(() =>
   import("./views/admin/PlatformStudiesView").then((module) => ({ default: module.PlatformStudiesView })),
 );
@@ -390,6 +393,11 @@ export function App() {
           <Route path="/eg-planning" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <PlanningPortfolioView />
+            </Suspense>,
+          )} />
+          <Route path="/eg-vitorias" element={guardAdmin(
+            <Suspense fallback={<ViewLoadingFallback />}>
+              <WinsView />
             </Suspense>,
           )} />
           <Route path="/eg-plataformas" element={guardAdmin(

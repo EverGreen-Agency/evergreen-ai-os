@@ -464,6 +464,18 @@
   color: var(--text-normal);
   background: var(--surface-sunken);
 }
+.copilot-attach.listening {
+  border-color: #ff5252;
+  color: #ff5252;
+  animation: copilot-pulse 1.4s ease-in-out infinite;
+}
+.copilot-chip.listening {
+  border-color: #ff5252;
+  color: #ff8a80;
+}
+@keyframes copilot-pulse {
+  50% { opacity: 0.45; }
+}
 .copilot-composer textarea {
   flex: 1;
   resize: none;
@@ -837,4 +849,144 @@
   margin: 0;
   padding-left: 16px;
   color: var(--text-dim);
+}
+
+/* -------------------------------------------------- mural de vitórias */
+
+.win-card {
+  padding: 14px;
+  border-radius: 10px;
+}
+.win-card.pinned {
+  border-color: var(--accent, #3ac97b);
+}
+.win-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+.win-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.win-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--surface-sunken);
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+.win-badge.ceo {
+  background: rgb(217 172 75 / 15%);
+  color: var(--amber-soft, #d9ac4b);
+}
+.win-badge.auto {
+  background: rgb(58 201 123 / 12%);
+  color: var(--accent, #3ac97b);
+}
+.win-card h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+.win-card p {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.win-metric {
+  flex-shrink: 0;
+  text-align: right;
+}
+.win-metric strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: var(--accent, #3ac97b);
+}
+.win-metric span {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.win-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.win-reactions {
+  display: flex;
+  gap: 4px;
+}
+.win-reactions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: var(--surface-sunken);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.win-reactions button:hover { border-color: var(--border-color); }
+.win-reactions button.active {
+  border-color: var(--accent, #3ac97b);
+  background: rgb(58 201 123 / 12%);
+}
+.win-reactions small {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.win-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.win-card-actions button {
+  padding: 3px 6px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+}
+.win-card-actions button:hover:not(:disabled) {
+  color: var(--text-normal);
+  background: var(--surface-sunken);
+}
+.win-card-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.win-card-actions button.active { color: var(--accent, #3ac97b); }
+
+.win-evidence {
+  margin: 10px 0 0;
+  padding: 9px;
+  border-radius: 6px;
+  background: var(--surface-sunken);
+  font-size: 11px;
+  color: var(--text-dim);
+  overflow-x: auto;
 }

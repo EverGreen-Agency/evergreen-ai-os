@@ -61,6 +61,7 @@ const API_PREFIXES = [
   "/tasks",
   "/teams",
   "/tenants",
+  "/wins",
   "/workspaces",
   // Documentação do FastAPI, útil para inspecionar o contrato em dev.
   "/docs",

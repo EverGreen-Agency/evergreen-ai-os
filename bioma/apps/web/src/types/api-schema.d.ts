@@ -4112,6 +4112,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/wins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Wins
+         * @description EG vê tudo; cliente vê só o que foi liberado do workspace dele.
+         */
+        get: operations["list_wins_wins_get"];
+        put?: never;
+        /**
+         * Create
+         * @description Registro manual — para o que não está em tabela nenhuma.
+         */
+        post: operations["create_wins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/detect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Detect
+         * @description Varre os detectores desde a última execução de cada um.
+         */
+        post: operations["detect_wins_detect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/export/foton": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export For Foton
+         * @description Pacote de vitórias do CEO — exportação explícita, com trilha de auditoria.
+         */
+        get: operations["export_for_foton_wins_export_foton_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_wins_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wins/{win_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove */
+        delete: operations["remove_wins__win_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["update_wins__win_id__patch"];
+        trace?: never;
+    };
+    "/wins/{win_id}/react": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** React */
+        post: operations["react_wins__win_id__react_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces": {
         parameters: {
             query?: never;
@@ -14495,6 +14611,169 @@ export interface components {
             /** Skipped */
             skipped: string[];
         };
+        /** WinCreate */
+        WinCreate: {
+            /**
+             * Category
+             * @default operacao
+             * @enum {string}
+             */
+            category: "comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro";
+            /** Credited User Ids */
+            credited_user_ids?: string[];
+            /** Description */
+            description?: string | null;
+            /**
+             * Is Ceo
+             * @default false
+             */
+            is_ceo: boolean;
+            /** Metric Unit */
+            metric_unit?: string | null;
+            /** Metric Value */
+            metric_value?: number | string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default eg
+             * @enum {string}
+             */
+            visibility: "eg" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /**
+         * WinDetectionResult
+         * @description Resultado de uma varredura dos detectores.
+         */
+        WinDetectionResult: {
+            /** By Rule */
+            by_rule?: {
+                [key: string]: number;
+            };
+            /** Created */
+            created: number;
+            /** Errors */
+            errors?: {
+                [key: string]: string;
+            };
+            /** Scanned Rules */
+            scanned_rules: number;
+            /** Skipped Duplicates */
+            skipped_duplicates: number;
+        };
+        /** WinOverview */
+        WinOverview: {
+            /** Automatic */
+            automatic: number;
+            /** By Category */
+            by_category?: {
+                [key: string]: unknown;
+            }[];
+            /** Ceo */
+            ceo: number;
+            /** Last 7 Days */
+            last_7_days: number;
+            /** Manual */
+            manual: number;
+            /** Total */
+            total: number;
+        };
+        /** WinReaction */
+        WinReaction: {
+            /** Emoji */
+            emoji: string;
+        };
+        /** WinSummary */
+        WinSummary: {
+            /** Benchmark Link */
+            benchmark_link: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Credited User Ids */
+            credited_user_ids?: string[];
+            /** Description */
+            description: string | null;
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Ceo */
+            is_ceo: boolean;
+            /** Metric Unit */
+            metric_unit: string | null;
+            /** Metric Value */
+            metric_value: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Pinned */
+            pinned: boolean;
+            /** Reactions */
+            reactions?: {
+                [key: string]: string[];
+            };
+            /** Rule Key */
+            rule_key: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "manual" | "automatic";
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "eg" | "client";
+            /** Workspace Id */
+            workspace_id: string | null;
+        };
+        /** WinUpdate */
+        WinUpdate: {
+            /** Category */
+            category?: ("comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro") | null;
+            /** Description */
+            description?: string | null;
+            /** Is Ceo */
+            is_ceo?: boolean | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Pinned */
+            pinned?: boolean | null;
+            /** Title */
+            title?: string | null;
+            /** Visibility */
+            visibility?: ("eg" | "client") | null;
+        };
         /** WorkflowDefinitionSummary */
         WorkflowDefinitionSummary: {
             /**
@@ -23701,6 +23980,260 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenantMembershipSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_wins_wins_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+                workspace_id?: string | null;
+                ceo_only?: boolean;
+                days?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_wins_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detect_wins_detect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinDetectionResult"];
+                };
+            };
+        };
+    };
+    export_for_foton_wins_export_foton_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_wins_overview_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_wins__win_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_wins__win_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    react_wins__win_id__react_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                win_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinReaction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WinSummary"];
                 };
             };
             /** @description Validation Error */

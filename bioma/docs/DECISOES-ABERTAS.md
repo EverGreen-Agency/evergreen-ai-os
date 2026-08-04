@@ -56,7 +56,35 @@ o original é o original.
 Para A, quando for a hora: `react-i18next` é o padrão, e a migração pode ser
 incremental (arquivo por arquivo) sem parar o resto.
 
-`RESPOSTA (fazer só B agora? incluir A? quais idiomas?):`
+`RESPOSTA (fazer só B agora? incluir A? quais idiomas?):` Cara, faça o B agora, mas tem uma questão, teria como ter o conteúdo geral no idioma origianal (supondo que seja para um lead americano, logo em inglês) e em português (para nossa equipe)? Só que sem precisar gerar dois materiais? tipo, dentro da nossa plataforma, só um botão de troca de idioma ou algo similar ao google tradutor automático que tem em todos sites. E o A deixe para depois para não consumir muita cota agora.
+
+**Resposta (2026-08-04).** Dá, e o desenho certo não é "gerar dois materiais" —
+é **um artefato, um idioma canônico, traduções em cache**.
+
+O material nasce num idioma só: o do destinatário. Inglês, se o lead é
+americano. Esse é o **original**, e é ele que sai pelo link público — o cliente
+nunca vê tradução.
+
+Para a equipe, um botão "ver em português" na tela interna. Na primeira vez ele
+traduz e **guarda**; da segunda em diante é leitura de banco, custo zero. Como
+proposta muda pouco depois de enviada, na prática você paga uma tradução por
+proposta, não uma por visualização.
+
+Três coisas que precisam ficar explícitas na tela, e é onde o "Google Tradutor
+automático" erra:
+
+- **a tradução é marcada como tradução**, com o idioma original ao lado. Uma
+  cláusula comercial lida em tradução e assumida como original é o tipo de erro
+  que aparece na renegociação;
+- **editar só vale no original.** Se alguém corrige um valor na versão traduzida,
+  ou a correção se perde ou o original passa a mentir. Tradução é somente
+  leitura, e editar o original invalida o cache;
+- **o widget do Google traduz a interface junto** e mistura rótulo do sistema com
+  conteúdo. Aqui é o inverso: traduz só o conteúdo, e a interface (item A) fica
+  para depois, como você pediu.
+
+Custo: usa a mesma cota da assinatura pelo plano de roteamento. Não é chamada
+nova de provedor.
 
 ---
 
@@ -74,7 +102,7 @@ decidir o **canal** e o **horário**, que mudam a implementação:
 **Recomendo A para começar** — funciona amanhã e não depende de infra nova. B é
 o passo natural depois, porque o canal já existe no Bioma.
 
-`RESPOSTA (canal e horário):`
+`RESPOSTA (canal e horário):` Opção A, como recomendou.
 
 ---
 
@@ -114,7 +142,37 @@ você gerar a chave de admin. O valor de C não é o custo por execução — é
 descobrir que a soma do que o Bioma achou que gastou não bate com a fatura, que
 é exatamente o erro que ninguém percebe sozinho.
 
-`RESPOSTA (fico em A por enquanto, ou já quer C?):`
+`RESPOSTA (fico em A por enquanto, ou já quer C?):`Podemos ir para C porém uma coisa, esqueci mas não estamos usando o cobrança por subscrição/cota das assinaturas? Então basicaemnte não seria ver nossa assintatura, quantidade usada da cota por requisição e calcular a combase no que pagamos de assinatura?
+
+**Resposta (2026-08-04).** Você está certo, e isso derruba a premissa das três
+opções acima. Elas assumiam cobrança por token, que é o modelo da chave de API.
+Com assinatura, **o token não custa nada na margem** — você já pagou o mês. O
+que custa é a **cota**, que é finita e não acumula.
+
+Então a pergunta certa não é "quanto essa execução custou", é **"quanto dessa
+cota essa execução consumiu, e quanto sobrou até o reset"**. São coisas
+diferentes: a primeira é contabilidade, a segunda é operação. Estourar a cota na
+terça-feira para pela metade da semana; um relatório de custo não avisa isso.
+
+O modelo certo, então:
+
+| Camada | O quê |
+|---|---|
+| **Custo de referência** | `preço da assinatura ÷ cota do período` = quanto vale uma unidade. Serve para comparar execuções entre si e responder "vale a pena rodar isso 200 vezes?" |
+| **Cota restante** | o número que importa no dia a dia — quanto sobrou e quando reseta |
+| **Chave de API** | só aí o custo é dinheiro de verdade, e a tabela de preços vale |
+
+Duas coisas que a infraestrutura já tem e ninguém está usando:
+`ai_provider_subscriptions` (com o valor pago) e `ai_quota_buckets` (com
+`remaining_percent` e `resets_at`, alimentado por `quota_collectors.py`).
+
+O que falta é ligar: registrar as unidades consumidas por execução no bucket, e
+derivar o custo de referência. Com isso o painel deixa de mostrar "US$ 0,0032" —
+que é ficção quando a cobrança é assinatura — e passa a mostrar "3% da cota
+semanal do Claude Code, reseta quinta".
+
+Não implementei ainda. É a próxima coisa na frente de IA, e substitui a opção C.
+A Costs API da OpenAI continua valendo, mas só para o que roda por chave.
 
 ---
 
@@ -156,7 +214,29 @@ ajustar o tom sem deploy — mas também deixaria alguém quebrar o copiloto por
 acidente. Recomendo **manter em código** e usar memória global para o que é
 ajuste fino.
 
-`RESPOSTA (escopo de memória, e soul.md em código ou editável?):`
+`RESPOSTA (escopo de memória, e soul.md em código ou editável?):`pode manter o soul em código por enquanto. E o escopo da memória, não entendi bem a diferença de A para C. Acho interessante saber o que cada usuário fez com o copiloto também, mas acho que independente dessas opções, é rastreável.
+
+**Resposta (2026-08-04).** A diferença é **o que pode ser privado**, e o exemplo
+deixa claro. Suponha que você diga ao copiloto: *"a Univet vence o contrato em
+março, e me responda sempre sem introdução"*. São duas coisas numa frase.
+
+**Opção A — escopo por usuário, sem distinção.** As duas viram memória sua. O
+copiloto passa a responder curto **para você** (certo) e a saber do vencimento
+**só quando você pergunta** (errado). Outra pessoa da EG abre a mesma tela e o
+copiloto não sabe do contrato. Um fato da empresa virou segredo pessoal por
+acidente — porque quem digitou foi você.
+
+**Opção C — separa por natureza.** "Responda sem introdução" é preferência e
+fica sua. "A Univet vence em março" é fato e vai para a memória do workspace,
+que todo mundo enxerga. O critério não é **quem escreveu**, é **o que é**.
+
+Concordo com sua observação de que rastreabilidade é ortogonal: a trilha já
+registra quem rodou o quê, com qual memória, em `copilot_runs` — e isso vale nas
+duas opções. Não é argumento para nenhuma.
+
+Fica **C**, então, salvo objeção sua. Implicação prática: a memória ganha um
+campo de escopo pessoal, e o copiloto classifica ao gravar — com você podendo
+corrigir a classificação, porque ele vai errar às vezes.
 
 ---
 
@@ -169,6 +249,46 @@ Fica registrado aqui só para não se perder: **primeiro** a faxina (Opensquad
 apagado), **depois** a pasta local, **depois** o remoto.
 
 `RESPOSTA (nome final):`
+
+---
+
+## 7. Context Engine — por onde começar
+
+**Contexto.** `EG_CONTEXT_ENGINE_FEATURE_HANDOFF.md` define a feature inteira em
+4 fases. Não comecei porque construir metade dela é pior que não começar: uma
+base de conhecimento que responde sem citar direito, ou que vaza entre
+organizações, destrói a confiança em tudo que ela devolver depois.
+
+**O que o Bioma já tem, e que encurta bastante a Fase 1:**
+
+| Peça do contrato | O que já existe |
+|---|---|
+| object storage | `services/storage.py` (S3, configurado na Railway) |
+| extração de texto | `attachment_text.py` — txt, md, csv, json, PDF via pypdf |
+| índice lexical | Postgres full-text, nativo |
+| ledger de runs | o padrão de `copilot_runs` (etapas, tokens, duração, fontes) |
+| tenancy | `organization_id`/`workspace_id` em todo o esquema |
+| adaptadores de modelo | plano de roteamento com cota de assinatura |
+
+Falta, de verdade: `knowledge_bases` / `documents` / `versions` / `chunks`, o
+chunking que respeita estrutura, a busca com citação que abre na origem, e a
+tela de inspeção de fragmentos.
+
+**O corte vertical que proponho** (Fase 1 do handoff, sem Fase 2-4):
+
+1. criar base → 2. enviar Markdown/PDF → 3. extrair e fragmentar → 4. inspecionar
+e desativar fragmento → 5. buscar por texto → 6. abrir a citação na origem →
+7. run registrado.
+
+Sem embeddings, sem persona, sem reranker — e a API já devolvendo
+`modeActuallyUsed: "lexical"` com `capabilities.dense: "unavailable"`, para a
+Fase 3 entrar sem quebrar contrato e sem ninguém achar que houve busca híbrida.
+
+**A pergunta que trava:** a primeira base é do **cliente** (documentos da Univet,
+consultáveis no hub dela) ou da **EG** (políticas, processos, contratos-modelo)?
+Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
+
+`RESPOSTA (começar pela base da EG ou do cliente?):`
 
 ---
 

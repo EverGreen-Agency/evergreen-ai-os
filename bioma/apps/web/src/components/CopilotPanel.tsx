@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { api, type CopilotAttachment, type CopilotRunTrace, type CopilotSurface } from "../lib/api";
+import { useDictation } from "../hooks/useDictation";
 import { useUiStore } from "../store/uiStore";
 
 /**
@@ -180,6 +181,13 @@ export function CopilotPanel() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Ditado pelo navegador: não consome cota de provedor nenhum. O trecho
+  // reconhecido é acrescentado ao que já estava escrito, para dar para misturar
+  // digitar e falar sem perder o começo.
+  const dictation = useDictation((text) =>
+    setMessage((current) => (current ? `${current.trimEnd()} ${text}` : text)),
+  );
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, String(isOpen)); } catch { /* modo privado */ }
@@ -465,6 +473,22 @@ export function CopilotPanel() {
           </div>
         )}
 
+        {(dictation.isListening || dictation.error) && (
+          <div className="copilot-chips">
+            {dictation.isListening && (
+              <span className="copilot-chip listening">
+                <Mic size={11} /> ouvindo… fale e o texto aparece no campo
+              </span>
+            )}
+            {dictation.error && (
+              <span className="copilot-chip warn">
+                <TriangleAlert size={11} /> {dictation.error}
+                <button type="button" onClick={dictation.clearError}><X size={11} /></button>
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="copilot-composer-row">
           <input
             ref={fileRef}
@@ -481,10 +505,24 @@ export function CopilotPanel() {
           >
             <Paperclip size={15} />
           </button>
+          {dictation.isSupported && (
+            <button
+              type="button"
+              className={`copilot-attach ${dictation.isListening ? "listening" : ""}`}
+              onClick={dictation.toggle}
+              title={
+                dictation.isListening
+                  ? "Parar de ouvir"
+                  : "Ditar (reconhecimento do navegador — não consome cota)"
+              }
+            >
+              <Mic size={15} />
+            </button>
+          )}
           <textarea
             ref={inputRef}
             rows={2}
-            value={message}
+            value={dictation.interim ? `${message}${message ? " " : ""}${dictation.interim}` : message}
             placeholder="Pergunte ou peça algo…  (Ctrl+K)"
             onChange={(event) => setMessage(event.target.value)}
             onPaste={(event) => {
@@ -499,6 +537,9 @@ export function CopilotPanel() {
               // Enter envia, Shift+Enter quebra linha — o padrão que a mão espera.
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
+                // Enviar com o microfone aberto deixaria o reconhecedor
+                // escrevendo numa mensagem que já foi.
+                if (dictation.isListening) dictation.stop();
                 submit();
               }
             }}

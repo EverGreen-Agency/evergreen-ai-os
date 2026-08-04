@@ -1243,6 +1243,52 @@ export type CopilotResponse = {
   sources: CopilotSource[];
 };
 
+// --- Mural de vitórias ---
+export type WinCategory = "comercial" | "operacao" | "produto" | "cliente" | "time" | "financeiro";
+
+export type Win = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: WinCategory;
+  /** `automatic` = detectada no banco; `manual` = alguém digitou. */
+  source: "manual" | "automatic";
+  rule_key: string | null;
+  /** Qual linha disparou — vitória automática sem evidência é inventada. */
+  evidence: Record<string, unknown>;
+  metric_value: string | null;
+  metric_unit: string | null;
+  benchmark_link: Record<string, unknown> | null;
+  workspace_id: string | null;
+  is_ceo: boolean;
+  credited_user_ids: string[];
+  visibility: "eg" | "client";
+  pinned: boolean;
+  /** {emoji: [user_id]} — a contagem vem de quem reagiu, não de um contador. */
+  reactions: Record<string, string[]>;
+  occurred_at: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WinDetectionResult = {
+  scanned_rules: number;
+  created: number;
+  skipped_duplicates: number;
+  by_rule: Record<string, number>;
+  errors: Record<string, string>;
+};
+
+export type WinOverview = {
+  total: number;
+  automatic: number;
+  manual: number;
+  ceo: number;
+  last_7_days: number;
+  by_category: { category: WinCategory; total: number }[];
+};
+
 export type CopilotAttachment = {
   id: string;
   thread_id: string | null;
@@ -3440,6 +3486,32 @@ export const api = {
   copilotRun: (runId: string) => request<CopilotRunTrace>(`/copilot/runs/${runId}`),
   copilotUsage: (days = 30, mineOnly = false) =>
     request<CopilotUsageSummary>(`/copilot/usage?days=${days}&mine_only=${mineOnly}`),
+
+  wins: (filters: { category?: string; workspace_id?: string; ceo_only?: boolean; days?: number } = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "" && value !== false) params.set(key, String(value));
+    });
+    const query = params.toString();
+    return request<Win[]>(`/wins${query ? `?${query}` : ""}`);
+  },
+  winsOverview: (days = 30) => request<WinOverview>(`/wins/overview?days=${days}`),
+  createWin: (payload: {
+    title: string;
+    description?: string | null;
+    category?: WinCategory;
+    metric_value?: string | null;
+    metric_unit?: string | null;
+    workspace_id?: string | null;
+    is_ceo?: boolean;
+    visibility?: "eg" | "client";
+  }) => request<Win>("/wins", { method: "POST", body: JSON.stringify(payload) }),
+  detectWins: () => request<WinDetectionResult>("/wins/detect", { method: "POST" }),
+  updateWin: (winId: string, payload: Partial<Pick<Win, "visibility" | "pinned" | "is_ceo" | "category">>) =>
+    request<Win>(`/wins/${winId}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  reactToWin: (winId: string, emoji: string) =>
+    request<Win>(`/wins/${winId}/react`, { method: "POST", body: JSON.stringify({ emoji }) }),
+  deleteWin: (winId: string) => request<{ status: string }>(`/wins/${winId}`, { method: "DELETE" }),
 
   platformStudies: (filters: { research_status?: string; verdict?: string; target?: string } = {}) => {
     const params = new URLSearchParams();
