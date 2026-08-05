@@ -92,7 +92,7 @@ No painel do Railway, no service `bioma-api`, em Settings -> Build:
 
 - **Root Directory**: `bioma`
 - **Dockerfile Path**: confirmar que aparece `apps/api/Dockerfile` (o
-  `bioma/apps/api/railway.json` declara isso; se o Railway mostrar outra coisa,
+  `bioma/railway.json` declara isso; se o Railway mostrar outra coisa,
   sobrescreva manualmente no campo da UI)
 
 O `.dockerignore` que vale agora e `bioma/.dockerignore` (fica na raiz do novo
