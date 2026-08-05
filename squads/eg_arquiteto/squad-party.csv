@@ -1,3 +1,0 @@
-agent_name,role,displayName,icon,file_path
-avaliador_negocios,Avaliador de Negócios,Avaliador,📈,./agents/avaliador_negocios.agent.md
-arquiteto,Arquiteto,Arquiteto,🛡️,./agents/arquiteto.agent.md

@@ -1,3 +1,0 @@
-agent_name,role,displayName,icon,file_path
-scout,Scout de Vendas,Scout,🔎,./agents/scout.agent.md
-closer,Estrategista Comercial,Closer,🤝,./agents/closer.agent.md

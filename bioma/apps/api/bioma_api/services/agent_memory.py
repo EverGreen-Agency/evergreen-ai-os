@@ -16,6 +16,7 @@ from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.agent_memory import (
     AgentMemory,
     AgentMemoryCreate,
+    AgentMemoryOwnerUpdate,
     AgentMemoryRevision,
     AgentMemoryStatusUpdate,
     AgentMemoryUpdate,
@@ -42,8 +43,41 @@ def create_memory(payload: AgentMemoryCreate, user: CurrentUserResponse) -> Agen
         if payload.workspace_id:
             _require_workspace(conn, payload.workspace_id, user)
         row = repo.create_memory(
-            conn, payload.workspace_id, payload.category, payload.title, payload.body, user.id, payload.reason
+            conn,
+            payload.workspace_id,
+            payload.category,
+            payload.title,
+            payload.body,
+            user.id,
+            payload.reason,
+            # Preferência escrita à mão é sempre de quem escreveu — não existe
+            # "prefiro X" em nome de outra pessoa. `create_memory` já ignora
+            # isto se a categoria não for `preference`.
+            owner_user_id=user.id,
         )
+    return AgentMemory(**row)
+
+
+def set_memory_owner(memory_id: UUID, payload: AgentMemoryOwnerUpdate, user: CurrentUserResponse) -> AgentMemory:
+    """Corrige "isto é meu/da EG" — o agente vai classificar errado às vezes."""
+    require_platform_admin(user)
+    with connect() as conn:
+        current = repo.get_memory(conn, memory_id)
+        if not current:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Memória não encontrada.")
+        if current["workspace_id"]:
+            _require_workspace(conn, current["workspace_id"], user)
+        try:
+            row = repo.set_memory_owner(
+                conn,
+                memory_id,
+                user.id if payload.is_personal else None,
+                user.id,
+                payload.reason,
+            )
+        except repo.NotPreferenceError as exc:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        assert row is not None
     return AgentMemory(**row)
 
 

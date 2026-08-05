@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   CalendarCheck,
@@ -9,10 +10,13 @@ import {
   ArrowRight,
   Target,
   Clock,
+  Crown,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 
+import { api } from "../lib/api";
 import { useUiStore } from "../store/uiStore";
 import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance, useSetMonthlyTarget } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
@@ -38,6 +42,30 @@ export function CockpitView() {
   const { data: cockpitSummary, isLoading: loadingCockpitSummary } = useCockpitSummary(Boolean(isEgAdmin));
   const { data: portfolioPerf = [] } = usePortfolioPerformance(Boolean(isEgAdmin));
   const setMonthlyTarget = useSetMonthlyTarget();
+
+  // Resumo diário único, sem push por evento (decisão do Eduardo, 2026-08-04:
+  // "Opção A" — dentro do Bioma, ao abrir). O Bioma já mostra tudo que está
+  // atrasado; sem isto, nada que deu certo aparece em lugar nenhum.
+  const queryClient = useQueryClient();
+  const detectWins = useMutation({
+    mutationFn: () => api.detectWins(),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["wins"] }),
+  });
+  const detectedOnceRef = useRef(false);
+  useEffect(() => {
+    // Uma vez por sessão, não a cada navegação — detectar é uma varredura no
+    // banco, e recarregar o cockpit não deveria custar isso toda hora.
+    if (isEgAdmin && !detectedOnceRef.current) {
+      detectedOnceRef.current = true;
+      detectWins.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEgAdmin]);
+  const { data: recentWins = [] } = useQuery({
+    queryKey: ["wins", "cockpit-summary"],
+    queryFn: () => api.wins({ days: 1 }),
+    enabled: Boolean(isEgAdmin),
+  });
 
   // Prefixo "portfolio" para não colidir com as pendências de UM cliente
   // usadas mais abaixo na visão do cliente.
@@ -178,6 +206,36 @@ export function CockpitView() {
                 )}
               </div>
             )}
+          </article>
+
+          {/* Ao lado do que precisa de atenção, o que já deu certo — o Bioma
+              mostrava só atraso e risco; nada que funcionou aparecia em lugar
+              nenhum. Detectado uma vez por sessão (acima), não a cada troca de
+              tela. */}
+          <article className="bento-card row-span-2 cockpit-wins">
+            <div className="bento-header">
+              <h3>Vitórias</h3>
+              <Trophy size={16} color="#d9ac4b" />
+            </div>
+
+            {recentWins.length === 0 ? (
+              <div style={{ marginTop: "auto", color: "var(--text-muted)", fontSize: 13 }}>
+                Nada registrado nas últimas 24h. Rodando ou registrando alguma coisa boa, aparece aqui.
+              </div>
+            ) : (
+              <ul className="cockpit-wins-list">
+                {recentWins.slice(0, 5).map((win) => (
+                  <li key={win.id}>
+                    {win.is_ceo && <Crown size={11} color="#d9ac4b" />}
+                    <span>{win.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <button type="button" className="bento-action ghost" onClick={() => navigate("/eg-vitorias")} style={{ marginTop: "auto" }}>
+              Ver mural <ArrowRight size={13} />
+            </button>
           </article>
 
           <article className="bento-card">

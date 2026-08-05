@@ -171,8 +171,24 @@ derivar o custo de referência. Com isso o painel deixa de mostrar "US$ 0,0032" 
 que é ficção quando a cobrança é assinatura — e passa a mostrar "3% da cota
 semanal do Claude Code, reseta quinta".
 
-Não implementei ainda. É a próxima coisa na frente de IA, e substitui a opção C.
-A Costs API da OpenAI continua valendo, mas só para o que roda por chave.
+**Implementado em 2026-08-04.** `copilot_runs` liga cada execução à conta que
+respondeu; a trilha lê a cota ATUAL dessa conta (`ai_quota_buckets`, que já
+integra com o contrato oficial `account/rateLimits/read` do Codex — reportado
+pelo próprio provedor, não estimativa). `/copilot/usage` mostra `routed_runs` e
+`routed_accounts` com a cota de cada uma. Não implementei o "custo de
+referência" (preço da assinatura ÷ cota do período) que eu tinha sugerido: sem
+um número confiável de unidades-por-dólar publicado pelo provedor, seria outro
+número inventado — melhor mostrar a cota real, que existe de verdade, do que
+uma conversão para dólar que não existe. A Costs API da OpenAI (opção C)
+continua valendo só para o que roda por chave de API, não por assinatura.
+
+De quebra, achei e corrigi um bug: execução roteada por assinatura podia
+ganhar um custo em dólar FALSO quando o `model_id` da conta coincidia por acaso
+com um nome precificado na tabela. Corrigido — execução de assinatura nunca
+aplica preço por token.
+
+Falta só você registrar as contas (Operação EG → IA) para isso ganhar vida —
+hoje `ai_provider_accounts` está vazia, então o painel não mostra nada ainda.
 
 ---
 
@@ -238,6 +254,13 @@ Fica **C**, então, salvo objeção sua. Implicação prática: a memória ganha
 campo de escopo pessoal, e o copiloto classifica ao gravar — com você podendo
 corrigir a classificação, porque ele vai errar às vezes.
 
+**Implementado em 2026-08-04.** `agent_memories` ganhou `owner_user_id`
+(banco recusa em qualquer categoria que não seja `preference` — não confia só
+no código). O dossiê de cada pessoa traz fato/diretriz sempre, e preferência só
+a dela; a listagem administrativa continua mostrando tudo, com selo de quem é
+o dono — rastreabilidade não é a mesma coisa que vazar no dossiê de outra
+pessoa. Tem botão pra corrigir a classificação quando o copiloto errar.
+
 ---
 
 ## 6. Nome do repositório
@@ -245,8 +268,8 @@ corrigir a classificação, porque ele vai errar às vezes.
 **Contexto.** Você concordou em renomear depois da faxina, e observou que ao
 renomear a pasta local seus chats e copilots perdem o contexto.
 
-Fica registrado aqui só para não se perder: **primeiro** a faxina (Opensquad
-apagado), **depois** a pasta local, **depois** o remoto.
+**Faxina feita em 2026-08-05** (Opensquad apagado) — só falta o nome e a ordem
+**pasta local → remoto**.
 
 `RESPOSTA (nome final):`
 
@@ -294,8 +317,15 @@ Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
 
 ## Fechadas — implementadas, não precisam voltar
 
-- **S3**: já configurado na Railway. Falta subir os 4 arquivos e apagar
-  `_opensquad/` + `squads/`.
+- **S3**: já configurado na Railway. Os 2 binários (`Manual de Marca.pdf`,
+  `Proposta_EverGreen_HM_Conexoes_Poderosas_v3.pdf`) foram enviados por você.
+  **Faltava só anexá-los pela tela do Wiki EG** (upload direto no S3 não
+  registra `storage_key` no Postgres — quem cria essa referência é a própria
+  rota de anexo). `_opensquad/`, `squads/`, `skills/` e `scratch/` foram
+  apagados em 2026-08-05, junto com o comando `/opensquad` (que existia
+  triplicado em `.agent/`, `.agents/` e `.claude/`) e o config do Playwright
+  MCP, que apontava para dentro de `_opensquad/` e foi movido para
+  `infra/mcp/playwright.config.json`.
 - **Painel do copiloto**: painel lateral colapsável + `Ctrl+K`, conversa
   acompanha a troca de tela, fechado no primeiro acesso e depois lembra o
   estado. Implementado.
@@ -312,3 +342,8 @@ Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
 - **Flexibilidade**: configuração sim, composição sim, definição não.
 - **Guia de integração**: virou modal; o "PDF" quebrado (que imprimia a
   aplicação inteira) foi removido.
+- **Memória por natureza**: preferência é pessoal, fato/diretriz são
+  compartilhados. Corrigível quando o copiloto classificar errado.
+- **Custo por cota**: execução roteada por assinatura mostra a cota real da
+  conta, nunca preço por token inventado. Falta cadastrar as contas para
+  ganhar vida.

@@ -231,6 +231,17 @@ def main() -> None:
         with connect() as conn:
             for win_id in win_ids:
                 conn.execute("delete from wins where id = %s", (win_id,))
+            # O passo 9 roda os detectores REAIS de propósito — e o cliente
+            # deste smoke ainda estava `active` naquele momento, então
+            # `cliente_ativado` criou uma vitória de verdade sobre ele. Ela não
+            # tem `workspace_id` (o detector não preenche), então o cascade de
+            # apagar o workspace não a leva junto: sem esta limpeza, sobra uma
+            # vitória "Cliente ativo na carteira: Smoke WINS xxxx" para sempre
+            # no mural — foi assim que 5 delas foram parar lá durante o
+            # desenvolvimento deste smoke.
+            conn.execute(
+                "delete from wins where evidence->>'id' = %s", (str(workspace.client_id),)
+            )
         cleanup()
         cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL])
     print("limpeza OK — smoke_wins passou")

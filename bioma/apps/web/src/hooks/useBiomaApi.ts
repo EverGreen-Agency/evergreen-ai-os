@@ -188,6 +188,16 @@ export function useSetAgentMemoryStatus() {
   });
 }
 
+/** Corrige "isto é pessoal ou da EG" — só vale para memória de preferência. */
+export function useSetAgentMemoryOwner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, isPersonal, reason }: { memoryId: string; isPersonal: boolean; reason: string }) =>
+      api.setAgentMemoryOwner(memoryId, { is_personal: isPersonal, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
 export function useAgentMemoryRevisions(memoryId: string | null) {
   return useQuery({
     queryKey: ["agent-memory-revisions", memoryId],
@@ -1054,6 +1064,14 @@ export function useAiRoutingControlPlane() {
     queryKey: ["ai-routing-control-plane"],
     queryFn: api.aiRoutingControlPlane,
     refetchInterval: 10000,
+  });
+}
+
+export function useCopilotUsage(days: number, mineOnly = false) {
+  return useQuery({
+    queryKey: ["copilot-usage", days, mineOnly],
+    queryFn: () => api.copilotUsage(days, mineOnly),
+    staleTime: 60_000,
   });
 }
 

@@ -13,6 +13,8 @@ from bioma_api.schemas.proposals import (
     ProposalBriefCreatePayload,
     ProposalCreatePayload,
     ProposalSummary,
+    ProposalTranslateRequest,
+    ProposalTranslation,
     ProposalUpdatePayload,
     PublicProposalResponse,
 )
@@ -175,6 +177,17 @@ def update_proposal(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ):
     return proposals_service.update_proposal(proposal_id, payload, user)
+
+
+@router.post("/{proposal_id}/translate", response_model=ProposalTranslation)
+def translate_proposal(
+    proposal_id: UUID,
+    payload: ProposalTranslateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Uso interno da EG — o link público nunca muda de idioma. Primeira
+    chamada naquele idioma traduz e guarda; as seguintes leem do cache."""
+    return proposals_service.translate_proposal(proposal_id, payload, user)
 
 
 @public_router.get("/public/{public_token}", response_model=PublicProposalResponse)

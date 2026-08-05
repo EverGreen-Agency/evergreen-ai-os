@@ -34,6 +34,15 @@ function formatCost(cents: number | null) {
   return `US$ ${(cents / 100).toFixed(4)}`;
 }
 
+function formatResetIn(iso: string | null) {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "resetando agora";
+  const hours = Math.round(ms / 3_600_000);
+  if (hours < 24) return `reseta em ${hours}h`;
+  return `reseta em ${Math.round(hours / 24)}d`;
+}
+
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -122,6 +131,34 @@ function StepList({ trace }: { trace: CopilotRunTrace }) {
           <span title="Sem provedor configurado: resposta gerada localmente, nenhum token gasto.">
             prévia local
           </span>
+        ) : trace.routed_account ? (
+          <>
+            <span title="Rodou na cota da assinatura, não na chave de API">
+              {trace.model ?? "modelo"} via {trace.routed_account.display_name}
+            </span>
+            <span>
+              {trace.input_tokens ?? 0}+{trace.output_tokens ?? 0} tokens
+              {trace.cost_cents !== null && <> · {formatCost(trace.cost_cents)}</>}
+            </span>
+            {trace.routed_account.buckets.length > 0 ? (
+              trace.routed_account.buckets.slice(0, 2).map((bucket) => (
+                <span
+                  key={bucket.bucket_key}
+                  title={
+                    bucket.confidence === "authoritative"
+                      ? "Reportado pelo próprio provedor"
+                      : "Estimativa — não confirmada pelo provedor"
+                  }
+                >
+                  {bucket.remaining_percent !== null ? `${Math.round(bucket.remaining_percent)}% restante` : bucket.bucket_key}
+                  {bucket.resets_at && ` · ${formatResetIn(bucket.resets_at)}`}
+                  {bucket.confidence !== "authoritative" && " (estimado)"}
+                </span>
+              ))
+            ) : (
+              <span title="Conta cadastrada, mas a coleta de cota ainda não rodou">cota ainda não coletada</span>
+            )}
+          </>
         ) : (
           <>
             <span>{trace.model ?? "modelo não informado"}</span>

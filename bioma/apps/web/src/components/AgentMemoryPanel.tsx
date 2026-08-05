@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Archive, Bot, Brain, History, Save, User as UserIcon } from "lucide-react";
+import { Archive, Bot, Brain, History, Lock, Save, Unlock, User as UserIcon } from "lucide-react";
 
 import {
   useAgentMemories,
   useAgentMemoryRevisions,
   useCreateAgentMemory,
+  useCurrentUser,
+  useSetAgentMemoryOwner,
   useSetAgentMemoryStatus,
   useUpdateAgentMemory,
 } from "../hooks/useBiomaApi";
@@ -33,9 +35,11 @@ export function AgentMemoryPanel({
   description: string;
 }) {
   const { data: memories = [], isLoading } = useAgentMemories(workspaceId, false);
+  const { data: currentUser } = useCurrentUser();
   const createMemory = useCreateAgentMemory();
   const updateMemory = useUpdateAgentMemory();
   const setStatus = useSetAgentMemoryStatus();
+  const setOwner = useSetAgentMemoryOwner();
 
   const [category, setCategory] = useState<AgentMemoryCategory>("fact");
   const [newTitle, setNewTitle] = useState("");
@@ -80,6 +84,13 @@ export function AgentMemoryPanel({
             <Save size={14} /> Guardar
           </button>
         </div>
+        {category === "preference" && (
+          <p style={{ margin: "-10px 0 14px", fontSize: 11, color: "var(--text-dim)" }}>
+            <Lock size={10} style={{ verticalAlign: "-1px" }} /> Preferência é sempre pessoal — só entra no
+            dossiê do copiloto quando for você conversando. Fato e diretiva continuam valendo para qualquer
+            pessoa da EG.
+          </p>
+        )}
 
         {isLoading && <p style={{ color: "var(--text-muted)" }}>Carregando memória...</p>}
         {!isLoading && memories.length === 0 && <p style={{ color: "var(--text-dim)", fontSize: 13 }}>Nenhuma memória guardada ainda.</p>}
@@ -89,11 +100,21 @@ export function AgentMemoryPanel({
             <MemoryRow
               key={memory.id}
               memory={memory}
+              currentUserId={currentUser?.id ?? null}
               expanded={expandedId === memory.id}
               onToggle={() => setExpandedId(expandedId === memory.id ? null : memory.id)}
               onArchive={() => setStatus.mutate({ memoryId: memory.id, status: "archived", reason: "Arquivada manualmente pelo time EG." })}
               onUpdate={(body) => updateMemory.mutate({ memoryId: memory.id, body, reason: "Editado manualmente pelo time EG." })}
-              busy={setStatus.isPending || updateMemory.isPending}
+              onToggleOwner={(isPersonal) =>
+                setOwner.mutate({
+                  memoryId: memory.id,
+                  isPersonal,
+                  reason: isPersonal
+                    ? "Corrigido manualmente: é pessoal, não vale para todo mundo."
+                    : "Corrigido manualmente: vale para qualquer pessoa da EG, não só quem escreveu.",
+                })
+              }
+              busy={setStatus.isPending || updateMemory.isPending || setOwner.isPending}
             />
           ))}
         </div>
@@ -104,22 +125,33 @@ export function AgentMemoryPanel({
 
 function MemoryRow({
   memory,
+  currentUserId,
   expanded,
   onToggle,
   onArchive,
   onUpdate,
+  onToggleOwner,
   busy,
 }: {
   memory: AgentMemory;
+  currentUserId: string | null;
   expanded: boolean;
   onToggle: () => void;
   onArchive: () => void;
   onUpdate: (body: string) => void;
+  onToggleOwner: (isPersonal: boolean) => void;
   busy: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(memory.body);
   const { data: revisions = [] } = useAgentMemoryRevisions(expanded ? memory.id : null);
+
+  // Só "preference" pode ter dono — o banco recusa o resto (422 se tentar).
+  // Mostrar o botão em categoria que nunca vai aceitar seria oferecer uma
+  // correção que sempre falha.
+  const canToggleOwner = memory.category === "preference";
+  const isPersonal = memory.owner_user_id !== null;
+  const isMine = memory.owner_user_id === currentUserId;
 
   return (
     <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px" }}>
@@ -128,6 +160,15 @@ function MemoryRow({
           {CATEGORY_LABELS[memory.category]}
         </span>
         <strong style={{ flex: 1 }}>{memory.title}</strong>
+        {isPersonal && (
+          <span
+            title={isMine ? "Pessoal — só entra no seu dossiê" : "Pessoal de outra pessoa da EG — não entra no dossiê de mais ninguém"}
+            style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--amber-soft, #d9ac4b)" }}
+          >
+            <Lock size={12} />
+            {isMine ? "pessoal (sua)" : "pessoal (outra pessoa)"}
+          </span>
+        )}
         <span
           title={memory.authored_by ? "Escrito por uma pessoa da EG" : "Escrito pelo copiloto"}
           style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: memory.authored_by ? "var(--text-dim)" : "var(--accent)" }}
@@ -135,6 +176,17 @@ function MemoryRow({
           {memory.authored_by ? <UserIcon size={12} /> : <Bot size={12} />}
           {memory.authored_by ? "humano" : "agente"}
         </span>
+        {canToggleOwner && (
+          <button
+            type="button"
+            className="icon-button"
+            title={isPersonal ? "Corrigir: tornar compartilhada (vale para qualquer um da EG)" : "Corrigir: tornar pessoal (só sua)"}
+            disabled={busy}
+            onClick={() => onToggleOwner(!isPersonal)}
+          >
+            {isPersonal ? <Unlock size={13} /> : <Lock size={13} />}
+          </button>
+        )}
         <button type="button" className="icon-button" title="Histórico de revisões" onClick={onToggle}>
           <History size={13} />
         </button>

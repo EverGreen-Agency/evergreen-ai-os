@@ -56,6 +56,26 @@ export interface paths {
         patch: operations["update_memory_agent_memory_memories__memory_id__patch"];
         trace?: never;
     };
+    "/agent-memory/memories/{memory_id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set Memory Owner
+         * @description Corrige classificação pessoal x compartilhada — só vale para 'preference'.
+         */
+        patch: operations["set_memory_owner_agent_memory_memories__memory_id__owner_patch"];
+        trace?: never;
+    };
     "/agent-memory/memories/{memory_id}/revisions": {
         parameters: {
             query?: never;
@@ -1729,6 +1749,27 @@ export interface paths {
         put?: never;
         /** Transition Proposal */
         post: operations["transition_proposal_backoffice_proposals__proposal_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backoffice/proposals/{proposal_id}/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Translate Proposal
+         * @description Uso interno da EG — o link público nunca muda de idioma. Primeira
+         *     chamada naquele idioma traduz e guarda; as seguintes leem do cache.
+         */
+        post: operations["translate_proposal_backoffice_proposals__proposal_id__translate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5675,6 +5716,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Owner User Id */
+            owner_user_id: string | null;
             /**
              * Status
              * @enum {string}
@@ -5705,6 +5748,16 @@ export interface components {
             title: string;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /**
+         * AgentMemoryOwnerUpdate
+         * @description Corrige a classificação pessoal x compartilhada de uma preferência.
+         */
+        AgentMemoryOwnerUpdate: {
+            /** Is Personal */
+            is_personal: boolean;
+            /** Reason */
+            reason: string;
         };
         /** AgentMemoryRevision */
         AgentMemoryRevision: {
@@ -7317,6 +7370,29 @@ export interface components {
             /** Requires Confirmation */
             requires_confirmation: boolean;
         };
+        /**
+         * CopilotDailyUsage
+         * @description Um ponto da série diária — o que alimenta os gráficos de tendência.
+         */
+        CopilotDailyUsage: {
+            /** Cost Cents */
+            cost_cents: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Failed Runs */
+            failed_runs: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Routed Runs */
+            routed_runs: number;
+            /** Runs */
+            runs: number;
+        };
         /** CopilotPlan */
         CopilotPlan: {
             /** Error Message */
@@ -7391,6 +7467,52 @@ export interface components {
              */
             why: string;
         };
+        /**
+         * CopilotProviderUsage
+         * @description Quebra por provedor+modelo na janela — de onde as respostas vieram.
+         */
+        CopilotProviderUsage: {
+            /** Cost Cents */
+            cost_cents: number;
+            /** Model */
+            model: string;
+            /** Provider */
+            provider: string;
+            /** Routed Runs */
+            routed_runs: number;
+            /** Runs */
+            runs: number;
+        };
+        /**
+         * CopilotQuotaBucket
+         * @description Um limite da conta — Codex e Claude reportam mais de um (janela curta e
+         *     longa, por família de modelo). `source`/`confidence` vêm de quem mediu:
+         *     `provider_api` + `authoritative` é o próprio provedor dizendo; qualquer
+         *     outra coisa é estimativa e a tela precisa deixar isso visível.
+         */
+        CopilotQuotaBucket: {
+            /** Bucket Key */
+            bucket_key: string;
+            /** Confidence */
+            confidence: string;
+            /**
+             * Measured At
+             * Format: date-time
+             */
+            measured_at: string;
+            /** Model Id */
+            model_id: string | null;
+            /** Remaining Percent */
+            remaining_percent: string | null;
+            /** Resets At */
+            resets_at: string | null;
+            /** Scope */
+            scope: string;
+            /** Source */
+            source: string;
+            /** Unit */
+            unit: string;
+        };
         /** CopilotRequest */
         CopilotRequest: {
             /**
@@ -7448,6 +7570,20 @@ export interface components {
              * Format: uuid
              */
             thread_id: string;
+        };
+        /** CopilotRoutedAccountQuota */
+        CopilotRoutedAccountQuota: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Buckets */
+            buckets?: components["schemas"]["CopilotQuotaBucket"][];
+            /** Channel */
+            channel: string;
+            /** Display Name */
+            display_name: string;
         };
         /** CopilotRunStep */
         CopilotRunStep: {
@@ -7527,6 +7663,7 @@ export interface components {
             output_tokens: number | null;
             /** Provider */
             provider: string | null;
+            routed_account?: components["schemas"]["CopilotRoutedAccountQuota"] | null;
             /** Skills Used */
             skills_used?: string[];
             /** Sources */
@@ -7601,8 +7738,12 @@ export interface components {
         CopilotUsageSummary: {
             /** Avg Duration Ms */
             avg_duration_ms: number;
+            /** By Provider */
+            by_provider?: components["schemas"]["CopilotProviderUsage"][];
             /** Cost Cents */
             cost_cents: number;
+            /** Daily */
+            daily?: components["schemas"]["CopilotDailyUsage"][];
             /** Failed Runs */
             failed_runs: number;
             /** Input Tokens */
@@ -7611,6 +7752,10 @@ export interface components {
             output_tokens: number;
             /** Preview Runs */
             preview_runs: number;
+            /** Routed Accounts */
+            routed_accounts?: components["schemas"]["CopilotRoutedAccountQuota"][];
+            /** Routed Runs */
+            routed_runs: number;
             /** Runs */
             runs: number;
             /** Runs Without Cost */
@@ -11497,6 +11642,11 @@ export interface components {
             }[];
             /** Client Name */
             client_name: string;
+            /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
             /** Contractor Name */
             contractor_name?: string | null;
             /** Decision Maker */
@@ -11721,6 +11871,11 @@ export interface components {
             /** Client Name */
             client_name: string;
             /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
+            /**
              * Content Markdown
              * @default
              */
@@ -11866,6 +12021,13 @@ export interface components {
             }[];
             /** Client Name */
             client_name: string;
+            /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
+            /** Content Markdown */
+            content_markdown?: string | null;
             /** Contractor Name */
             contractor_name?: string | null;
             /**
@@ -11968,12 +12130,64 @@ export interface components {
             /** Workspace Id */
             workspace_id?: string | null;
         };
+        /** ProposalTranslateRequest */
+        ProposalTranslateRequest: {
+            /** Language */
+            language: string;
+        };
+        /**
+         * ProposalTranslation
+         * @description Tradução em cache. `generation_mode` é sempre 'live' aqui — tradução
+         *     nunca aceita prévia local (ver bioma_worker/translation.py).
+         */
+        ProposalTranslation: {
+            /** Content Markdown */
+            content_markdown: string;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Generation Mode
+             * @constant
+             */
+            generation_mode: "live";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Language */
+            language: string;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Provider */
+            provider: string | null;
+            /** Title */
+            title: string;
+        };
         /** ProposalUpdatePayload */
         ProposalUpdatePayload: {
             /** Additional Context */
             additional_context?: string | null;
             /** Client Name */
             client_name?: string | null;
+            /** Content Language */
+            content_language?: string | null;
             /** Contractor Name */
             contractor_name?: string | null;
             /** Decision Maker */
@@ -15292,6 +15506,41 @@ export interface operations {
             };
         };
     };
+    set_memory_owner_agent_memory_memories__memory_id__owner_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentMemoryOwnerUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentMemory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_memory_revisions_agent_memory_memories__memory_id__revisions_get: {
         parameters: {
             query?: never;
@@ -18512,6 +18761,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translate_proposal_backoffice_proposals__proposal_id__translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalTranslateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalTranslation"];
                 };
             };
             /** @description Validation Error */

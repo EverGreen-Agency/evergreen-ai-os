@@ -123,7 +123,8 @@ def finish_run(conn, run_id: UUID, data: dict[str, Any]) -> None:
               status = %s, error_message = %s,
               dossier_summary = %s, memories_used = %s, skills_used = %s, sources = %s, actions = %s,
               attachments = %s,
-              input_tokens = %s, output_tokens = %s, cost_cents = %s, duration_ms = %s
+              input_tokens = %s, output_tokens = %s, cost_cents = %s, duration_ms = %s,
+              routed_account_id = %s
             where id = %s
             """,
             (
@@ -144,6 +145,7 @@ def finish_run(conn, run_id: UUID, data: dict[str, Any]) -> None:
                 data.get("output_tokens"),
                 data.get("cost_cents"),
                 data.get("duration_ms"),
+                data.get("routed_account_id"),
                 run_id,
             ),
         )
@@ -189,10 +191,14 @@ def list_steps(conn, run_id: UUID) -> list[dict[str, Any]]:
 
 
 def usage_summary(conn, user_id: UUID | None = None, days: int = 30) -> dict[str, Any]:
-    """Quanto o copiloto consumiu na janela — token, custo e tempo.
+    """Quanto o copiloto consumiu na janela — token, custo, cota e tempo.
 
-    `cost_cents` soma só o que tem preço conhecido; execuções sem preço entram em
-    `runs_without_cost` em vez de virarem zero e sumirem da conta.
+    `cost_cents` soma só o que tem preço em dinheiro real (chave de API, ou o
+    que a própria CLI de assinatura reportou). `runs_without_cost` conta só o
+    gap de verdade: execução por CHAVE DE API cujo modelo não está na tabela de
+    preços. Execução roteada por assinatura (`routed_account_id` preenchido)
+    sem custo em dinheiro não é um gap — é o esperado, porque assinatura não é
+    cobrada por token. `routed_runs` conta essas à parte.
     """
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
@@ -201,7 +207,10 @@ def usage_summary(conn, user_id: UUID | None = None, days: int = 30) -> dict[str
               count(*) as runs,
               count(*) filter (where status = 'failed') as failed_runs,
               count(*) filter (where generation_mode = 'preview') as preview_runs,
-              count(*) filter (where cost_cents is null and generation_mode = 'live') as runs_without_cost,
+              count(*) filter (where routed_account_id is not null) as routed_runs,
+              count(*) filter (
+                where cost_cents is null and generation_mode = 'live' and routed_account_id is null
+              ) as runs_without_cost,
               coalesce(sum(input_tokens), 0) as input_tokens,
               coalesce(sum(output_tokens), 0) as output_tokens,
               coalesce(sum(cost_cents), 0) as cost_cents,
@@ -213,3 +222,76 @@ def usage_summary(conn, user_id: UUID | None = None, days: int = 30) -> dict[str
             (days, user_id, user_id),
         )
         return dict(cur.fetchone())
+
+
+def daily_usage(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
+    """Série diária para os gráficos de tendência do copiloto.
+
+    Sem zero-fill: dia sem execução simplesmente não aparece na série, mesmo
+    padrão das outras séries diárias do Bioma (`list_ads_daily`).
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select
+              date_trunc('day', created_at)::date as day,
+              count(*) as runs,
+              count(*) filter (where routed_account_id is not null) as routed_runs,
+              count(*) filter (where status = 'failed') as failed_runs,
+              coalesce(sum(cost_cents), 0) as cost_cents,
+              coalesce(sum(input_tokens), 0) as input_tokens,
+              coalesce(sum(output_tokens), 0) as output_tokens
+            from copilot_runs
+            where created_at >= now() - make_interval(days => %s)
+              and (%s::uuid is null or user_id = %s::uuid)
+            group by 1
+            order by 1
+            """,
+            (days, user_id, user_id),
+        )
+        return list(cur.fetchall())
+
+
+def usage_by_provider(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
+    """Quebra por provedor+modelo na janela — de onde vieram as respostas."""
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select
+              coalesce(provider, 'desconhecido') as provider,
+              coalesce(model, 'desconhecido') as model,
+              count(*) as runs,
+              count(*) filter (where routed_account_id is not null) as routed_runs,
+              coalesce(sum(cost_cents), 0) as cost_cents
+            from copilot_runs
+            where created_at >= now() - make_interval(days => %s)
+              and (%s::uuid is null or user_id = %s::uuid)
+            group by provider, model
+            order by runs desc
+            """,
+            (days, user_id, user_id),
+        )
+        return list(cur.fetchall())
+
+
+def list_routed_accounts_in_window(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
+    """Contas de assinatura que atenderam o copiloto na janela, com quantas vezes.
+
+    A cota em si (quanto sobra, quando reseta) não vem daqui — vem de
+    `ai_quota_buckets`, lida na hora, porque cota é o estado ATUAL da conta, não
+    algo que faça sentido guardar por execução passada.
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select routed_account_id as account_id, count(*) as run_count, max(created_at) as last_used_at
+            from copilot_runs
+            where routed_account_id is not null
+              and created_at >= now() - make_interval(days => %s)
+              and (%s::uuid is null or user_id = %s::uuid)
+            group by routed_account_id
+            order by run_count desc
+            """,
+            (days, user_id, user_id),
+        )
+        return list(cur.fetchall())

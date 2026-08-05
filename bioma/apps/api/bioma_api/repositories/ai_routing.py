@@ -109,6 +109,32 @@ def list_latest_quota_buckets(conn, organization_id: UUID):
     ).fetchall()
 
 
+def latest_quota_for_account(conn, account_id: UUID):
+    """Cota mais recente de UMA conta — o que a trilha do copiloto mostra por
+    execução roteada. Mesma consulta de `list_latest_quota_buckets`, restrita a
+    uma conta: cota é estado atual, não é lido a partir do histórico de runs."""
+    return conn.execute(
+        """
+        select distinct on (q.bucket_key, coalesce(q.model_id, ''))
+          q.id, q.account_id, q.bucket_key, q.scope, q.model_id, q.total_units,
+          q.used_units, q.used_percent, q.remaining_percent, q.unit,
+          q.window_duration_minutes, q.resets_at, q.source, q.confidence,
+          q.measured_at, q.raw_metadata, q.notes
+        from ai_quota_buckets q
+        where q.account_id = %s
+        order by q.bucket_key, coalesce(q.model_id, ''), q.measured_at desc
+        """,
+        (account_id,),
+    ).fetchall()
+
+
+def get_account(conn, account_id: UUID):
+    return conn.execute(
+        "select id, organization_id, provider, channel, display_name from ai_provider_accounts where id = %s",
+        (account_id,),
+    ).fetchone()
+
+
 def list_policies(conn, organization_id: UUID):
     return conn.execute(
         """

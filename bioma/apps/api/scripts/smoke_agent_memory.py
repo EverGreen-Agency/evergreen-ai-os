@@ -7,7 +7,12 @@ Valida:
 - skill proposta nasce pending_review e NÃO aparece no dossiê do copiloto até
   ser aprovada;
 - o copiloto executa remember_fact/propose_skill de ponta a ponta (via plano
-  determinístico injetado, testando a autoridade da API, não o modelo).
+  determinístico injetado, testando a autoridade da API, não o modelo);
+- memória por natureza (decisão do Eduardo, 2026-08-04): preferência escrita
+  por uma pessoa não entra no dossiê de outra, mas continua visível na
+  listagem administrativa (transparência ≠ vazamento no dossiê); fato/diretriz
+  continuam compartilhados; só `preference` pode ter dono, e dá para corrigir
+  a classificação depois.
 """
 
 from pathlib import Path
@@ -27,8 +32,20 @@ from bioma_api.services import copilot as copilot_service
 from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
 ADMIN_EMAIL = "eduardo@evergreengrowth.com.br"
+SECOND_ADMIN_EMAIL = "smoke-memory-second-admin@bioma.example.com"
 CLIENT_EMAIL = "smoke-memory-client@bioma.example.com"
 PASSWORD = "senha-dev-123"
+
+
+def grant_eg_admin(tenant_organization_id, user_id) -> None:
+    """Segundo admin EG só para provar que preferência não vaza entre pessoas —
+    não existe helper pronto pra isso em `smoke_support` porque nenhum outro
+    smoke precisou de dois admins até agora."""
+    with connect() as conn:
+        conn.execute(
+            "insert into memberships (user_id, organization_id, role) values (%s, %s, 'eg_admin') on conflict do nothing",
+            (user_id, tenant_organization_id),
+        )
 
 
 def assert_status(response, expected: int, label: str) -> None:
@@ -58,14 +75,25 @@ def main() -> None:
     workspace = create_smoke_workspace("MEMORY")
     client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Memory Client Smoke", PASSWORD)
     grant_client_user(workspace, client_user_id)
+    second_admin_id = upsert_smoke_user(SECOND_ADMIN_EMAIL, "Second Admin Smoke", PASSWORD)
+    grant_eg_admin(workspace.tenant_id, second_admin_id)
 
     # Limpeza garantida mesmo se a falha acontecer antes do try/finally:
     # sem isto, uma assercao quebrada deixa o workspace na carteira.
-    atexit.register(lambda: cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL]))
+    atexit.register(
+        lambda: cleanup_smoke_data([workspace.organization_id], [CLIENT_EMAIL, SECOND_ADMIN_EMAIL])
+    )
     admin = TestClient(app)
+    second_admin = TestClient(app)
     client_user = TestClient(app)
     assert_status(admin.post("/auth/login", json={"email": ADMIN_EMAIL, "password": PASSWORD}), 200, "login admin")
+    assert_status(
+        second_admin.post("/auth/login", json={"email": SECOND_ADMIN_EMAIL, "password": PASSWORD}),
+        200,
+        "login segundo admin",
+    )
     assert_status(client_user.post("/auth/login", json={"email": CLIENT_EMAIL, "password": PASSWORD}), 200, "login cliente")
+    admin_id = admin.get("/auth/me").json()["id"]
 
     assert_status(client_user.get("/agent-memory/memories"), 403, "cliente nao acessa memoria")
     print("escopo EG-only: 403 para client_user OK")
@@ -242,7 +270,66 @@ def main() -> None:
             )
             memory_ids.append(new_memory["id"])
             assert new_memory["authored_by"] is None, "memoria escrita pelo copiloto deveria ter authored_by nulo"
-            print("remember_fact via copiloto: memoria criada e marcada como escrita pelo agente OK")
+            assert new_memory["owner_user_id"] == admin_id, (
+                f"preferencia escrita na conversa do admin deveria ser dele: {new_memory}"
+            )
+            print("remember_fact via copiloto: memoria criada, marcada como escrita pelo agente e dono correto OK")
+
+            # 8) Memória por natureza: preferência não vaza entre pessoas, mas
+            # continua visível na listagem administrativa (transparência).
+            admin_view = admin.get(f"/agent-memory/memories?workspace_id={workspace.workspace_id}").json()
+            assert any(row["id"] == new_memory["id"] for row in admin_view), (
+                "listagem administrativa precisa mostrar TODAS as memorias, inclusive a preferencia de outra pessoa — "
+                "transparencia nao e a mesma coisa que vazar no dossie"
+            )
+            print("preferencia de outra pessoa aparece na listagem administrativa (transparencia) OK")
+
+            copilot_service.copilot_plan_safe = fake_plan([], answer="dossie do outro admin")
+            captured.clear()
+            copilot_service._build_dossier = spy_dossier
+            second_admin.post(
+                "/copilot",
+                json={"message": "oi", "surface": "workspace", "workspace_id": str(workspace.workspace_id)},
+            )
+            copilot_service._build_dossier = real_dossier_builder
+            titles_in_second_admin_dossier = {row["title"] for row in captured["dossier"]["memories"]}
+            assert "Smoke: prefere reuniao curta" not in titles_in_second_admin_dossier, (
+                f"preferencia pessoal do primeiro admin vazou pro dossie do segundo: {titles_in_second_admin_dossier}"
+            )
+            print("preferencia pessoal NAO aparece no dossie de outro admin OK")
+
+            captured.clear()
+            copilot_service._build_dossier = spy_dossier
+            admin.post(
+                "/copilot",
+                json={"message": "oi de novo", "surface": "workspace", "workspace_id": str(workspace.workspace_id)},
+            )
+            copilot_service._build_dossier = real_dossier_builder
+            own_dossier_memories = {row["title"]: row["personal"] for row in captured["dossier"]["memories"]}
+            assert own_dossier_memories.get("Smoke: prefere reuniao curta") is True, (
+                f"a propria preferencia precisa aparecer no dossie de quem e o dono: {own_dossier_memories}"
+            )
+            print("preferencia aparece no dossie do proprio dono, marcada como pessoal OK")
+
+            # 9) Só `preference` pode ter dono — fato/diretriz recusam.
+            assert_status(
+                admin.patch(
+                    f"/agent-memory/memories/{workspace_memory_id}/owner",
+                    json={"is_personal": True, "reason": "tentativa invalida"},
+                ),
+                422,
+                "tornar pessoal uma memoria de categoria fact",
+            )
+            print("categoria fact/diretriz nao aceita dono: 422 OK")
+
+            # 10) Corrigir a classificação: o agente vai errar, você corrige.
+            corrected = admin.patch(
+                f"/agent-memory/memories/{new_memory['id']}/owner",
+                json={"is_personal": False, "reason": "na verdade vale pra qualquer um que atender esse cliente"},
+            )
+            assert_status(corrected, 200, "corrigir classificacao para compartilhada")
+            assert corrected.json()["owner_user_id"] is None, corrected.json()
+            print("corrigir preferencia pessoal para compartilhada OK")
         finally:
             copilot_service.copilot_plan_safe = original_plan
             copilot_service._build_dossier = real_dossier_builder

@@ -20,6 +20,7 @@ from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.copilot import CopilotAttachment
 from bioma_api.services import storage
 from bioma_api.services.storage import StorageNotConfiguredError, StorageOperationError
+from bioma_api.worker_bridge import transcribe_audio_safe
 
 
 def upload(upload_file: UploadFile, thread_id: UUID | None, user: CurrentUserResponse) -> CopilotAttachment:
@@ -45,7 +46,11 @@ def upload(upload_file: UploadFile, thread_id: UUID | None, user: CurrentUserRes
     kind = attachment_text.classify(content_type, file_name)
     # Extração antes do upload: se o arquivo é ilegível, quem anexou descobre
     # agora, não depois de perguntar algo sobre ele e receber uma resposta vaga.
-    extraction = attachment_text.extract(content, content_type, file_name)
+    # Áudio não tem texto para extrair localmente — a "extração" é chamar o
+    # Whisper de verdade, aqui mesmo, pelo mesmo motivo: descobrir agora.
+    extraction = transcribe_attachment_audio(content, content_type, file_name) if kind == "audio" else (
+        attachment_text.extract(content, content_type, file_name)
+    )
 
     storage_key = f"copilot/{user.id}/{uuid4()}-{_safe_filename(file_name)}"
     try:
@@ -138,6 +143,38 @@ def load_for_prompt(conn, attachment_ids: list[UUID], user_id: UUID) -> tuple[li
     return for_prompt, for_trace
 
 
+def transcribe_attachment_audio(content: bytes, content_type: str, file_name: str) -> dict:
+    """Chama o Whisper de verdade para um anexo de áudio.
+
+    Mesmo contrato de `attachment_text.extract`: `{status, text, error,
+    truncated_chars}`. Nunca levanta — sem `OPENAI_API_KEY` ou com a API do
+    provedor fora do ar, o anexo continua sendo salvo, só fica marcado como
+    não transcrito. Um anexo de áudio que falha ao subir seria pior que um
+    anexo salvo sem o conteúdo falado.
+    """
+    try:
+        result = transcribe_audio_safe(content, file_name, content_type)
+    except Exception as exc:  # noqa: BLE001 — motivo no docstring acima
+        return {"status": "failed", "text": None, "error": str(exc)[:500], "truncated_chars": None}
+
+    text = (result.get("text") or "").strip()
+    if not text:
+        return {
+            "status": "unsupported",
+            "text": None,
+            "error": "Transcrição vazia — o áudio não tinha fala reconhecível.",
+            "truncated_chars": None,
+        }
+    if len(text) > attachment_text.MAX_CHARS:
+        return {
+            "status": "extracted",
+            "text": text[: attachment_text.MAX_CHARS],
+            "error": None,
+            "truncated_chars": len(text) - attachment_text.MAX_CHARS,
+        }
+    return {"status": "extracted", "text": text, "error": None, "truncated_chars": 0}
+
+
 def _default_reason(kind: str) -> str:
     if kind == "image":
         return (
@@ -146,7 +183,7 @@ def _default_reason(kind: str) -> str:
         )
     if kind == "audio":
         return (
-            "Áudio: transcrição automática ainda não está configurada. "
+            "Áudio: a transcrição não foi possível. "
             "O arquivo está guardado, mas o conteúdo falado não foi lido."
         )
     return "Conteúdo não pôde ser extraído."

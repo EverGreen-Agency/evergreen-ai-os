@@ -129,6 +129,42 @@ def main() -> None:
     assert attachment_text.classify("audio/mpeg", "call.mp3") == "audio"
     print("imagem nao extrai texto; binario recusado com motivo; audio classificado OK")
 
+    # 4b) Transcricao real de audio (Whisper), mockada no nivel do bridge —
+    # mesmo padrao usado no smoke de traducao: nunca finge sucesso sem chave.
+    original_transcribe = service.transcribe_audio_safe
+    try:
+        service.transcribe_audio_safe = lambda content, file_name, content_type: {
+            "text": "Reuniao marcada com a Univet na sexta.", "provider": "openai", "model": "whisper-1",
+        }
+        ok = service.transcribe_attachment_audio(b"fake-audio-bytes", "audio/mpeg", "call.mp3")
+        assert ok["status"] == "extracted" and "Univet" in ok["text"], ok
+        assert ok["truncated_chars"] == 0, ok
+        print("transcricao de audio: chamou o whisper e extraiu o texto OK")
+
+        service.transcribe_audio_safe = lambda content, file_name, content_type: {"text": "   "}
+        empty = service.transcribe_attachment_audio(b"fake-audio-bytes", "audio/mpeg", "silencio.mp3")
+        assert empty["status"] == "unsupported" and empty["text"] is None, empty
+        print("transcricao vazia (sem fala reconhecivel): unsupported com motivo OK")
+
+        def _raise(content, file_name, content_type):
+            raise RuntimeError("Transcricao de audio exige OPENAI_API_KEY.")
+
+        service.transcribe_audio_safe = _raise
+        failed = service.transcribe_attachment_audio(b"fake-audio-bytes", "audio/mpeg", "call.mp3")
+        assert failed["status"] == "failed" and "OPENAI_API_KEY" in failed["error"], failed
+        print("sem OPENAI_API_KEY: anexo continua salvavel, so fica marcado como nao transcrito OK")
+
+        service.transcribe_audio_safe = lambda content, file_name, content_type: {
+            "text": "fala " * 10_000,
+        }
+        long_audio = service.transcribe_attachment_audio(b"fake-audio-bytes", "audio/mpeg", "longo.mp3")
+        assert long_audio["status"] == "extracted", long_audio
+        assert len(long_audio["text"]) == attachment_text.MAX_CHARS, len(long_audio["text"])
+        assert long_audio["truncated_chars"] > 0, "corte da transcricao tambem precisa ser contado"
+        print("transcricao longa: cortada e o corte e contado, igual aos outros tipos OK")
+    finally:
+        service.transcribe_audio_safe = original_transcribe
+
     # 5) Corte é contado, não silencioso.
     long_text = ("linha de conteudo repetida. " * 2000).encode()
     truncated = attachment_text.extract(long_text, "text/plain", "grande.txt")

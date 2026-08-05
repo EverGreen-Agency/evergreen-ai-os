@@ -15,9 +15,19 @@ class AgentMemory(BaseModel):
     title: str
     body: str
     authored_by: UUID | None
+    # Nulo = compartilhada (fato/diretriz/identidade, visível a todos).
+    # Preenchido = preferência pessoal de quem é o dono — só entra no dossiê
+    # dele. Só pode ser não-nulo quando category = "preference".
+    owner_user_id: UUID | None
     status: Literal["active", "archived"]
     created_at: datetime
     updated_at: datetime
+
+
+class AgentMemoryOwnerUpdate(BaseModel):
+    """Corrige a classificação pessoal x compartilhada de uma preferência."""
+    is_personal: bool
+    reason: str = Field(min_length=1, max_length=500)
 
 
 class AgentMemoryCreate(BaseModel):

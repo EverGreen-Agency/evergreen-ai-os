@@ -6,6 +6,7 @@ from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.agent_memory import (
     AgentMemory,
     AgentMemoryCreate,
+    AgentMemoryOwnerUpdate,
     AgentMemoryRevision,
     AgentMemoryStatusUpdate,
     AgentMemoryUpdate,
@@ -51,6 +52,16 @@ def set_memory_status(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> AgentMemory:
     return service.set_memory_status(memory_id, payload, user)
+
+
+@router.patch("/memories/{memory_id}/owner", response_model=AgentMemory)
+def set_memory_owner(
+    memory_id: UUID,
+    payload: AgentMemoryOwnerUpdate,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> AgentMemory:
+    """Corrige classificação pessoal x compartilhada — só vale para 'preference'."""
+    return service.set_memory_owner(memory_id, payload, user)
 
 
 @router.get("/memories/{memory_id}/revisions", response_model=list[AgentMemoryRevision])

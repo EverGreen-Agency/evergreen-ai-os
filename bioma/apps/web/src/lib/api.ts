@@ -1172,6 +1172,9 @@ export type AgentMemory = {
   title: string;
   body: string;
   authored_by: string | null;
+  /** Preenchido = preferência pessoal, só entra no dossiê do dono. Só existe
+   *  quando category === "preference". */
+  owner_user_id: string | null;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;
@@ -1353,22 +1356,74 @@ export type CopilotRunTrace = {
   }[];
   input_tokens: number | null;
   output_tokens: number | null;
-  /** Nulo = modelo sem preço conhecido. Nunca estimado. */
+  /** Nulo = sem custo em dinheiro conhecido — modelo sem preço, ou (quando
+   *  `routed_account` está preenchido) rodou na cota da assinatura, que não é
+   *  cobrada por token. Nunca estimado. */
   cost_cents: number | null;
   duration_ms: number | null;
   created_at: string;
   steps: CopilotRunStep[];
+  /** Preenchido quando a execução rodou por uma conta de assinatura (Codex
+   *  CLI, Claude Code CLI) em vez da chave de API. */
+  routed_account: CopilotRoutedAccountQuota | null;
+};
+
+export type CopilotQuotaBucket = {
+  bucket_key: string;
+  scope: string;
+  model_id: string | null;
+  remaining_percent: number | null;
+  unit: string;
+  resets_at: string | null;
+  /** `provider_api` + `authoritative` = o próprio provedor reportou. Qualquer
+   *  outra coisa é estimativa, e a tela precisa deixar isso visível. */
+  source: string;
+  confidence: string;
+  measured_at: string;
+};
+
+export type CopilotRoutedAccountQuota = {
+  account_id: string;
+  display_name: string;
+  channel: string;
+  /** Vazio = conta existe mas ainda sem coleta de cota — não é "sem cota". */
+  buckets: CopilotQuotaBucket[];
+};
+
+export type CopilotDailyUsage = {
+  day: string;
+  runs: number;
+  routed_runs: number;
+  failed_runs: number;
+  cost_cents: number;
+  input_tokens: number;
+  output_tokens: number;
+};
+
+export type CopilotProviderUsage = {
+  provider: string;
+  model: string;
+  runs: number;
+  routed_runs: number;
+  cost_cents: number;
 };
 
 export type CopilotUsageSummary = {
   runs: number;
   failed_runs: number;
   preview_runs: number;
+  /** Execuções por CHAVE DE API sem preço na tabela — gap de verdade.
+   *  Execução roteada por assinatura sem custo em dinheiro NÃO conta aqui. */
   runs_without_cost: number;
+  routed_runs: number;
   input_tokens: number;
   output_tokens: number;
   cost_cents: number;
   avg_duration_ms: number;
+  routed_accounts: CopilotRoutedAccountQuota[];
+  /** Série diária e quebra por provedor/modelo — sem dia vazio preenchido. */
+  daily: CopilotDailyUsage[];
+  by_provider: CopilotProviderUsage[];
 };
 
 // --- Estudo de plataformas (build vs. buy) ---
@@ -3355,6 +3410,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ content_markdown: contentMarkdown, claims }),
     }),
+  translateProposal: (proposalId: string, language: string) =>
+    request<ProposalTranslation>(`/backoffice/proposals/${proposalId}/translate`, {
+      method: "POST",
+      body: JSON.stringify({ language }),
+    }),
   reviewProposalClaims: (proposalId: string, status: "approved" | "rejected", note?: string) =>
     request<ProposalDetail>(`/backoffice/proposals/${proposalId}/claims-review`, {
       method: "POST",
@@ -3443,6 +3503,8 @@ export const api = {
     request<AgentMemory>(`/agent-memory/memories/${memoryId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   setAgentMemoryStatus: (memoryId: string, payload: { status: "active" | "archived"; reason: string }) =>
     request<AgentMemory>(`/agent-memory/memories/${memoryId}/status`, { method: "PATCH", body: JSON.stringify(payload) }),
+  setAgentMemoryOwner: (memoryId: string, payload: { is_personal: boolean; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}/owner`, { method: "PATCH", body: JSON.stringify(payload) }),
   listAgentMemoryRevisions: (memoryId: string) =>
     request<AgentMemoryRevision[]>(`/agent-memory/memories/${memoryId}/revisions`),
   listAgentSkills: (workspaceId?: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) => {
@@ -3656,6 +3718,8 @@ export type ProposalSummary = {
   workspace_id: string | null;
   series_id: string | null;
   version: number;
+  /** Idioma em que o CONTEÚDO nasceu — não o idioma da interface. */
+  content_language: string;
   title: string | null;
   client_name: string;
   target_niche: string | null;
@@ -3687,6 +3751,22 @@ export type ProposalSummary = {
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ProposalTranslation = {
+  id: string;
+  proposal_id: string;
+  language: string;
+  title: string;
+  content_markdown: string;
+  generation_mode: "live";
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_cents: number | null;
+  created_by: string | null;
+  created_at: string;
 };
 
 export type ProposalClaim = {
@@ -4035,7 +4115,7 @@ export type ProposalUpdatePayload = Partial<Pick<
   "pricing_cents" | "delivery_days" | "contractor_name" |
   "team_members" | "special_requirements" | "estimated_budget" |
   "payment_terms" | "urgency" | "decision_maker" | "problem_summary" |
-  "additional_context"
+  "additional_context" | "content_language"
 >>;
 
 export type PublicProposalResponse = {

@@ -438,6 +438,42 @@
   color: var(--text-dim);
 }
 
+/* Card de vitórias — ao lado do "precisa de você", o contraponto do que já
+   deu certo. Mesmo cartão visual do resto do bento, lista mais enxuta porque
+   é resumo de 24h, não fila de trabalho. */
+.cockpit-wins {
+  display: flex;
+  flex-direction: column;
+}
+
+.cockpit-wins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.cockpit-wins-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.cockpit-wins-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .cockpit-portfolio {
   display: flex;
   gap: 12px;

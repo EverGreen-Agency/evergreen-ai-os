@@ -1,5 +1,0 @@
-agent_name,role,displayName,icon,file_path
-estrategista_anuncios,Estrategista de Anúncios,Estrategista,🎯,./agents/estrategista_anuncios.agent.md
-roteirista_video,Roteirista de Vídeo,Roteirista,🎬,./agents/roteirista_video.agent.md
-revisor_anuncios,Revisor de Anúncios,Revisor,🛡️,./agents/revisor_anuncios.agent.md
-analista_performance,Analista de Performance,Analista,📊,./agents/analista_performance.agent.md

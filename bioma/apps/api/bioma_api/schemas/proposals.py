@@ -49,6 +49,11 @@ class ProposalBase(BaseModel):
     workspace_id: UUID | None = None
     series_id: UUID | None = None
     version: int = Field(default=1, ge=1)
+    # Idioma em que o CONTEÚDO nasceu — não o idioma da interface. Uma proposta
+    # para lead americano nasce em 'en-US'; esse é o que sai no link público. A
+    # equipe interna traduz sob demanda (ver ProposalTranslation), sem duplicar
+    # o material.
+    content_language: str = Field(default="pt-BR", max_length=10)
     title: str | None = Field(default=None, min_length=2, max_length=255)
     client_name: str
     target_niche: str | None = None
@@ -81,6 +86,7 @@ class ProposalCreatePayload(ProposalBase):
     pass
 
 class ProposalUpdatePayload(BaseModel):
+    content_language: str | None = Field(default=None, max_length=10)
     title: str | None = Field(default=None, min_length=2, max_length=255)
     client_name: str | None = None
     target_niche: str | None = None
@@ -157,6 +163,31 @@ class ProposalSummary(ProposalBase):
     created_by_user_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
+    # Documento renderizado — o que a tela e a tradução realmente mostram.
+    content_markdown: str | None = None
+
+
+class ProposalTranslateRequest(BaseModel):
+    language: str = Field(min_length=2, max_length=10)
+
+
+class ProposalTranslation(BaseModel):
+    """Tradução em cache. `generation_mode` é sempre 'live' aqui — tradução
+    nunca aceita prévia local (ver bioma_worker/translation.py)."""
+    id: UUID
+    proposal_id: UUID
+    language: str
+    title: str
+    content_markdown: str
+    generation_mode: Literal["live"]
+    provider: str | None
+    model: str | None
+    input_tokens: int | None
+    output_tokens: int | None
+    cost_cents: int | None
+    created_by: UUID | None
+    created_at: datetime
+
 
 class PublicProposalResponse(BaseModel):
     client_name: str

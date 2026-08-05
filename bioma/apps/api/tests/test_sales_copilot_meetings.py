@@ -121,10 +121,13 @@ def test_live_analysis_runs_without_open_database_transaction(eg_admin, monkeypa
         finally:
             open_connections -= 1
 
-    def fake_execute(**kwargs):
+    def fake_analyze(request):
         assert open_connections == 0
-        assert kwargs["input_context"]["knowledge_context"]["client"]["organization_name"] == "Cliente"
-        return {"generation_mode": "live", "output_data": {"recommendation": "Pergunte quem aprova o orçamento."}}
+        assert request["knowledge_context"]["client"]["organization_name"] == "Cliente"
+        return {
+            "generation_mode": "live",
+            "output": {"moment": "objection_price", "suggested_line": "Pergunte quem aprova o orçamento."},
+        }
 
     monkeypatch.setattr(copilot_service, "connect", fake_connect)
     monkeypatch.setattr(copilot_service, "_find", lambda *_args, **_kwargs: session)
@@ -138,7 +141,11 @@ def test_live_analysis_runs_without_open_database_transaction(eg_admin, monkeypa
         }],
     )
     monkeypatch.setattr(copilot_service.copilot_repo, "list_participants", lambda *_args: [])
-    monkeypatch.setattr(copilot_service, "execute_squad_pipeline_safe", fake_execute)
+    # `analyze_live` usa o caminho dedicado (analyze_sales_live_window_safe),
+    # não o squad genérico — mockar execute_squad_pipeline_safe (como este
+    # teste fazia) nunca exercitava o código real: a asserção sobre
+    # suggestion_type só passava por coincidência do fallback de prévia local.
+    monkeypatch.setattr(copilot_service, "analyze_sales_live_window_safe", fake_analyze)
     monkeypatch.setattr(
         copilot_service.copilot_repo,
         "add_suggestion",
