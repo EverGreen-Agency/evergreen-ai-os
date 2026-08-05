@@ -1,3 +1,4 @@
+/* === Merged from 01-base-login-projetos-vault.css === */
 /* Extraído de styles.css (linhas 1-702) na quebra por domínio.
  * A ordem dos @import em styles.css reproduz a ordem original — CSS
  * depende de cascata, então reordenar mudaria o resultado visual. */
@@ -702,3 +703,5 @@ html, body, #root {
   display: flex;
   flex-direction: column;
 }
+
+
