@@ -111,7 +111,7 @@ def purge_smoke_residue() -> dict[str, int]:
     responde por convenção de nome, não por bookkeeping de cada script. Só apaga
     o que nenhum dado real pode se chamar.
     """
-    removed = {"organizations": 0, "users": 0, "local_radar_scans": 0}
+    removed = {"organizations": 0, "users": 0, "local_radar_scans": 0, "wins": 0}
     with connect() as conn:
         rows = conn.execute(
             "select id from organizations where name like 'Smoke %' and type = 'client'"
@@ -136,6 +136,15 @@ def purge_smoke_residue() -> dict[str, int]:
             conn.execute("delete from local_radar_prospects where scan_id = any(%s)", (scan_ids,))
             conn.execute("delete from local_radar_scans where id = any(%s)", (scan_ids,))
             removed["local_radar_scans"] = len(rows)
+
+        # Detector automático (`win_detectors.py`) cria vitória de verdade sobre
+        # qualquer cliente `active` que encontrar — inclusive o cliente de um
+        # smoke, se ele ainda existir no momento em que os detectores reais
+        # rodarem. Sem `workspace_id` preenchido nesse caso, apagar o workspace
+        # não leva a vitória junto (foi assim que 5 delas ficaram no mural
+        # durante o desenvolvimento de `smoke_wins.py`).
+        n = conn.execute("delete from wins where title like 'Cliente ativo na carteira: Smoke %'").rowcount
+        removed["wins"] = n
     return removed
 
 
