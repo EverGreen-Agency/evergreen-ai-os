@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Archive, Save, Settings, UserPlus, X } from "lucide-react";
+import { Archive, Save, Settings, UserPlus, X, Trash2 } from "lucide-react";
 import { DockTitle } from "./shared";
 import { statusLabel, moduleLabels, toggleableModules } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
@@ -115,7 +115,7 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
           </button>
         </div>
         
-        <div className="drawer-body">
+        <div className="drawer-body" style={{ overflowY: 'auto', flex: 1, paddingBottom: 64 }}>
           <form onSubmit={handleUpdateClient}>
             <DockTitle icon={Save} title="Editar cliente selecionado" />
             <div className="form-grid two">
@@ -214,35 +214,33 @@ export function AdminDock({ selectedClient, isOpen, onClose }: { selectedClient:
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '16px 0' }} />
 
-          {/* Trocar o status para "archived" no seletor acima só muda o cliente;
-              arquivar de fato desativa também o workspace (e é pré-requisito do
-              expurgo). Sem este botão, esse caminho não existia na interface. */}
-          <div>
-            <DockTitle icon={Archive} title="Arquivar cliente" />
-            <p style={{ fontSize: "0.8rem", color: "var(--text-faint)", marginTop: 0, marginBottom: "12px" }}>
-              Desativa o cliente e o workspace dele: some da carteira ativa e os usuários do cliente
-              perdem o acesso. O histórico é preservado e a operação é reversível pelo suporte.
+          <div style={{ marginTop: 32, borderTop: "1px solid var(--danger, #e5484d)", paddingTop: 16 }}>
+            <h3 style={{ color: "var(--danger, #e5484d)", display: "flex", alignItems: "center", gap: 8, fontSize: "0.95rem", margin: "0 0 12px 0" }}>
+              <Trash2 size={16} /> Zona de Perigo
+            </h3>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: 0, marginBottom: "12px" }}>
+              Remover este cliente ocultará o workspace da carteira ativa e interromperá serviços ativos.
             </p>
             {selectedClient?.status === "archived" ? (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>Este cliente já está arquivado.</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--danger, #e5484d)" }}>Este cliente já foi removido.</p>
             ) : (
               <button
-                className="secondary-button"
+                className="primary-button"
+                style={{ background: "var(--danger, #e5484d)", color: "#fff", width: "100%" }}
                 type="button"
                 disabled={isBusy || archiveClient.isPending || !selectedClient}
                 onClick={() => {
                   if (!selectedClient) return;
-                  if (!window.confirm(`Arquivar ${selectedClient.name}? O acesso do cliente será encerrado.`)) return;
+                  if (!window.confirm(`Tem certeza que deseja remover ${selectedClient.name}? O acesso do cliente será encerrado e ele sumirá da carteira.`)) return;
                   archiveClient.mutate(selectedClient.id, { onSuccess: onClose });
                 }}
               >
-                <Archive size={16} />
-                {archiveClient.isPending ? "Arquivando..." : "Arquivar cliente"}
+                {archiveClient.isPending ? "Removendo..." : "Remover Cliente"}
               </button>
             )}
             {archiveClient.isError && (
               <div className="notice error" style={{ marginTop: "10px" }}>
-                {archiveClient.error instanceof Error ? archiveClient.error.message : "Falha ao arquivar."}
+                {archiveClient.error instanceof Error ? archiveClient.error.message : "Falha ao remover."}
               </div>
             )}
           </div>

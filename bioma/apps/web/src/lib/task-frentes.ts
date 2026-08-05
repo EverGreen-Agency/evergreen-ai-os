@@ -19,43 +19,41 @@ export type FrenteStatus = {
 };
 
 const GROWTH: FrenteStatus[] = [
-  { status: "BRAIN", group: "NOT_STARTED" },
-  { status: "BACKLOG", group: "ACTIVE" },
-  { status: "IN PROGRESS", group: "ACTIVE" },
-  { status: "IN REVIEW", group: "ACTIVE" },
-  { status: "REJECTED", group: "ACTIVE" },
-  { status: "BLOCKED", group: "ACTIVE" },
-  { status: "DONE", group: "DONE" },
-  { status: "CLOSED", group: "CLOSED" },
+  { status: "Brain", group: "NOT_STARTED" },
+  { status: "Backlog", group: "ACTIVE" },
+  { status: "Em progresso", group: "ACTIVE" },
+  { status: "Em revisão", group: "ACTIVE" },
+  { status: "Recusado", group: "ACTIVE" },
+  { status: "Bloqueado", group: "ACTIVE" },
+  { status: "Concluído", group: "DONE" },
+  { status: "Finalizado", group: "CLOSED" },
 ];
 
 const TECH: FrenteStatus[] = [
-  { status: "BRAIN", group: "NOT_STARTED" },
-  { status: "BACKLOG", group: "NOT_STARTED" },
-  { status: "TO DO (SPRINT)", group: "NOT_STARTED" },
-  { status: "IN PROGRESS", group: "ACTIVE" },
-  { status: "CODE REVIEW", group: "ACTIVE" },
-  { status: "QA / TESTING", group: "ACTIVE" },
-  { status: "BLOCKED", group: "ACTIVE" },
-  { status: "READY FOR RELEASE", group: "DONE" },
-  { status: "CANCELLED / WON'T FIX", group: "DONE" },
-  { status: "DEPLOYED", group: "CLOSED" },
+  { status: "Brain", group: "NOT_STARTED" },
+  { status: "Backlog", group: "NOT_STARTED" },
+  { status: "To Do (Sprint)", group: "NOT_STARTED" },
+  { status: "Em progresso", group: "ACTIVE" },
+  { status: "Code review", group: "ACTIVE" },
+  { status: "QA / testes", group: "ACTIVE" },
+  { status: "Bloqueado", group: "ACTIVE" },
+  { status: "Pronto p/ release", group: "DONE" },
+  { status: "Cancelado", group: "DONE" },
+  { status: "Implantado", group: "CLOSED" },
 ];
 
 const SOCIAL: FrenteStatus[] = [
-  { status: "IDEAÇÃO", group: "NOT_STARTED" },
-  { status: "ROTEIRIZAÇÃO", group: "ACTIVE" },
-  { status: "EM PRODUÇÃO", group: "ACTIVE" },
-  { status: "REVISÃO INTERNA", group: "ACTIVE" },
-  { status: "APROVAÇÃO CLIENTE", group: "ACTIVE" },
-  { status: "EM AJUSTE", group: "ACTIVE" },
-  // AGENDADO é DONE pelo manual. A migração do ClickUp mapeava como
-  // NOT_STARTED, o que jogava 27 tarefas na coluna errada do Kanban.
-  { status: "AGENDADO", group: "DONE" },
-  { status: "PUBLICADO", group: "DONE" },
-  { status: "ANALISAR", group: "DONE" },
-  { status: "DESCARTADO", group: "DONE" },
-  { status: "FINALIZADO", group: "CLOSED" },
+  { status: "Ideação", group: "NOT_STARTED" },
+  { status: "Roteirização", group: "ACTIVE" },
+  { status: "Em produção", group: "ACTIVE" },
+  { status: "Revisão interna", group: "ACTIVE" },
+  { status: "Aprovação cliente", group: "ACTIVE" },
+  { status: "Em ajuste", group: "ACTIVE" },
+  { status: "Agendado", group: "DONE" },
+  { status: "Publicado", group: "DONE" },
+  { status: "Analisar", group: "DONE" },
+  { status: "Descartado", group: "DONE" },
+  { status: "Finalizado", group: "CLOSED" },
 ];
 
 /** `general` usa o vocabulário de Growth: é o mais neutro dos três. */
@@ -72,10 +70,15 @@ export function statusesForFrente(type: TaskListType | undefined): FrenteStatus[
 
 /** Grupo correto para um status, para o Kanban não depender de digitação. */
 export function groupForStatus(type: TaskListType | undefined, status: string): TaskGroupStatus | null {
-  const match = statusesForFrente(type).find(
-    (item) => item.status.toLowerCase() === status.trim().toLowerCase(),
-  );
-  return match ? match.group : null;
+  const norm = status.trim().toLowerCase();
+  const match = statusesForFrente(type).find((item) => item.status.toLowerCase() === norm);
+  if (match) return match.group;
+  // Deep search across all frentes in case of cross-frente status names
+  for (const list of [GROWTH, TECH, SOCIAL]) {
+    const m = list.find((item) => item.status.toLowerCase() === norm);
+    if (m) return m.group;
+  }
+  return null;
 }
 
 export const FRENTE_LABELS: Record<TaskListType, string> = {

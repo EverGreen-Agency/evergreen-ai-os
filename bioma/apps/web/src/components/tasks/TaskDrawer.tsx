@@ -3,18 +3,21 @@ import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquar
 import {
   useCopilotCommands,
   useCreateTask,
+  useCreateWorkspaceTask,
   useCreateTaskComment,
   useRunCopilot,
   useDeleteTask,
   useDeleteTaskComment,
   useTaskComments,
   useTasksInList,
+  useWorkspaceTasks,
   useUpdateTask,
   useWorkspaceProjects,
   useAssignableUsers,
 } from "../../hooks/useBiomaApi";
 import type {
   CopilotResponse,
+  Discipline,
   TaskDependency,
   TaskGroupStatus,
   TaskListType,
@@ -282,9 +285,12 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
 }
 
 type TaskDrawerProps = {
-  listId: string;
-  listType?: TaskListType;
-  workspaceId?: string;
+  workspaceId: string;
+  /** listId: opcional. Preenchido apenas para tarefas legadas vinculadas a uma lista. */
+  listId?: string;
+  /** discipline: substitui o tipo de lista no fluxo de criação. */
+  discipline?: Discipline;
+  listType?: TaskListType; // legado, derivado do discipline quando ausente
   taskId: string | null;
   initialStatus?: TaskGroupStatus;
   /** Preenchido ao criar uma SUBTAREFA a partir de outra tarefa. */
@@ -294,15 +300,21 @@ type TaskDrawerProps = {
 
 
 export function TaskDrawer({
-  listId,
-  listType,
   workspaceId,
+  listId,
+  discipline,
+  listType,
   taskId,
   initialStatus,
   parentTaskId,
   onClose,
 }: TaskDrawerProps) {
-  const { data: tasks } = useTasksInList(listId);
+  // Para editar uma tarefa existente, precisamos encontrá-la:
+  // tarefas novas: busca por workspace; tarefas legadas: busca por lista.
+  const { data: workspaceTasks } = useWorkspaceTasks(listId ? null : workspaceId);
+  const { data: legacyListTasks } = useTasksInList(listId ?? null);
+  const tasks = listId ? legacyListTasks : workspaceTasks;
+
   // Projetos alimentam o seletor de Projeto; sem workspaceId não há como
   // saber quais projetos são elegíveis (o backend recusa projeto de outro).
   const { data: projects = [] } = useWorkspaceProjects(workspaceId ?? null);
@@ -311,8 +323,12 @@ export function TaskDrawer({
   const readOnlyProjection = existingTask?.external_source === "clickup";
   
   const createTask = useCreateTask();
+  const createWorkspaceTask = useCreateWorkspaceTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+
+  // Tipo efetivo da lista: usa discipline se não há listType explícito
+  const effectiveListType: TaskListType = (listType ?? discipline ?? "growth") as TaskListType;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -334,7 +350,7 @@ export function TaskDrawer({
   // da visão dele. O filtro real acontece no backend — isto é só o controle.
   const [clientVisible, setClientVisible] = useState(true);
 
-  // Filhas vivem na mesma lista, entao saem do fetch que ja temos.
+  // Filhas vivem na mesma lista/workspace, entao saem do fetch que ja temos.
   const childTasks = taskId ? (tasks ?? []).filter((t) => t.parent_task_id === taskId) : [];
 
   useEffect(() => {
@@ -427,7 +443,8 @@ export function TaskDrawer({
       }, {
         onSuccess: onClose
       });
-    } else {
+    } else if (listId) {
+      // Criação legada: via lista
       createTask.mutate({
         listId,
         payload: {
@@ -451,6 +468,32 @@ export function TaskDrawer({
       }, {
         onSuccess: onClose
       });
+    } else {
+      // Criação nova: direto no workspace, sem lista
+      createWorkspaceTask.mutate({
+        workspaceId,
+        payload: {
+          title,
+          description,
+          status: specificStatus || "pending",
+          group_status: groupStatus,
+          priority: priority || null,
+          start_date: startDate ? new Date(startDate).toISOString() : null,
+          due_date: dueDate ? new Date(dueDate).toISOString() : null,
+          recurrence,
+          client_visible: clientVisible,
+          project_id: projectId || null,
+          parent_task_id: parentTaskId || null,
+          assignee_id: assigneeId || null,
+          owner_id: ownerId || null,
+          discipline: discipline ?? null,
+          custom_fields: formattedFields,
+          dependencies,
+          subtasks,
+        }
+      }, {
+        onSuccess: onClose
+      });
     }
   };
 
@@ -462,8 +505,9 @@ export function TaskDrawer({
     }
   };
 
-  const isBusy = createTask.isPending || updateTask.isPending || deleteTask.isPending;
-
+  const isBusy = createTask.isPending || createWorkspaceTask.isPending || updateTask.isPending || deleteTask.isPending;
+  // effectiveListType serve só para renderizar os status disponíveis.
+  // Para tarefas novas sem listId, usa o discipline como proxy.
   const updateField = (name: string, value: string) => {
     setCustomFields(prev => ({ ...prev, [name]: value }));
   };
@@ -523,10 +567,10 @@ export function TaskDrawer({
                 onChange={(e) => setGroupStatus(e.target.value as TaskGroupStatus)}
                 disabled={isBusy}
               >
-                <option value="NOT_STARTED">To Do</option>
-                <option value="ACTIVE">In Progress</option>
-                <option value="DONE">Done</option>
-                <option value="CLOSED">Closed</option>
+                <option value="NOT_STARTED">A fazer</option>
+                <option value="ACTIVE">Em progresso</option>
+                <option value="DONE">Concluído</option>
+                <option value="CLOSED">Finalizado</option>
               </select>
             </label>
 
@@ -541,16 +585,16 @@ export function TaskDrawer({
                   setSpecificStatus(next);
                   // Status conhecido da frente já traz o grupo certo: evita a
                   // tarefa cair na coluna errada do Kanban por digitação.
-                  const group = groupForStatus(listType, next);
+                  const group = groupForStatus(effectiveListType, next);
                   if (group) setGroupStatus(group);
                 }}
-                placeholder={statusesForFrente(listType)[0]?.status}
+                placeholder={statusesForFrente(effectiveListType)[0]?.status}
                 disabled={isBusy}
               />
               {/* Sugestões vêm da frente da lista (Manual v2). Antes o datalist
                   misturava Growth e Social e não tinha nenhum status de Tech. */}
               <datalist id="status-options">
-                {statusesForFrente(listType).map(item => <option key={item.status} value={item.status} />)}
+                {statusesForFrente(effectiveListType).map(item => <option key={item.status} value={item.status} />)}
               </datalist>
             </label>
           </div>
@@ -899,9 +943,10 @@ export function TaskDrawer({
       {/* Drawer aninhado para criar a subtarefa, já com o pai preenchido. */}
       {creatingSubtaskFor && (
         <TaskDrawer
-          listId={listId}
-          listType={listType}
           workspaceId={workspaceId}
+          listId={listId}
+          discipline={discipline}
+          listType={listType}
           taskId={null}
           parentTaskId={creatingSubtaskFor}
           onClose={() => setCreatingSubtaskFor(null)}

@@ -1,33 +1,32 @@
 import { useState } from "react";
-import { Plus, MoreHorizontal } from "lucide-react";
-import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
-import type { TaskSummary, TaskGroupStatus, TaskListType } from "../../lib/api";
+import { Plus } from "lucide-react";
+import { useUpdateTask } from "../../hooks/useBiomaApi";
+import type { TaskSummary, TaskGroupStatus, Discipline } from "../../lib/api";
 import { TaskCard } from "./TaskCard";
 import { TaskDrawer } from "./TaskDrawer";
 
 type TaskBoardProps = {
-  listId: string;
-  listType?: TaskListType;
-  workspaceId?: string;
+  workspaceId: string;
+  tasks: TaskSummary[];
+  discipline?: Discipline | string;
   taskFilter?: (task: TaskSummary) => boolean;
+  // Backward-compat: ainda aceita listId mas não é necessário para criar tarefas novas
+  listId?: string;
 };
 
 const COLUMNS: { id: TaskGroupStatus; label: string }[] = [
-  { id: "NOT_STARTED", label: "To Do" },
-  { id: "ACTIVE", label: "In Progress" },
-  { id: "DONE", label: "Done" },
-  { id: "CLOSED", label: "Closed" },
+  { id: "NOT_STARTED", label: "A fazer" },
+  { id: "ACTIVE", label: "Em progresso" },
+  { id: "DONE", label: "Concluído" },
+  { id: "CLOSED", label: "Finalizado" },
 ];
 
-export function TaskBoard({ listId, listType, workspaceId, taskFilter }: TaskBoardProps) {
-  const { data: allTasks, isLoading } = useTasksInList(listId);
-  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
+export function TaskBoard({ workspaceId, tasks: allTasks, discipline, taskFilter, listId }: TaskBoardProps) {
+  const tasks = taskFilter ? allTasks.filter(taskFilter) : allTasks;
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [initialStatusForNew, setInitialStatusForNew] = useState<TaskGroupStatus>("NOT_STARTED");
-
-  if (isLoading) return <div className="loading-state">Carregando tarefas...</div>;
 
   const handleStatusChange = (taskId: string, newStatus: TaskGroupStatus) => {
     updateTask.mutate({ taskId, payload: { group_status: newStatus } });
@@ -36,7 +35,7 @@ export function TaskBoard({ listId, listType, workspaceId, taskFilter }: TaskBoa
   return (
     <div className="task-board" style={{ display: "flex", gap: 16, overflowX: "auto", padding: "16px 0", height: "100%", alignItems: "flex-start" }}>
       {COLUMNS.map((col) => {
-        const colTasks = tasks?.filter((t) => t.group_status === col.id) || [];
+        const colTasks = tasks.filter((t) => t.group_status === col.id);
         
         return (
           <div key={col.id} className="task-column" style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, background: "var(--surface-sunken)", padding: 12, borderRadius: 8 }}>
@@ -67,9 +66,9 @@ export function TaskBoard({ listId, listType, workspaceId, taskFilter }: TaskBoa
 
       {(selectedTaskId || isCreating) && (
         <TaskDrawer 
-          listId={listId}
-          listType={listType}
           workspaceId={workspaceId}
+          discipline={discipline as Discipline | undefined}
+          listId={listId}
           taskId={selectedTaskId}
           initialStatus={initialStatusForNew}
           onClose={() => {

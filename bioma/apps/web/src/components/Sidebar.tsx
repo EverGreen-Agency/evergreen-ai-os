@@ -3,10 +3,10 @@ import { APP_VERSION } from "../lib/version";
 import type { navItems } from "../lib/app-config";
 import { clientHubNavItems } from "../lib/app-config";
 import type { CurrentUser } from "../lib/api";
-import { Menu, X, ChevronLeft, ChevronRight, LogOut, Settings, Plus, FolderKanban } from "lucide-react";
+import { Menu, X, ChevronLeft, ChevronRight, LogOut, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useUiStore } from "../store/uiStore";
-import { useClients, useWorkspaces, useTaskLists, useCreateTaskList } from "../hooks/useBiomaApi";
+import { useClients, useWorkspaces } from "../hooks/useBiomaApi";
 
 interface SidebarProps {
   visibleNavItems: typeof navItems;
@@ -35,15 +35,6 @@ export function Sidebar({
   const selectedClient = clientsData?.find(c => c.id === selectedClientId);
 
   const clientWorkspace = workspacesData?.find(w => w.kind === "client" && w.client_id === selectedClientId);
-  const activeWorkspaceId = clientWorkspace?.id;
-
-  const { data: taskLists } = useTaskLists(activeWorkspaceId || "");
-  const createTaskList = useCreateTaskList();
-  // Criação de lista inline: o `prompt()` do navegador não respeita o tema, não
-  // deixa escolher o tipo da lista e some se o usuário clica fora.
-  const [isCreatingList, setIsCreatingList] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [newListType, setNewListType] = useState<"general" | "social" | "growth" | "tech">("general");
 
   // Fechar menus ao navegar
   useEffect(() => {
@@ -104,116 +95,29 @@ export function Sidebar({
     enabledModules.add("hub");
     
     const workspaceNav = clientHubNavItems
-      .filter((item) => item.id !== "tasks") // Tarefas agora serão renderizadas como pastas
       .filter((item) => enabledModules.has(item.module));
 
     return (
-      <>
-        <div className="nav-group">
-          {!isCollapsed && <div className="nav-group-label">Módulos</div>}
-          {workspaceNav.map(item => {
-            const path = item.path ? `/clientes/${selectedClient.id}/${item.path}` : `/clientes/${selectedClient.id}`;
-            const isActive = location.pathname === path;
-            const Icon = item.icon;
-            return (
-              <button
-                className={isActive ? "active" : ""}
-                key={item.id}
-                type="button"
-                onClick={() => navigate(path)}
-                title={isCollapsed ? item.label : undefined}
-              >
-                <Icon size={18} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
-        </div>
-        
-        <div className="nav-group">
-          {!isCollapsed && (
-            <div className="nav-group-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>TAREFAS</span>
-              <button
-                type="button"
-                className="sidebar-list-add"
-                disabled={!activeWorkspaceId}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsCreatingList((value) => !value);
-                }}
-                title={activeWorkspaceId ? "Nova lista de tarefas" : "Carregando o workspace do cliente..."}
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-          )}
-
-          {!isCollapsed && isCreatingList && activeWorkspaceId && (
-            <form
-              className="sidebar-list-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const name = newListName.trim();
-                if (!name) return;
-                createTaskList.mutate(
-                  { workspaceId: activeWorkspaceId, name, type: newListType },
-                  {
-                    onSuccess: () => {
-                      setNewListName("");
-                      setNewListType("general");
-                      setIsCreatingList(false);
-                    },
-                  },
-                );
-              }}
+      <div className="nav-group">
+        {!isCollapsed && <div className="nav-group-label">Módulos</div>}
+        {workspaceNav.map(item => {
+          const path = item.path ? `/clientes/${selectedClient.id}/${item.path}` : `/clientes/${selectedClient.id}`;
+          const isActive = location.pathname === path;
+          const Icon = item.icon;
+          return (
+            <button
+              className={isActive ? "active" : ""}
+              key={item.id}
+              type="button"
+              onClick={() => navigate(path)}
+              title={isCollapsed ? item.label : undefined}
             >
-              <input
-                autoFocus
-                required
-                minLength={2}
-                maxLength={80}
-                value={newListName}
-                placeholder="Nome da lista"
-                onChange={(event) => setNewListName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Escape") setIsCreatingList(false);
-                }}
-              />
-              <select value={newListType} onChange={(event) => setNewListType(event.target.value as typeof newListType)}>
-                <option value="general">Geral</option>
-                <option value="social">Social media</option>
-                <option value="growth">Growth</option>
-                <option value="tech">Tech</option>
-              </select>
-              <div className="sidebar-list-form-actions">
-                <button type="submit" disabled={createTaskList.isPending || newListName.trim().length < 2}>
-                  {createTaskList.isPending ? "Criando..." : "Criar"}
-                </button>
-                <button type="button" onClick={() => setIsCreatingList(false)}>Cancelar</button>
-              </div>
-              {createTaskList.error && <span className="sidebar-list-form-error">{createTaskList.error.message}</span>}
-            </form>
-          )}
-
-          {taskLists?.map(list => {
-            const path = `/clientes/${selectedClient.id}/tarefas?list=${list.id}`;
-            const isActive = location.pathname.includes("tarefas") && location.search.includes(list.id);
-            return (
-              <button
-                className={isActive ? "active" : ""}
-                key={list.id}
-                type="button"
-                onClick={() => navigate(path)}
-                title={isCollapsed ? list.name : undefined}
-              >
-                <FolderKanban size={18} />
-                {!isCollapsed && <span>{list.name}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </>
+              <Icon size={18} />
+              {!isCollapsed && <span>{item.label}</span>}
+            </button>
+          );
+        })}
+      </div>
     );
   }
 

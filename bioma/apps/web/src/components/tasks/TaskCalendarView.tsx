@@ -1,28 +1,25 @@
 import { useState } from "react";
-import { useTasksInList } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import type { TaskListType, TaskSummary } from "../../lib/api";
+import type { Discipline, TaskListType, TaskSummary } from "../../lib/api";
 
 type TaskCalendarViewProps = {
-  listId: string;
-  listType?: TaskListType;
-  workspaceId?: string;
+  workspaceId: string;
+  tasks: TaskSummary[];
+  discipline?: Discipline | string;
+  listId?: string;       // legado
+  listType?: TaskListType; // legado
   taskFilter?: (task: TaskSummary) => boolean;
 };
 
-export function TaskCalendarView({ listId, listType, workspaceId, taskFilter }: TaskCalendarViewProps) {
-  const { data: allTasks, isLoading } = useTasksInList(listId);
-  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
+export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, listId, listType, taskFilter }: TaskCalendarViewProps) {
+  const tasks = taskFilter ? allTasks.filter(taskFilter) : allTasks;
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  if (isLoading) {
-    return <EmptyState text="Carregando tarefas..." />;
-  }
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -143,9 +140,10 @@ export function TaskCalendarView({ listId, listType, workspaceId, taskFilter }: 
 
       {(selectedTaskId || isCreating) && (
         <TaskDrawer
-          listId={listId}
-          listType={listType}
           workspaceId={workspaceId}
+          listId={listId}
+          discipline={discipline as Discipline | undefined}
+          listType={listType}
           taskId={selectedTaskId}
           onClose={() => {
             setSelectedTaskId(null);

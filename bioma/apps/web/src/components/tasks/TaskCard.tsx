@@ -77,17 +77,31 @@ export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardPro
             onStatusChange(e.target.value as TaskGroupStatus);
           }}
           onClick={(e) => e.stopPropagation()}
+          className="status-select-card"
           style={{ 
             fontSize: 11, 
-            padding: "2px 4px", 
-            background: "transparent", 
-            border: "none", 
-            color: "var(--text-dim)",
-            cursor: task.external_source === "clickup" ? "not-allowed" : "pointer"
+            fontWeight: 500,
+            padding: "3px 8px", 
+            background: "var(--surface-color)", 
+            border: "1px solid var(--border-color)", 
+            color: "var(--text-normal)",
+            borderRadius: 6,
+            cursor: task.external_source === "clickup" ? "not-allowed" : "pointer",
+            outline: "none"
           }}
         >
           {columns.map(c => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+            <option 
+              key={c.id} 
+              value={c.id}
+              style={{
+                background: "var(--moss-900)",
+                color: "var(--cream)",
+                padding: "6px 10px"
+              }}
+            >
+              {c.label}
+            </option>
           ))}
         </select>
       </div>

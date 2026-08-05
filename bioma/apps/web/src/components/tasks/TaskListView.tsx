@@ -1,30 +1,27 @@
 import { useState } from "react";
-import { useTasksInList, useUpdateTask } from "../../hooks/useBiomaApi";
+import { useUpdateTask } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
 import { formatDueDate } from "../../lib/format";
-import type { TaskListType, TaskSummary } from "../../lib/api";
+import type { Discipline, TaskListType, TaskSummary } from "../../lib/api";
 import { CheckSquare, Circle, Plus } from "lucide-react";
 
 type TaskListViewProps = {
-  listId: string;
-  listType?: TaskListType;
-  workspaceId?: string;
+  workspaceId: string;
+  tasks: TaskSummary[];
+  discipline?: Discipline | string;
+  listId?: string;       // legado
+  listType?: TaskListType; // legado
   taskFilter?: (task: TaskSummary) => boolean;
 };
 
-export function TaskListView({ listId, listType, workspaceId, taskFilter }: TaskListViewProps) {
-  const { data: allTasks, isLoading } = useTasksInList(listId);
-  const tasks = taskFilter ? allTasks?.filter(taskFilter) : allTasks;
+export function TaskListView({ workspaceId, tasks: allTasks, discipline, listId, listType, taskFilter }: TaskListViewProps) {
+  const tasks = taskFilter ? allTasks.filter(taskFilter) : allTasks;
   const updateTask = useUpdateTask();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   // Criar tarefa existia só no Kanban; a lista e o calendário eram somente
   // leitura, obrigando a trocar de visão só para adicionar algo.
   const [isCreating, setIsCreating] = useState(false);
-
-  if (isLoading) {
-    return <EmptyState text="Carregando tarefas..." />;
-  }
 
   const newTaskButton = (
     <button
@@ -43,9 +40,8 @@ export function TaskListView({ listId, listType, workspaceId, taskFilter }: Task
         <EmptyState text="Nenhuma tarefa encontrada." />
         <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>{newTaskButton}</div>
         {isCreating && (
-          <TaskDrawer listId={listId}
-          listType={listType}
-          workspaceId={workspaceId} taskId={null} onClose={() => setIsCreating(false)} />
+          <TaskDrawer workspaceId={workspaceId} listId={listId} discipline={discipline as Discipline | undefined}
+          listType={listType} taskId={null} onClose={() => setIsCreating(false)} />
         )}
       </>
     );
@@ -142,9 +138,10 @@ export function TaskListView({ listId, listType, workspaceId, taskFilter }: Task
 
       {(selectedTaskId || isCreating) && (
         <TaskDrawer
-          listId={listId}
-          listType={listType}
           workspaceId={workspaceId}
+          listId={listId}
+          discipline={discipline as Discipline | undefined}
+          listType={listType}
           taskId={selectedTaskId}
           onClose={() => {
             setSelectedTaskId(null);

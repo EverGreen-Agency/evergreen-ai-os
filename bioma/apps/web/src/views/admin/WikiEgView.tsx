@@ -287,7 +287,7 @@ export function WikiEgView() {
                     }}
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-main)", fontWeight: 500, fontSize: "0.88rem" }}>
-                      <FileText size={15} color="var(--brand-accent)" /> {doc.title}
+                      {doc.title}
                     </span>
                     {doc.attachment_count > 0 && (
                       <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: 4 }}>

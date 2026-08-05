@@ -34,15 +34,15 @@ export const TASK_QUICK_FILTERS: TaskQuickFilter[] = [
     id: "ideias",
     label: "🧠 Banco de Ideias",
     frentes: [],
-    // v1 (social): status IDEAÇÃO; growth/tech: BRAIN. Mesmo conceito.
-    predicate: (task) => ["IDEAÇÃO", "BRAIN"].includes(task.status.toUpperCase()),
+    // v1 (social): status Ideação; growth/tech: Brain/Ideias.
+    predicate: (task) => ["IDEAÇÃO", "BRAIN", "IDEIAS"].includes((task.status || "").toUpperCase()),
   },
   {
     id: "aprovacao",
     label: "🟣 Aprovação do Cliente",
     frentes: ["social", "growth"],
-    // v1: o widget do portal mostra "Aprovação Cliente" E "Em Ajuste".
-    predicate: (task) => ["APROVAÇÃO CLIENTE", "EM AJUSTE", "IN REVIEW"].includes(task.status.toUpperCase()),
+    // v1: o widget do portal mostra "Aprovação Cliente", "Em Ajuste", "Em revisão".
+    predicate: (task) => ["APROVAÇÃO CLIENTE", "EM AJUSTE", "IN REVIEW", "EM REVISÃO"].includes((task.status || "").toUpperCase()),
   },
   {
     id: "atrasadas",
