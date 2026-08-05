@@ -153,6 +153,18 @@ def translate_proposal_safe(payload: dict[str, Any]) -> dict[str, Any]:
     return translate_proposal(payload, get_settings())
 
 
+def transcribe_audio_safe(content: bytes, file_name: str, content_type: str) -> dict[str, Any]:
+    """Transcreve um anexo de áudio via Whisper. Deixa a exceção subir — sem
+    chave ou com a API fora do ar, o anexo fica marcado como não transcrito,
+    nunca com um texto inventado no lugar do que foi dito."""
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.transcription import transcribe_audio
+
+    return transcribe_audio(content, file_name, content_type, get_settings())
+
+
 def copilot_action_catalog() -> dict[str, Any]:
     """Catalogo de acoes do copiloto. Fonte unica: o worker. A API valida
     reversibilidade contra ele antes de executar qualquer coisa."""
