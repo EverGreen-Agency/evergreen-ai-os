@@ -268,8 +268,8 @@ pessoa. Tem botão pra corrigir a classificação quando o copiloto errar.
 **Contexto.** Você concordou em renomear depois da faxina, e observou que ao
 renomear a pasta local seus chats e copilots perdem o contexto.
 
-Fica registrado aqui só para não se perder: **primeiro** a faxina (Opensquad
-apagado), **depois** a pasta local, **depois** o remoto.
+**Faxina feita em 2026-08-05** (Opensquad apagado) — só falta o nome e a ordem
+**pasta local → remoto**.
 
 `RESPOSTA (nome final):`
 
@@ -317,8 +317,15 @@ Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
 
 ## Fechadas — implementadas, não precisam voltar
 
-- **S3**: já configurado na Railway. Falta subir os 4 arquivos e apagar
-  `_opensquad/` + `squads/`.
+- **S3**: já configurado na Railway. Os 2 binários (`Manual de Marca.pdf`,
+  `Proposta_EverGreen_HM_Conexoes_Poderosas_v3.pdf`) foram enviados por você.
+  **Faltava só anexá-los pela tela do Wiki EG** (upload direto no S3 não
+  registra `storage_key` no Postgres — quem cria essa referência é a própria
+  rota de anexo). `_opensquad/`, `squads/`, `skills/` e `scratch/` foram
+  apagados em 2026-08-05, junto com o comando `/opensquad` (que existia
+  triplicado em `.agent/`, `.agents/` e `.claude/`) e o config do Playwright
+  MCP, que apontava para dentro de `_opensquad/` e foi movido para
+  `infra/mcp/playwright.config.json`.
 - **Painel do copiloto**: painel lateral colapsável + `Ctrl+K`, conversa
   acompanha a troca de tela, fechado no primeiro acesso e depois lembra o
   estado. Implementado.

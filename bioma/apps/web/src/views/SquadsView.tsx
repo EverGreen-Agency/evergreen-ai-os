@@ -106,7 +106,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
     <section className="analytics-layout" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div className="analytics-header">
         <div>
-          <h2>Agentes Autônomos nos 3 Pilares EG (Opensquad & FinOps)</h2>
+          <h2>Agentes Autônomos nos 3 Pilares EG</h2>
           <p>Orquestração de múltiplos agentes de IA por pilar comercial com controle de custos e tokens em tempo real.</p>
         </div>
       </div>

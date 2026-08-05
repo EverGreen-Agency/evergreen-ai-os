@@ -1,6 +1,0 @@
-agent_name,role,displayName,icon,file_path
-analista_onboarding,Analista de Onboarding,Analista,🔍,./agents/analista_onboarding.agent.md
-arquiteto_clickup,Arquiteto ClickUp,Arquiteto,📐,./agents/arquiteto_clickup.agent.md
-especialista_kommo,Especialista Kommo,Kommo,🔗,./agents/especialista_kommo.agent.md
-especialista_kits,Especialista em Kits,Kits,📦,./agents/especialista_kits.agent.md
-gerente_cs,Gerente CS,Gerente CS,🤝,./agents/gerente_cs.agent.md
