@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_env: Literal["local", "staging", "production"] = "local"
     api_name: str = "Bioma API"
     database_url: str = "postgresql://bioma:bioma@localhost:5433/bioma"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,https://www.evergreenmkt.com.br,https://evergreenmkt.com.br"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,https://www.evergreenmkt.com.br,https://evergreenmkt.com.br,https://bioma.evergreenmkt.com.br"
     session_cookie_name: str = "bioma_session"
     session_ttl_hours: int = 12
     session_cookie_secure: bool | None = None
