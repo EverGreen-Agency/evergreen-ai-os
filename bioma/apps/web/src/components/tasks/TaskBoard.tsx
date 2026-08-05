@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Info } from "lucide-react";
 import { useUpdateTask } from "../../hooks/useBiomaApi";
 import type { TaskSummary, TaskGroupStatus, Discipline, TaskListType } from "../../lib/api";
-import { statusesForFrente, groupForStatus } from "../../lib/task-frentes";
+import { statusesForFrente, groupForStatus, getMacroGroupTooltip } from "../../lib/task-frentes";
 import { TaskCard } from "./TaskCard";
 import { TaskDrawer } from "./TaskDrawer";
 
@@ -75,8 +75,11 @@ export function TaskBoard({ workspaceId, tasks: allTasks, discipline, taskFilter
         return (
           <div key={col.id} className="task-column" style={{ width: 280, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, background: "var(--surface-sunken)", padding: 12, borderRadius: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: 13, margin: 0, fontWeight: 600, color: "var(--text-normal)" }}>
-                {col.label} <span style={{ color: "var(--text-faint)", marginLeft: 6, fontWeight: 400 }}>{colTasks.length}</span>
+              <h3 style={{ fontSize: 13, margin: 0, fontWeight: 600, color: "var(--text-normal)", display: "flex", alignItems: "center", gap: 6 }}>
+                {col.label} <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>{colTasks.length}</span>
+                {!detailedStatuses && (
+                  <Info size={14} style={{ color: "var(--text-faint)", cursor: "help" }} title={getMacroGroupTooltip(col.group)} />
+                )}
               </h3>
               <button
                 className="icon-button"
