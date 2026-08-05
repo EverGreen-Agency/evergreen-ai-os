@@ -3,6 +3,7 @@ import { Bot, CheckCircle2, Download, Play, ShieldCheck, Workflow } from "lucide
 
 import { EmptyState, SectionHeader } from "../components/shared";
 import { CopilotWorkbench } from "../components/CopilotWorkbench";
+import { CopilotAnalyticsPanel } from "../components/CopilotAnalyticsPanel";
 import { AiControlPlanePanel } from "../components/AiControlPlanePanel";
 import {
   useAiWorkflowDefinitions,
@@ -69,6 +70,8 @@ export function AiOperationsView({ workspaceId }: { workspaceId: string }) {
         title="Copiloto da EG"
         description="Identidade, procedimentos e planos que valem em qualquer cliente. Nada entra em uso sem sua aprovação."
       />
+
+      <CopilotAnalyticsPanel />
 
       <div className="bento-grid">
         <article className="bento-card col-span-2">

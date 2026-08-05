@@ -16,6 +16,8 @@ from bioma_api.repositories import ai_routing as routing_repo
 from bioma_api.repositories import copilot_traces as repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.copilot import (
+    CopilotDailyUsage,
+    CopilotProviderUsage,
     CopilotQuotaBucket,
     CopilotRoutedAccountQuota,
     CopilotRunStep,
@@ -71,15 +73,20 @@ def get_run(run_id: UUID, user: CurrentUserResponse) -> CopilotRunTrace:
 
 def usage(days: int, mine_only: bool, user: CurrentUserResponse) -> CopilotUsageSummary:
     require_platform_admin(user)
+    scoped_user = user.id if mine_only else None
     with connect() as conn:
-        row = repo.usage_summary(conn, user.id if mine_only else None, days)
-        routed = repo.list_routed_accounts_in_window(conn, user.id if mine_only else None, days)
+        row = repo.usage_summary(conn, scoped_user, days)
+        routed = repo.list_routed_accounts_in_window(conn, scoped_user, days)
         routed_accounts = [
             account for account in (_routed_account_quota(conn, item["account_id"]) for item in routed) if account
         ]
+        daily = repo.daily_usage(conn, scoped_user, days)
+        by_provider = repo.usage_by_provider(conn, scoped_user, days)
     return CopilotUsageSummary(
         **{key: int(value) for key, value in row.items()},
         routed_accounts=routed_accounts,
+        daily=[CopilotDailyUsage(**item) for item in daily],
+        by_provider=[CopilotProviderUsage(**item) for item in by_provider],
     )
 
 

@@ -317,6 +317,18 @@ def main() -> None:
             assert matching_account is not None, usage_routed["routed_accounts"]
             assert matching_account["buckets"], "conta roteada no agregado deveria trazer a cota atual"
             print(f"agregado: {usage_routed['routed_runs']} execucao(oes) roteada(s), cota da conta presente OK")
+
+            # A conta ainda existe neste ponto — depois do `finally` abaixo ela é
+            # apagada e `routed_account_id` some por `on delete set null`. Por
+            # isso a quebra por provedor/dia com routed_runs > 0 só é checável
+            # AQUI, antes da limpeza.
+            routed_provider_row = next(
+                (item for item in usage_routed["by_provider"] if item["provider"] == "anthropic" and item["routed_runs"] > 0),
+                None,
+            )
+            assert routed_provider_row is not None, usage_routed["by_provider"]
+            assert any(day["routed_runs"] > 0 for day in usage_routed["daily"]), usage_routed["daily"]
+            print("execucao roteada aparece na quebra por provedor e na serie diaria OK")
         finally:
             copilot_service._routing_candidates = original_candidates
             copilot_service.copilot_plan_routed_safe = original_routed_plan
@@ -335,6 +347,25 @@ def main() -> None:
         print(
             f"consumo: {summary['runs']} execucoes, {summary['input_tokens']} tokens de entrada, "
             f"{summary['cost_cents']} centavos, {summary['failed_runs']} falha(s) OK"
+        )
+
+        # 8b) Serie diaria e quebra por provedor/modelo — o que alimenta os
+        # graficos. Tem que bater com o mesmo agregado, nao ser uma conta a parte.
+        assert summary["daily"], "janela com execucao tem que aparecer na serie diaria"
+        assert sum(day["runs"] for day in summary["daily"]) == summary["runs"], (
+            summary["daily"], summary["runs"],
+        )
+        assert sum(day["cost_cents"] for day in summary["daily"]) == summary["cost_cents"], (
+            "custo diario tem que somar o mesmo custo do agregado", summary["daily"], summary["cost_cents"],
+        )
+        by_provider = {(item["provider"], item["model"]): item for item in summary["by_provider"]}
+        assert ("openai", "gpt-4o-mini") in by_provider, summary["by_provider"]
+        assert sum(item["runs"] for item in by_provider.values()) == summary["runs"], (
+            "quebra por provedor tem que cobrir todas as execucoes da janela", summary["by_provider"],
+        )
+        print(
+            f"serie diaria ({len(summary['daily'])} dia(s)) e quebra por provedor "
+            f"({len(summary['by_provider'])} combinacao(oes)) batem com o agregado OK"
         )
 
         # 9) Conversa é do dono; auditoria de execução é aberta a admin EG.

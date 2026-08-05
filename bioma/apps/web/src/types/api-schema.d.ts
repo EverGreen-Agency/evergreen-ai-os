@@ -7370,6 +7370,29 @@ export interface components {
             /** Requires Confirmation */
             requires_confirmation: boolean;
         };
+        /**
+         * CopilotDailyUsage
+         * @description Um ponto da série diária — o que alimenta os gráficos de tendência.
+         */
+        CopilotDailyUsage: {
+            /** Cost Cents */
+            cost_cents: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Failed Runs */
+            failed_runs: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Routed Runs */
+            routed_runs: number;
+            /** Runs */
+            runs: number;
+        };
         /** CopilotPlan */
         CopilotPlan: {
             /** Error Message */
@@ -7443,6 +7466,22 @@ export interface components {
              * @default
              */
             why: string;
+        };
+        /**
+         * CopilotProviderUsage
+         * @description Quebra por provedor+modelo na janela — de onde as respostas vieram.
+         */
+        CopilotProviderUsage: {
+            /** Cost Cents */
+            cost_cents: number;
+            /** Model */
+            model: string;
+            /** Provider */
+            provider: string;
+            /** Routed Runs */
+            routed_runs: number;
+            /** Runs */
+            runs: number;
         };
         /**
          * CopilotQuotaBucket
@@ -7699,8 +7738,12 @@ export interface components {
         CopilotUsageSummary: {
             /** Avg Duration Ms */
             avg_duration_ms: number;
+            /** By Provider */
+            by_provider?: components["schemas"]["CopilotProviderUsage"][];
             /** Cost Cents */
             cost_cents: number;
+            /** Daily */
+            daily?: components["schemas"]["CopilotDailyUsage"][];
             /** Failed Runs */
             failed_runs: number;
             /** Input Tokens */

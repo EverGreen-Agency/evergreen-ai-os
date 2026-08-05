@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
@@ -157,6 +157,26 @@ class CopilotRunTrace(BaseModel):
     routed_account: CopilotRoutedAccountQuota | None = None
 
 
+class CopilotDailyUsage(BaseModel):
+    """Um ponto da série diária — o que alimenta os gráficos de tendência."""
+    day: date
+    runs: int
+    routed_runs: int
+    failed_runs: int
+    cost_cents: int
+    input_tokens: int
+    output_tokens: int
+
+
+class CopilotProviderUsage(BaseModel):
+    """Quebra por provedor+modelo na janela — de onde as respostas vieram."""
+    provider: str
+    model: str
+    runs: int
+    routed_runs: int
+    cost_cents: int
+
+
 class CopilotUsageSummary(BaseModel):
     runs: int
     failed_runs: int
@@ -175,6 +195,11 @@ class CopilotUsageSummary(BaseModel):
     # cada uma (não uma foto de quando a execução rodou — cota é estado
     # presente, e o que importa é "quanto sobra agora").
     routed_accounts: list[CopilotRoutedAccountQuota] = Field(default_factory=list)
+    # Série diária e quebra por provedor/modelo — o que alimenta os gráficos.
+    # Sem preenchimento de dias vazios: dia sem execução simplesmente não
+    # aparece, como as demais séries diárias do Bioma.
+    daily: list[CopilotDailyUsage] = Field(default_factory=list)
+    by_provider: list[CopilotProviderUsage] = Field(default_factory=list)
 
 
 class CopilotCommand(BaseModel):

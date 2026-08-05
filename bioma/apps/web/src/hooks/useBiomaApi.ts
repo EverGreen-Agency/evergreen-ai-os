@@ -1067,6 +1067,14 @@ export function useAiRoutingControlPlane() {
   });
 }
 
+export function useCopilotUsage(days: number, mineOnly = false) {
+  return useQuery({
+    queryKey: ["copilot-usage", days, mineOnly],
+    queryFn: () => api.copilotUsage(days, mineOnly),
+    staleTime: 60_000,
+  });
+}
+
 function useControlPlaneMutation<T>(mutationFn: (payload: T) => Promise<Awaited<ReturnType<typeof api.aiRoutingControlPlane>>>) {
   const queryClient = useQueryClient();
   return useMutation({

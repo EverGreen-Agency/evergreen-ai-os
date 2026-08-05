@@ -5301,6 +5301,51 @@
         "title": "CopilotCommand",
         "type": "object"
       },
+      "CopilotDailyUsage": {
+        "description": "Um ponto da série diária — o que alimenta os gráficos de tendência.",
+        "properties": {
+          "cost_cents": {
+            "title": "Cost Cents",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "failed_runs": {
+            "title": "Failed Runs",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "routed_runs": {
+            "title": "Routed Runs",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "runs",
+          "routed_runs",
+          "failed_runs",
+          "cost_cents",
+          "input_tokens",
+          "output_tokens"
+        ],
+        "title": "CopilotDailyUsage",
+        "type": "object"
+      },
       "CopilotPlan": {
         "properties": {
           "error_message": {
@@ -5491,6 +5536,40 @@
           "status"
         ],
         "title": "CopilotPlanStep",
+        "type": "object"
+      },
+      "CopilotProviderUsage": {
+        "description": "Quebra por provedor+modelo na janela — de onde as respostas vieram.",
+        "properties": {
+          "cost_cents": {
+            "title": "Cost Cents",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "routed_runs": {
+            "title": "Routed Runs",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "runs",
+          "routed_runs",
+          "cost_cents"
+        ],
+        "title": "CopilotProviderUsage",
         "type": "object"
       },
       "CopilotQuotaBucket": {
@@ -6163,9 +6242,23 @@
             "title": "Avg Duration Ms",
             "type": "integer"
           },
+          "by_provider": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotProviderUsage"
+            },
+            "title": "By Provider",
+            "type": "array"
+          },
           "cost_cents": {
             "title": "Cost Cents",
             "type": "integer"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/CopilotDailyUsage"
+            },
+            "title": "Daily",
+            "type": "array"
           },
           "failed_runs": {
             "title": "Failed Runs",

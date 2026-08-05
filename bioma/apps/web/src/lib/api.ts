@@ -1390,6 +1390,24 @@ export type CopilotRoutedAccountQuota = {
   buckets: CopilotQuotaBucket[];
 };
 
+export type CopilotDailyUsage = {
+  day: string;
+  runs: number;
+  routed_runs: number;
+  failed_runs: number;
+  cost_cents: number;
+  input_tokens: number;
+  output_tokens: number;
+};
+
+export type CopilotProviderUsage = {
+  provider: string;
+  model: string;
+  runs: number;
+  routed_runs: number;
+  cost_cents: number;
+};
+
 export type CopilotUsageSummary = {
   runs: number;
   failed_runs: number;
@@ -1403,6 +1421,9 @@ export type CopilotUsageSummary = {
   cost_cents: number;
   avg_duration_ms: number;
   routed_accounts: CopilotRoutedAccountQuota[];
+  /** Série diária e quebra por provedor/modelo — sem dia vazio preenchido. */
+  daily: CopilotDailyUsage[];
+  by_provider: CopilotProviderUsage[];
 };
 
 // --- Estudo de plataformas (build vs. buy) ---

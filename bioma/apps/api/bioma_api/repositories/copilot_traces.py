@@ -224,6 +224,56 @@ def usage_summary(conn, user_id: UUID | None = None, days: int = 30) -> dict[str
         return dict(cur.fetchone())
 
 
+def daily_usage(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
+    """Série diária para os gráficos de tendência do copiloto.
+
+    Sem zero-fill: dia sem execução simplesmente não aparece na série, mesmo
+    padrão das outras séries diárias do Bioma (`list_ads_daily`).
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select
+              date_trunc('day', created_at)::date as day,
+              count(*) as runs,
+              count(*) filter (where routed_account_id is not null) as routed_runs,
+              count(*) filter (where status = 'failed') as failed_runs,
+              coalesce(sum(cost_cents), 0) as cost_cents,
+              coalesce(sum(input_tokens), 0) as input_tokens,
+              coalesce(sum(output_tokens), 0) as output_tokens
+            from copilot_runs
+            where created_at >= now() - make_interval(days => %s)
+              and (%s::uuid is null or user_id = %s::uuid)
+            group by 1
+            order by 1
+            """,
+            (days, user_id, user_id),
+        )
+        return list(cur.fetchall())
+
+
+def usage_by_provider(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
+    """Quebra por provedor+modelo na janela — de onde vieram as respostas."""
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            select
+              coalesce(provider, 'desconhecido') as provider,
+              coalesce(model, 'desconhecido') as model,
+              count(*) as runs,
+              count(*) filter (where routed_account_id is not null) as routed_runs,
+              coalesce(sum(cost_cents), 0) as cost_cents
+            from copilot_runs
+            where created_at >= now() - make_interval(days => %s)
+              and (%s::uuid is null or user_id = %s::uuid)
+            group by provider, model
+            order by runs desc
+            """,
+            (days, user_id, user_id),
+        )
+        return list(cur.fetchall())
+
+
 def list_routed_accounts_in_window(conn, user_id: UUID | None, days: int) -> list[dict[str, Any]]:
     """Contas de assinatura que atenderam o copiloto na janela, com quantas vezes.
 
