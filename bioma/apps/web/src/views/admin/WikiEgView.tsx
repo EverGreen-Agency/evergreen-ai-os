@@ -237,11 +237,6 @@ export function WikiEgView() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {documents.length === 0 && (
-                <button className="ghost-button" type="button" onClick={handleImportCore} disabled={busy} title="Importa os manuais core (Documento-Mestre, Manuais Operacionais, Playbooks)">
-                  <DownloadCloud size={16} /> Importar manuais core
-                </button>
-              )}
               <button className="ghost-button" type="button" onClick={() => importInput.current?.click()} disabled={busy}>
                 <Upload size={16} /> Importar .md
               </button>
@@ -291,8 +286,8 @@ export function WikiEgView() {
                       borderColor: selected?.id === doc.id ? "var(--brand-accent)" : "var(--glass-border)",
                     }}
                   >
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <FileText size={15} /> {doc.title}
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-main)", fontWeight: 500, fontSize: "0.88rem" }}>
+                      <FileText size={15} color="var(--brand-accent)" /> {doc.title}
                     </span>
                     {doc.attachment_count > 0 && (
                       <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: 4 }}>

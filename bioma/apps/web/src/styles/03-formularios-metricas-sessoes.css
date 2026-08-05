@@ -495,12 +495,19 @@ h3 {
   border-top: 4px solid rgba(255, 244, 199, 0.6);
 }
 
-.content-grid,
-.content-layout {
+.content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.9fr);
   gap: 16px;
   margin-top: 16px;
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+  max-width: 100%;
 }
 
 .content-main,

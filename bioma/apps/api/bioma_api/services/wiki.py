@@ -123,10 +123,51 @@ def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
     return WikiImportResult(imported=imported, skipped=skipped, available=True)
 
 
+def auto_sanitize_and_seed(conn, tenant_id: UUID, user_id: UUID) -> None:
+    # 1. Limpa títulos no banco que possuam prefixos 'knowledge__', 'company__', 'architecture__' ou underlines brutos
+    conn.execute(
+        """
+        update wiki_documents
+        set title = trim(regexp_replace(
+            regexp_replace(title, '^(knowledge__|company__|architecture__)', '', 'i'),
+            '_', ' ', 'g'
+        ))
+        where tenant_organization_id = %s
+          and (
+            lower(title) like 'knowledge__%%' 
+            or lower(title) like 'company__%%' 
+            or lower(title) like 'architecture__%%'
+            or title like '%%_%%'
+          )
+        """,
+        (tenant_id,),
+    )
+    # 2. Deleta READMEs legados no banco
+    conn.execute(
+        "delete from wiki_documents where tenant_organization_id = %s and lower(title) like '%%readme%%'",
+        (tenant_id,),
+    )
+    # 3. Se a Wiki estiver vazia para este tenant, efetua a carga automática do seed_data
+    count = conn.execute(
+        "select count(*) as total from wiki_documents where tenant_organization_id = %s",
+        (tenant_id,),
+    ).fetchone()["total"]
+    if count == 0:
+        directory = _knowledge_dir()
+        if directory and directory.is_dir():
+            for path in sorted(directory.glob("*.md")) + sorted(directory.glob("*.markdown")):
+                if "readme" in path.name.lower():
+                    continue
+                clean_title = _clean_title(path.name)
+                content = path.read_text(encoding="utf-8", errors="replace")
+                wiki_repo.create_document(conn, tenant_id, user_id, _categorize(path.name), clean_title, content)
+
+
 def list_documents(user: CurrentUserResponse) -> list[WikiDocumentSummary]:
     require_platform_admin(user)
     with connect() as conn:
         tenant_id = _tenant_id(conn, user)
+        auto_sanitize_and_seed(conn, tenant_id, user.id)
         rows = wiki_repo.list_documents(conn, tenant_id)
     return [WikiDocumentSummary(**row) for row in rows]
 
