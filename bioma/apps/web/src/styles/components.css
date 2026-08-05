@@ -1,0 +1,164 @@
+/* Componentes Reutilizáveis — Botões, Inputs, Pílulas, Cards Bento e Tabelas */
+
+/* Botões */
+.primary-button {
+  background: var(--accent);
+  color: var(--moss-950);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--mint-soft);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.mini-button {
+  background: var(--surface-soft);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.icon-button {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.icon-button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.danger-button, .icon-button.danger {
+  color: var(--danger-soft);
+}
+
+.danger-button:hover:not(:disabled), .icon-button.danger:hover:not(:disabled) {
+  background: rgba(184, 69, 47, 0.15);
+  color: #ff8a75;
+}
+
+/* Campos de Formuário */
+.text-input, input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="number"], select, textarea {
+  background: var(--bg-deep);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.text-input:focus, input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+/* Pílulas de Status */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pill.active, .status-pill.onboarding, .status-pill.done {
+  background: rgba(58, 201, 123, 0.15);
+  color: var(--mint);
+  border: 1px solid rgba(58, 201, 123, 0.3);
+}
+
+.status-pill.pending, .status-pill.planned, .status-pill.active_trial {
+  background: rgba(217, 172, 75, 0.15);
+  color: var(--amber-soft);
+  border: 1px solid rgba(217, 172, 75, 0.3);
+}
+
+.status-pill.paused, .status-pill.on_hold, .status-pill.offboarding, .status-pill.archived {
+  background: rgba(255, 244, 199, 0.08);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.status-pill.danger, .status-pill.churned, .status-pill.off_track, .status-pill.blocked {
+  background: rgba(184, 69, 47, 0.15);
+  color: var(--danger-soft);
+  border: 1px solid rgba(184, 69, 47, 0.3);
+}
+
+/* Bento Grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.bento-card, .surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.surface-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}

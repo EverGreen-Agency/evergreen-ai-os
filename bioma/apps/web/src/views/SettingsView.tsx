@@ -463,27 +463,31 @@ export function SettingsView() {
       )}
 
       {activeTab === "company" && isEgAdmin && (
-        <div className="profile-content">
-          <div style={{ display: "flex", gap: "16px", marginBottom: "24px", borderBottom: "1px solid var(--border-light)", paddingBottom: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, width: "100%" }}>
+          <div style={{ display: "flex", gap: "16px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
             <button
+              type="button"
               onClick={() => setActiveSubTab("general")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "general" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "general" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "general" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
               Geral
             </button>
             <button
+              type="button"
               onClick={() => setActiveSubTab("teams")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "teams" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "teams" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "teams" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
               Equipes & carteiras
             </button>
             <button
+              type="button"
               onClick={() => setActiveSubTab("integrations")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "integrations" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "integrations" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "integrations" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
               Integrações
             </button>
             <button
+              type="button"
               onClick={() => setActiveSubTab("vault")}
               style={{ background: "transparent", border: "none", cursor: "pointer", color: activeSubTab === "vault" ? "var(--text-main)" : "var(--text-muted)", fontWeight: activeSubTab === "vault" ? 600 : 400, padding: "8px 0", borderBottom: activeSubTab === "vault" ? "2px solid var(--brand-accent)" : "2px solid transparent" }}
             >
@@ -491,69 +495,71 @@ export function SettingsView() {
             </button>
           </div>
 
-          {activeSubTab === "general" && (
-            <article className="surface profile-section" style={{ gridColumn: "1 / -1" }}>
-            <div className="surface-header">
-              <Building2 size={18} />
-              <h3>EverGreen</h3>
-            </div>
-            <div style={{ padding: "16px 0" }}>
-              <p style={{ color: "var(--text-muted)", marginBottom: "16px" }}>
-                Configurações da agência. Gerencie usuários internos e preferências globais.
-              </p>
-              
-              <div className="timeline-list">
-                <div className="timeline-row">
-                  <span>Equipe</span>
-                  <strong>{user.display_name}</strong>
-                  <small>{user.email}</small>
+          <div>
+            {activeSubTab === "general" && (
+              <article className="surface profile-section">
+                <div className="surface-header">
+                  <Building2 size={18} />
+                  <h3>EverGreen</h3>
                 </div>
-                {/* Aqui poderemos listar todos os usuários da EG buscando do backend */}
-                <div className="timeline-row" style={{ opacity: 0.5 }}>
-                  <span>+ Convidar</span>
-                  <strong>Adicionar membro</strong>
-                  <small>Funcionalidade em breve</small>
+                <div style={{ padding: "16px 0" }}>
+                  <p style={{ color: "var(--text-muted)", marginBottom: "16px" }}>
+                    Configurações da agência. Gerencie usuários internos e preferências globais.
+                  </p>
+                  
+                  <div className="timeline-list">
+                    <div className="timeline-row">
+                      <span>Equipe</span>
+                      <strong>{user.display_name}</strong>
+                      <small>{user.email}</small>
+                    </div>
+                    <div className="timeline-row" style={{ opacity: 0.5 }}>
+                      <span>+ Convidar</span>
+                      <strong>Adicionar membro</strong>
+                      <small>Funcionalidade em breve</small>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </article>
-          )}
+              </article>
+            )}
 
-          {activeSubTab === "teams" && (
-            <Suspense fallback={<div className="notice">Carregando equipes e carteiras...</div>}>
-              <TeamPortfolioManager />
-            </Suspense>
-          )}
+            {activeSubTab === "teams" && (
+              <Suspense fallback={<div className="notice">Carregando equipes e carteiras...</div>}>
+                <TeamPortfolioManager />
+              </Suspense>
+            )}
 
-          {activeSubTab === "integrations" && (
-            <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
-              <IntegrationsTab scope="environment" />
-            </Suspense>
-          )}
+            {activeSubTab === "integrations" && (
+              <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
+                <IntegrationsTab scope="environment" />
+              </Suspense>
+            )}
 
-          {activeSubTab === "vault" && (
-            <section className="workspace-module-panel">
-              <div className="surface" style={{ padding: 16, marginBottom: 16 }}>
-                <label style={{ display: "grid", gap: 6, maxWidth: 420 }}>
-                  Empresa / workspace do cliente
-                  <select
-                    value={selectedVaultWorkspace?.id ?? ""}
-                    onChange={(event) => setVaultWorkspaceId(event.target.value)}
-                    disabled={clientWorkspaces.length === 0}
-                  >
-                    {clientWorkspaces.length === 0 && <option value="">Nenhum workspace de cliente disponível</option>}
-                    {clientWorkspaces.map((workspace) => <option value={workspace.id} key={workspace.id}>{workspace.organization_name}</option>)}
-                  </select>
-                </label>
-                <p className="panel-footnote" style={{ marginBottom: 0 }}>Gerencie os acessos por empresa sem expor segredos nas listagens.</p>
-              </div>
-              {selectedVaultWorkspace ? (
-                <Suspense fallback={<div className="notice">Carregando cofre...</div>}>
-                  <AccessVault workspaceId={selectedVaultWorkspace.id} accessRole={selectedVaultWorkspace.access_role} />
-                </Suspense>
-              ) : <div className="notice">Crie ou atribua um workspace de cliente para acessar o cofre.</div>}
-            </section>
-          )}
+            {activeSubTab === "vault" && (
+              <section className="workspace-module-panel" style={{ width: "100%" }}>
+                <div className="surface" style={{ padding: 16, marginBottom: 16 }}>
+                  <label style={{ display: "grid", gap: 6, maxWidth: 420 }}>
+                    Empresa / workspace do cliente
+                    <select
+                      className="status-select"
+                      value={selectedVaultWorkspace?.id ?? ""}
+                      onChange={(event) => setVaultWorkspaceId(event.target.value)}
+                      disabled={clientWorkspaces.length === 0}
+                    >
+                      {clientWorkspaces.length === 0 && <option value="">Nenhum workspace de cliente disponível</option>}
+                      {clientWorkspaces.map((workspace) => <option value={workspace.id} key={workspace.id}>{workspace.organization_name}</option>)}
+                    </select>
+                  </label>
+                  <p className="panel-footnote" style={{ marginBottom: 0, marginTop: 6 }}>Gerencie os acessos por empresa sem expor segredos nas listagens.</p>
+                </div>
+                {selectedVaultWorkspace ? (
+                  <Suspense fallback={<div className="notice">Carregando cofre...</div>}>
+                    <AccessVault workspaceId={selectedVaultWorkspace.id} accessRole={selectedVaultWorkspace.access_role} />
+                  </Suspense>
+                ) : <div className="notice">Crie ou atribua um workspace de cliente para acessar o cofre.</div>}
+              </section>
+            )}
+          </div>
         </div>
       )}
     </section>

@@ -46,17 +46,24 @@ def _safe_filename(file_name: str) -> str:
 
 
 def _knowledge_dir() -> Path | None:
-    """Diretório dos manuais core no monorepo (`_opensquad/_memory/knowledge`).
-
-    Sobe a partir deste arquivo até achar `_opensquad/` (não depende do CWD).
-    Em produção (Railway), onde o monorepo não existe, retorna None e o import
-    responde `available=False` — é um recurso do ambiente de dev EG.
-    """
+    """Diretório dos manuais core (`seed_data/knowledge` ou fallback no monorepo)."""
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "seed_data" / "knowledge"
+        if candidate.is_dir():
+            return candidate
     for parent in Path(__file__).resolve().parents:
         candidate = parent / "_opensquad" / "_memory" / "knowledge"
         if candidate.is_dir():
             return candidate
     return None
+
+
+def _clean_title(filename: str) -> str:
+    stem = Path(filename).stem
+    if "__" in stem:
+        _, _, stem = stem.partition("__")
+    clean = stem.replace("_", " ").strip()
+    return re.sub(r"\s+", " ", clean)
 
 
 def _categorize(name: str) -> str:
@@ -71,10 +78,10 @@ def _categorize(name: str) -> str:
 
 
 def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
-    """Importa os manuais markdown de `_opensquad/_memory/knowledge` para o Wiki.
+    """Importa os manuais markdown de `seed_data/knowledge` para o Wiki.
 
-    Idempotente por título: rodar de novo pula os que já existem. Só .md/.markdown
-    (binários como o Manual de Marca em PDF ficam de fora — viram anexo depois).
+    Idempotente por título. Limpa prefixos brutos (ex: knowledge__), ignora
+    READMEs e limpa títulos antigos salvos no banco.
     """
     require_platform_admin(user)
     directory = _knowledge_dir()
@@ -85,21 +92,82 @@ def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
     skipped: list[str] = []
     with connect() as conn:
         tenant_id = _tenant_id(conn, user)
+        # Limpa eventuais READMEs legados no banco
+        conn.execute("delete from wiki_documents where tenant_organization_id = %s and lower(title) like '%%readme%%'", (tenant_id,))
+
         for path in sorted(directory.glob("*.md")) + sorted(directory.glob("*.markdown")):
-            title = path.stem
-            if wiki_repo.title_exists(conn, tenant_id, title):
-                skipped.append(title)
+            if "readme" in path.name.lower():
                 continue
+
+            raw_title = path.stem
+            clean_title = _clean_title(path.name)
+
+            # Sanitiza título de documentos já importados com nome bruto (ex: `knowledge__...`)
+            conn.execute(
+                """
+                update wiki_documents
+                set title = %s
+                where tenant_organization_id = %s and lower(title) = lower(%s)
+                """,
+                (clean_title, tenant_id, raw_title),
+            )
+
+            if wiki_repo.title_exists(conn, tenant_id, clean_title) or wiki_repo.title_exists(conn, tenant_id, raw_title):
+                skipped.append(clean_title)
+                continue
+
             content = path.read_text(encoding="utf-8", errors="replace")
-            wiki_repo.create_document(conn, tenant_id, user.id, _categorize(path.name), title, content)
-            imported.append(title)
+            wiki_repo.create_document(conn, tenant_id, user.id, _categorize(path.name), clean_title, content)
+            imported.append(clean_title)
+
     return WikiImportResult(imported=imported, skipped=skipped, available=True)
+
+
+def auto_sanitize_and_seed(conn, tenant_id: UUID, user_id: UUID) -> None:
+    # 1. Limpa títulos no banco que possuam prefixos 'knowledge__', 'company__', 'architecture__' ou underlines brutos
+    conn.execute(
+        """
+        update wiki_documents
+        set title = trim(regexp_replace(
+            regexp_replace(title, '^(knowledge__|company__|architecture__)', '', 'i'),
+            '_', ' ', 'g'
+        ))
+        where tenant_organization_id = %s
+          and (
+            lower(title) like 'knowledge__%%' 
+            or lower(title) like 'company__%%' 
+            or lower(title) like 'architecture__%%'
+            or title like '%%_%%'
+          )
+        """,
+        (tenant_id,),
+    )
+    # 2. Deleta READMEs legados no banco
+    conn.execute(
+        "delete from wiki_documents where tenant_organization_id = %s and lower(title) like '%%readme%%'",
+        (tenant_id,),
+    )
+    # 3. Se a Wiki estiver vazia para este tenant, efetua a carga automática do seed_data
+    count = conn.execute(
+        "select count(*) as total from wiki_documents where tenant_organization_id = %s",
+        (tenant_id,),
+    ).fetchone()["total"]
+    if count == 0:
+        directory = _knowledge_dir()
+        if directory and directory.is_dir():
+            for path in sorted(directory.glob("*.md")) + sorted(directory.glob("*.markdown")):
+                if "readme" in path.name.lower():
+                    continue
+                clean_title = _clean_title(path.name)
+                content = path.read_text(encoding="utf-8", errors="replace")
+                wiki_repo.create_document(conn, tenant_id, user_id, _categorize(path.name), clean_title, content)
 
 
 def list_documents(user: CurrentUserResponse) -> list[WikiDocumentSummary]:
     require_platform_admin(user)
     with connect() as conn:
         tenant_id = _tenant_id(conn, user)
+        auto_sanitize_and_seed(conn, tenant_id, user.id)
         rows = wiki_repo.list_documents(conn, tenant_id)
     return [WikiDocumentSummary(**row) for row in rows]
 

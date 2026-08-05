@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { useTasksInList, useWorkspaceProjects } from "../../hooks/useBiomaApi";
+import { useWorkspaceProjects } from "../../hooks/useBiomaApi";
 import { EmptyState } from "../shared";
 import { TaskDrawer } from "./TaskDrawer";
-import type { TaskListType, TaskSummary } from "../../lib/api";
+import type { Discipline, TaskListType, TaskSummary } from "../../lib/api";
 
 /**
  * Visão Gantt/Timeline — uma das quatro visões de qualquer frente (não é
@@ -15,9 +15,11 @@ import type { TaskListType, TaskSummary } from "../../lib/api";
  */
 
 type TaskGanttViewProps = {
-  listId: string;
-  listType?: TaskListType;
-  workspaceId?: string;
+  workspaceId: string;
+  tasks: TaskSummary[];
+  discipline?: Discipline | string;
+  listId?: string;       // legado
+  listType?: TaskListType; // legado
   taskFilter?: (task: TaskSummary) => boolean;
 };
 
@@ -35,14 +37,13 @@ const GROUP_COLORS: Record<TaskSummary["group_status"], string> = {
   CLOSED: "var(--text-faint)",
 };
 
-export function TaskGanttView({ listId, listType, workspaceId, taskFilter }: TaskGanttViewProps) {
-  const { data: tasks, isLoading } = useTasksInList(listId);
+export function TaskGanttView({ workspaceId, tasks: allTasks, discipline, listId, listType, taskFilter }: TaskGanttViewProps) {
   const { data: projects = [] } = useWorkspaceProjects(workspaceId ?? null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const visible = useMemo(
-    () => (tasks ?? []).filter((task) => (taskFilter ? taskFilter(task) : true)),
-    [tasks, taskFilter],
+    () => allTasks.filter((task) => (taskFilter ? taskFilter(task) : true)),
+    [allTasks, taskFilter],
   );
 
   const dated = visible.filter((task) => task.due_date || task.start_date);
@@ -73,7 +74,6 @@ export function TaskGanttView({ listId, listType, workspaceId, taskFilter }: Tas
     return { windowStart: min, windowEnd: max, months: monthMarks };
   }, [dated]);
 
-  if (isLoading) return <EmptyState text="Carregando tarefas..." />;
   if (visible.length === 0) return <EmptyState text="Nenhuma tarefa para exibir na linha do tempo." />;
 
   const span = windowEnd - windowStart;
@@ -179,9 +179,10 @@ export function TaskGanttView({ listId, listType, workspaceId, taskFilter }: Tas
 
       {selectedTaskId && (
         <TaskDrawer
-          listId={listId}
-          listType={listType}
           workspaceId={workspaceId}
+          listId={listId}
+          discipline={discipline as Discipline | undefined}
+          listType={listType}
           taskId={selectedTaskId}
           onClose={() => setSelectedTaskId(null)}
         />

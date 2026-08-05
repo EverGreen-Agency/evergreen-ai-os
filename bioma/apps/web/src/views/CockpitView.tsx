@@ -396,9 +396,6 @@ export function CockpitView() {
               <button className="bento-action ghost" onClick={() => navigate("/eg-ideas")}>
                 Banco de Ideias <ArrowRight size={16} />
               </button>
-              <button className="bento-action ghost" onClick={() => navigate("/eg-office")}>
-                Escritório Virtual <ArrowRight size={16} />
-              </button>
             </div>
           </article>
 

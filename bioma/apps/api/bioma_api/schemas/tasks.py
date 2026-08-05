@@ -3,6 +3,8 @@ from typing import Optional, Literal
 from datetime import datetime
 from uuid import UUID
 
+Discipline = Literal["growth", "tech"]
+
 class TaskCustomFieldBase(BaseModel):
     field_name: str
     field_value: str
@@ -100,6 +102,9 @@ class TaskBase(BaseModel):
     # Subtarefa real: preenchido quando o trabalho trocou de responsável ou de
     # prazo. Para etapas internas sem troca de mão, use `subtasks` (checklist).
     parent_task_id: Optional[UUID] = None
+    # Disciplina substitui o "tipo de lista" (Manual v2): apenas growth e tech.
+    # Social vive no Estúdio IA e nunca aparece aqui como disciplina.
+    discipline: Optional[Discipline] = None
 
 class TaskCreate(TaskBase):
     custom_fields: list[TaskCustomFieldBase] = Field(default_factory=list)
@@ -120,13 +125,15 @@ class TaskUpdate(BaseModel):
     client_visible: Optional[bool] = None
     project_id: Optional[UUID] = None
     parent_task_id: Optional[UUID] = None
+    discipline: Optional[Discipline] = None
     custom_fields: Optional[list[TaskCustomFieldBase]] = None
     dependencies: Optional[list[TaskDependencyBase]] = None
     subtasks: Optional[list[TaskSubtaskInput]] = None
 
 class Task(TaskBase):
     id: UUID
-    list_id: UUID
+    list_id: Optional[UUID] = None  # None para tarefas novas (sem lista)
+    workspace_id: Optional[UUID] = None
     external_source: Optional[str] = None
     external_id: Optional[str] = None
     created_at: datetime

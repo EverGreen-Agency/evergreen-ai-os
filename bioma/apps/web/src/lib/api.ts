@@ -2081,7 +2081,10 @@ export type BackofficeSquads = {
 
 export type TaskGroupStatus = "NOT_STARTED" | "ACTIVE" | "DONE" | "CLOSED";
 export type TaskPriority = "Alta" | "Média" | "Baixa";
-export type TaskListType = "social" | "growth" | "tech" | "general";
+// Social vive no Estúdio IA (Manual v2). Discipline substitui tipo de lista;
+// general eliminado — não faz sentido como frente de trabalho.
+export type Discipline = "growth" | "tech";
+export type TaskListType = "social" | "growth" | "tech" | "general"; // legado
 
 export type TaskCustomField = {
   id?: string;
@@ -2401,12 +2404,14 @@ export type TaskPayload = {
   start_date?: string | null;
   due_date?: string | null;
   recurrence?: "none" | "weekly" | "monthly" | null;
-  /** Frente (lista) define os status; projeto define escopo/contrato/datas. */
+  /** Projeto define escopo/contrato/datas. */
   project_id?: string | null;
   /** Subtarefa real: trocou de responsável ou prazo. Checklist é `subtasks`. */
   parent_task_id?: string | null;
   /** Falso esconde a tarefa do usuário do cliente (filtrado no backend). */
   client_visible?: boolean;
+  /** Disciplina: growth ou tech. Substitui o tipo de lista (Manual v2). */
+  discipline?: Discipline | null;
   custom_fields?: TaskCustomField[];
   dependencies?: TaskDependency[];
   /** Itens de CHECKLIST (etapas da mesma tarefa, sem responsável/prazo). */
@@ -2450,7 +2455,8 @@ export type TaskComment = {
 
 export type TaskSummary = TaskPayload & {
   id: string;
-  list_id: string;
+  list_id?: string | null;      // null em tarefas novas (sem lista)
+  workspace_id?: string | null; // preenchido em tarefas novas
   external_source?: "clickup" | null;
   external_id?: string | null;
   created_at: string;
@@ -3248,7 +3254,20 @@ export const api = {
   deleteFile: (clientId: string, fileId: string) =>
     request<ClientFileSummary[]>(`/workspaces/${clientId}/files/${fileId}`, { method: "DELETE" }),
   
-  // Task Management
+  // Task Management — novas rotas (workspace direto, sem lista)
+  workspaceTasks: (workspaceId: string, discipline?: string, projectId?: string) => {
+    const params = new URLSearchParams();
+    if (discipline) params.set("discipline", discipline);
+    if (projectId) params.set("project_id", projectId);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<TaskSummary[]>(`/workspaces/${workspaceId}/tasks${qs}`);
+  },
+  createWorkspaceTask: (workspaceId: string, payload: TaskPayload) =>
+    request<TaskSummary>(`/workspaces/${workspaceId}/tasks`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  // Legacy: mantidos para compatibilidade com dados/listas existentes
   taskLists: (workspaceId: string) => 
     request<TaskListSummary[]>(`/workspaces/${workspaceId}/task-lists`),
   createTaskList: (workspaceId: string, name: string, type: TaskListType) =>

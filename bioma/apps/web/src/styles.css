@@ -1,21 +1,15 @@
-/* Índice de estilos do Bioma.
+/* Índice de Estilos do Bioma — Estrutura Modular por Domínio
  *
- * O arquivo tinha 5.404 linhas em um único escopo global — já causou bug de
- * produção (tags de integração todas verdes porque faltavam classes de
- * estado). Agora é dividido por domínio.
- *
- * REGRA: a ordem abaixo é a ordem original do arquivo e NÃO pode ser
- * reordenada — CSS resolve conflito por ordem de declaração. Ao adicionar
- * estilo novo, edite o arquivo do domínio correspondente; crie um arquivo
- * novo (e importe no fim) apenas para um domínio realmente novo.
+ * Design System canônico organizado por responsabilidade.
  */
 
-@import "./styles/01-base-login-projetos-vault.css";
-@import "./styles/02-navegacao-workspace-sidebar.css";
-@import "./styles/03-formularios-metricas-sessoes.css";
-@import "./styles/04-artefatos-calendario-analytics.css";
-@import "./styles/05-pilares-bento-insights-privacidade.css";
-@import "./styles/06-estudio-ia-e-perfil.css";
-@import "./styles/07-pesquisa-mercado-e-operacao-eg.css";
-@import "./styles/08-pesquisa-mercado-e-cockpit.css";
-@import "./styles/09-copiloto-e-plataformas.css";
+@import "./styles/tokens.css";
+@import "./styles/base.css";
+@import "./styles/components.css";
+
+/* Módulos Específicos */
+@import "./styles/sidebar.css";
+@import "./styles/tasks.css";
+@import "./styles/projects-vault.css";
+@import "./styles/ai-copilot.css";
+@import "./styles/analytics-finance.css";
