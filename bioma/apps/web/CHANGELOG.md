@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0](https://github.com/EverGreen-Agency/evergreen-ai-os/compare/bioma-web-v0.3.0...bioma-web-v0.4.0) (2026-08-05)
+
+
+### Features
+
+* **tasks:** adicionar tooltip de de-para nas colunas macro do kanban ([69c609d](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/69c609d0516fa23aae41bc4ce8fd1eb5a0dbb683))
+* **tasks:** exibir dinamicamente abas de disciplina conforme projetos do cliente ([681c38a](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/681c38ad6a4c78fbe4713a1ed899a2fb9a7d0139))
+
+
+### Bug Fixes
+
+* **client-hub:** remover plano de 90 dias, briefing estrategico e filtros rapidos desnecessarios ([6ea1e83](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/6ea1e83643b2026038613c9d41611aeb1981709f))
+* **settings:** corrigir layout da aba de acessos por empresa ([00992b5](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/00992b5f84a066a8c8b3fc7750885a0dc65c1e2c))
+* **tasks:** atualizar tipagem do TaskCard para aceitar status detalhados ([581d35c](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/581d35c1ea2099a55a81ec247a166bf107a3a5db))
+* **tasks:** corrigir erro de tipagem no icone de tooltip do Kanban ([e05b411](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/e05b411767f0301c28239118fe966fb0a8c0dfc4))
+* **tasks:** padronizar status por disciplina e corrigir estilos de dropdown ([bdbc156](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/bdbc156c64c56f87e0472f933c55dbb9c46843a4))
+* **tasks:** sincronizar colunas do Kanban com os status das disciplinas ([fe9b9b9](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/fe9b9b99a2b6903fd3459e703891f5867bc04ab4))
+* **web:** corrigir z-index e conflito de overlay do drawer de criacao de tarefas ([d70134b](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/d70134b0045275efbac3610ab616ab132919f05e))
+* **wiki:** automatizar carga inicial dos manuais, sanitizar titulos e eliminar scrollbar horizontal ([7211341](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/721134160c1b3314d2a8cd8f5530c64be2409c0e))
+* **wiki:** higienizar titulos de manuais, adicionar exportacao md/txt/pdf e melhorar leitura markdown ([d0d1b39](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/d0d1b396c8e3be317c2c327a3e81ef80347ee7f3))
+
 ## [0.3.0](https://github.com/EverGreen-Agency/evergreen-ai-os/compare/bioma-web-v0.2.0...bioma-web-v0.3.0) (2026-08-04)
 
 
