@@ -293,6 +293,7 @@ type TaskDrawerProps = {
   listType?: TaskListType; // legado, derivado do discipline quando ausente
   taskId: string | null;
   initialStatus?: TaskGroupStatus;
+  initialDetailedStatus?: string;
   /** Preenchido ao criar uma SUBTAREFA a partir de outra tarefa. */
   parentTaskId?: string | null;
   onClose: () => void;
@@ -306,6 +307,7 @@ export function TaskDrawer({
   listType,
   taskId,
   initialStatus,
+  initialDetailedStatus,
   parentTaskId,
   onClose,
 }: TaskDrawerProps) {
@@ -380,7 +382,7 @@ export function TaskDrawer({
       setTitle("");
       setDescription("");
       setGroupStatus(initialStatus || "NOT_STARTED");
-      setSpecificStatus("");
+      setSpecificStatus(initialDetailedStatus || statusesForFrente(effectiveListType)[0]?.status || "");
       setPriority("");
       setStartDate("");
       setDueDate("");
@@ -392,7 +394,7 @@ export function TaskDrawer({
       setAssigneeId("");
       setOwnerId("");
     }
-  }, [existingTask, initialStatus]);
+  }, [existingTask, initialStatus, initialDetailedStatus, effectiveListType]);
 
   const handleAddSubtask = () => {
     if (!newSubtaskTitle.trim()) return;
@@ -560,7 +562,28 @@ export function TaskDrawer({
           
           <div style={{ display: "flex", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>Grupo (Kanban)</span>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Status da Tarefa</span>
+              <select 
+                className="text-input" 
+                value={specificStatus || (statusesForFrente(effectiveListType)[0]?.status ?? "")}
+                onChange={(e) => {
+                  const nextStatus = e.target.value;
+                  setSpecificStatus(nextStatus);
+                  const group = groupForStatus(effectiveListType, nextStatus);
+                  if (group) setGroupStatus(group);
+                }}
+                disabled={isBusy}
+              >
+                {statusesForFrente(effectiveListType).map((item) => (
+                  <option key={item.status} value={item.status}>
+                    {item.status}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Grupo Kanban</span>
               <select 
                 className="text-input" 
                 value={groupStatus}
@@ -572,30 +595,6 @@ export function TaskDrawer({
                 <option value="DONE">Concluído</option>
                 <option value="CLOSED">Finalizado</option>
               </select>
-            </label>
-
-            <label style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>Status Detalhado</span>
-              <input 
-                className="text-input"
-                list="status-options"
-                value={specificStatus}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setSpecificStatus(next);
-                  // Status conhecido da frente já traz o grupo certo: evita a
-                  // tarefa cair na coluna errada do Kanban por digitação.
-                  const group = groupForStatus(effectiveListType, next);
-                  if (group) setGroupStatus(group);
-                }}
-                placeholder={statusesForFrente(effectiveListType)[0]?.status}
-                disabled={isBusy}
-              />
-              {/* Sugestões vêm da frente da lista (Manual v2). Antes o datalist
-                  misturava Growth e Social e não tinha nenhum status de Tech. */}
-              <datalist id="status-options">
-                {statusesForFrente(effectiveListType).map(item => <option key={item.status} value={item.status} />)}
-              </datalist>
             </label>
           </div>
 

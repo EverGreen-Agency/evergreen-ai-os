@@ -85,33 +85,35 @@ export function TasksView({ workspaceId }: TasksViewProps) {
 
       {/* Filtros: disciplina, projeto e filtros rápidos por status */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
-        {/* Seletor de disciplina substitui a "barra lateral de listas" */}
+        {/* Seletor de disciplina dinâmico: exibe apenas as frentes com projetos ou tarefas ativas no workspace */}
         <div style={{ display: "flex", gap: 4 }}>
-          {DISCIPLINES.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              className={discipline === d.value ? "primary-button" : "mini-button"}
-              style={{ fontSize: 11, padding: "4px 10px" }}
-              onClick={() => setDiscipline(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
+          {(() => {
+            const hasGrowth = projects.some((p) => (p as any).discipline === "growth" || (p as any).project_type === "growth") || tasks.some((t) => t.discipline === "growth");
+            const hasTech = projects.some((p) => (p as any).discipline === "tech" || (p as any).project_type === "tech") || tasks.some((t) => t.discipline === "tech");
+            
+            const visibleDisciplines = DISCIPLINES.filter((d) => {
+              if (!d.value) return true; // Todas as disciplinas
+              if (!hasGrowth && !hasTech) return true; // Se ainda não há projetos cadastrados, exibe ambas
+              if (d.value === "growth") return hasGrowth;
+              if (d.value === "tech") return hasTech;
+              return true;
+            });
+
+            return visibleDisciplines.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={discipline === d.value ? "primary-button" : "mini-button"}
+                style={{ fontSize: 11, padding: "4px 10px" }}
+                onClick={() => setDiscipline(d.value)}
+              >
+                {d.label}
+              </button>
+            ));
+          })()}
         </div>
 
-        {/* Filtros rápidos por status (Bug Tracker, Ideias, Aprovação) */}
-        {quickFiltersForFrente(discipline as "growth" | "tech" | undefined).map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            className={quickFilterId === filter.id ? "primary-button" : "mini-button"}
-            style={{ fontSize: 11, padding: "4px 10px" }}
-            onClick={() => setQuickFilterId(quickFilterId === filter.id ? null : filter.id)}
-          >
-            {filter.label}
-          </button>
-        ))}
+
 
         {projects.length > 0 && (
           <select

@@ -87,3 +87,13 @@ export const FRENTE_LABELS: Record<TaskListType, string> = {
   social: "Social Media",
   general: "Geral",
 };
+
+/** Gera o texto de tooltip (de-para) explicando quais status detalhados entram em cada macro grupo */
+export function getMacroGroupTooltip(group: TaskGroupStatus): string {
+  const formatList = (list: FrenteStatus[]) => list.filter(s => s.group === group).map(s => s.status).join(", ");
+  return [
+    `De-Para de Status (${group}):`,
+    `Growth: ${formatList(GROWTH)}`,
+    `Tech: ${formatList(TECH)}`
+  ].join("\n");
+}
