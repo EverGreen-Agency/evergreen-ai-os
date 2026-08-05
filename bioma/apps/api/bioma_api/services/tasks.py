@@ -19,6 +19,10 @@ from bioma_api.schemas.tasks import (
     TaskUpdate,
 )
 
+# Tipos utilitários
+from typing import Optional
+from uuid import UUID as _UUID
+
 
 def _not_found(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
@@ -141,6 +145,51 @@ def create_task_list(workspace_id: UUID, data: TaskListCreate, user: CurrentUser
         context = tasks_repo.find_workspace_context(conn, workspace_id, is_platform_admin(user), user.id)
         _authorize(context, user, "manage_work", "Workspace não encontrado.")
         return TaskList(**tasks_repo.create_task_list(conn, workspace_id, name, data.type))
+
+
+def list_workspace_tasks(
+    workspace_id: UUID,
+    user: CurrentUserResponse,
+    discipline: Optional[str] = None,
+    project_id: Optional[_UUID] = None,
+) -> list[Task]:
+    """Lista tarefas diretamente do workspace, sem precisar de lista.
+    Substitui o GET /task-lists/{id}/tasks como ponto de entrada principal.
+    """
+    with connect() as conn:
+        context = tasks_repo.find_workspace_context(conn, workspace_id, is_platform_admin(user), user.id)
+        _authorize(context, user, "view", "Workspace não encontrado.")
+        rows = tasks_repo.list_workspace_tasks(conn, workspace_id, discipline, project_id)
+    if not _sees_internal_tasks(user):
+        rows = [row for row in rows if row["client_visible"]]
+    return [Task(**row) for row in rows]
+
+
+def create_workspace_task(workspace_id: UUID, data: TaskCreate, user: CurrentUserResponse) -> Task:
+    """Cria tarefa no workspace sem exigir lista. O campo `discipline` (growth/tech)
+    substitui o tipo da lista como forma de categorizar o trabalho.
+    """
+    values = data.model_dump()
+    values["title"] = values["title"].strip()
+    if not values["title"]:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Título da tarefa é obrigatório.")
+    custom_fields = [field.model_dump() for field in data.custom_fields]
+    dependencies = [dep.model_dump() for dep in data.dependencies]
+    subtasks = [sub.model_dump() for sub in data.subtasks]
+    with connect() as conn:
+        context = tasks_repo.find_workspace_context(conn, workspace_id, is_platform_admin(user), user.id)
+        _authorize(context, user, "manage_work", "Workspace não encontrado.")
+        _validate_people(conn, workspace_id, values)
+        _validate_dates(conn, values)
+        _validate_project(conn, workspace_id, values)
+        _validate_parent(conn, workspace_id, values)
+        _validate_dependencies(conn, workspace_id, dependencies)
+        row = tasks_repo.create_task_in_workspace(conn, workspace_id, values)
+        task_id = row["id"]
+        tasks_repo.replace_custom_fields(conn, task_id, custom_fields)
+        tasks_repo.replace_dependencies(conn, task_id, dependencies)
+        tasks_repo.replace_subtasks(conn, task_id, subtasks)
+        return Task(**tasks_repo.get_task(conn, task_id))
 
 
 def get_tasks_in_list(list_id: UUID, user: CurrentUserResponse) -> list[Task]:

@@ -3,7 +3,7 @@ from uuid import UUID
 
 
 TASK_COLUMNS = """
-  id, list_id, project_id, parent_task_id, title, description, status,
+  id, list_id, workspace_id, discipline, project_id, parent_task_id, title, description, status,
   group_status, priority, assignee_id, owner_id, start_date, due_date,
   recurrence, external_source, external_id, client_visible, created_at, updated_at
 """
@@ -40,12 +40,13 @@ def find_list_context(conn, list_id: UUID, is_admin: bool, user_id: UUID):
 def find_task_context(conn, task_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
-        select t.id as task_id, t.group_status, t.external_source, t.list_id, l.workspace_id,
+        select t.id as task_id, t.group_status, t.external_source, t.list_id,
+          coalesce(t.workspace_id, l.workspace_id) as workspace_id,
           w.tenant_organization_id, w.subject_organization_id,
           case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
         from eg_tasks t
-        join eg_task_lists l on l.id = t.list_id
-        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        left join eg_task_lists l on l.id = t.list_id
+        join workspaces w on w.id = coalesce(t.workspace_id, l.workspace_id) and w.status = 'active'
         where t.id = %s
           and (%s or workspace_access_role(w.id, %s) is not null)
         """,
@@ -56,18 +57,20 @@ def find_task_context(conn, task_id: UUID, is_admin: bool, user_id: UUID):
 def find_subtask_context(conn, subtask_id: UUID, is_admin: bool, user_id: UUID):
     return conn.execute(
         """
-        select s.id as subtask_id, s.task_id, t.external_source, l.workspace_id,
+        select s.id as subtask_id, s.task_id, t.external_source,
+          coalesce(t.workspace_id, l.workspace_id) as workspace_id,
           w.tenant_organization_id, w.subject_organization_id,
           case when %s then 'platform_admin' else workspace_access_role(w.id, %s) end as access_role
         from eg_task_subtasks s
         join eg_tasks t on t.id = s.task_id
-        join eg_task_lists l on l.id = t.list_id
-        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        left join eg_task_lists l on l.id = t.list_id
+        join workspaces w on w.id = coalesce(t.workspace_id, l.workspace_id) and w.status = 'active'
         where s.id = %s
           and (%s or workspace_access_role(w.id, %s) is not null)
         """,
         (is_admin, user_id, subtask_id, is_admin, user_id),
     ).fetchone()
+
 
 
 def list_task_lists(conn, workspace_id: UUID):
@@ -90,6 +93,62 @@ def create_task_list(conn, workspace_id: UUID, name: str, list_type: str):
         returning id, workspace_id, name, type, created_at, updated_at
         """,
         (workspace_id, name, list_type),
+    ).fetchone()
+
+
+def list_workspace_tasks(conn, workspace_id: UUID, discipline: str | None = None, project_id: UUID | None = None):
+    """Retorna todas as tarefas do workspace — sem precisar de list_id.
+    Suporta filtro opcional por disciplina e/ou projeto.
+    """
+    clauses = ["t.workspace_id = %s"]
+    params: list = [workspace_id]
+    if discipline:
+        clauses.append("t.discipline = %s")
+        params.append(discipline)
+    if project_id:
+        clauses.append("t.project_id = %s")
+        params.append(project_id)
+    where = " and ".join(clauses)
+    rows = conn.execute(
+        f"""
+        select {TASK_COLUMNS}
+        from eg_tasks t
+        where {where}
+        order by t.created_at desc, t.id
+        """,
+        params,
+    ).fetchall()
+    return hydrate_tasks(conn, rows)
+
+
+def create_task_in_workspace(conn, workspace_id: UUID, values: dict):
+    """Cria tarefa vinculada diretamente ao workspace, sem exigir uma lista."""
+    return conn.execute(
+        f"""
+        insert into eg_tasks (
+          workspace_id, discipline, project_id, parent_task_id, title, description,
+          status, group_status, priority, assignee_id, owner_id,
+          start_date, due_date, recurrence, client_visible
+        ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        returning {TASK_COLUMNS}
+        """,
+        (
+            workspace_id,
+            values.get("discipline"),
+            values.get("project_id"),
+            values.get("parent_task_id"),
+            values["title"],
+            values.get("description"),
+            values["status"],
+            values["group_status"],
+            values.get("priority"),
+            values.get("assignee_id"),
+            values.get("owner_id"),
+            values.get("start_date"),
+            values.get("due_date"),
+            values.get("recurrence") or "none",
+            values.get("client_visible", True),
+        ),
     ).fetchone()
 
 
@@ -201,16 +260,20 @@ def parent_would_cycle(conn, task_id: UUID, parent_id: UUID) -> bool:
 
 
 def task_ids_in_workspace(conn, workspace_id: UUID, task_ids: list[UUID]) -> set[UUID]:
+    """Aceita tanto tarefas novas (workspace_id direto) quanto legadas (via list_id)."""
     if not task_ids:
         return set()
     rows = conn.execute(
         """
         select t.id
         from eg_tasks t
-        join eg_task_lists l on l.id = t.list_id
-        where l.workspace_id = %s and t.id = any(%s)
+        left join eg_task_lists l on l.id = t.list_id
+        where (
+          t.workspace_id = %s
+          or l.workspace_id = %s
+        ) and t.id = any(%s)
         """,
-        (workspace_id, task_ids),
+        (workspace_id, workspace_id, task_ids),
     ).fetchall()
     return {row["id"] for row in rows}
 
@@ -336,6 +399,23 @@ def replace_subtasks(conn, task_id: UUID, subtasks: list[dict]) -> None:
 
 
 def create_recurring_successor(conn, task: dict):
+    # Suporta tarefas novas (workspace_id) e legadas (list_id)
+    if task.get("workspace_id"):
+        return conn.execute(
+            """
+            insert into eg_tasks (
+              workspace_id, discipline, title, description, status, group_status, priority,
+              assignee_id, owner_id, due_date, recurrence, recurrence_source_task_id
+            ) values (%s, %s, %s, %s, 'pending', 'NOT_STARTED', %s, %s, %s, %s, %s, %s)
+            on conflict (recurrence_source_task_id) where recurrence_source_task_id is not null do nothing
+            returning id
+            """,
+            (
+                task["workspace_id"], task.get("discipline"), task["title"], task.get("description"),
+                task.get("priority"), task.get("assignee_id"), task.get("owner_id"),
+                task.get("next_due_date"), task["recurrence"], task["id"],
+            ),
+        ).fetchone()
     return conn.execute(
         """
         insert into eg_tasks (
@@ -479,21 +559,25 @@ def list_my_tasks(conn, user_id: UUID, is_admin: bool):
     """Tarefas atribuídas a mim (ou das quais sou dono) em todos os workspaces
     que posso acessar — incluindo o workspace interno da EG.
 
-    Existe porque o painel "Minhas tarefas" do Cockpit lia apenas a tabela
-    `deliverables` (do client-hub, com responsável por e-mail) e por isso nunca
-    mostrava nada criado no sistema de tarefas que substituiu o ClickUp.
+    Suporta tanto tarefas novas (com workspace_id direto) quanto tarefas legadas
+    (vinculadas via eg_task_lists). O UNION garante que ambas apareçam no Cockpit.
     """
     return conn.execute(
         """
         select
           t.id, t.title, t.status, t.group_status, t.priority, t.due_date,
           t.project_id, t.parent_task_id,
-          l.id as list_id, l.name as list_name, l.type as list_type,
+          coalesce(l.id, null) as list_id,
+          coalesce(l.name, 'Geral') as list_name,
+          coalesce(l.type, t.discipline, 'growth') as list_type,
           w.id as workspace_id, w.name as workspace_name, w.kind as workspace_kind,
           p.name as project_name
         from eg_tasks t
-        join eg_task_lists l on l.id = t.list_id
-        join workspaces w on w.id = l.workspace_id and w.status = 'active'
+        left join eg_task_lists l on l.id = t.list_id
+        join workspaces w on (
+          w.id = coalesce(t.workspace_id, l.workspace_id)
+          and w.status = 'active'
+        )
         left join projects p on p.id = t.project_id
         where (t.assignee_id = %s or t.owner_id = %s)
           and t.group_status <> 'CLOSED'

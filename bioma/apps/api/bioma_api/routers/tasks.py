@@ -1,5 +1,6 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, Response, status
+from typing import Optional
+from fastapi import APIRouter, Depends, Query, Response, status
 from pydantic import BaseModel
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -20,6 +21,31 @@ router = APIRouter(prefix="", tags=["tasks"])
 
 class SubtaskCreatePayload(BaseModel):
     title: str
+
+# ---------------------------------------------------------------------------
+# Rotas novas: tarefas direto no workspace (sem precisar de lista)
+# ---------------------------------------------------------------------------
+
+@router.get("/workspaces/{workspace_id}/tasks", response_model=list[Task])
+def list_workspace_tasks(
+    workspace_id: UUID,
+    discipline: Optional[str] = Query(None, description="Filtrar por disciplina: growth ou tech"),
+    project_id: Optional[UUID] = Query(None),
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[Task]:
+    return tasks_service.list_workspace_tasks(workspace_id, user, discipline, project_id)
+
+@router.post("/workspaces/{workspace_id}/tasks", response_model=Task, status_code=status.HTTP_201_CREATED)
+def create_workspace_task(
+    workspace_id: UUID,
+    data: TaskCreate,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> Task:
+    return tasks_service.create_workspace_task(workspace_id, data, user)
+
+# ---------------------------------------------------------------------------
+# Rotas legadas: lista de tarefas (mantidas para compat com dados existentes)
+# ---------------------------------------------------------------------------
 
 @router.get("/workspaces/{workspace_id}/task-lists", response_model=list[TaskList])
 def list_task_lists(
