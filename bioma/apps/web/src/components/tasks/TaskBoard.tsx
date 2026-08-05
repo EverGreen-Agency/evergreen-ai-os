@@ -78,7 +78,9 @@ export function TaskBoard({ workspaceId, tasks: allTasks, discipline, taskFilter
               <h3 style={{ fontSize: 13, margin: 0, fontWeight: 600, color: "var(--text-normal)", display: "flex", alignItems: "center", gap: 6 }}>
                 {col.label} <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>{colTasks.length}</span>
                 {!detailedStatuses && (
-                  <Info size={14} style={{ color: "var(--text-faint)", cursor: "help" }} title={getMacroGroupTooltip(col.group)} />
+                  <span title={getMacroGroupTooltip(col.group)} style={{ display: "flex", alignItems: "center" }}>
+                    <Info size={14} style={{ color: "var(--text-faint)", cursor: "help" }} />
+                  </span>
                 )}
               </h3>
               <button
