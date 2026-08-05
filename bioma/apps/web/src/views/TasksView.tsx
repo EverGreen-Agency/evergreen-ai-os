@@ -100,18 +100,7 @@ export function TasksView({ workspaceId }: TasksViewProps) {
           ))}
         </div>
 
-        {/* Filtros rápidos por status (Bug Tracker, Ideias, Aprovação) */}
-        {quickFiltersForFrente(discipline as "growth" | "tech" | undefined).map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            className={quickFilterId === filter.id ? "primary-button" : "mini-button"}
-            style={{ fontSize: 11, padding: "4px 10px" }}
-            onClick={() => setQuickFilterId(quickFilterId === filter.id ? null : filter.id)}
-          >
-            {filter.label}
-          </button>
-        ))}
+
 
         {projects.length > 0 && (
           <select
