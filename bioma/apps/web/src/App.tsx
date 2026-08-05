@@ -46,9 +46,7 @@ const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView")
 const AgencyMarketResearchRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyMarketResearchRoute })));
 const AgencyLocalRadarRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyLocalRadarRoute })));
 
-// Views administrativas EG — lazy obrigatório: o Escritório carrega o Phaser
-// (~1,2 MB), que não pode entrar no bundle inicial dos clientes.
-const OfficeView = lazy(() => import("./views/admin/office/PhaserGame").then((module) => ({ default: module.PhaserGame })));
+// Views administrativas EG
 const IdeaBankView = lazy(() => import("./views/admin/idea-bank/IdeaBank").then((module) => ({ default: module.IdeaBank })));
 const TechRadarView = lazy(() => import("./views/admin/tech-radar/TechRadar").then((module) => ({ default: module.TechRadar })));
 const ArchitectureView = lazy(() =>
@@ -348,11 +346,6 @@ export function App() {
           <Route path="/eg-wiki" element={guardAdmin(
             <Suspense fallback={<ViewLoadingFallback />}>
               <WikiEgView />
-            </Suspense>,
-          )} />
-          <Route path="/eg-office" element={guardAdmin(
-            <Suspense fallback={<ViewLoadingFallback />}>
-              <OfficeView />
             </Suspense>,
           )} />
           <Route path="/eg-ideas" element={guardAdmin(
