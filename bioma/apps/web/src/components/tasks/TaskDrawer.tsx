@@ -471,16 +471,24 @@ export function TaskDrawer({
   return (
     <>
       <div 
-        className="drawer-overlay" 
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100 }} 
+        className="task-drawer-overlay" 
+        style={{ 
+          position: "fixed", inset: 0, 
+          background: "rgba(4, 15, 11, 0.75)", 
+          backdropFilter: "blur(6px)", 
+          WebkitBackdropFilter: "blur(6px)", 
+          zIndex: 10000 
+        }} 
         onClick={onClose}
       />
       <div 
-        className="drawer-content surface" 
+        className="task-drawer-panel" 
         style={{ 
-          position: "fixed", top: 0, right: 0, bottom: 0, width: "100%", maxWidth: 520,
-          zIndex: 101, padding: 24, display: "flex", flexDirection: "column",
-          boxShadow: "-4px 0 24px rgba(0,0,0,0.2)",
+          position: "fixed", top: 0, right: 0, bottom: 0, width: "100%", maxWidth: 540,
+          background: "#09231b",
+          borderLeft: "1px solid var(--border-strong)",
+          zIndex: 10001, padding: 24, display: "flex", flexDirection: "column",
+          boxShadow: "-4px 0 24px rgba(0,0,0,0.5)",
           overflowY: "auto"
         }}
       >
