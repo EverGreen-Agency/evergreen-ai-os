@@ -4,8 +4,8 @@ import { formatDueDate } from "../../lib/format";
 type TaskCardProps = {
   task: TaskSummary;
   onClick: () => void;
-  onStatusChange: (status: TaskGroupStatus) => void;
-  columns: { id: TaskGroupStatus; label: string }[];
+  onStatusChange: (status: string) => void;
+  columns: { id: string; label: string }[];
 };
 
 export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardProps) {
