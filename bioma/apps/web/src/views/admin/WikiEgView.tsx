@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Plus, Upload, Save, Trash2, Paperclip, Download, X, FileText, DownloadCloud } from "lucide-react";
+import { BookOpen, Plus, Upload, Save, Trash2, Paperclip, Download, X, FileText, DownloadCloud, Printer } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -73,6 +73,32 @@ export function WikiEgView() {
     setEditing(true);
     setAttachmentNote(null);
     setDraft({ title: "", category, content: "" });
+  };
+
+  const handleDownloadMd = () => {
+    if (!selected) return;
+    const blob = new Blob([selected.content], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selected.title.replace(/[^a-zA-Z0-9_\-]/g, "_")}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadTxt = () => {
+    if (!selected) return;
+    const blob = new Blob([selected.content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selected.title.replace(/[^a-zA-Z0-9_\-]/g, "_")}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrintPdf = () => {
+    window.print();
   };
 
   const handleImportCore = async () => {
@@ -211,9 +237,11 @@ export function WikiEgView() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button className="ghost-button" type="button" onClick={handleImportCore} disabled={busy} title="Importa os manuais core do monorepo (Documento-Mestre, Manuais Operacionais, Playbooks)">
-                <DownloadCloud size={16} /> Importar manuais core
-              </button>
+              {documents.length === 0 && (
+                <button className="ghost-button" type="button" onClick={handleImportCore} disabled={busy} title="Importa os manuais core (Documento-Mestre, Manuais Operacionais, Playbooks)">
+                  <DownloadCloud size={16} /> Importar manuais core
+                </button>
+              )}
               <button className="ghost-button" type="button" onClick={() => importInput.current?.click()} disabled={busy}>
                 <Upload size={16} /> Importar .md
               </button>
@@ -285,11 +313,24 @@ export function WikiEgView() {
             <EmptyState compact text="Selecione um documento ou crie um novo." />
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                 <SectionHeader eyebrow={editing ? "Editando" : "Documento"} title={editing ? "" : selected?.title ?? "Novo"} icon={BookOpen} />
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                   {!editing && selected && (
-                    <button className="ghost-button" type="button" onClick={() => setEditing(true)}>Editar</button>
+                    <>
+                      <button className="ghost-button" type="button" onClick={handleDownloadMd} title="Baixar documento em formato .md">
+                        <Download size={14} /> .md
+                      </button>
+                      <button className="ghost-button" type="button" onClick={handleDownloadTxt} title="Baixar documento em formato .txt">
+                        <Download size={14} /> .txt
+                      </button>
+                      <button className="ghost-button" type="button" onClick={handlePrintPdf} title="Imprimir ou Salvar em PDF">
+                        <Printer size={14} /> PDF
+                      </button>
+                      <button className="ghost-button" type="button" onClick={() => setEditing(true)}>
+                        Editar
+                      </button>
+                    </>
                   )}
                   {selected && (
                     <button className="icon-btn" type="button" onClick={handleDelete} aria-label="Excluir" disabled={busy}>
@@ -337,17 +378,18 @@ export function WikiEgView() {
                 </div>
               ) : selected ? (
                 <>
-                  <span style={{ fontSize: "0.74rem", color: "var(--brand-accent)", fontWeight: 700, textTransform: "uppercase" }}>
-                    {CATEGORY_LABEL[selected.category]}
-                  </span>
-                  <div className="wiki-markdown" style={{ marginTop: 10, lineHeight: 1.6 }}>
-                    {selected.content.trim() ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
-                    ) : (
-                      <EmptyState compact text="Documento sem conteúdo. Clique em Editar." />
-                    )}
+                  <div className="wiki-print-area">
+                    <span style={{ fontSize: "0.74rem", color: "var(--brand-accent)", fontWeight: 700, textTransform: "uppercase" }}>
+                      {CATEGORY_LABEL[selected.category]}
+                    </span>
+                    <div className="wiki-markdown" style={{ marginTop: 10, lineHeight: 1.6 }}>
+                      {selected.content.trim() ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
+                      ) : (
+                        <EmptyState compact text="Documento sem conteúdo. Clique em Editar." />
+                      )}
+                    </div>
                   </div>
-
                   <div style={{ marginTop: 20, borderTop: "1px solid var(--glass-border)", paddingTop: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                       <strong style={{ fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 6 }}>

@@ -58,6 +58,14 @@ def _knowledge_dir() -> Path | None:
     return None
 
 
+def _clean_title(filename: str) -> str:
+    stem = Path(filename).stem
+    if "__" in stem:
+        _, _, stem = stem.partition("__")
+    clean = stem.replace("_", " ").strip()
+    return re.sub(r"\s+", " ", clean)
+
+
 def _categorize(name: str) -> str:
     lower = name.lower()
     if any(token in lower for token in ("comercial", "raio-x", "vendas")):
@@ -70,10 +78,10 @@ def _categorize(name: str) -> str:
 
 
 def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
-    """Importa os manuais markdown de `_opensquad/_memory/knowledge` para o Wiki.
+    """Importa os manuais markdown de `seed_data/knowledge` para o Wiki.
 
-    Idempotente por título: rodar de novo pula os que já existem. Só .md/.markdown
-    (binários como o Manual de Marca em PDF ficam de fora — viram anexo depois).
+    Idempotente por título. Limpa prefixos brutos (ex: knowledge__), ignora
+    READMEs e limpa títulos antigos salvos no banco.
     """
     require_platform_admin(user)
     directory = _knowledge_dir()
@@ -84,14 +92,34 @@ def import_core_documents(user: CurrentUserResponse) -> WikiImportResult:
     skipped: list[str] = []
     with connect() as conn:
         tenant_id = _tenant_id(conn, user)
+        # Limpa eventuais READMEs legados no banco
+        conn.execute("delete from wiki_documents where tenant_organization_id = %s and lower(title) like '%%readme%%'", (tenant_id,))
+
         for path in sorted(directory.glob("*.md")) + sorted(directory.glob("*.markdown")):
-            title = path.stem
-            if wiki_repo.title_exists(conn, tenant_id, title):
-                skipped.append(title)
+            if "readme" in path.name.lower():
                 continue
+
+            raw_title = path.stem
+            clean_title = _clean_title(path.name)
+
+            # Sanitiza título de documentos já importados com nome bruto (ex: `knowledge__...`)
+            conn.execute(
+                """
+                update wiki_documents
+                set title = %s
+                where tenant_organization_id = %s and lower(title) = lower(%s)
+                """,
+                (clean_title, tenant_id, raw_title),
+            )
+
+            if wiki_repo.title_exists(conn, tenant_id, clean_title) or wiki_repo.title_exists(conn, tenant_id, raw_title):
+                skipped.append(clean_title)
+                continue
+
             content = path.read_text(encoding="utf-8", errors="replace")
-            wiki_repo.create_document(conn, tenant_id, user.id, _categorize(path.name), title, content)
-            imported.append(title)
+            wiki_repo.create_document(conn, tenant_id, user.id, _categorize(path.name), clean_title, content)
+            imported.append(clean_title)
+
     return WikiImportResult(imported=imported, skipped=skipped, available=True)
 
 
