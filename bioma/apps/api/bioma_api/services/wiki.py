@@ -46,12 +46,11 @@ def _safe_filename(file_name: str) -> str:
 
 
 def _knowledge_dir() -> Path | None:
-    """Diretório dos manuais core no monorepo (`_opensquad/_memory/knowledge`).
-
-    Sobe a partir deste arquivo até achar `_opensquad/` (não depende do CWD).
-    Em produção (Railway), onde o monorepo não existe, retorna None e o import
-    responde `available=False` — é um recurso do ambiente de dev EG.
-    """
+    """Diretório dos manuais core (`seed_data/knowledge` ou fallback no monorepo)."""
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "seed_data" / "knowledge"
+        if candidate.is_dir():
+            return candidate
     for parent in Path(__file__).resolve().parents:
         candidate = parent / "_opensquad" / "_memory" / "knowledge"
         if candidate.is_dir():
