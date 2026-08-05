@@ -495,8 +495,13 @@ def _build_dossier(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[
         # Memória persistente (global da EG + do workspace, quando há um em
         # contexto) e skills já aprovadas — é o que faz o copiloto não perguntar
         # de novo o que já foi dito, e não redescobrir procedimento já resolvido.
+        #
+        # `list_memories_for_copilot`, não `list_memories`: aqui é o dossiê de UM
+        # usuário, e preferência pessoal de outra pessoa não pode entrar. É a
+        # consulta que faz "memória por natureza" (decisão do Eduardo,
+        # 2026-08-04) valer na prática, não só existir no schema.
         workspace_uuid = payload.workspace_id
-        memories = memory_repo.list_memories(conn, workspace_uuid, include_global=True)
+        memories = memory_repo.list_memories_for_copilot(conn, workspace_uuid, user.id)
         dossier["memories"] = [
             {
                 "scope": "global" if row["workspace_id"] is None else "workspace",
@@ -504,6 +509,7 @@ def _build_dossier(payload: CopilotRequest, user: CurrentUserResponse) -> tuple[
                 "title": row["title"],
                 "body": row["body"],
                 "authored_by_agent": row["authored_by"] is None,
+                "personal": row["owner_user_id"] is not None,
             }
             for row in memories
         ]
@@ -573,9 +579,15 @@ def _execute(
             return failed("Categoria, título e conteúdo são obrigatórios para guardar na memória.")
         with connect() as conn:
             memory_repo.create_memory(
-                conn, workspace_id, category, title[:200], body[:4000], None, "Escrito pelo copiloto durante a conversa."
+                conn, workspace_id, category, title[:200], body[:4000], None,
+                "Escrito pelo copiloto durante a conversa.",
+                # Preferência é sempre de quem está na conversa — "responda sem
+                # introdução" não pode virar regra pra EG inteira porque uma
+                # pessoa pediu. Fato/diretriz seguem compartilhados
+                # (`create_memory` ignora este argumento fora de `preference`).
+                owner_user_id=user.id if category == "preference" else None,
             )
-        scope = "deste workspace" if workspace_id else "global da EG"
+        scope = "só para você" if category == "preference" else ("deste workspace" if workspace_id else "global da EG")
         return done(f'Memória "{title}" guardada ({scope}).', "Arquive a memória na tela de memórias para desfazer.")
 
     if name == "request_improvement":

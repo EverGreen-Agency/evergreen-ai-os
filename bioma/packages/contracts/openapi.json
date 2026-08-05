@@ -341,6 +341,18 @@
             "title": "Id",
             "type": "string"
           },
+          "owner_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner User Id"
+          },
           "status": {
             "enum": [
               "active",
@@ -378,6 +390,7 @@
           "title",
           "body",
           "authored_by",
+          "owner_user_id",
           "status",
           "created_at",
           "updated_at"
@@ -435,6 +448,27 @@
           "reason"
         ],
         "title": "AgentMemoryCreate",
+        "type": "object"
+      },
+      "AgentMemoryOwnerUpdate": {
+        "description": "Corrige a classificação pessoal x compartilhada de uma preferência.",
+        "properties": {
+          "is_personal": {
+            "title": "Is Personal",
+            "type": "boolean"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "is_personal",
+          "reason"
+        ],
+        "title": "AgentMemoryOwnerUpdate",
         "type": "object"
       },
       "AgentMemoryRevision": {
@@ -27464,6 +27498,60 @@
           }
         },
         "summary": "Update Memory",
+        "tags": [
+          "agent-memory"
+        ]
+      }
+    },
+    "/agent-memory/memories/{memory_id}/owner": {
+      "patch": {
+        "description": "Corrige classificação pessoal x compartilhada — só vale para 'preference'.",
+        "operationId": "set_memory_owner_agent_memory_memories__memory_id__owner_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentMemoryOwnerUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentMemory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Memory Owner",
         "tags": [
           "agent-memory"
         ]

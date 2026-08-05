@@ -188,6 +188,16 @@ export function useSetAgentMemoryStatus() {
   });
 }
 
+/** Corrige "isto é pessoal ou da EG" — só vale para memória de preferência. */
+export function useSetAgentMemoryOwner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memoryId, isPersonal, reason }: { memoryId: string; isPersonal: boolean; reason: string }) =>
+      api.setAgentMemoryOwner(memoryId, { is_personal: isPersonal, reason }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-memories"] }),
+  });
+}
+
 export function useAgentMemoryRevisions(memoryId: string | null) {
   return useQuery({
     queryKey: ["agent-memory-revisions", memoryId],

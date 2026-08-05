@@ -1,7 +1,9 @@
 from typing import Any
 from uuid import UUID
 
-MEMORY_COLUMNS = "id, workspace_id, category, title, body, authored_by, status, created_at, updated_at"
+MEMORY_COLUMNS = (
+    "id, workspace_id, category, title, body, authored_by, owner_user_id, status, created_at, updated_at"
+)
 SKILL_COLUMNS = (
     "id, workspace_id, name, description, procedure, status, proposed_by, source_context, "
     "reviewed_by, reviewed_at, review_note, use_count, last_used_at, created_at, updated_at"
@@ -34,20 +36,62 @@ def list_memories(conn, workspace_id: UUID | None, include_global: bool, status:
     ).fetchall()
 
 
+def list_memories_for_copilot(conn, workspace_id: UUID | None, viewer_user_id: UUID, status: str = "active") -> list[dict]:
+    """O que entra no dossiê de UM usuário: tudo compartilhado + só a preferência dele.
+
+    Não é `list_memories` com um filtro a mais — é uma consulta própria de
+    propósito, porque a diferença entre "listagem administrativa" (mostra tudo,
+    é tela de auditoria) e "o que o copiloto pode usar nesta conversa" (nunca
+    pode incluir a preferência pessoal de outra pessoa) é exatamente o que faz
+    memória pessoal continuar pessoal.
+    """
+    scope_filter = "(owner_user_id is null or owner_user_id = %(viewer)s)"
+    if workspace_id:
+        return conn.execute(
+            f"""
+            select {MEMORY_COLUMNS} from agent_memories
+            where status = %(status)s and (workspace_id = %(workspace_id)s or workspace_id is null)
+              and {scope_filter}
+            order by workspace_id nulls last, category, created_at desc
+            """,
+            {"status": status, "workspace_id": workspace_id, "viewer": viewer_user_id},
+        ).fetchall()
+    return conn.execute(
+        f"""
+        select {MEMORY_COLUMNS} from agent_memories
+        where status = %(status)s and workspace_id is null and {scope_filter}
+        order by category, created_at desc
+        """,
+        {"status": status, "viewer": viewer_user_id},
+    ).fetchall()
+
+
 def get_memory(conn, memory_id: UUID) -> dict | None:
     return conn.execute(f"select {MEMORY_COLUMNS} from agent_memories where id = %s", (memory_id,)).fetchone()
 
 
 def create_memory(
-    conn, workspace_id: UUID | None, category: str, title: str, body: str, authored_by: UUID | None, reason: str
+    conn,
+    workspace_id: UUID | None,
+    category: str,
+    title: str,
+    body: str,
+    authored_by: UUID | None,
+    reason: str,
+    owner_user_id: UUID | None = None,
 ) -> dict:
+    # Preferência é sempre de alguém; o resto é sempre compartilhado. A trava é
+    # aqui (não confiar no chamador) porque também existe como CHECK no banco —
+    # esta linha só evita a viagem ao banco para descobrir o erro.
+    if category != "preference":
+        owner_user_id = None
     row = conn.execute(
         f"""
-        insert into agent_memories (workspace_id, category, title, body, authored_by)
-        values (%s, %s, %s, %s, %s)
+        insert into agent_memories (workspace_id, category, title, body, authored_by, owner_user_id)
+        values (%s, %s, %s, %s, %s, %s)
         returning {MEMORY_COLUMNS}
         """,
-        (workspace_id, category, title, body, authored_by),
+        (workspace_id, category, title, body, authored_by, owner_user_id),
     ).fetchone()
     conn.execute(
         """
@@ -92,6 +136,35 @@ def set_memory_status(conn, memory_id: UUID, status: str, actor_user_id: UUID | 
         values (%s, %s, %s, %s, %s, %s)
         """,
         (memory_id, action, current["body"], current["body"], actor_user_id, reason),
+    )
+    return row
+
+
+class NotPreferenceError(Exception):
+    """Só memória de categoria `preference` pode ter dono — ver o CHECK no banco."""
+
+
+def set_memory_owner(conn, memory_id: UUID, owner_user_id: UUID | None, actor_user_id: UUID | None, reason: str) -> dict | None:
+    """Corrige a classificação: torna pessoal (`owner_user_id` = alguém) ou
+    compartilhada (`owner_user_id` = nulo). O agente vai classificar errado às
+    vezes — isto é o "você pode corrigir" da decisão do Eduardo."""
+    current = get_memory(conn, memory_id)
+    if not current:
+        return None
+    if current["category"] != "preference":
+        raise NotPreferenceError(
+            f"Memória de categoria '{current['category']}' não pode ter dono — só 'preference' pode."
+        )
+    row = conn.execute(
+        f"update agent_memories set owner_user_id = %s, updated_at = now() where id = %s returning {MEMORY_COLUMNS}",
+        (owner_user_id, memory_id),
+    ).fetchone()
+    conn.execute(
+        """
+        insert into agent_memory_revisions (memory_id, action, previous_body, new_body, actor_user_id, reason)
+        values (%s, 'updated', %s, %s, %s, %s)
+        """,
+        (memory_id, current["body"], current["body"], actor_user_id, reason),
     )
     return row
 

@@ -56,6 +56,26 @@ export interface paths {
         patch: operations["update_memory_agent_memory_memories__memory_id__patch"];
         trace?: never;
     };
+    "/agent-memory/memories/{memory_id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set Memory Owner
+         * @description Corrige classificação pessoal x compartilhada — só vale para 'preference'.
+         */
+        patch: operations["set_memory_owner_agent_memory_memories__memory_id__owner_patch"];
+        trace?: never;
+    };
     "/agent-memory/memories/{memory_id}/revisions": {
         parameters: {
             query?: never;
@@ -5675,6 +5695,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Owner User Id */
+            owner_user_id: string | null;
             /**
              * Status
              * @enum {string}
@@ -5705,6 +5727,16 @@ export interface components {
             title: string;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /**
+         * AgentMemoryOwnerUpdate
+         * @description Corrige a classificação pessoal x compartilhada de uma preferência.
+         */
+        AgentMemoryOwnerUpdate: {
+            /** Is Personal */
+            is_personal: boolean;
+            /** Reason */
+            reason: string;
         };
         /** AgentMemoryRevision */
         AgentMemoryRevision: {
@@ -15269,6 +15301,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AgentMemoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentMemory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_memory_owner_agent_memory_memories__memory_id__owner_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentMemoryOwnerUpdate"];
             };
         };
         responses: {

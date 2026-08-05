@@ -1172,6 +1172,9 @@ export type AgentMemory = {
   title: string;
   body: string;
   authored_by: string | null;
+  /** Preenchido = preferência pessoal, só entra no dossiê do dono. Só existe
+   *  quando category === "preference". */
+  owner_user_id: string | null;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;
@@ -3443,6 +3446,8 @@ export const api = {
     request<AgentMemory>(`/agent-memory/memories/${memoryId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   setAgentMemoryStatus: (memoryId: string, payload: { status: "active" | "archived"; reason: string }) =>
     request<AgentMemory>(`/agent-memory/memories/${memoryId}/status`, { method: "PATCH", body: JSON.stringify(payload) }),
+  setAgentMemoryOwner: (memoryId: string, payload: { is_personal: boolean; reason: string }) =>
+    request<AgentMemory>(`/agent-memory/memories/${memoryId}/owner`, { method: "PATCH", body: JSON.stringify(payload) }),
   listAgentMemoryRevisions: (memoryId: string) =>
     request<AgentMemoryRevision[]>(`/agent-memory/memories/${memoryId}/revisions`),
   listAgentSkills: (workspaceId?: string | null, includeGlobal = true, statusFilter?: AgentSkillStatus) => {
