@@ -6,6 +6,7 @@ import {
   Download,
   ExternalLink,
   FileClock,
+  Globe,
   GitBranch,
   Printer,
   Save,
@@ -20,7 +21,17 @@ import {
   type ProposalClaim,
   type ProposalDetail,
   type ProposalSummary,
+  type ProposalTranslation,
 } from "../../../lib/api";
+
+// Idioma do conteúdo, não da interface do Bioma (que continua pt-BR). O
+// original nasce no idioma do destinatário e é ELE que sai no link público —
+// a tradução aqui é só para a equipe interna ler.
+const LANGUAGE_LABELS: Record<string, string> = {
+  "pt-BR": "Português",
+  "en-US": "Inglês",
+  "es-ES": "Espanhol",
+};
 
 
 const NEXT_STATUS: Partial<Record<ProposalSummary["status"], ProposalSummary["status"][]>> = {
@@ -54,6 +65,12 @@ export function ProposalLifecycleDrawer({
   const [mode, setMode] = useState<"preview" | "markdown">("preview");
   const [markdown, setMarkdown] = useState("");
   const [claims, setClaims] = useState<ProposalClaim[]>([]);
+  // Nulo = mostrando o original. A edição (aba Markdown) sempre atua sobre o
+  // original — traduzir e editar ao mesmo tempo faria "onde eu edito?" virar
+  // pergunta sem resposta óbvia.
+  const [translation, setTranslation] = useState<ProposalTranslation | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [projectType, setProjectType] = useState<"tech" | "growth" | "social" | "general">("general");
   const [busy, setBusy] = useState("");
@@ -65,7 +82,45 @@ export function ProposalLifecycleDrawer({
     setDetail(next);
     setMarkdown(next.proposal.content_markdown);
     setClaims(next.proposal.claims);
+    // Editar invalida a tradução no servidor — uma tradução guardada no estado
+    // local continuaria mostrando o texto velho como se fosse atual.
+    setTranslation(null);
+    setTranslateError("");
   };
+
+  async function handleSetContentLanguage(language: string) {
+    if (!detail || language === detail.proposal.content_language) return;
+    setBusy("language");
+    setError("");
+    try {
+      // `updateProposal` devolve `ProposalSummary`, não o `ProposalDetail`
+      // completo — mais simples recarregar do que remontar o detail à mão.
+      await api.updateProposal(detail.proposal.id, { content_language: language });
+      await load(detail.proposal.id);
+      await onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível marcar o idioma.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function handleSelectLanguage(language: string) {
+    if (!detail) return;
+    if (language === detail.proposal.content_language) {
+      setTranslation(null);
+      return;
+    }
+    setTranslating(true);
+    setTranslateError("");
+    try {
+      setTranslation(await api.translateProposal(detail.proposal.id, language));
+    } catch (err) {
+      setTranslateError(err instanceof Error ? err.message : "Não foi possível traduzir agora.");
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   useEffect(() => {
     void load().catch((err) => setError(err instanceof Error ? err.message : "Falha ao carregar proposta."));
@@ -80,6 +135,7 @@ export function ProposalLifecycleDrawer({
         setDetail(result);
         setMarkdown(result.proposal.content_markdown);
         setClaims(result.proposal.claims);
+        setTranslation(null);
       }
       await onChanged();
     } catch (err) {
@@ -128,6 +184,21 @@ export function ProposalLifecycleDrawer({
               <span style={{ color: proposal.claims_review_status === "approved" ? "#10b981" : "#f59e0b", fontSize: "0.8rem" }}>
                 Alegações: {proposal.claims_review_status === "approved" ? "revisadas" : "pendentes"}
               </span>
+              <label
+                style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.8rem", color: "var(--text-dim)" }}
+                title="Idioma em que o conteúdo nasceu — é ele que sai no link público"
+              >
+                Conteúdo nasceu em
+                <select
+                  value={proposal.content_language}
+                  onChange={(event) => void handleSetContentLanguage(event.target.value)}
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  {Object.entries(LANGUAGE_LABELS).map(([code, label]) => (
+                    <option key={code} value={code}>{label}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             <h2 style={{ margin: "8px 0 3px" }}>{proposal.title || proposal.client_name}</h2>
             <span style={{ color: "var(--text-dim)" }}>{proposal.client_name} · {proposal.generation_mode === "live" ? "IA live" : proposal.generation_mode === "preview" ? "prévia assistida" : "manual"}</span>
@@ -150,13 +221,57 @@ export function ProposalLifecycleDrawer({
         <div style={{ padding: 20, maxHeight: "65vh", overflowY: "auto" }}>
           {tab === "proposal" ? (
             <div style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                 <button className={mode === "preview" ? "primary-button" : "secondary-button"} onClick={() => setMode("preview")}>Visualização</button>
                 <button className={mode === "markdown" ? "primary-button" : "secondary-button"} onClick={() => setMode("markdown")}>Markdown</button>
+
+                {mode === "preview" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+                    <Globe size={14} color="var(--text-dim)" />
+                    <select
+                      value={translation?.language ?? proposal.content_language}
+                      disabled={translating}
+                      onChange={(event) => void handleSelectLanguage(event.target.value)}
+                      title="O link público não muda de idioma — isto é só para a equipe ler"
+                    >
+                      {Object.entries(LANGUAGE_LABELS).map(([code, label]) => (
+                        <option key={code} value={code}>
+                          {label}
+                          {code === proposal.content_language ? " (original)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {translating && <span style={{ fontSize: 12, color: "var(--text-dim)" }}>traduzindo…</span>}
+                  </div>
+                )}
               </div>
+
+              {translateError && <div className="notice error">{translateError}</div>}
+
               {mode === "preview" ? (
                 <article className="surface" style={{ padding: 28, lineHeight: 1.65 }}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+                  {translation && (
+                    <div
+                      style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        marginBottom: 16, padding: "8px 12px", borderRadius: 8,
+                        background: "var(--surface-soft)", border: "1px dashed var(--border)",
+                        fontSize: 12.5, color: "var(--text-dim)",
+                      }}
+                    >
+                      <span>
+                        Tradução para {LANGUAGE_LABELS[translation.language] ?? translation.language} — o original é em{" "}
+                        {LANGUAGE_LABELS[proposal.content_language] ?? proposal.content_language}, e é ele que sai no
+                        link público.
+                      </span>
+                      <button className="secondary-button" style={{ flexShrink: 0 }} onClick={() => setTranslation(null)}>
+                        Ver original
+                      </button>
+                    </div>
+                  )}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {translation ? translation.content_markdown : markdown}
+                  </ReactMarkdown>
                 </article>
               ) : (
                 <textarea

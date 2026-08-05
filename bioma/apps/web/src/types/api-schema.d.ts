@@ -1755,6 +1755,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backoffice/proposals/{proposal_id}/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Translate Proposal
+         * @description Uso interno da EG — o link público nunca muda de idioma. Primeira
+         *     chamada naquele idioma traduz e guarda; as seguintes leem do cache.
+         */
+        post: operations["translate_proposal_backoffice_proposals__proposal_id__translate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backoffice/rh/managers/{manager_user_id}/portfolio": {
         parameters: {
             query?: never;
@@ -11578,6 +11599,11 @@ export interface components {
             }[];
             /** Client Name */
             client_name: string;
+            /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
             /** Contractor Name */
             contractor_name?: string | null;
             /** Decision Maker */
@@ -11802,6 +11828,11 @@ export interface components {
             /** Client Name */
             client_name: string;
             /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
+            /**
              * Content Markdown
              * @default
              */
@@ -11947,6 +11978,13 @@ export interface components {
             }[];
             /** Client Name */
             client_name: string;
+            /**
+             * Content Language
+             * @default pt-BR
+             */
+            content_language: string;
+            /** Content Markdown */
+            content_markdown?: string | null;
             /** Contractor Name */
             contractor_name?: string | null;
             /**
@@ -12049,12 +12087,64 @@ export interface components {
             /** Workspace Id */
             workspace_id?: string | null;
         };
+        /** ProposalTranslateRequest */
+        ProposalTranslateRequest: {
+            /** Language */
+            language: string;
+        };
+        /**
+         * ProposalTranslation
+         * @description Tradução em cache. `generation_mode` é sempre 'live' aqui — tradução
+         *     nunca aceita prévia local (ver bioma_worker/translation.py).
+         */
+        ProposalTranslation: {
+            /** Content Markdown */
+            content_markdown: string;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Generation Mode
+             * @constant
+             */
+            generation_mode: "live";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Language */
+            language: string;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Provider */
+            provider: string | null;
+            /** Title */
+            title: string;
+        };
         /** ProposalUpdatePayload */
         ProposalUpdatePayload: {
             /** Additional Context */
             additional_context?: string | null;
             /** Client Name */
             client_name?: string | null;
+            /** Content Language */
+            content_language?: string | null;
             /** Contractor Name */
             contractor_name?: string | null;
             /** Decision Maker */
@@ -18628,6 +18718,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProposalDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translate_proposal_backoffice_proposals__proposal_id__translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalTranslateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalTranslation"];
                 };
             };
             /** @description Validation Error */

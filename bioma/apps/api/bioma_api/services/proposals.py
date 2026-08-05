@@ -4,8 +4,11 @@ from fastapi import HTTPException, status
 
 from bioma_api.access import require_platform_admin
 from bioma_api.db import connect
+from bioma_api.model_pricing import cost_cents
 from bioma_api.proposal_catalog import SERVICE_GROUPS, proposal_catalog
 from bioma_api.proposal_documents import render_proposal_markdown
+from bioma_api.repositories import proposal_lifecycle as proposal_lifecycle_repo
+from bioma_api.repositories import proposal_translations as translations_repo
 from bioma_api.repositories import proposals as proposals_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.proposals import (
@@ -17,10 +20,12 @@ from bioma_api.schemas.proposals import (
     ProposalBriefCreatePayload,
     ProposalCreatePayload,
     ProposalSummary,
+    ProposalTranslateRequest,
+    ProposalTranslation,
     ProposalUpdatePayload,
     PublicProposalResponse,
 )
-from bioma_api.worker_bridge import execute_squad_pipeline_safe
+from bioma_api.worker_bridge import execute_squad_pipeline_safe, translate_proposal_safe
 
 
 def _require_admin(user: CurrentUserResponse) -> None:
@@ -471,7 +476,60 @@ def update_proposal(proposal_id: UUID, payload: ProposalUpdatePayload, user: Cur
         row = proposals_repo.update_proposal(conn, proposal_id, updates)
         if not row:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta não encontrada.")
+        # Editar o original invalida TODO o cache de tradução — tradução
+        # desatualizada lida como se fosse atual é pior que reprocessar.
+        translations_repo.invalidate(conn, proposal_id)
     return ProposalSummary(**row)
+
+
+def translate_proposal(proposal_id: UUID, payload: ProposalTranslateRequest, user: CurrentUserResponse) -> ProposalTranslation:
+    """Primeira leitura naquele idioma traduz e guarda; da segunda em diante é
+    leitura de banco. `update_proposal` apaga o cache quando o original muda."""
+    _require_admin(user)
+    with connect() as conn:
+        proposal = proposal_lifecycle_repo.get_proposal(conn, proposal_id)
+        if not proposal:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposta não encontrada.")
+
+        cached = translations_repo.get_cached(conn, proposal_id, payload.language)
+        if cached:
+            return ProposalTranslation(**cached)
+
+    content_markdown = proposal.get("content_markdown") or render_proposal_markdown(proposal)
+    try:
+        result = translate_proposal_safe(
+            {
+                "title": proposal.get("title") or proposal["client_name"],
+                "content_markdown": content_markdown,
+                "target_language": payload.language,
+            }
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível traduzir agora. Tente novamente em instantes.",
+        ) from exc
+
+    output = result["output"]
+    usage = result.get("usage") or {}
+    with connect() as conn:
+        saved = translations_repo.save(
+            conn,
+            {
+                "proposal_id": proposal_id,
+                "language": payload.language,
+                "title": output["title"],
+                "content_markdown": output["content_markdown"],
+                "generation_mode": result["generation_mode"],
+                "provider": result.get("provider"),
+                "model": result.get("model"),
+                "input_tokens": usage.get("input_tokens"),
+                "output_tokens": usage.get("output_tokens"),
+                "cost_cents": cost_cents(result.get("model"), usage.get("input_tokens"), usage.get("output_tokens")),
+                "created_by": user.id,
+            },
+        )
+    return ProposalTranslation(**saved)
 
 
 def get_public_proposal(public_token: str) -> PublicProposalResponse:

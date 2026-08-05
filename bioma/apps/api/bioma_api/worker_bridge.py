@@ -142,6 +142,17 @@ def platform_study_helpers() -> tuple[Any, Any]:
     return derive_name, test_priority
 
 
+def translate_proposal_safe(payload: dict[str, Any]) -> dict[str, Any]:
+    """Traduz uma proposta. Deixa a exceção subir — sem chave, o serviço vira
+    erro visível, nunca uma tradução falsa com cara de traduzida."""
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.translation import translate_proposal
+
+    return translate_proposal(payload, get_settings())
+
+
 def copilot_action_catalog() -> dict[str, Any]:
     """Catalogo de acoes do copiloto. Fonte unica: o worker. A API valida
     reversibilidade contra ele antes de executar qualquer coisa."""

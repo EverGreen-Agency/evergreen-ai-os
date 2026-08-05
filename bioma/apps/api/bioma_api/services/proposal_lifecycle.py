@@ -12,6 +12,7 @@ from bioma_api.proposal_catalog import SERVICE_GROUPS
 from bioma_api.proposal_documents import render_proposal_markdown, render_proposal_pdf
 from bioma_api.repositories import projects as projects_repo
 from bioma_api.repositories import proposal_lifecycle as lifecycle_repo
+from bioma_api.repositories import proposal_translations as translations_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.projects import (
     ContractCreate,
@@ -101,6 +102,11 @@ def update_content(
             user.id,
             {"claims_count": len(payload.claims)},
         )
+        # É este o caminho que a tela de edição realmente usa (o `update_proposal`
+        # de `services/proposals.py` é outro fluxo) — sem invalidar aqui, editar
+        # o conteúdo pela tela não derrubaria a tradução em cache, e ela ficaria
+        # mostrando o texto antigo como se fosse atual.
+        translations_repo.invalidate(conn, proposal_id)
     return get_detail(proposal_id, user)
 
 

@@ -3389,6 +3389,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ content_markdown: contentMarkdown, claims }),
     }),
+  translateProposal: (proposalId: string, language: string) =>
+    request<ProposalTranslation>(`/backoffice/proposals/${proposalId}/translate`, {
+      method: "POST",
+      body: JSON.stringify({ language }),
+    }),
   reviewProposalClaims: (proposalId: string, status: "approved" | "rejected", note?: string) =>
     request<ProposalDetail>(`/backoffice/proposals/${proposalId}/claims-review`, {
       method: "POST",
@@ -3692,6 +3697,8 @@ export type ProposalSummary = {
   workspace_id: string | null;
   series_id: string | null;
   version: number;
+  /** Idioma em que o CONTEÚDO nasceu — não o idioma da interface. */
+  content_language: string;
   title: string | null;
   client_name: string;
   target_niche: string | null;
@@ -3723,6 +3730,22 @@ export type ProposalSummary = {
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ProposalTranslation = {
+  id: string;
+  proposal_id: string;
+  language: string;
+  title: string;
+  content_markdown: string;
+  generation_mode: "live";
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_cents: number | null;
+  created_by: string | null;
+  created_at: string;
 };
 
 export type ProposalClaim = {
@@ -4071,7 +4094,7 @@ export type ProposalUpdatePayload = Partial<Pick<
   "pricing_cents" | "delivery_days" | "contractor_name" |
   "team_members" | "special_requirements" | "estimated_budget" |
   "payment_terms" | "urgency" | "decision_maker" | "problem_summary" |
-  "additional_context"
+  "additional_context" | "content_language"
 >>;
 
 export type PublicProposalResponse = {
