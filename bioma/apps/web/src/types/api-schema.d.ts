@@ -7423,6 +7423,36 @@ export interface components {
              */
             why: string;
         };
+        /**
+         * CopilotQuotaBucket
+         * @description Um limite da conta — Codex e Claude reportam mais de um (janela curta e
+         *     longa, por família de modelo). `source`/`confidence` vêm de quem mediu:
+         *     `provider_api` + `authoritative` é o próprio provedor dizendo; qualquer
+         *     outra coisa é estimativa e a tela precisa deixar isso visível.
+         */
+        CopilotQuotaBucket: {
+            /** Bucket Key */
+            bucket_key: string;
+            /** Confidence */
+            confidence: string;
+            /**
+             * Measured At
+             * Format: date-time
+             */
+            measured_at: string;
+            /** Model Id */
+            model_id: string | null;
+            /** Remaining Percent */
+            remaining_percent: string | null;
+            /** Resets At */
+            resets_at: string | null;
+            /** Scope */
+            scope: string;
+            /** Source */
+            source: string;
+            /** Unit */
+            unit: string;
+        };
         /** CopilotRequest */
         CopilotRequest: {
             /**
@@ -7480,6 +7510,20 @@ export interface components {
              * Format: uuid
              */
             thread_id: string;
+        };
+        /** CopilotRoutedAccountQuota */
+        CopilotRoutedAccountQuota: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Buckets */
+            buckets?: components["schemas"]["CopilotQuotaBucket"][];
+            /** Channel */
+            channel: string;
+            /** Display Name */
+            display_name: string;
         };
         /** CopilotRunStep */
         CopilotRunStep: {
@@ -7559,6 +7603,7 @@ export interface components {
             output_tokens: number | null;
             /** Provider */
             provider: string | null;
+            routed_account?: components["schemas"]["CopilotRoutedAccountQuota"] | null;
             /** Skills Used */
             skills_used?: string[];
             /** Sources */
@@ -7643,6 +7688,10 @@ export interface components {
             output_tokens: number;
             /** Preview Runs */
             preview_runs: number;
+            /** Routed Accounts */
+            routed_accounts?: components["schemas"]["CopilotRoutedAccountQuota"][];
+            /** Routed Runs */
+            routed_runs: number;
             /** Runs */
             runs: number;
             /** Runs Without Cost */

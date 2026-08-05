@@ -1356,22 +1356,53 @@ export type CopilotRunTrace = {
   }[];
   input_tokens: number | null;
   output_tokens: number | null;
-  /** Nulo = modelo sem preço conhecido. Nunca estimado. */
+  /** Nulo = sem custo em dinheiro conhecido — modelo sem preço, ou (quando
+   *  `routed_account` está preenchido) rodou na cota da assinatura, que não é
+   *  cobrada por token. Nunca estimado. */
   cost_cents: number | null;
   duration_ms: number | null;
   created_at: string;
   steps: CopilotRunStep[];
+  /** Preenchido quando a execução rodou por uma conta de assinatura (Codex
+   *  CLI, Claude Code CLI) em vez da chave de API. */
+  routed_account: CopilotRoutedAccountQuota | null;
+};
+
+export type CopilotQuotaBucket = {
+  bucket_key: string;
+  scope: string;
+  model_id: string | null;
+  remaining_percent: number | null;
+  unit: string;
+  resets_at: string | null;
+  /** `provider_api` + `authoritative` = o próprio provedor reportou. Qualquer
+   *  outra coisa é estimativa, e a tela precisa deixar isso visível. */
+  source: string;
+  confidence: string;
+  measured_at: string;
+};
+
+export type CopilotRoutedAccountQuota = {
+  account_id: string;
+  display_name: string;
+  channel: string;
+  /** Vazio = conta existe mas ainda sem coleta de cota — não é "sem cota". */
+  buckets: CopilotQuotaBucket[];
 };
 
 export type CopilotUsageSummary = {
   runs: number;
   failed_runs: number;
   preview_runs: number;
+  /** Execuções por CHAVE DE API sem preço na tabela — gap de verdade.
+   *  Execução roteada por assinatura sem custo em dinheiro NÃO conta aqui. */
   runs_without_cost: number;
+  routed_runs: number;
   input_tokens: number;
   output_tokens: number;
   cost_cents: number;
   avg_duration_ms: number;
+  routed_accounts: CopilotRoutedAccountQuota[];
 };
 
 // --- Estudo de plataformas (build vs. buy) ---

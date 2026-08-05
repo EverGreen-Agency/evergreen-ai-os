@@ -22,12 +22,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import json
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 
 from fastapi.testclient import TestClient
 
 from bioma_api.db import connect
 from bioma_api.main import app
 from bioma_api.model_pricing import cost_cents
+from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.services import copilot as copilot_service
 from smoke_support import cleanup_smoke_data, create_smoke_workspace, grant_client_user, upsert_smoke_user
 
@@ -241,6 +244,85 @@ def main() -> None:
         steps_of_failed = admin.get(f"/copilot/runs/{row['id']}").json()["steps"]
         assert any(s["kind"] == "plan" and s["status"] == "failed" for s in steps_of_failed), steps_of_failed
         print("falha do modelo: execucao fechada como failed, com a etapa marcada OK")
+
+        # 7b) Execução roteada por conta de assinatura: NUNCA aplica preço por
+        # token — nem quando o model_id da conta coincide por acaso com um
+        # nome que TEM preço em model_pricing.py (era exatamente esse o bug:
+        # uma execução de assinatura ganhando custo em dólar inventado). E a
+        # trilha mostra a cota REAL da conta, lida na hora, não uma cópia
+        # congelada de quando a execução rodou.
+        with connect() as conn:
+            tenant_id = workspaces_repo.find_eg_tenant_id(conn)
+            account_row = conn.execute(
+                """
+                insert into ai_provider_accounts
+                  (organization_id, provider, channel, display_name, auth_mode, execution_mode, status)
+                values (%s, 'anthropic', 'claude_code', 'Smoke Claude Assinatura', 'claude_subscription', 'local_cli', 'active')
+                returning id
+                """,
+                (tenant_id,),
+            ).fetchone()
+            account_id = account_row["id"]
+            resets_at = datetime.now(timezone.utc) + timedelta(days=3)
+            conn.execute(
+                """
+                insert into ai_quota_buckets
+                  (account_id, bucket_key, scope, used_percent, remaining_percent, unit, resets_at, source, confidence)
+                values (%s, 'claude:weekly', 'account', %s, %s, 'percent', %s, 'provider_api', 'authoritative')
+                """,
+                (account_id, Decimal("62"), Decimal("38"), resets_at),
+            )
+
+        fake_candidate = {
+            "account_id": account_id,
+            "account_name": "Smoke Claude Assinatura",
+            "channel": "claude_code",
+            "model_id": "gpt-4o-mini",  # tem preço na tabela — é o caso que expõe o bug.
+        }
+        original_candidates = copilot_service._routing_candidates
+        original_routed_plan = copilot_service.copilot_plan_routed_safe
+        copilot_service._routing_candidates = lambda: [fake_candidate]
+        copilot_service.copilot_plan_routed_safe = lambda plan_request, candidate: {
+            "output": {"answer": "rodei na assinatura", "actions": [], "sources": [], "confidence": "alta", "skills_used": []},
+            "generation_mode": "live",
+            "provider": "anthropic",
+            "model": "gpt-4o-mini",
+            "usage": {"input_tokens": 500, "output_tokens": 80},
+            "cost_cents": None,  # só a CLI do Claude reporta custo; aqui simula uma que não reportou.
+            "routed_account": {"account_id": account_id, "channel": "claude_code", "display_name": "Smoke Claude Assinatura"},
+        }
+        try:
+            routed_response = admin.post(
+                "/copilot", json={"message": "usa a assinatura", "surface": "workspace", "workspace_id": workspace_id}
+            )
+            assert_status(routed_response, 200, "execucao roteada")
+            thread_ids.append(routed_response.json()["thread_id"])
+            routed_trace = admin.get(f"/copilot/runs/{routed_response.json()['run_id']}").json()
+            assert routed_trace["cost_cents"] is None, (
+                f"execucao roteada por assinatura nao pode ganhar preco por token mesmo com model_id coincidindo: {routed_trace}"
+            )
+            assert routed_trace["input_tokens"] == 500 and routed_trace["output_tokens"] == 80, routed_trace
+            assert routed_trace["routed_account"] is not None, routed_trace
+            assert routed_trace["routed_account"]["display_name"] == "Smoke Claude Assinatura", routed_trace["routed_account"]
+            bucket = routed_trace["routed_account"]["buckets"][0]
+            assert abs(float(bucket["remaining_percent"]) - 38.0) < 0.01, bucket
+            assert bucket["source"] == "provider_api" and bucket["confidence"] == "authoritative", bucket
+            print("execucao roteada: sem custo em dolar falso, cota real da conta aparece na trilha OK")
+
+            usage_routed = admin.get("/copilot/usage?days=1&mine_only=true").json()
+            assert usage_routed["routed_runs"] >= 1, usage_routed
+            matching_account = next(
+                (item for item in usage_routed["routed_accounts"] if item["account_id"] == str(account_id)), None
+            )
+            assert matching_account is not None, usage_routed["routed_accounts"]
+            assert matching_account["buckets"], "conta roteada no agregado deveria trazer a cota atual"
+            print(f"agregado: {usage_routed['routed_runs']} execucao(oes) roteada(s), cota da conta presente OK")
+        finally:
+            copilot_service._routing_candidates = original_candidates
+            copilot_service.copilot_plan_routed_safe = original_routed_plan
+            with connect() as conn:
+                conn.execute("delete from ai_quota_buckets where account_id = %s", (account_id,))
+                conn.execute("delete from ai_provider_accounts where id = %s", (account_id,))
 
         # 8) Consumo agregado.
         copilot_service.copilot_plan_safe = original_plan

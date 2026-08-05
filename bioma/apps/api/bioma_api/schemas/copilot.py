@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
 
@@ -96,6 +97,31 @@ class CopilotRunStep(BaseModel):
     duration_ms: int | None
 
 
+class CopilotQuotaBucket(BaseModel):
+    """Um limite da conta — Codex e Claude reportam mais de um (janela curta e
+    longa, por família de modelo). `source`/`confidence` vêm de quem mediu:
+    `provider_api` + `authoritative` é o próprio provedor dizendo; qualquer
+    outra coisa é estimativa e a tela precisa deixar isso visível."""
+    bucket_key: str
+    scope: str
+    model_id: str | None
+    remaining_percent: Decimal | None
+    unit: str
+    resets_at: datetime | None
+    source: str
+    confidence: str
+    measured_at: datetime
+
+
+class CopilotRoutedAccountQuota(BaseModel):
+    account_id: UUID
+    display_name: str
+    channel: str
+    # Vazio = conta existe mas ainda não tem coleta de cota rodada. Não é erro,
+    # é "ainda não medimos" — diferente de "não sobrou nada".
+    buckets: list[CopilotQuotaBucket] = Field(default_factory=list)
+
+
 class CopilotRunTrace(BaseModel):
     """O que aconteceu numa execução. Não é o que o copiloto disse que fez."""
     id: UUID
@@ -119,24 +145,36 @@ class CopilotRunTrace(BaseModel):
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     input_tokens: int | None
     output_tokens: int | None
-    # Nulo = modelo sem preço conhecido em `model_pricing.py`. Nunca estimado.
+    # Nulo = sem custo em dinheiro conhecido — ou o modelo não está em
+    # `model_pricing.py`, ou (quando `routed_account` abaixo está preenchido) a
+    # execução rodou na cota da assinatura, que não é cobrada por token.
     cost_cents: int | None
     duration_ms: int | None
     created_at: datetime
     steps: list[CopilotRunStep] = Field(default_factory=list)
+    # Preenchido quando a execução rodou por uma conta do plano de roteamento
+    # (Codex CLI, Claude Code CLI) em vez da chave de API.
+    routed_account: CopilotRoutedAccountQuota | None = None
 
 
 class CopilotUsageSummary(BaseModel):
     runs: int
     failed_runs: int
     preview_runs: int
-    # Execuções ao vivo cujo modelo não tem preço na tabela — ficam de fora do
-    # total em vez de entrarem como zero.
+    # Execuções por CHAVE DE API cujo modelo não está na tabela de preços — gap
+    # de verdade. Execução roteada por assinatura sem custo em dinheiro NÃO
+    # entra aqui (ver `routed_runs`): não ter preço por token é o esperado.
     runs_without_cost: int
+    # Quantas execuções rodaram na cota da assinatura em vez da chave de API.
+    routed_runs: int
     input_tokens: int
     output_tokens: int
     cost_cents: int
     avg_duration_ms: int
+    # Contas de assinatura que atenderam nesta janela, com a cota ATUAL de
+    # cada uma (não uma foto de quando a execução rodou — cota é estado
+    # presente, e o que importa é "quanto sobra agora").
+    routed_accounts: list[CopilotRoutedAccountQuota] = Field(default_factory=list)
 
 
 class CopilotCommand(BaseModel):

@@ -199,6 +199,23 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
         # execução) vale mais que a nossa tabela de preços — é o número que ele
         # cobrou, não o que calculamos.
         reported_cost = result.get("cost_cents")
+        routed_account = result.get("routed_account")
+
+        if routed_account is not None:
+            # Rodou na cota da assinatura — nunca aplicar `model_pricing.py`
+            # aqui. Aquela tabela é preço por token da API paga; o `model_id`
+            # de uma conta de assinatura pode coincidir por acaso com um nome
+            # de modelo precificado ali, e isso produziria um custo em dólar
+            # FALSO para uma execução que não é cobrada por token — o inverso
+            # exato do que a trilha existe para evitar. Só o que a própria CLI
+            # reportou (Claude Code) é dinheiro real; o resto fica em branco,
+            # e quem quer saber "quanto gastei" olha a cota, não um valor
+            # inventado.
+            final_cost = reported_cost
+        else:
+            final_cost = (
+                reported_cost if reported_cost is not None else cost_cents(model, input_tokens, output_tokens)
+            )
 
         _close_run(
             run_row["id"],
@@ -219,12 +236,9 @@ def run(payload: CopilotRequest, user: CurrentUserResponse) -> CopilotResponse:
                 "attachments": attachments_for_trace,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "cost_cents": (
-                    reported_cost
-                    if reported_cost is not None
-                    else cost_cents(model, input_tokens, output_tokens)
-                ),
+                "cost_cents": final_cost,
                 "duration_ms": _elapsed_ms(started),
+                "routed_account_id": routed_account.get("account_id") if routed_account else None,
             },
         )
 
