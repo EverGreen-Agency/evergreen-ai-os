@@ -1,4 +1,4 @@
-# Conectar o Bioma ao ChatGPT Web
+# Conectar o Bioma ao ChatGPT
 
 Serve para conversar no ChatGPT (na sua assinatura, sem gastar API) e o ChatGPT
 ler e escrever no Bioma: buscar tarefa, criar, atualizar, comentar.
@@ -8,12 +8,24 @@ dentro do Bioma rodar na assinatura do ChatGPT — ele continua precisando de
 chave de API ou das CLIs de assinatura. O ganho é você trabalhar dentro do
 ChatGPT e o Bioma continuar sendo o sistema de registro.
 
-## Antes de começar
+## Onde isso funciona (corrigido em 2026-08-06)
 
-- Plano **Plus, Pro, Business, Enterprise ou Edu**. Conta free não tem conector
-  próprio.
-- A API do Bioma precisa estar publicada em **HTTPS** (já está, na Railway).
-  Não precisa de túnel — túnel só serve para testar contra `localhost`.
+A primeira versão deste documento dizia "ChatGPT Web → Developer mode → custom
+connector". **Estava errado.** Aquilo veio de artigos de terceiros; a
+documentação oficial (`learn.chatgpt.com/docs/extend/mcp`) diz o contrário:
+
+| Superfície | Conecta servidor MCP próprio? |
+|---|---|
+| **App desktop** | **Sim, direto** — Configurações → MCP servers → Add server |
+| ChatGPT Web | **Não diretamente.** Web usa *plugins* |
+| Plugin (web ou desktop) | Sim, mas exige **ChatGPT Work** e passa por publicação/revisão na OpenAI |
+
+**Use o app desktop.** É o caminho oficial, não precisa publicar nada, não
+precisa de plano Work, e aceita exatamente o que o Bioma expõe: transporte
+**Streamable HTTP** e autenticação por **Bearer token**.
+
+Pré-requisito: a API do Bioma publicada em **HTTPS** (já está, na Railway).
+Não precisa de túnel — túnel só serviria para testar contra `localhost`.
 
 ## 1. Gerar seu token pessoal
 
@@ -23,7 +35,7 @@ No Bioma: **Configurações → Tokens de Acesso Pessoal → Gerar token**. Ou p
 curl -X POST https://api.bioma.<seu-dominio>/auth/personal-access-tokens \
   -H "Content-Type: application/json" \
   -b "bioma_session=<seu-cookie>" \
-  -d '{"name": "ChatGPT Web"}'
+  -d '{"name": "ChatGPT desktop"}'
 ```
 
 O token aparece **uma vez** (`bioma_pat_...`). Guarde na hora.
@@ -31,24 +43,22 @@ O token aparece **uma vez** (`bioma_pat_...`). Guarde na hora.
 O ChatGPT passa a enxergar exatamente o que **você** enxerga — o token carrega
 suas permissões, não mais que isso. Revogar o token corta o acesso na hora.
 
-## 2. Ligar o Developer mode no ChatGPT
+## 2. Adicionar o servidor no app desktop
 
-**Configurações → Apps (Conectores) → Advanced settings → Developer mode.**
-
-## 3. Adicionar o conector
-
-**Configurações → Apps → Criar / Add custom connector:**
+**Configurações → MCP servers → Add server:**
 
 | Campo | Valor |
 |---|---|
 | Nome | `Bioma` |
-| URL do servidor MCP | `https://api.bioma.<seu-dominio>/mcp` |
-| Autenticação | API key / Access token |
+| Tipo | **Streamable HTTP** (não STDIO — o Bioma é remoto) |
+| URL | `https://api.bioma.<seu-dominio>/mcp` |
+| Autenticação | **Bearer token** |
 | Token | o `bioma_pat_...` do passo 1 |
 
-Se o modo de autenticação não bater com o que o servidor espera, o ChatGPT
-rejeita **em silêncio** — se o conector não listar ferramenta nenhuma, é quase
-sempre isso.
+Salve e escolha **Restart**.
+
+Se o tipo ou a autenticação não baterem, o ChatGPT rejeita **em silêncio** — se
+o servidor não listar ferramenta nenhuma, é quase sempre isso.
 
 ## 4. Testar
 

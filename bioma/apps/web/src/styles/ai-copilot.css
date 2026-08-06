@@ -1161,18 +1161,22 @@
 }
 .copilot-attach {
   width: 34px;
-  border-radius: 7px;
-  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  /* Mesma correcao do textarea: --border-color/--text-normal/--surface-sunken
+   * nao existem em tokens.css. */
+  border: 1px solid var(--border-strong);
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 .copilot-attach:hover {
-  color: var(--text-normal);
-  background: var(--surface-sunken);
+  border-color: var(--mint-soft);
+  color: var(--text);
+  background: rgba(255, 244, 199, 0.06);
 }
 .copilot-attach.listening {
   border-color: #ff5252;
@@ -1186,16 +1190,38 @@
 @keyframes copilot-pulse {
   50% { opacity: 0.45; }
 }
+/* Tokens reais (tokens.css). As regras antigas usavam --border-color,
+ * --surface-sunken e --text-normal, que NAO existem — o CSS invalido era
+ * descartado em silencio e a caixa ficava sem borda e sem fundo. Era por isso
+ * que o campo "sumia" no painel, nao por falta de estilo escrito. */
 .copilot-composer textarea {
   flex: 1;
   resize: none;
-  padding: 8px;
-  border-radius: 7px;
-  border: 1px solid var(--border-color);
-  background: var(--surface-sunken);
-  color: var(--text-normal);
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 244, 199, 0.04);
+  color: var(--text);
   font-size: 13px;
   font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.copilot-composer textarea::placeholder {
+  color: var(--text-faint);
+}
+
+/* O campo e' a acao principal do painel: precisa parecer clicavel parado e
+ * inequivocamente ativo no foco. */
+.copilot-composer textarea:hover {
+  border-color: var(--mint-soft);
+}
+
+.copilot-composer textarea:focus {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px rgba(58, 201, 123, 0.18);
+  background: rgba(255, 244, 199, 0.06);
+  outline: none;
 }
 .copilot-composer button[type="submit"] {
   width: 36px;
