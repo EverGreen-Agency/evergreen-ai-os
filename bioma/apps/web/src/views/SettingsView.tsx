@@ -241,7 +241,7 @@ export function SettingsView() {
             gap: '24px',
             padding: '24px',
             borderRadius: '16px',
-            background: 'var(--bg-surface)',
+            background: 'var(--surface)',
             boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
             border: '1px solid var(--border-light)'
           }}>
@@ -602,6 +602,9 @@ function SessionsManagerCard() {
           {sessions.map((session) => {
             const createdDate = session.created_at ? new Date(session.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Desconhecido";
             const expiresDate = session.expires_at ? new Date(session.expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "30 dias";
+            const lastSeen = session.last_seen_at
+              ? new Date(session.last_seen_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+              : "sem registro";
             return (
               <div
                 key={session.id}
@@ -610,7 +613,7 @@ function SessionsManagerCard() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "12px 16px",
-                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--surface-sunken)",
+                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--bg-inset)",
                   border: `1px solid ${session.is_current ? "rgba(58, 201, 123, 0.3)" : "var(--border)"}`,
                   borderRadius: "8px",
                 }}
@@ -619,7 +622,7 @@ function SessionsManagerCard() {
                   <Laptop size={20} color={session.is_current ? "var(--brand-accent)" : "var(--text-dim)"} />
                   <div>
                     <strong style={{ fontSize: "0.9rem", color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
-                      Navegador / Dispositivo Web
+                      {session.device_label}
                       {session.is_current && (
                         <span style={{ fontSize: "0.72rem", background: "rgba(58, 201, 123, 0.2)", color: "var(--mint)", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
                           ESTE DISPOSITIVO (SESSÃO ATUAL)
@@ -627,7 +630,7 @@ function SessionsManagerCard() {
                       )}
                     </strong>
                     <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginTop: 2 }}>
-                      Conectado em: {createdDate} • Válido até: {expiresDate}
+                      Conectado em: {createdDate} • Último uso: {lastSeen} • Válido até: {expiresDate}
                     </span>
                   </div>
                 </div>
@@ -709,7 +712,7 @@ function PersonalAccessTokensCard() {
             Copie agora — ele não será mostrado de novo:
           </strong>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <code style={{ flex: 1, fontSize: "0.8rem", wordBreak: "break-all", background: "var(--surface-sunken)", padding: "6px 10px", borderRadius: 6 }}>
+            <code style={{ flex: 1, fontSize: "0.8rem", wordBreak: "break-all", background: "var(--bg-inset)", padding: "6px 10px", borderRadius: 6 }}>
               {justCreated}
             </code>
             <button className="mini-button" type="button" onClick={handleCopy}>
@@ -763,7 +766,7 @@ function PersonalAccessTokensCard() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "12px 16px",
-                background: "var(--surface-sunken)",
+                background: "var(--bg-inset)",
                 border: "1px solid var(--border)",
                 borderRadius: 8,
               }}

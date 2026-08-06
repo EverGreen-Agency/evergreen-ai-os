@@ -134,3 +134,20 @@ def create_activity_sync(
         """,
         (project_id, idempotency_key, Jsonb(snapshot), project_update_id, actor_user_id),
     ).fetchone()
+
+
+def list_deliverables_with_issues(conn, project_id: UUID) -> list[dict[str, Any]]:
+    """Entregas do projeto que já têm issue criada no GitHub.
+
+    Base da conciliação: sem isto não dá para saber quais entregas têm um
+    espelho lá fora cujo estado possa ter divergido.
+    """
+    return conn.execute(
+        """
+        select id, title, status, completed_at, github_issue_number, github_issue_url
+        from deliverables
+        where project_id = %s and github_issue_number is not null
+        order by github_issue_number
+        """,
+        (project_id,),
+    ).fetchall()

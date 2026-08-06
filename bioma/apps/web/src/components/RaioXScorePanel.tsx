@@ -15,10 +15,10 @@ interface RaioXScorePanelProps {
 }
 
 const MATURITY_LABELS: Record<string, { label: string; icon: string; desc: string; color: string }> = {
-  semente: { label: "Semente", icon: "🌱", desc: "Fase inicial — diagnóstico e primeiros fundamentos em construção", color: "var(--amber-500, #F59E0B)" },
-  muda: { label: "Muda", icon: "🌿", desc: "Estrutura comercial em consolidação com primeiras vitórias", color: "var(--mint-500, #3AC97B)" },
-  arvore: { label: "Árvore", icon: "🌳", desc: "Operação estruturada com previsibilidade e cadência constante", color: "var(--emerald-600, #10B981)" },
-  floresta: { label: "Floresta", icon: "🌲", desc: "Parceria madura em alta escala, composição contínua e expansão", color: "var(--emerald-400, #34D399)" },
+  semente: { label: "Semente", icon: "🌱", desc: "Fase inicial — diagnóstico e primeiros fundamentos em construção", color: "var(--amber, #F59E0B)" },
+  muda: { label: "Muda", icon: "🌿", desc: "Estrutura comercial em consolidação com primeiras vitórias", color: "var(--mint, #3AC97B)" },
+  arvore: { label: "Árvore", icon: "🌳", desc: "Operação estruturada com previsibilidade e cadência constante", color: "var(--mint-deep, #10B981)" },
+  floresta: { label: "Floresta", icon: "🌲", desc: "Parceria madura em alta escala, composição contínua e expansão", color: "var(--mint, #34D399)" },
 };
 
 const PILAR_QUESTIONS: Record<CommercialPilar, Record<number, Array<{ key: string; label: string; desc: string }>>> = {
@@ -141,8 +141,8 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
       {/* Header de Maturidade e Sistema Raiz */}
       <div
         style={{
-          background: "var(--card-bg, rgba(9, 35, 27, 0.6))",
-          border: "1px solid var(--border-color, rgba(255, 255, 255, 0.1))",
+          background: "var(--surface, rgba(9, 35, 27, 0.6))",
+          border: "1px solid var(--border, rgba(255, 255, 255, 0.1))",
           borderRadius: "12px",
           padding: "1.25rem",
           display: "flex",
@@ -170,7 +170,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
             textAlign: "right",
           }}
         >
-          <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--amber-400, #FBBF24)", fontWeight: 600 }}>
+          <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--amber, #FBBF24)", fontWeight: 600 }}>
             ⚡ Gargalo Prioritário (Plano 90 Dias)
           </div>
           <div style={{ fontSize: "1.1rem", fontWeight: 700, textTransform: "capitalize", color: "#FFF" }}>
@@ -191,10 +191,10 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
               style={{
                 background: isGargalo
                   ? "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(9, 35, 27, 0.8) 100%)"
-                  : "var(--card-bg, rgba(9, 35, 27, 0.5))",
+                  : "var(--surface, rgba(9, 35, 27, 0.5))",
                 border: isGargalo
                   ? "1px solid rgba(245, 158, 11, 0.5)"
-                  : "1px solid var(--border-color, rgba(255, 255, 255, 0.08))",
+                  : "1px solid var(--border, rgba(255, 255, 255, 0.08))",
                 borderRadius: "12px",
                 padding: "1.25rem",
                 display: "flex",
@@ -209,7 +209,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
                     position: "absolute",
                     top: "-10px",
                     right: "12px",
-                    background: "var(--amber-500, #F59E0B)",
+                    background: "var(--amber, #F59E0B)",
                     color: "#000",
                     fontSize: "0.7rem",
                     fontWeight: 800,
@@ -232,7 +232,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.9rem" }}>
                   <span style={{ opacity: 0.8 }}>Nota Atual</span>
-                  <span style={{ fontWeight: 700, color: p.score >= 5 ? "var(--mint-400, #3AC97B)" : "var(--amber-400, #FBBF24)" }}>
+                  <span style={{ fontWeight: 700, color: p.score >= 5 ? "var(--mint, #3AC97B)" : "var(--amber, #FBBF24)" }}>
                     {p.score.toFixed(1)} / 10
                   </span>
                 </div>
@@ -241,7 +241,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
                     style={{
                       width: `${percentage}%`,
                       height: "100%",
-                      background: p.score >= 5 ? "var(--mint-500, #3AC97B)" : "var(--amber-500, #F59E0B)",
+                      background: p.score >= 5 ? "var(--mint, #3AC97B)" : "var(--amber, #F59E0B)",
                       transition: "width 0.3s ease",
                     }}
                   />
@@ -294,7 +294,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
           <div
             style={{
               background: "#0E2F24",
-              border: "1px solid var(--border-color, rgba(255, 255, 255, 0.2))",
+              border: "1px solid var(--border, rgba(255, 255, 255, 0.2))",
               borderRadius: "12px",
               padding: "1.5rem",
               maxWidth: "600px",
@@ -320,7 +320,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
 
               return (
                 <div key={level} style={{ marginBottom: "1.25rem" }}>
-                  <h5 style={{ margin: "0 0 0.5rem 0", color: "var(--mint-400, #3AC97B)", fontSize: "0.95rem" }}>
+                  <h5 style={{ margin: "0 0 0.5rem 0", color: "var(--mint, #3AC97B)", fontSize: "0.95rem" }}>
                     Régua Nível {level} {level === 1 ? "(Fundação)" : "(Escala & Automação)"}
                   </h5>
 
@@ -352,7 +352,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
                               onChange={(e) =>
                                 handleSaveQuestion(activeModalPilar, level as 1 | 2, q.key, parseFloat(e.target.value))
                               }
-                              style={{ flex: 1, accentColor: "var(--mint-500, #3AC97B)" }}
+                              style={{ flex: 1, accentColor: "var(--mint, #3AC97B)" }}
                             />
                             <span style={{ fontWeight: 700, width: "45px", textAlign: "right" }}>{val.toFixed(1)}</span>
                           </div>
@@ -405,7 +405,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
             onSubmit={handleCreateSprint}
             style={{
               background: "#0E2F24",
-              border: "1px solid var(--border-color, rgba(255, 255, 255, 0.2))",
+              border: "1px solid var(--border, rgba(255, 255, 255, 0.2))",
               borderRadius: "12px",
               padding: "1.5rem",
               maxWidth: "500px",
@@ -465,7 +465,7 @@ export const RaioXScorePanel: React.FC<RaioXScorePanelProps> = ({
               <button
                 type="submit"
                 disabled={saving}
-                style={{ background: "var(--mint-500, #3AC97B)", border: "none", color: "#09231B", fontWeight: 700, borderRadius: "6px", padding: "0.5rem 1rem" }}
+                style={{ background: "var(--mint, #3AC97B)", border: "none", color: "#09231B", fontWeight: 700, borderRadius: "6px", padding: "0.5rem 1rem" }}
               >
                 {saving ? "Salvando..." : "Criar Sprint"}
               </button>

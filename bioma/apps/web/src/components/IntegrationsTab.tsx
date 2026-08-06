@@ -367,9 +367,9 @@ export function IntegrationsTab({
     width: "100%",
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "1px solid var(--border-color, rgba(255,255,255,0.15))",
-    background: "var(--surface-sunken, #0F172A)",
-    color: "var(--text-normal, #F8FAFC)",
+    border: "1px solid var(--border, rgba(255,255,255,0.15))",
+    background: "var(--bg-inset, #0F172A)",
+    color: "var(--text, #F8FAFC)",
     fontSize: "13px",
     boxSizing: "border-box",
   };
@@ -380,7 +380,7 @@ export function IntegrationsTab({
       {scope !== "client" && (
         <section>
           <div style={{ marginBottom: 16 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, color: "var(--text-normal, #F8FAFC)" }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, color: "var(--text, #F8FAFC)" }}>
               <Server size={18} /> Ambiente EverGreen
             </h3>
             <p style={{ color: "var(--text-muted, #94A3B8)", fontSize: 14, margin: "4px 0 0 0" }}>
@@ -408,7 +408,7 @@ export function IntegrationsTab({
         <section>
           <div style={{ marginBottom: 16, display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 260 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, color: "var(--text-normal, #F8FAFC)" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, color: "var(--text, #F8FAFC)" }}>
                 <Activity size={18} /> Conexões do cliente
               </h3>
               <p style={{ color: "var(--text-muted, #94A3B8)", fontSize: 14, margin: "4px 0 0 0" }}>
@@ -446,7 +446,7 @@ export function IntegrationsTab({
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                       <KommoIcon size={20} />
-                      <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>Kommo CRM</h4>
+                      <h4 style={{ margin: 0, fontSize: 15, color: "var(--text, #F8FAFC)" }}>Kommo CRM</h4>
                     </div>
                     <StatusPill variant={kommoConfig?.configured ? "connected" : "not_configured"}>
                       {kommoConfig?.configured ? "Configurado" : "Não configurado"}
@@ -547,7 +547,7 @@ export function IntegrationsTab({
                           <span style={{ display: "inline-flex", opacity: hasActive ? 1 : 0.5 }}>
                             <Icon size={20} />
                           </span>
-                          <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-normal, #F8FAFC)" }}>{meta.label}</h4>
+                          <h4 style={{ margin: 0, fontSize: 15, color: "var(--text, #F8FAFC)" }}>{meta.label}</h4>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           {providerConnections.length > 1 && (
@@ -793,7 +793,7 @@ export function IntegrationsTab({
                 </div>
 
                 {isEditingThis ? (
-                  <form onSubmit={handleSavePlatformConfig} style={{ display: "flex", flexDirection: "column", gap: 10, background: "var(--surface-sunken)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                  <form onSubmit={handleSavePlatformConfig} style={{ display: "flex", flexDirection: "column", gap: 10, background: "var(--bg-inset)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       <label style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>Status da Varredura</label>
                       <select

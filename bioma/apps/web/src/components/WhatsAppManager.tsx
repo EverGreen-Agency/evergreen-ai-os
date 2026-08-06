@@ -126,9 +126,9 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
     width: "100%",
     padding: "10px 14px",
     borderRadius: "8px",
-    border: "1px solid var(--border-color, rgba(255,255,255,0.15))",
-    background: "var(--surface-sunken, #0F172A)",
-    color: "var(--text-normal, #F8FAFC)",
+    border: "1px solid var(--border, rgba(255,255,255,0.15))",
+    background: "var(--bg-inset, #0F172A)",
+    color: "var(--text, #F8FAFC)",
     fontSize: "14px",
     outline: "none",
     boxSizing: "border-box",
@@ -185,8 +185,8 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
                   textAlign: "left",
                   padding: "16px",
                   borderRadius: "10px",
-                  border: isSelected ? "2px solid var(--brand-accent, #3B82F6)" : "1px solid var(--border-color, rgba(255,255,255,0.1))",
-                  background: isSelected ? "var(--surface-sunken, rgba(59, 130, 246, 0.08))" : "var(--surface-card, #1E293B)",
+                  border: isSelected ? "2px solid var(--brand-accent, #3B82F6)" : "1px solid var(--border, rgba(255,255,255,0.1))",
+                  background: isSelected ? "var(--bg-inset, rgba(59, 130, 246, 0.08))" : "var(--surface, #1E293B)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                   display: "flex",
@@ -196,7 +196,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
               >
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                    <strong style={{ fontSize: "14px", color: isSelected ? "var(--brand-accent, #3B82F6)" : "var(--text-normal, #F8FAFC)", fontWeight: 600 }}>
+                    <strong style={{ fontSize: "14px", color: isSelected ? "var(--brand-accent, #3B82F6)" : "var(--text, #F8FAFC)", fontWeight: 600 }}>
                       {opt.name}
                     </strong>
                     <StatusPill variant="paused">{opt.badge}</StatusPill>
@@ -216,7 +216,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
         </div>
 
         <form onSubmit={handleSaveProvider} style={{ display: "flex", flexDirection: "column", gap: "18px", paddingTop: "16px", borderTop: "1px solid var(--glass-border, rgba(255,255,255,0.1))" }}>
-          <h4 style={{ fontSize: "15px", fontWeight: 600, color: "var(--text-normal, #F8FAFC)", margin: 0 }}>
+          <h4 style={{ fontSize: "15px", fontWeight: 600, color: "var(--text, #F8FAFC)", margin: 0 }}>
             Configurar Conexão: <span style={{ color: "var(--brand-accent, #3B82F6)" }}>{selectedProvider.toUpperCase()}</span>
           </h4>
           
@@ -315,7 +315,7 @@ export function WhatsAppManager({ workspaceId }: { workspaceId: string }) {
           <div className="table-list" style={{ marginTop: "12px" }}>
             {logs.map((log) => (
               <div className="table-row" key={log.id}>
-                <strong style={{ color: "var(--text-normal, #F8FAFC)" }}>{log.to_number}</strong>
+                <strong style={{ color: "var(--text, #F8FAFC)" }}>{log.to_number}</strong>
                 <span>{log.provider_type.toUpperCase()} ({log.message_type})</span>
                 <span>{new Date(log.sent_at).toLocaleString("pt-BR")}</span>
                 <StatusPill variant={LOG_STATUS_VARIANT[log.status] ?? "paused"}>{log.status}</StatusPill>

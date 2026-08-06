@@ -403,7 +403,7 @@ export function ProposalsManager() {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {/* Toolbar de Filtros & Ações do Radar */}
           <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", background: "var(--surface)", padding: "14px 16px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-            <div style={{ flex: 1, minWidth: "220px", display: "flex", alignItems: "center", gap: "8px", background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+            <div style={{ flex: 1, minWidth: "220px", display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-inset)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
               <Search size={16} color="var(--text-dim)" />
               <input
                 type="text"
@@ -455,7 +455,7 @@ export function ProposalsManager() {
               style={{
                 padding: "8px 14px",
                 borderRadius: "8px",
-                background: "var(--surface-sunken)",
+                background: "var(--bg-inset)",
                 border: "1px solid var(--border)",
                 color: "var(--brand-accent)",
                 fontWeight: 600,
@@ -539,11 +539,11 @@ export function ProposalsManager() {
                 </p>
 
                 {opp.fit_analysis ? (
-                  <div style={{ background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px solid var(--border)" }}>
+                  <div style={{ background: "var(--bg-inset)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px solid var(--border)" }}>
                     💡 <strong>Avaliação:</strong> {opp.fit_analysis}
                   </div>
                 ) : (
-                  <div style={{ background: "var(--surface-sunken)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px dashed var(--border)" }}>
+                  <div style={{ background: "var(--bg-inset)", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", color: "var(--text-dim)", border: "1px dashed var(--border)" }}>
                     Ninguém avaliou esta vaga ainda. Use <strong>Avaliar com IA</strong> para comparar com o
                     que a EG sabe fazer (Tech Radar + inventário comercial + projetos concluídos).
                   </div>
@@ -723,25 +723,25 @@ export function ProposalsManager() {
 
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-dim)" }}>{prop.executive_summary}</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7, fontSize: "0.76rem" }}>
-                  <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>
+                  <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--bg-inset)" }}>
                     IA: {prop.generation_mode === "live" ? "execução live" : prop.generation_mode === "preview" ? "prévia local" : "manual"}
                   </span>
-                  {prop.delivery_modality && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>Modalidade: {prop.delivery_modality}</span>}
-                  {prop.selected_services.length > 0 && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>{prop.selected_services.length} serviço(s) no briefing</span>}
-                  {prop.estimated_budget && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--surface-sunken)" }}>Orçamento: {prop.estimated_budget}</span>}
+                  {prop.delivery_modality && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--bg-inset)" }}>Modalidade: {prop.delivery_modality}</span>}
+                  {prop.selected_services.length > 0 && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--bg-inset)" }}>{prop.selected_services.length} serviço(s) no briefing</span>}
+                  {prop.estimated_budget && <span style={{ padding: "3px 7px", borderRadius: 5, background: "var(--bg-inset)" }}>Orçamento: {prop.estimated_budget}</span>}
                 </div>
 
                 {/* Pilares da EG */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "4px" }}>
-                  <div style={{ background: "var(--surface-sunken)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                  <div style={{ background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <strong style={{ fontSize: "0.8rem", color: "var(--brand-accent)", display: "block", marginBottom: "4px" }}>Pilar 1: Oferta</strong>
                     <span style={{ fontSize: "0.8rem" }}>{prop.scope_offer || "Estratégia e posicionamento de valor."}</span>
                   </div>
-                  <div style={{ background: "var(--surface-sunken)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                  <div style={{ background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <strong style={{ fontSize: "0.8rem", color: "var(--brand-accent)", display: "block", marginBottom: "4px" }}>Pilar 2: Conversão</strong>
                     <span style={{ fontSize: "0.8rem" }}>{prop.scope_conversion || "Estrutura de vendas e tracking."}</span>
                   </div>
-                  <div style={{ background: "var(--surface-sunken)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                  <div style={{ background: "var(--bg-inset)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <strong style={{ fontSize: "0.8rem", color: "var(--brand-accent)", display: "block", marginBottom: "4px" }}>Pilar 3: Demanda</strong>
                     <span style={{ fontSize: "0.8rem" }}>{prop.scope_demand || "Escala de tráfego e prospecção."}</span>
                   </div>
@@ -915,7 +915,7 @@ export function ProposalsManager() {
                 <select
                   value={auditPlatform}
                   onChange={(e) => setAuditPlatform(e.target.value)}
-                  style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  style={{ padding: "10px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--text)" }}
                 >
                   <option value="workana">Workana</option>
                   <option value="upwork">UpWork</option>
@@ -935,7 +935,7 @@ export function ProposalsManager() {
                   value={auditProfileUrl}
                   onChange={(e) => setAuditProfileUrl(e.target.value)}
                   placeholder="Ex: https://www.workana.com/freelancer/seu-perfil ou https://linkedin.com/in/seu-perfil"
-                  style={{ padding: "10px 14px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.9rem" }}
+                  style={{ padding: "10px 14px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--text)", fontSize: "0.9rem" }}
                 />
               </div>
 
@@ -970,7 +970,7 @@ export function ProposalsManager() {
                       }}
                     >
                       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <span style={{ fontSize: "0.75rem", background: "var(--surface-sunken)", color: "var(--brand-accent)", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, alignSelf: "flex-start" }}>
+                        <span style={{ fontSize: "0.75rem", background: "var(--bg-inset)", color: "var(--brand-accent)", padding: "2px 6px", borderRadius: "4px", fontWeight: 600, alignSelf: "flex-start" }}>
                           {p.platform_key.toUpperCase()}
                         </span>
                         <strong style={{ fontSize: "0.95rem" }}>{p.profile_name || "Perfil Freelancer"}</strong>
@@ -1019,7 +1019,7 @@ export function ProposalsManager() {
                       <button
                         onClick={() => handleSyncProfile(selectedProfile.profile_url, selectedProfile.platform_key)}
                         disabled={isAuditing}
-                        style={{ padding: "8px 14px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--brand-accent)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+                        style={{ padding: "8px 14px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--brand-accent)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
                       >
                         <RefreshCw size={16} className={isAuditing ? "animate-spin" : ""} /> Re-Auditar
                       </button>
@@ -1051,7 +1051,7 @@ export function ProposalsManager() {
                   </div>
 
                   {/* Copy Otimizada */}
-                  <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <strong style={{ fontSize: "0.95rem", color: "var(--brand-accent)" }}>✨ Headline Sugerida de Alto Impacto:</strong>
                     <code style={{ background: "var(--surface)", padding: "10px", borderRadius: "6px", border: "1px solid var(--border)", color: "var(--text)", fontWeight: 600 }}>
                       {selectedProfile.audit_analysis.optimized_headline || "Especialista em Growth & Performance B2B"}
@@ -1143,7 +1143,7 @@ export function ProposalsManager() {
                 <div
                   key={s.id}
                   style={{
-                    background: "var(--surface-sunken)",
+                    background: "var(--bg-inset)",
                     border: "1px solid var(--border)",
                     borderRadius: "10px",
                     padding: "16px",

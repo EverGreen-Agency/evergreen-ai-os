@@ -27,6 +27,7 @@ from bioma_api.routers import (
     kits,
     local_radar,
     market_research,
+    mcp_http,
     oauth,
     passwords,
     performance,
@@ -124,6 +125,7 @@ app.include_router(proposal_lifecycle.public_router)
 app.include_router(sales_copilot.router)
 app.include_router(platform_studies.router)
 app.include_router(wins.router)
+app.include_router(mcp_http.router)
 
 
 @app.get("/")

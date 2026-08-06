@@ -159,8 +159,16 @@ def main() -> None:
     if failures:
         for label, output in failures:
             print(f"===== {label} =====")
-            print(output)
-            print()
+            # O console do Windows é cp1252 e explode em caractere fora dessa
+            # tabela (acento vindo de subprocesso vira U+FFFD). Isso derrubava o
+            # runner AQUI, no meio de imprimir o erro — e o traceback do
+            # UnicodeEncodeError aparecia NO LUGAR da falha real, escondendo a
+            # causa justamente quando ela importava.
+            sys.stdout.buffer.write(
+                output.encode(sys.stdout.encoding or "utf-8", errors="replace")
+            )
+            sys.stdout.buffer.write(b"\n\n")
+            sys.stdout.flush()
         print(f"{len(failures)} de {len(smokes)} smoke(s) falharam.")
         sys.exit(1)
 

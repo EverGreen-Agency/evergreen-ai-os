@@ -173,7 +173,7 @@ export function ProposalWizard({ onClose, onCreated }: Props) {
               </div>
               <div style={{ display: "grid", gap: 8 }}>
                 {filteredClients.map((client) => (
-                  <button key={client.id} type="button" onClick={() => setWorkspaceId(client.id)} style={{ padding: 14, textAlign: "left", borderRadius: 8, border: `1px solid ${workspaceId === client.id ? "var(--brand-accent)" : "var(--border)"}`, background: workspaceId === client.id ? "rgba(58, 201, 123, 0.10)" : "var(--surface-sunken)", color: "var(--text)", cursor: "pointer" }}>
+                  <button key={client.id} type="button" onClick={() => setWorkspaceId(client.id)} style={{ padding: 14, textAlign: "left", borderRadius: 8, border: `1px solid ${workspaceId === client.id ? "var(--brand-accent)" : "var(--border)"}`, background: workspaceId === client.id ? "rgba(58, 201, 123, 0.10)" : "var(--bg-inset)", color: "var(--text)", cursor: "pointer" }}>
                     <strong>{client.organization_name}</strong>
                     <span style={{ display: "block", color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 3 }}>
                       {client.name} · {client.status}
@@ -199,7 +199,7 @@ export function ProposalWizard({ onClose, onCreated }: Props) {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 8, marginTop: 10 }}>
                     {group.services.map((service) => {
                       const selected = brief.selected_services.includes(service.key);
-                      return <button key={service.key} type="button" onClick={() => toggleService(service.key)} style={{ padding: 10, textAlign: "left", borderRadius: 7, border: `1px solid ${selected ? "var(--brand-accent)" : "var(--border)"}`, color: "var(--text)", background: selected ? "rgba(58, 201, 123, 0.10)" : "var(--surface-sunken)", cursor: "pointer" }}>{selected ? "✓ " : ""}{service.label}</button>;
+                      return <button key={service.key} type="button" onClick={() => toggleService(service.key)} style={{ padding: 10, textAlign: "left", borderRadius: 7, border: `1px solid ${selected ? "var(--brand-accent)" : "var(--border)"}`, color: "var(--text)", background: selected ? "rgba(58, 201, 123, 0.10)" : "var(--bg-inset)", cursor: "pointer" }}>{selected ? "✓ " : ""}{service.label}</button>;
                     })}
                   </div>
                 </section>
@@ -218,7 +218,7 @@ export function ProposalWizard({ onClose, onCreated }: Props) {
           )}
 
           {selectedClient && step > 0 && (
-            <div style={{ marginTop: 16, padding: 10, borderRadius: 8, background: "var(--surface-sunken)", color: "var(--text-dim)", fontSize: "0.82rem" }}>
+            <div style={{ marginTop: 16, padding: 10, borderRadius: 8, background: "var(--bg-inset)", color: "var(--text-dim)", fontSize: "0.82rem" }}>
               Cliente canônico: <strong style={{ color: "var(--text)" }}>{selectedClient.organization_name}</strong>. O perfil já cadastrado será incluído no contexto da geração.
             </div>
           )}

@@ -315,6 +315,247 @@ Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
 
 ---
 
+## 8. Estúdio IA — unificar no copiloto (decidido, não implementado)
+
+**Contexto.** Sua avaliação em 2026-08-05: "a parte de social media tá bem
+ruim, o Estúdio IA não está alinhado com a visão — era um ChatGPT em que eu
+converso e ele vai criando os materiais, e o Bioma serve pra salvar, organizar,
+ter visão limpa, histórico, threads, sessões das criações".
+
+**O diagnóstico é estrutural, não visual.** `AiContentStudio.tsx` é um
+formulário: seções fixas (Brand Book, Retrospectiva, Calendário), dropdown de
+tipo de conteúdo e provedor, botão "gerar". Não tem thread, sessão nem
+histórico de conversa.
+
+E o copiloto **já tem tudo isso** — `copilot_threads`, `copilot_runs`, trilha
+com fontes, custo e anexos. São dois sistemas paralelos que não se falam; é
+por isso que "não parece linkado" e você precisa ficar referenciando documento.
+
+**Decisão (2026-08-05): unificar no copiloto, via artefatos.** A conversa gera
+um artefato (roteiro, post, proposta); o artefato fica salvo, versionado e
+navegável; o Estúdio vira a **vista limpa** desses artefatos em vez de um
+formulário concorrente. Reaproveita thread/trilha/custo/roteamento por cota
+que já existem, em vez de duplicá-los.
+
+**Ainda não implementado.** Ordem combinada: MCP do ChatGPT primeiro, depois
+refino de tarefas, depois isto.
+
+`RESPOSTA (o que é artefato de primeira classe: roteiro, post, proposta, tudo?):`
+
+---
+
+## 9. GitHub ↔ Tech — fechar o loop
+
+**Contexto.** Sua pergunta em 2026-08-05: "o Tech está integrado
+bidirecionalmente com o GitHub?". Está, mas as duas pontas são **manuais
+(pull)**, e o ciclo não fecha:
+
+- **Bioma → GitHub**: cria issue a partir de uma entrega, idempotente via
+  marcador `[Bioma:<deliverable_id>]`. Funciona.
+- **GitHub → Bioma**: lê commits/PRs/issues sob demanda e publica como
+  atualização do projeto. Funciona, mas alguém tem que clicar.
+
+**Os três gaps:**
+
+1. **Sem webhook** — nada é tempo real.
+2. **O estado da issue não volta.** Fechar a issue no GitHub **não** conclui a
+   entrega no Bioma. Grava-se `github_issue_number` na criação e acabou. É o
+   que mais dói: as duas pontas divergem em silêncio.
+3. **PR não se liga a entrega** — só issue. PR mergeado não marca nada.
+
+**A decisão que trava o item 2:** issue fechada deve **concluir a entrega
+automaticamente**, ou apenas **sugerir** a conclusão para alguém confirmar?
+Automático é o que o time espera de uma integração; sugerir respeita a regra
+de que concluir entrega tem aceite separado (que hoje existe de propósito).
+Minha recomendação: **sugerir** — vira item em "Precisa de você" no cockpit,
+não conclusão silenciosa, porque "entrega concluída" tem efeito contratual.
+
+`RESPOSTA (issue fechada conclui a entrega ou sugere?):` Acho melhor sugerir. Mas tem um ponto, quero saber se, na lista de tarefa, tem algum campo que já link o repositório. Ou o repo fica linkado ao projeto (que este tem campo na lista de tarefas)? E como está essa distinção para a EG? Por exemplo uma tarefa de tech na EG, como vou distinguir projeto e repo? Isso que eu perguntei anteriormente, de como que ficou definido essa distinção de projetos internos e empresas (problema de Notorius)
+
+**Resposta (2026-08-06).** Fica **sugerir** — implemento assim.
+
+Sobre repo × projeto × tarefa, a cadeia hoje é:
+
+```text
+tarefa --(project_id)--> projeto --(1:1)--> repositório
+```
+
+- **A tarefa NÃO tem campo de repositório.** Ela tem `project_id` (em
+  `TaskBase`), e é por aí que chega ao repo.
+- **O repo é ligado ao PROJETO, e é 1:1**: `project_github_connections.project_id`
+  é `unique` (migração 0028). Um projeto tem no máximo um repositório.
+- Só projeto `tech` aceita repositório — o serviço recusa os outros.
+
+**Na prática, para uma tarefa de tech da EG:** crie um projeto interno (ex.:
+"Bioma"), ligue o repositório a ele, e as tarefas apontam para esse projeto.
+O repo vem por herança; você nunca escolhe repo na tarefa.
+
+**A distinção EG × Notorious não é resolvida por este campo** — é a decisão nº
+10. Projeto pertence a um workspace; workspace pertence a uma organização.
+Enquanto a Notorious for um workspace dentro da EG, os projetos dela ficam sob
+a EG e aparecem no mesmo financeiro. É exatamente o que o multi-tenant separa.
+A mecânica de repo funciona igual nos dois casos — o que muda é de quem é o
+projeto.
+
+**Limite conhecido:** 1 repo por projeto. Se um projeto precisar de dois
+repositórios (front e back separados, por exemplo), hoje precisa virar dois
+projetos. Não mudei isso porque não sei se acontece na EG — se acontecer, me
+diga que a alteração é pequena.
+
+---
+
+## 10. Onde mora o que não é cliente: Notorious, holdings e white label
+
+**Contexto.** Suas perguntas em 2026-08-06: onde ficam as tarefas de uma
+empresa sua que não é a EG (Notorious)? Cliente holding com várias frentes é um
+workspace ou vários? Isso já é a estrutura de multi-tenant do white label?
+
+**O que a estrutura já suporta.** `organizations` tem
+`parent_organization_id` — já é hierárquica. `workspaces` é onde o trabalho
+acontece; `clients` é o registro comercial. Hoje existe **um tenant só** (a
+EG), e todo cliente é organização filha dela. Vários pontos do código assumem
+isso (o `mcp_server.py` documenta a suposição explicitamente).
+
+**Os três casos, e por que dois deles são o mesmo problema:**
+
+| Caso | Resposta | Critério |
+|---|---|---|
+| **Notorious** (fonte de renda sua) | organização **irmã** da EG, não filha | tem P&L próprio? Se você quer faturamento/custo separados, misturar destrói o significado do cockpit e do financeiro |
+| **Cliente holding** | **uma organização, vários workspaces** | onde está o contrato. Um contrato = uma organização. Contratos separados por frente = organizações sob a holding |
+| **White label** | outra agência vira **tenant**, com clientes filhos | é o caso Notorious generalizado |
+
+Notorious e white label são **o mesmo trabalho**: tornar o tenant um eixo real,
+hoje fixado na EG. Resolver um resolve o outro. Spec: `mod-multitenant` (no
+seed de engenharia).
+
+**Recomendação: não forçar agora.** Rodar a Notorious como workspace dentro da
+EG, sabendo que é temporário, e tratar multi-tenant como o projeto que é. O
+erro caro seria construir meia estrutura de tenant e ter que desfazer.
+
+**Consequência para a memória do agente** (não é item separado): a memória
+global hoje é `workspace_id = NULL` = "vale para toda a EG". Se a Notorious
+virar tenant, essa camada precisa passar a ser **por tenant** — senão o tom de
+voz e as diretivas da EG vazariam para a outra empresa. As outras duas camadas
+(workspace e pessoal) já estão corretas e não mudam.
+
+`RESPOSTA (a Notorious tem P&L próprio? isso decide irmã vs. workspace):` vai virar workspace no momento.
+
+---
+
+## 11. Ocultar módulos que a EG não usa agora
+
+**Contexto.** Você quer esconder Gestão RH, Logística Kits, Freelas, Pesquisa
+de Mercado e Radar Local sem apagar nada, e perguntou se bastava gerenciar
+acesso nas configurações da empresa.
+
+**Não basta** — e o motivo é que existem dois eixos e nenhum atinge o EG admin:
+
+- `enabled_modules` (organização) = "o cliente contratou isso?" — filtra só a
+  visão do `client_user`;
+- `feature_flags` = "isso está pronto para este cliente?"
+  (`hidden`/`coming_soon`/`beta`/`active`) — mesma coisa.
+
+O menu de EG admin renderiza `groupAdmin` **sem filtro** (`Sidebar.tsx`).
+
+**Falta um terceiro eixo: "eu não uso isso agora"** — preferência de navegação
+da EG, ortogonal a contrato e a maturidade. Nada é apagado; a rota continua
+funcionando por URL direta e religar é um clique.
+
+**Recomendação: por usuário, não por organização.** Você esconder o RH não
+deveria escondê-lo de quem for cuidar do RH depois.
+
+`RESPOSTA (por usuário confirma? algum além de RH/Kits/Freelas/Pesquisa/Radar?):` Tem alguns módulos e features. E concordo que seria por usuário, mas pense que o que temos hoje de gerenciamento de acesso para os clientes, também seria interessante ter gerenciamento a nível de usuários dos clientes, e também de equipes inteiras nossas (EG). Assim não preciso ficar usuário a usuário configurando acessos. Então a nível global (Workspace/EG) e a usuários e equipes.
+
+**Resposta (2026-08-06).** Sua resposta troca o problema: deixou de ser
+"esconder o que não uso" e virou **gerenciamento de acesso em três níveis**.
+São coisas diferentes e vale não misturar — uma é preferência de tela, a outra
+é permissão de verdade.
+
+A boa notícia: **times já existem** (`teams` + `team_memberships`, migração
+0014, com serviço e rotas). Não precisa criar a entidade, só usá-la como
+sujeito de permissão, o que hoje não acontece.
+
+O desenho que proponho, do mais forte para o mais fraco, resolvido nessa ordem:
+
+| Nível | Sujeito | Pergunta que responde | Existe hoje? |
+|---|---|---|---|
+| **Organização** | cliente | contratou o módulo? | sim (`enabled_modules`) |
+| **Equipe** | time da EG ou do cliente | esta equipe trabalha com isso? | ❌ falta |
+| **Usuário** | pessoa | esta pessoa precisa disso? | ❌ falta |
+| **Preferência** | você mesmo | quero ver isso agora? | ❌ falta |
+
+Regra de resolução: **o mais restritivo vence**, e preferência pessoal nunca
+concede o que a permissão nega — só esconde o que ela permitiria. Sem essa
+regra, "ocultei para mim" viraria um jeito acidental de burlar acesso.
+
+Duas armadilhas que quero evitar:
+
+1. **Esconder não é proibir.** Se o módulo some do menu mas a rota responde,
+   isso é organização visual, não segurança. Para cliente, tem que ser
+   proibição no backend (é como `enabled_modules` já funciona). Para você,
+   esconder basta.
+2. **Herança precisa ser visível.** "Por que não vejo o RH?" tem que ter
+   resposta na tela — herdado da equipe, da organização ou escolha sua. Sem
+   isso vira suporte eterno.
+
+`RESPOSTA (fazer os 4 níveis de uma vez, ou começar por preferência pessoal + equipe?):` Fazer os 4 níveis de uma vez
+
+---
+
+## 12. Mais LLMs como motor (OpenRouter e chaves diretas)
+
+**Contexto.** Sua pergunta em 2026-08-06: dá para implementar mais LLMs como
+motor? Traz a qualidade e as features esperadas? Pensando em chave de API
+direta e agregadores tipo OpenRouter.
+
+**O que o Bioma já tem, e por que isso é mais barato do que parece.** O plano
+de roteamento (migração 0064) já separa os eixos certos:
+
+- `provider` — hoje restrito a `openai`, `anthropic`, `google` (**único ponto
+  que exige migração**);
+- `channel` — **texto livre**, não precisa de migração;
+- `auth_mode` — já aceita `api_key`;
+- `execution_mode` — já aceita `sdk` e `api`.
+
+E o despacho em `ai_providers.execute_candidate` é um `if/elif` por canal. Ou
+seja: **um provedor novo é um executor + um `elif` + uma linha de migração.**
+
+**OpenRouter especificamente** ([docs](https://openrouter.ai/docs/faq)): API
+compatível com OpenAI, 300+ modelos, uma chave só, e normaliza *tool calling* e
+*structured outputs* entre provedores — que é justamente onde cada API diverge
+e onde estaria o trabalho chato. Preço é repasse do provedor + margem da
+plataforma.
+
+**A parte que muda de natureza, e que importa mais que o código:** hoje o
+roteamento é por **cota de assinatura** (Codex, Claude Code — você já pagou o
+mês, o token não custa na margem). OpenRouter é **por token, dinheiro de
+verdade**. Não dá para tratar os dois com a mesma régua:
+
+- conta de assinatura → mostra cota restante e reset (o que já existe);
+- conta OpenRouter → mostra custo em dólar (a tabela `model_pricing.py` e o
+  caminho de `cost_cents` já existem, e a correção de 2026-08-04 garante que
+  execução de assinatura nunca ganha preço inventado).
+
+O valor real não é "ter mais modelos" — é ter **fallback quando a cota acaba**.
+Estourar a cota do Codex na terça hoje para o copiloto pela metade da semana;
+com OpenRouter cadastrado, o roteamento cai para ele e o trabalho continua, ao
+custo de alguns centavos. Essa é a razão para fazer, e ela deveria guiar a
+política de roteamento: **assinatura primeiro, chave paga como rede**.
+
+**Sobre "traz a qualidade esperada":** o gargalo do copiloto hoje não é o
+modelo — é que `ai_provider_accounts` está **vazia**, então nada roteia e tudo
+cai em prévia local ou chave avulsa. Trocar de modelo não resolve isso.
+Recomendo cadastrar as contas que você já paga antes de acrescentar provedor
+novo, para medir de onde vem a insatisfação.
+
+**Esforço estimado:** migração de uma linha, executor (~40 linhas, API
+compatível com OpenAI), um `elif`, e a opção no painel de IA. Meio dia.
+
+`RESPOSTA (cadastrar as contas atuais primeiro, ou já implementar OpenRouter junto?):` Tipo, tava pensando também, o que poderiamos tornar herness. Tipo, o curador de memória/soul (estilo hermes agent) fica em um modelo, dai tool calling fica em outro, auditar quais issus devem surgir no git e quais correspondem as tarefas é outro modelo... ou acha que isso pioraria a qualidade?
+E não entendi sua pergunta. Mas prefiro implementar novos modelos pois parece que não está funcionando o sistema de uso das cotas/auth do claude e chatgpt. E todo modelo que formos implementar, tem que trazer documentação nova?
+
+---
+
 ## Fechadas — implementadas, não precisam voltar
 
 - **S3**: já configurado na Railway. Os 2 binários (`Manual de Marca.pdf`,

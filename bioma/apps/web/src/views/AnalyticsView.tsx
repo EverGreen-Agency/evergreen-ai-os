@@ -109,7 +109,7 @@ function AiSummaryTab({ clientId }: { clientId: string }) {
 
   return (
     <div className="performance-tab-panel">
-      <article className="surface" style={{ background: "linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.08) 100%)" }}>
+      <article className="surface" style={{ background: "linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.08) 100%)" }}>
         <SectionHeader eyebrow="Visão Estratégica EG" title="Resumo Consolidado de IA" icon={Bot} />
         <p style={{ fontSize: "15px", lineHeight: "1.6", color: "var(--text-main)", margin: "16px 0" }}>
           {summary.summary_text}
@@ -139,7 +139,7 @@ function AiSummaryTab({ clientId }: { clientId: string }) {
             <div
               key={idx}
               style={{
-                background: "var(--bg-card)",
+                background: "var(--surface)",
                 borderLeft: `4px solid ${insight.impact_level === "high" ? "var(--brand-accent)" : "var(--accent)"}`,
                 padding: "16px",
                 borderRadius: "6px",
@@ -439,7 +439,7 @@ function KommoTab({ organizationId }: { organizationId: string }) {
         ) : (
           <div className="analytics-grid" style={{ marginTop: 24, gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
             {analytics.pipelines.map((pipeline) => (
-              <article key={pipeline.pipeline_id} className="surface" style={{ padding: '20px', background: 'var(--bg-panel)', border: '1px solid var(--border-light)' }}>
+              <article key={pipeline.pipeline_id} className="surface" style={{ padding: '20px', background: 'var(--bg-elevated)', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h4 style={{ margin: 0, fontSize: 16 }}>{pipeline.pipeline_name}</h4>
                   <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
@@ -476,7 +476,7 @@ function KommoTab({ organizationId }: { organizationId: string }) {
                 
                 <div style={{ 
                   height: 6, 
-                  background: 'var(--bg-element)', 
+                  background: 'var(--bg-elevated)', 
                   borderRadius: 3, 
                   display: 'flex', 
                   overflow: 'hidden' 

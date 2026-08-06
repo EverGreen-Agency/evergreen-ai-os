@@ -50,11 +50,11 @@ export function IdeaDocModal({ id, title, onClose }: { id: string; title: string
           <span style={{ fontWeight: 600, fontSize: 14 }}>{title}</span>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             {!isEditing ? (
-              <button onClick={() => { setEditContent(doc); setIsEditing(true); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar</button>
+              <button onClick={() => { setEditContent(doc); setIsEditing(true); }} style={{ background: "var(--accent, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar</button>
             ) : (
               <>
                 <button onClick={() => setIsEditing(false)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
-                <button onClick={handleSave} disabled={saveDoc.isPending} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saveDoc.isPending ? "Salvando..." : "Salvar"}</button>
+                <button onClick={handleSave} disabled={saveDoc.isPending} style={{ background: "var(--mint, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saveDoc.isPending ? "Salvando..." : "Salvar"}</button>
               </>
             )}
             <button onClick={onClose} style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: 16 }}>×</button>

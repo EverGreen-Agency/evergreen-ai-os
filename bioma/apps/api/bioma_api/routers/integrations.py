@@ -20,6 +20,7 @@ from bioma_api.schemas.github import (
     GitHubActivitySyncResult,
     GitHubIssueCreateRequest,
     GitHubIssueLinkSummary,
+    GitHubCompletionSuggestions,
     GitHubProjectActivity,
 )
 from bioma_api.services import github as github_service
@@ -129,3 +130,19 @@ def create_github_issue(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> GitHubIssueLinkSummary:
     return github_service.create_issue_from_deliverable(deliverable_id, payload, user)
+
+
+@router.get(
+    "/github/projects/{project_id}/completion-suggestions",
+    response_model=GitHubCompletionSuggestions,
+)
+def github_completion_suggestions(
+    project_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+):
+    """Entregas cuja issue fechou no GitHub mas que seguem abertas no Bioma.
+
+    Sugere; não conclui. Concluir entrega tem efeito contratual e continua
+    exigindo ação humana (decisão #9).
+    """
+    return github_service.list_completion_suggestions(project_id, user)

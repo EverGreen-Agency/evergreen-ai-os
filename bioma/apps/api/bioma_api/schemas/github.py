@@ -110,3 +110,22 @@ class GitHubActivitySyncResult(BaseModel):
     repository: str
     client_visible: bool
     created_at: datetime
+
+
+class GitHubCompletionSuggestion(BaseModel):
+    """Divergência observada: a issue fechou lá, a entrega segue aberta aqui."""
+    deliverable_id: UUID
+    deliverable_title: str
+    deliverable_status: str
+    issue_number: int
+    issue_url: str | None
+    issue_title: str
+
+
+class GitHubCompletionSuggestions(BaseModel):
+    project_id: UUID
+    repository: str
+    # Momento da leitura no GitHub. É sugestão calculada na hora, não estado
+    # guardado — sem isto não dá para saber se o dado é de agora ou de ontem.
+    checked_at: datetime
+    suggestions: list[GitHubCompletionSuggestion] = Field(default_factory=list)

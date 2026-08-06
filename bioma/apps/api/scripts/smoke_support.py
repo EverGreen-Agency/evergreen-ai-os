@@ -111,7 +111,7 @@ def purge_smoke_residue() -> dict[str, int]:
     responde por convenção de nome, não por bookkeeping de cada script. Só apaga
     o que nenhum dado real pode se chamar.
     """
-    removed = {"organizations": 0, "users": 0, "local_radar_scans": 0, "wins": 0}
+    removed = {"organizations": 0, "users": 0, "local_radar_scans": 0, "wins": 0, "sessions": 0}
     with connect() as conn:
         rows = conn.execute(
             "select id from organizations where name like 'Smoke %' and type = 'client'"
@@ -145,6 +145,14 @@ def purge_smoke_residue() -> dict[str, int]:
         # durante o desenvolvimento de `smoke_wins.py`).
         n = conn.execute("delete from wins where title like 'Cliente ativo na carteira: Smoke %'").rowcount
         removed["wins"] = n
+
+        # Cada smoke faz 2-3 logins como o admin real, e login cria sessão. Com
+        # 40 smokes por rodada isso acumulava centenas de linhas que apareciam
+        # na tela "dispositivos autorizados" do Eduardo como se fossem
+        # navegadores dele. O TestClient se identifica como `testclient`, então
+        # dá para apagar exatamente as de teste sem tocar em sessão de gente.
+        n = conn.execute("delete from sessions where user_agent = 'testclient'").rowcount
+        removed["sessions"] = n
     return removed
 
 

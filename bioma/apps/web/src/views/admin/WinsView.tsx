@@ -208,18 +208,18 @@ export function WinsView() {
           <input
             required minLength={2} value={draft.title} placeholder="O que aconteceu de bom?"
             onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-            style={{ padding: 9, borderRadius: 7, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)" }}
+            style={{ padding: 9, borderRadius: 7, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)" }}
           />
           <textarea
             rows={2} value={draft.description} placeholder="Contexto (opcional)"
             onChange={(event) => setDraft({ ...draft, description: event.target.value })}
-            style={{ padding: 9, borderRadius: 7, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)", fontFamily: "inherit" }}
+            style={{ padding: 9, borderRadius: 7, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)", fontFamily: "inherit" }}
           />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <select
               value={draft.category}
               onChange={(event) => setDraft({ ...draft, category: event.target.value as WinCategory })}
-              style={{ padding: 8, borderRadius: 7, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)" }}
+              style={{ padding: 8, borderRadius: 7, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)" }}
             >
               {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
@@ -228,12 +228,12 @@ export function WinsView() {
             <input
               value={draft.metric_value} placeholder="Número (opcional)" inputMode="decimal"
               onChange={(event) => setDraft({ ...draft, metric_value: event.target.value })}
-              style={{ width: 130, padding: 8, borderRadius: 7, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)" }}
+              style={{ width: 130, padding: 8, borderRadius: 7, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)" }}
             />
             <input
               value={draft.metric_unit} placeholder="Unidade"
               onChange={(event) => setDraft({ ...draft, metric_unit: event.target.value })}
-              style={{ width: 110, padding: 8, borderRadius: 7, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)" }}
+              style={{ width: 110, padding: 8, borderRadius: 7, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)" }}
             />
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-dim)" }}>
               <input

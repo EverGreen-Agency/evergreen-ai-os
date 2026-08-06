@@ -58,10 +58,12 @@ def login(payload: LoginRequest, request: Request, response: Response) -> LoginR
 
         conn.execute(
             """
-            insert into sessions (user_id, token_hash, expires_at)
-            values (%s, %s, %s)
+            insert into sessions (user_id, token_hash, expires_at, user_agent, last_seen_at)
+            values (%s, %s, %s, %s, now())
             """,
-            (user["id"], token_hash, expires_at),
+            # Cortado em 400: o user-agent é dado do cliente e entra num campo
+            # de texto livre — sem limite, um header gigante vira lixo no banco.
+            (user["id"], token_hash, expires_at, (request.headers.get("user-agent") or "")[:400] or None),
         )
         conn.execute(
             """
@@ -101,6 +103,43 @@ def me(user: CurrentUserResponse = Depends(current_user_from_request)) -> Curren
     return user
 
 
+def _device_label(user_agent: str | None) -> str:
+    """Rótulo legível a partir do user-agent.
+
+    Deliberadamente raso: reconhece os casos que a EG usa e devolve o texto
+    cru (cortado) para o resto. Trazer uma biblioteca de parsing de UA para
+    isto seria custo desproporcional, e um rótulo errado com cara de certo é
+    pior que o texto original — quem está revogando acesso precisa reconhecer
+    o próprio aparelho, não ler um palpite.
+    """
+    if not user_agent:
+        # Sessão criada antes desta coluna existir. Dizer isso é melhor que
+        # rotular como "Navegador Web" e fingir que sabemos.
+        return "Origem não registrada (sessão antiga)"
+    if user_agent == "testclient":
+        return "Teste automatizado (smoke)"
+
+    browser = next(
+        (name for marker, name in (
+            ("Edg/", "Edge"), ("OPR/", "Opera"), ("Chrome/", "Chrome"),
+            ("Firefox/", "Firefox"), ("Safari/", "Safari"),
+        ) if marker in user_agent),
+        None,
+    )
+    system = next(
+        (name for marker, name in (
+            ("Windows", "Windows"), ("Android", "Android"), ("iPhone", "iPhone"),
+            ("iPad", "iPad"), ("Mac OS X", "macOS"), ("Linux", "Linux"),
+        ) if marker in user_agent),
+        None,
+    )
+    if browser and system:
+        return f"{browser} no {system}"
+    if browser or system:
+        return browser or system or ""
+    return user_agent[:60]
+
+
 @router.get("/sessions")
 def list_sessions(
     request: Request,
@@ -113,12 +152,12 @@ def list_sessions(
     with connect() as conn:
         rows = conn.execute(
             """
-            select id, created_at, expires_at, token_hash
+            select id, created_at, expires_at, token_hash, user_agent, last_seen_at
             from sessions
             where user_id = %s
               and revoked_at is null
               and expires_at > now()
-            order by created_at desc
+            order by coalesce(last_seen_at, created_at) desc
             """,
             (user.id,),
         ).fetchall()
@@ -128,6 +167,8 @@ def list_sessions(
             "id": str(row["id"]),
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+            "last_seen_at": row["last_seen_at"].isoformat() if row["last_seen_at"] else None,
+            "device_label": _device_label(row["user_agent"]),
             "is_current": current_hash is not None and row["token_hash"] == current_hash,
         }
         for row in rows

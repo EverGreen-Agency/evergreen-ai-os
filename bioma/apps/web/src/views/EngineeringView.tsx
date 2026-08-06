@@ -138,7 +138,7 @@ export function EngineeringView() {
               placeholder="Buscar por módulo ou título..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ width: "100%", padding: "0.5rem 1rem 0.5rem 2.2rem", borderRadius: "6px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text)", fontSize: "0.9rem", outline: "none" }}
+              style={{ width: "100%", padding: "0.5rem 1rem 0.5rem 2.2rem", borderRadius: "6px", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: "0.9rem", outline: "none" }}
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export function EngineeringView() {
 
       {selectedModule && (
         <div className="modal-backdrop" onClick={() => setSelectedModule(null)} style={{ padding: '2rem' }}>
-          <div className="modal-content" style={{ maxWidth: '1000px', width: '100%', height: '85vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--background)' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '1000px', width: '100%', height: '85vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg)' }} onClick={e => e.stopPropagation()}>
             
             {/* Header Sticky */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
@@ -304,17 +304,17 @@ export function EngineeringView() {
                 </div>
 
                 {/* Conteúdo Principal (Scrollable) */}
-                <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', background: 'var(--background)' }}>
+                <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', background: 'var(--bg)' }}>
                   {activeTab === 'spec' && (
                     detailData.specContent ? (
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                           {isEditing !== 'spec' ? (
-                            <button onClick={() => { setEditContent(detailData.specContent ?? ""); setIsEditing('spec'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Spec</button>
+                            <button onClick={() => { setEditContent(detailData.specContent ?? ""); setIsEditing('spec'); }} style={{ background: "var(--accent, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Spec</button>
                           ) : (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
-                              <button onClick={() => handleSaveDoc('spec', editContent)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                              <button onClick={() => handleSaveDoc('spec', editContent)} disabled={saving} style={{ background: "var(--mint, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
                             </div>
                           )}
                         </div>
@@ -342,11 +342,11 @@ export function EngineeringView() {
                             <div className="prose-content" style={{ borderTop: '1px solid var(--border)', padding: '1.5rem', background: 'transparent', color: '#d1d5db', lineHeight: 1.6 }}>
                               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                                 {isEditing !== `adr:${adr.file}` ? (
-                                  <button onClick={() => { setEditContent(adr.content); setIsEditing(`adr:${adr.file}`); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar ADR</button>
+                                  <button onClick={() => { setEditContent(adr.content); setIsEditing(`adr:${adr.file}`); }} style={{ background: "var(--accent, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar ADR</button>
                                 ) : (
                                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
-                                    <button onClick={() => handleSaveDoc('adr', editContent, adr.file)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                                    <button onClick={() => handleSaveDoc('adr', editContent, adr.file)} disabled={saving} style={{ background: "var(--mint, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
                                   </div>
                                 )}
                               </div>
@@ -371,11 +371,11 @@ export function EngineeringView() {
                       <div className="prose-content" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: '#d1d5db', lineHeight: 1.6 }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                           {isEditing !== 'tasks' ? (
-                            <button onClick={() => { setEditContent(detailData.tasksContent ?? ""); setIsEditing('tasks'); }} style={{ background: "var(--accent-color, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Tarefas</button>
+                            <button onClick={() => { setEditContent(detailData.tasksContent ?? ""); setIsEditing('tasks'); }} style={{ background: "var(--accent, #0070f3)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Editar Tarefas</button>
                           ) : (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <button onClick={() => setIsEditing(null)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>Cancelar</button>
-                              <button onClick={() => handleSaveDoc('tasks', editContent)} disabled={saving} style={{ background: "var(--success-color, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
+                              <button onClick={() => handleSaveDoc('tasks', editContent)} disabled={saving} style={{ background: "var(--mint, #10b981)", color: "white", border: "none", padding: "4px 12px", borderRadius: "4px", cursor: "pointer", fontSize: 12 }}>{saving ? "Salvando..." : "Salvar"}</button>
                             </div>
                           )}
                         </div>

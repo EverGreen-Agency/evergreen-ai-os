@@ -33,7 +33,7 @@ export function AgentSkillReviewPanel({ workspaceId }: { workspaceId: string | n
           <div key={skill.id} style={{ border: "1px solid #ffab00", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
             <strong>{skill.name}</strong>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0" }}>{skill.description}</p>
-            <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, background: "var(--surface-sunken)", padding: 8, borderRadius: 6, fontFamily: "inherit" }}>
+            <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, background: "var(--bg-inset)", padding: 8, borderRadius: 6, fontFamily: "inherit" }}>
               {skill.procedure}
             </pre>
             {skill.source_context && (

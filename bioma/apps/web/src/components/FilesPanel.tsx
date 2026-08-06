@@ -152,16 +152,16 @@ export function FilesPanel({
                 display: "flex", 
                 alignItems: "center", 
                 gap: 8, 
-                background: "var(--surface-sunken)", 
+                background: "var(--bg-inset)", 
                 padding: "8px 12px", 
                 borderRadius: 6, 
-                border: "1px dashed var(--border-color)", 
+                border: "1px dashed var(--border)", 
                 cursor: "pointer",
                 height: 38
               }}
             >
               <Upload size={16} style={{ color: "var(--brand-accent)" }} />
-              <span style={{ fontSize: 13, color: selectedFileName ? "var(--text-normal)" : "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 13, color: selectedFileName ? "var(--text)" : "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {selectedFileName || "Escolher arquivo..."}
               </span>
               <input 
