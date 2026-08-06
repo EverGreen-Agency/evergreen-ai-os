@@ -865,3 +865,189 @@
 
 
 
+
+/* === Lista de tarefas agrupada por status + criação inline ===
+ * Substitui a tabela plana e o "Nova tarefa" que abria o formulário inteiro.
+ * Tokens: usar os que existem em tokens.css (--border, --surface-soft,
+ * --text-dim, --mint). Variáveis como --surface-sunken/--border-color aparecem
+ * em estilos inline antigos destes componentes mas nunca foram definidas. */
+
+.task-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.task-section {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.task-section-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.task-section-header:hover {
+  background: rgba(255, 244, 199, 0.04);
+}
+
+.task-section-label {
+  flex: 1;
+}
+
+.task-section-count {
+  padding: 1px 8px;
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(255, 244, 199, 0.08);
+}
+
+.task-table {
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.task-table thead th {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.task-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-row {
+  cursor: pointer;
+}
+
+.task-row:hover {
+  background: rgba(255, 244, 199, 0.04);
+}
+
+.task-row.done {
+  opacity: 0.6;
+}
+
+.task-row.done .task-cell-title {
+  text-decoration: line-through;
+}
+
+.task-cell-title {
+  font-weight: 500;
+}
+
+.task-cell-title small {
+  display: block;
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+.task-cell-dim {
+  color: var(--text-dim);
+}
+
+/* Composer inline: some visualmente até o hover/foco na lista, para não
+ * competir com as tarefas de verdade; no kanban ele já nasce focado. */
+.inline-task-composer {
+  padding: 8px 14px;
+}
+
+.inline-task-composer-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text-dim);
+}
+
+.inline-task-composer-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  background: transparent;
+}
+
+.inline-task-composer-row input::placeholder {
+  color: var(--text-faint);
+}
+
+.inline-task-composer-row input:hover {
+  border-color: var(--border);
+}
+
+.inline-task-composer-row input:focus {
+  border-color: var(--mint);
+  background: rgba(255, 244, 199, 0.04);
+  outline: none;
+}
+
+/* O botão Salvar só aparece quando o campo está em uso — Enter é o caminho
+ * principal, e um botão permanente em cada seção poluiria a lista. */
+.inline-task-composer-row .mini-button {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.inline-task-composer:focus-within .mini-button {
+  opacity: 1;
+}
+
+.inline-task-composer-error {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0 0;
+  color: var(--danger-soft, #f2a08e);
+  font-size: 12px;
+}
+
+/* No kanban o composer vira um card, alinhado com os TaskCard da coluna. */
+.task-column .inline-task-composer {
+  padding: 8px;
+  border: 1px solid var(--mint);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.task-column .inline-task-composer .mini-button {
+  opacity: 1;
+}
+
+/* Coluna do kanban destacada enquanto um card paira sobre ela. Sem retorno
+ * visual, arrastar vira adivinhação: a pessoa solta e torce. */
+.task-column {
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.task-column.drop-target {
+  border-color: var(--mint);
+  background: rgba(58, 201, 123, 0.08);
+}

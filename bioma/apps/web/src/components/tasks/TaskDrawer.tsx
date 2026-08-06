@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound, Sparkles } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { X, Save, Trash2, Plus, CheckSquare, Square, Link2, Repeat, MessageSquare, Send, Eye, EyeOff, FolderKanban, GitBranch, UserRound, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
 import {
   useCopilotCommands,
   useCreateTask,
@@ -296,6 +296,12 @@ type TaskDrawerProps = {
   initialDetailedStatus?: string;
   /** Preenchido ao criar uma SUBTAREFA a partir de outra tarefa. */
   parentTaskId?: string | null;
+  /** Ids das tarefas irmãs, NA ORDEM EM QUE APARECEM na tela que abriu o
+   *  drawer. Permite andar de tarefa em tarefa sem fechar e reabrir — ler dez
+   *  tarefas exigia dez idas e voltas à lista. A ordem vem de quem chama
+   *  justamente para respeitar filtro e agrupamento em vigor. */
+  siblingIds?: string[];
+  onNavigate?: (taskId: string) => void;
   onClose: () => void;
 };
 
@@ -309,8 +315,24 @@ export function TaskDrawer({
   initialStatus,
   initialDetailedStatus,
   parentTaskId,
+  siblingIds,
+  onNavigate,
   onClose,
 }: TaskDrawerProps) {
+  /** Vizinhas na ordem da tela. Nulo ao criar tarefa (não há de onde navegar)
+   *  ou quando quem abriu não passou a lista — o drawer segue funcionando
+   *  igual, só sem as setas. */
+  const navigation = useMemo(() => {
+    if (!taskId || !siblingIds || !onNavigate) return null;
+    const index = siblingIds.indexOf(taskId);
+    if (index === -1 || siblingIds.length < 2) return null;
+    return {
+      position: index + 1,
+      total: siblingIds.length,
+      previousId: index > 0 ? siblingIds[index - 1] : null,
+      nextId: index < siblingIds.length - 1 ? siblingIds[index + 1] : null,
+    };
+  }, [taskId, siblingIds, onNavigate]);
   // Para editar uma tarefa existente, precisamos encontrá-la:
   // tarefas novas: busca por workspace; tarefas legadas: busca por lista.
   const { data: workspaceTasks } = useWorkspaceTasks(listId ? null : workspaceId);
@@ -540,7 +562,36 @@ export function TaskDrawer({
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ margin: 0, fontSize: 18 }}>{taskId ? "Editar Tarefa" : "Nova Tarefa"}</h2>
-          <button className="icon-button" type="button" onClick={onClose}><X size={20} /></button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {navigation && (
+              <>
+                <button
+                  className="icon-button"
+                  type="button"
+                  aria-label="Tarefa anterior"
+                  title="Tarefa anterior"
+                  disabled={navigation.previousId === null}
+                  onClick={() => navigation.previousId && onNavigate?.(navigation.previousId)}
+                >
+                  <ChevronUp size={18} />
+                </button>
+                <button
+                  className="icon-button"
+                  type="button"
+                  aria-label="Próxima tarefa"
+                  title="Próxima tarefa"
+                  disabled={navigation.nextId === null}
+                  onClick={() => navigation.nextId && onNavigate?.(navigation.nextId)}
+                >
+                  <ChevronDown size={18} />
+                </button>
+                <span style={{ marginRight: 4, color: "var(--text-dim)", fontSize: 12 }}>
+                  {navigation.position} de {navigation.total}
+                </span>
+              </>
+            )}
+            <button className="icon-button" type="button" onClick={onClose}><X size={20} /></button>
+          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>

@@ -6,22 +6,39 @@ type TaskCardProps = {
   onClick: () => void;
   onStatusChange: (status: string) => void;
   columns: { id: string; label: string }[];
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 };
 
-export function TaskCard({ task, onClick, onStatusChange, columns }: TaskCardProps) {
+export function TaskCard({ task, onClick, onStatusChange, columns, onDragStart, onDragEnd, isDragging }: TaskCardProps) {
+  // Tarefa legada é somente leitura: arrastar sugeriria que dá para mudar o
+  // status dela, e o backend recusaria depois do gesto já ter acontecido.
+  const draggable = task.external_source !== "clickup";
   return (
-    <div 
-      className="surface task-card" 
-      style={{ 
-        padding: 12, 
-        borderRadius: 6, 
-        cursor: "pointer", 
-        border: "1px solid var(--border-color)",
+    <div
+      className="surface task-card"
+      draggable={draggable}
+      onDragStart={(event) => {
+        if (!draggable) return;
+        // O id vai no dataTransfer, e não só no estado do React, para o drop
+        // funcionar mesmo se o componente re-renderizar durante o arrasto.
+        event.dataTransfer.setData("text/plain", task.id);
+        event.dataTransfer.effectAllowed = "move";
+        onDragStart?.();
+      }}
+      onDragEnd={() => onDragEnd?.()}
+      style={{
+        padding: 12,
+        borderRadius: 6,
+        cursor: draggable ? "grab" : "pointer",
+        border: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
         gap: 8,
-        background: "var(--surface-color)",
-        transition: "border-color 0.2s ease"
+        background: "var(--surface-soft)",
+        opacity: isDragging ? 0.4 : 1,
+        transition: "border-color 0.2s ease, opacity 0.15s ease"
       }}
       onClick={onClick}
     >
