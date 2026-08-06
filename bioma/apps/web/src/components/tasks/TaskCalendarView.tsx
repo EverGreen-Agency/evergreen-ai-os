@@ -61,7 +61,7 @@ export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, lis
 
   return (
     <>
-      <div className="surface" style={{ borderRadius: 8, padding: 16, border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="surface" style={{ borderRadius: 8, padding: 16, border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 16 }}>
         {/* Header de navegação do calendário */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
@@ -79,16 +79,16 @@ export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, lis
         </div>
 
         {/* Grade de dias da semana */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--border-color)", borderRadius: 6, overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--border)", borderRadius: 6, overflow: "hidden" }}>
           {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(day => (
-            <div key={day} style={{ background: "var(--surface-sunken)", padding: "8px", textAlign: "center", fontWeight: 600, fontSize: 12, color: "var(--text-dim)" }}>
+            <div key={day} style={{ background: "var(--bg-inset)", padding: "8px", textAlign: "center", fontWeight: 600, fontSize: 12, color: "var(--text-dim)" }}>
               {day}
             </div>
           ))}
 
           {calendarCells.map((day, idx) => {
             if (day === null) {
-              return <div key={`empty-${idx}`} style={{ background: "var(--surface-color)", minHeight: 100 }} />;
+              return <div key={`empty-${idx}`} style={{ background: "var(--surface)", minHeight: 100 }} />;
             }
 
             const dayTasks = tasksByDay[day] || [];
@@ -98,7 +98,7 @@ export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, lis
               <div 
                 key={`day-${day}`}
                 style={{ 
-                  background: "var(--surface-color)", 
+                  background: "var(--surface)", 
                   minHeight: 100, 
                   padding: 6,
                   display: "flex",
@@ -106,7 +106,7 @@ export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, lis
                   gap: 4
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--primary-color)" : "var(--text-dim)", alignSelf: "flex-end" }}>
+                <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--primary)" : "var(--text-dim)", alignSelf: "flex-end" }}>
                   {day}
                 </div>
 
@@ -119,7 +119,7 @@ export function TaskCalendarView({ workspaceId, tasks: allTasks, discipline, lis
                         fontSize: 11, 
                         padding: "3px 6px", 
                         borderRadius: 4, 
-                        background: task.group_status === "DONE" ? "var(--surface-sunken)" : "var(--primary-color)", 
+                        background: task.group_status === "DONE" ? "var(--bg-inset)" : "var(--primary)", 
                         color: task.group_status === "DONE" ? "var(--text-dim)" : "white",
                         cursor: "pointer",
                         whiteSpace: "nowrap",

@@ -93,13 +93,13 @@ export function TaskGanttView({ workspaceId, tasks: allTasks, discipline, listId
 
   return (
     <>
-      <div className="surface" style={{ borderRadius: 8, border: "1px solid var(--border-color)", padding: 16, display: "flex", flexDirection: "column", gap: 4, overflowX: "auto" }}>
+      <div className="surface" style={{ borderRadius: 8, border: "1px solid var(--border)", padding: 16, display: "flex", flexDirection: "column", gap: 4, overflowX: "auto" }}>
         {/* Régua de meses */}
         <div style={{ display: "flex" }}>
           <div style={{ width: 220, flexShrink: 0 }} />
-          <div style={{ flex: 1, position: "relative", height: 22, borderBottom: "1px solid var(--border-color)", minWidth: 480 }}>
+          <div style={{ flex: 1, position: "relative", height: 22, borderBottom: "1px solid var(--border)", minWidth: 480 }}>
             {months.map((month) => (
-              <span key={month.label + month.leftPct} style={{ position: "absolute", left: `${month.leftPct}%`, fontSize: 10, color: "var(--text-faint)", borderLeft: "1px solid var(--border-color)", paddingLeft: 4, height: "100%" }}>
+              <span key={month.label + month.leftPct} style={{ position: "absolute", left: `${month.leftPct}%`, fontSize: 10, color: "var(--text-faint)", borderLeft: "1px solid var(--border)", paddingLeft: 4, height: "100%" }}>
                 {month.label}
               </span>
             ))}
@@ -162,7 +162,7 @@ export function TaskGanttView({ workspaceId, tasks: allTasks, discipline, listId
         ))}
 
         {undated.length > 0 && (
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed var(--border-color)" }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed var(--border)" }}>
             <span style={{ fontSize: 11, color: "var(--text-faint)" }}>
               Sem datas (fora da linha do tempo — defina início/vencimento para aparecerem):
             </span>

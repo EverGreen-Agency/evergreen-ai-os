@@ -172,7 +172,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
                       key={ag}
                       style={{
                         fontSize: "11px",
-                        background: "var(--bg-panel)",
+                        background: "var(--bg-elevated)",
                         border: "1px solid var(--border-light)",
                         padding: "3px 8px",
                         borderRadius: "4px",
@@ -202,7 +202,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
 
       {/* Resultado da Última Execução */}
       {activeExecution && (
-        <article className="surface" style={{ background: "linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.05) 100%)" }}>
+        <article className="surface" style={{ background: "linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.05) 100%)" }}>
           <SectionHeader
             eyebrow={`Execução ${activeExecution.generation_mode.toUpperCase()}: ${activeExecution.pilar.toUpperCase()}`}
             title={activeExecution.squad_name}
@@ -211,7 +211,7 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "20px", marginTop: "16px" }}>
             {/* Log de Passos dos Agentes */}
-            <div style={{ background: "var(--bg-card)", padding: "16px", borderRadius: "6px", border: "1px solid var(--border-light)" }}>
+            <div style={{ background: "var(--surface)", padding: "16px", borderRadius: "6px", border: "1px solid var(--border-light)" }}>
               <h5 style={{ margin: "0 0 12px 0", fontSize: "14px" }}>Logs do Orchestrator</h5>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "300px", overflowY: "auto" }}>
                 {activeExecution.execution_logs.map((log, idx) => (
@@ -224,12 +224,12 @@ export function SquadsView({ workspaceId }: { workspaceId: string }) {
             </div>
 
             {/* Output do Deliverable */}
-            <div style={{ background: "var(--bg-card)", padding: "16px", borderRadius: "6px", border: "1px solid var(--border-light)" }}>
+            <div style={{ background: "var(--surface)", padding: "16px", borderRadius: "6px", border: "1px solid var(--border-light)" }}>
               <h5 style={{ margin: "0 0 12px 0", fontSize: "14px" }}>Entregável Gerado pelo Squad</h5>
               <pre
                 style={{
                   fontSize: "12px",
-                  background: "var(--bg-panel)",
+                  background: "var(--bg-elevated)",
                   padding: "12px",
                   borderRadius: "4px",
                   overflowX: "auto",

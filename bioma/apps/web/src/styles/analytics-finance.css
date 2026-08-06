@@ -1917,7 +1917,7 @@ h3 {
 .market-research-heading p {
   max-width: 780px;
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 
@@ -1936,8 +1936,8 @@ h3 {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--panel);
-  color: var(--muted);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
 }
 
 .market-research-steps > div > span {
@@ -1974,7 +1974,7 @@ h3 {
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: var(--panel);
+  background: var(--bg-elevated);
 }
 
 .market-research-form,
@@ -1995,7 +1995,7 @@ h3 {
 
 .market-research-form label span,
 .market-research-form label small {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.78rem;
   font-weight: 500;
 }
@@ -2006,7 +2006,7 @@ h3 {
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface-sunken);
+  background: var(--bg-inset);
   color: var(--text);
   font: inherit;
 }
@@ -2039,7 +2039,7 @@ h3 {
 
 .market-research-understood span,
 .market-research-understood em {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.78rem;
   font-style: normal;
 }
@@ -2057,7 +2057,7 @@ h3 {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: var(--surface-sunken);
+  background: var(--bg-inset);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -2075,7 +2075,7 @@ h3 {
 }
 
 .market-focus-options small {
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
@@ -2133,13 +2133,13 @@ h3 {
  * A ordem dos @import em styles.css reproduz a ordem original — CSS
  * depende de cascata, então reordenar mudaria o resultado visual. */
 .market-research-history > div span {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .market-research-history > small {
   display: block;
   padding: 16px;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
@@ -2178,7 +2178,7 @@ h3 {
 
 .market-research-history button small,
 .market-research-history button em {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.72rem;
   font-style: normal;
 }
@@ -2210,7 +2210,7 @@ h3 {
   padding: 34px;
   border: 1px solid rgba(58, 201, 123, 0.55);
   border-radius: 22px;
-  background: var(--panel);
+  background: var(--bg-elevated);
   text-align: center;
 }
 
@@ -2221,7 +2221,7 @@ h3 {
 
 .market-research-progress p {
   margin-bottom: 0;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -2255,7 +2255,7 @@ h3 {
 
 .market-report-header p {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .market-report-section {
@@ -2280,7 +2280,7 @@ h3 {
 .market-report-section p,
 .market-report-section li,
 .market-terminology dd {
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.65;
 }
 
@@ -2295,7 +2295,7 @@ h3 {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 13px;
-  background: var(--surface-sunken);
+  background: var(--bg-inset);
 }
 
 .market-report-cards h4 {
@@ -2361,7 +2361,7 @@ h3 {
 }
 
 .market-inline-sources span {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .market-inline-sources a,
@@ -2387,7 +2387,7 @@ h3 {
 .market-source-list li small {
   display: block;
   margin-top: 3px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 @media (max-width: 900px) {

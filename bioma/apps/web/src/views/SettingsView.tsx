@@ -241,7 +241,7 @@ export function SettingsView() {
             gap: '24px',
             padding: '24px',
             borderRadius: '16px',
-            background: 'var(--bg-surface)',
+            background: 'var(--surface)',
             boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
             border: '1px solid var(--border-light)'
           }}>
@@ -613,7 +613,7 @@ function SessionsManagerCard() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "12px 16px",
-                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--surface-sunken)",
+                  background: session.is_current ? "rgba(58, 201, 123, 0.08)" : "var(--bg-inset)",
                   border: `1px solid ${session.is_current ? "rgba(58, 201, 123, 0.3)" : "var(--border)"}`,
                   borderRadius: "8px",
                 }}
@@ -712,7 +712,7 @@ function PersonalAccessTokensCard() {
             Copie agora — ele não será mostrado de novo:
           </strong>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <code style={{ flex: 1, fontSize: "0.8rem", wordBreak: "break-all", background: "var(--surface-sunken)", padding: "6px 10px", borderRadius: 6 }}>
+            <code style={{ flex: 1, fontSize: "0.8rem", wordBreak: "break-all", background: "var(--bg-inset)", padding: "6px 10px", borderRadius: 6 }}>
               {justCreated}
             </code>
             <button className="mini-button" type="button" onClick={handleCopy}>
@@ -766,7 +766,7 @@ function PersonalAccessTokensCard() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "12px 16px",
-                background: "var(--surface-sunken)",
+                background: "var(--bg-inset)",
                 border: "1px solid var(--border)",
                 borderRadius: 8,
               }}

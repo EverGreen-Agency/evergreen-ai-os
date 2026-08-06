@@ -43,7 +43,7 @@ export function TasksView({ workspaceId }: TasksViewProps) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <SectionHeader eyebrow="Workspace" title="Projetos & Operação" icon={LayoutDashboard} />
 
-        <div style={{ display: "flex", gap: 6, background: "var(--surface-sunken)", padding: 4, borderRadius: 6 }}>
+        <div style={{ display: "flex", gap: 6, background: "var(--bg-inset)", padding: 4, borderRadius: 6 }}>
           <button
             type="button"
             className={viewMode === "board" ? "primary-button" : "icon-button"}

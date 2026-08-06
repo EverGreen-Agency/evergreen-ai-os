@@ -113,7 +113,7 @@ export function TaskBoard({ workspaceId, tasks: allTasks, discipline, taskFilter
             style={{ width: 280, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, background: "var(--surface-soft)", padding: 12, borderRadius: 8 }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: 13, margin: 0, fontWeight: 600, color: "var(--text-normal)", display: "flex", alignItems: "center", gap: 6 }}>
+              <h3 style={{ fontSize: 13, margin: 0, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
                 {col.label} <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>{colTasks.length}</span>
                 {!detailedStatuses && (
                   <span title={getMacroGroupTooltip(col.group)} style={{ display: "flex", alignItems: "center" }}>

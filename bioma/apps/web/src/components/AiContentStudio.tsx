@@ -583,7 +583,7 @@ function CalendarSection({ workspaceId }: { workspaceId: string }) {
               <div
                 key={stg.id}
                 style={{
-                  background: "var(--bg-panel)",
+                  background: "var(--bg-elevated)",
                   padding: "12px",
                   borderRadius: "6px",
                   border: "1px solid var(--border-light)",
@@ -600,7 +600,7 @@ function CalendarSection({ workspaceId }: { workspaceId: string }) {
                     <div
                       key={item.id}
                       style={{
-                        background: "var(--bg-card)",
+                        background: "var(--surface)",
                         padding: "10px",
                         borderRadius: "4px",
                         border: "1px solid var(--border-light)",
@@ -827,7 +827,7 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
                 {req.status === "ready" && req.output && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
                     {req.output.posts?.map((post, idx) => (
-                      <div key={idx} style={{ background: "var(--bg-panel)", padding: 12, borderRadius: 6 }}>
+                      <div key={idx} style={{ background: "var(--bg-elevated)", padding: 12, borderRadius: 6 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                           <strong>{post.channel.toUpperCase()} — {post.title} ({post.format})</strong>
                           <button className="ghost-button" type="button" onClick={() => handleCopy(`post-${idx}`, `${post.hook}\n\n${post.caption}\n\n${post.cta}`)}>
@@ -840,14 +840,14 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
                     ))}
 
                     {req.output.images?.map((img, idx) => (
-                      <div key={idx} style={{ background: "var(--bg-panel)", padding: 12, borderRadius: 6 }}>
+                      <div key={idx} style={{ background: "var(--bg-elevated)", padding: 12, borderRadius: 6 }}>
                         <strong>{img.title} ({img.provider.toUpperCase()})</strong>
                         <p style={{ fontSize: 12, color: "var(--text-muted)" }}><strong>Prompt Visual:</strong> {img.prompt_en}</p>
                       </div>
                     ))}
 
                     {req.output.video_scripts?.map((script, idx) => (
-                      <div key={idx} style={{ background: "var(--bg-panel)", padding: 12, borderRadius: 6 }}>
+                      <div key={idx} style={{ background: "var(--bg-elevated)", padding: 12, borderRadius: 6 }}>
                         <strong>🎥 {script.title} (Hook: {script.hook_0_3s})</strong>
                         <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}><strong>Locução:</strong> {script.script_body}</p>
                         <p style={{ fontSize: 12, color: "var(--brand-accent)" }}><strong>Visual/B-Roll:</strong> {script.broll_notes}</p>

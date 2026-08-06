@@ -33,7 +33,7 @@ import {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 14px",
-  background: "var(--surface-sunken)",
+  background: "var(--bg-inset)",
   border: "1px solid var(--border)",
   borderRadius: "8px",
   color: "var(--text)",
@@ -173,7 +173,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
               <span style={{ color: "var(--text-dim)", fontSize: "0.82rem", fontWeight: 500 }}>{item.label}</span>
               <strong style={{ display: "block", fontSize: "1.6rem", marginTop: 4, fontWeight: 700 }}>{item.value}</strong>
             </div>
-            <div style={{ padding: 10, background: "var(--surface-sunken)", borderRadius: "8px" }}>
+            <div style={{ padding: 10, background: "var(--bg-inset)", borderRadius: "8px" }}>
               {item.icon}
             </div>
           </div>
@@ -276,7 +276,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
                     style={{
                       padding: "10px 12px",
                       borderRadius: "8px",
-                      background: isSelected ? "rgba(58, 201, 123, 0.08)" : "var(--surface-sunken)",
+                      background: isSelected ? "rgba(58, 201, 123, 0.08)" : "var(--bg-inset)",
                       border: `1px solid ${isSelected ? "rgba(58, 201, 123, 0.3)" : "var(--border)"}`,
                       cursor: "pointer",
                       display: "flex",
@@ -336,7 +336,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
 
               {/* Configuração da Reunião e Consentimento (para sessões ativas/draft) */}
               {selected.status !== "completed" && (
-                <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                   <strong style={{ fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
                     <Video size={16} color="var(--brand-accent)" /> Conexão da Reunião & Consentimento
                   </strong>
@@ -476,7 +476,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
               )}
 
               {/* Participantes */}
-              <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                 <strong style={{ fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
                   <Users size={16} color="var(--brand-accent)" /> Participantes Conectados ({selected.participants.length})
                 </strong>
@@ -532,7 +532,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
 
               {/* Ingestão de Transcrição ao Vivo */}
               {selected.status !== "completed" && (
-                <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                   <strong style={{ fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
                     <Mic size={16} color="var(--brand-accent)" /> Transcrição Diarizada & Análise ao Vivo
                   </strong>
@@ -610,7 +610,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
 
               {/* Histórico da Conversa */}
               {selected.segments.length > 0 && (
-                <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16 }}>
+                <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16 }}>
                   <strong style={{ fontSize: "0.88rem", display: "block", marginBottom: 10 }}>Transcrição da Reunião ({selected.segments.length} trechos)</strong>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: "240px", overflowY: "auto" }}>
                     {selected.segments.slice(-20).map((segment) => (
@@ -632,7 +632,7 @@ export function SalesCopilotPanel({ proposals }: { proposals: ProposalSummary[] 
               )}
 
               {/* Compromissos Pós-Reunião */}
-              <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "10px", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                 <strong style={{ fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
                   <CheckCircle2 size={16} color="var(--mint)" /> Compromissos e Ações Acordadas
                 </strong>

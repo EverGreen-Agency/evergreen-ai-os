@@ -77,7 +77,7 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
   }
 
   return (
-    <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ background: "var(--bg-inset)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
       <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
         <MessageSquare size={14} /> Conversa ({comments.length})
       </h3>
@@ -95,8 +95,8 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
           <div
             key={comment.id}
             style={{
-              background: "var(--surface-color)",
-              border: "1px solid var(--border-color)",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
               borderRadius: 4,
               padding: "8px 10px",
             }}
@@ -156,7 +156,7 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
           <p style={{ margin: "0 0 6px", whiteSpace: "pre-wrap" }}>{copilotResult.answer}</p>
 
           {copilotResult.actions.map((action, index) => (
-            <div key={`${action.name}-${index}`} style={{ marginTop: 4, paddingLeft: 8, borderLeft: "2px solid var(--border-color)" }}>
+            <div key={`${action.name}-${index}`} style={{ marginTop: 4, paddingLeft: 8, borderLeft: "2px solid var(--border)" }}>
               <strong style={{ fontSize: 11 }}>{action.label}</strong>{" "}
               <span
                 style={{
@@ -207,7 +207,7 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
       )}
 
       {isCommand && visibleCommands.length > 0 && (
-        <div style={{ border: "1px solid var(--border-color)", borderRadius: 6, overflow: "hidden" }}>
+        <div style={{ border: "1px solid var(--border)", borderRadius: 6, overflow: "hidden" }}>
           {visibleCommands.map((command) => (
             <button
               key={command.name}
@@ -220,7 +220,7 @@ function TaskCommentsSection({ taskId, workspaceId }: { taskId: string; workspac
                 padding: "6px 10px",
                 background: "none",
                 border: "none",
-                borderBottom: "1px solid var(--border-color)",
+                borderBottom: "1px solid var(--border)",
                 cursor: "pointer",
                 fontSize: 12,
               }}
@@ -694,7 +694,7 @@ export function TaskDrawer({
               display: "flex", alignItems: "center", gap: 8, fontSize: 13,
               padding: "10px 12px", borderRadius: 6,
               background: clientVisible ? "transparent" : "rgba(255,171,0,0.08)",
-              border: `1px solid ${clientVisible ? "var(--border-color)" : "#ffab00"}`,
+              border: `1px solid ${clientVisible ? "var(--border)" : "#ffab00"}`,
             }}
           >
             <input
@@ -795,7 +795,7 @@ export function TaskDrawer({
               cada uma tem responsável, prazo e status próprios — é o caso de
               quando o trabalho passa para outra área/equipe. */}
           {taskId && (
-            <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ background: "var(--bg-inset)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
               <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                 <GitBranch size={14} /> Subtarefas ({childTasks.length})
               </h3>
@@ -814,8 +814,8 @@ export function TaskDrawer({
                         justifyContent: "space-between",
                         alignItems: "center",
                         gap: 8,
-                        background: "var(--surface-color)",
-                        border: "1px solid var(--border-color)",
+                        background: "var(--surface)",
+                        border: "1px solid var(--border)",
                         borderRadius: 4,
                         padding: "6px 10px",
                         fontSize: 12,
@@ -844,7 +844,7 @@ export function TaskDrawer({
           )}
 
           {/* Subtarefas / Checklists */}
-          <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ background: "var(--bg-inset)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Manual v2: isto é CHECKLIST — etapas da mesma tarefa, mesmo
                 responsável e mesmo prazo. Quando o trabalho troca de mão ou de
                 prazo, o certo é criar uma subtarefa (tarefa com pai), que
@@ -871,10 +871,10 @@ export function TaskDrawer({
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
               {subtasks.map((st, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface-color)", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border-color)" }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", padding: "6px 10px", borderRadius: 4, border: "1px solid var(--border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => handleToggleSubtask(i)}>
-                    {st.is_completed ? <CheckSquare size={16} color="var(--primary-color)" /> : <Square size={16} color="var(--text-dim)" />}
-                    <span style={{ fontSize: 13, textDecoration: st.is_completed ? "line-through" : "none", color: st.is_completed ? "var(--text-dim)" : "var(--text-normal)" }}>
+                    {st.is_completed ? <CheckSquare size={16} color="var(--primary)" /> : <Square size={16} color="var(--text-dim)" />}
+                    <span style={{ fontSize: 13, textDecoration: st.is_completed ? "line-through" : "none", color: st.is_completed ? "var(--text-dim)" : "var(--text)" }}>
                       {st.title}
                     </span>
                   </div>
@@ -906,7 +906,7 @@ export function TaskDrawer({
             </select>
           </label>
           
-          <div style={{ background: "var(--surface-sunken)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ background: "var(--bg-inset)", padding: 12, borderRadius: 6, display: "flex", flexDirection: "column", gap: 12 }}>
             <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Campos Personalizados (Custom Fields)</h3>
             
             <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -972,7 +972,7 @@ export function TaskDrawer({
           {taskId && <TaskCommentsSection taskId={taskId} workspaceId={workspaceId} />}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
           {taskId ? (
             <button className="danger-button" type="button" onClick={handleDelete} disabled={isBusy || readOnlyProjection}>
               <Trash2 size={16} /> Excluir

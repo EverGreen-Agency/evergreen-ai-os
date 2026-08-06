@@ -165,7 +165,7 @@ export function RhManager() {
                         key={m.day_offset}
                         onClick={() => handleToggleMilestone(plan.id, m.day_offset, m.status)}
                         style={{
-                          background: m.status === "done" ? "rgba(16, 185, 129, 0.08)" : "var(--surface-sunken)",
+                          background: m.status === "done" ? "rgba(16, 185, 129, 0.08)" : "var(--bg-inset)",
                           border: m.status === "done" ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid var(--border)",
                           borderRadius: "8px",
                           padding: "12px",
@@ -215,7 +215,7 @@ export function RhManager() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Ex: Treinamento inicial de processos EG"
-                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
             </div>
             <div style={{ width: "160px", display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -224,7 +224,7 @@ export function RhManager() {
                 type="number"
                 value={newDayOffset}
                 onChange={(e) => setNewDayOffset(Number(e.target.value))}
-                style={{ padding: "10px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", color: "var(--text)" }}
+                style={{ padding: "10px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
             </div>
             <button className="primary-button" type="submit" style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: "8px" }}>

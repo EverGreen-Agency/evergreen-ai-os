@@ -70,7 +70,7 @@ function PlatformRow({ study }: { study: PlatformStudy }) {
       {study.preview_image_url ? (
         <img src={study.preview_image_url} alt="" loading="lazy" />
       ) : (
-        <div className="platform-row-placeholder" style={{ width: 46, height: 46, borderRadius: 6, background: "var(--surface-sunken)" }} />
+        <div className="platform-row-placeholder" style={{ width: 46, height: 46, borderRadius: 6, background: "var(--bg-inset)" }} />
       )}
 
       <div style={{ minWidth: 0 }}>
@@ -163,7 +163,7 @@ function PlatformRow({ study }: { study: PlatformStudy }) {
                     value={verdictNote}
                     placeholder="Por quê? (fica registrado com a decisão)"
                     onChange={(event) => setVerdictNote(event.target.value)}
-                    style={{ width: "100%", padding: 7, borderRadius: 6, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)", fontFamily: "inherit", fontSize: 12 }}
+                    style={{ width: "100%", padding: 7, borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)", fontFamily: "inherit", fontSize: 12 }}
                   />
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
                     {(Object.keys(VERDICT_LABELS) as PlatformVerdict[]).map((verdict) => (
@@ -285,7 +285,7 @@ export function PlatformStudiesView() {
             value={newUrls}
             placeholder="https://exemplo.com&#10;outra.com"
             onChange={(event) => setNewUrls(event.target.value)}
-            style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--border-color)", background: "var(--surface-sunken)", color: "var(--text-normal)", fontFamily: "inherit" }}
+            style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg-inset)", color: "var(--text)", fontFamily: "inherit" }}
           />
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button className="primary-button" type="submit" disabled={addMany.isPending}>

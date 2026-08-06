@@ -316,7 +316,7 @@ export function KitsManager() {
                 <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-dim)" }}>{k.description || "Sem descrição informada."}</p>
 
                 {/* Composição das Peças com fotos miniatura */}
-                <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px" }}>
+                <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px" }}>
                   <strong style={{ fontSize: "0.78rem", color: "var(--text-dim)", display: "block", marginBottom: "8px" }}>
                     PEÇAS COMPONENTES DO KIT ({k.pieces.length}):
                   </strong>
@@ -347,7 +347,7 @@ export function KitsManager() {
           {pieces.map((p) => (
             <div key={p.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "16px", display: "flex", gap: "14px", alignItems: "center" }}>
               {/* Foto do elemento/item */}
-              <div style={{ width: "64px", height: "64px", borderRadius: "8px", background: "var(--surface-sunken)", border: "1px solid var(--border)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: "64px", height: "64px", borderRadius: "8px", background: "var(--bg-inset)", border: "1px solid var(--border)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 {p.image_url ? (
                   <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
@@ -454,7 +454,7 @@ export function KitsManager() {
                 <label style={{ fontSize: "0.85rem", color: "var(--brand-accent)", fontWeight: 600 }}>
                   Selecione as Peças que compõem este Kit:
                 </label>
-                <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px", background: "var(--surface-sunken)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px", background: "var(--bg-inset)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)" }}>
                   {pieces.map((p) => {
                     const qty = selectedPieces[p.id] || 0;
                     return (
@@ -472,9 +472,9 @@ export function KitsManager() {
                         </div>
 
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <button type="button" onClick={() => togglePieceQuantity(p.id, -1)} style={{ width: "26px", height: "26px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--surface-sunken)", cursor: "pointer", color: "var(--text)" }}>-</button>
+                          <button type="button" onClick={() => togglePieceQuantity(p.id, -1)} style={{ width: "26px", height: "26px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--bg-inset)", cursor: "pointer", color: "var(--text)" }}>-</button>
                           <span style={{ fontWeight: 700, minWidth: "20px", textAlign: "center" }}>{qty}</span>
-                          <button type="button" onClick={() => togglePieceQuantity(p.id, 1)} style={{ width: "26px", height: "26px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--surface-sunken)", cursor: "pointer", color: "var(--text)" }}>+</button>
+                          <button type="button" onClick={() => togglePieceQuantity(p.id, 1)} style={{ width: "26px", height: "26px", borderRadius: "4px", border: "1px solid var(--border)", background: "var(--bg-inset)", cursor: "pointer", color: "var(--text)" }}>+</button>
                         </div>
                       </div>
                     );

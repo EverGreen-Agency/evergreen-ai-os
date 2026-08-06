@@ -462,7 +462,7 @@ export function CockpitView() {
     <>
       <div className="bento-grid">
         {/* Welcome Card */}
-        <article className="bento-card col-span-3" style={{ background: 'linear-gradient(135deg, var(--bg-surface) 0%, rgba(58, 201, 123, 0.05) 100%)' }}>
+        <article className="bento-card col-span-3" style={{ background: 'linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.05) 100%)' }}>
           <div className="bento-header">
             <h3>Visão do Cliente</h3>
             <Target size={16} color="var(--brand-accent)" />
@@ -477,7 +477,7 @@ export function CockpitView() {
         </article>
 
         {/* CTA Aprovações Pendentes */}
-        <article className="bento-card" style={{ background: pendingApprovals.length > 0 ? 'var(--brand-accent)' : 'var(--bg-surface)' }}>
+        <article className="bento-card" style={{ background: pendingApprovals.length > 0 ? 'var(--brand-accent)' : 'var(--surface)' }}>
           <div className="bento-header" style={{ color: pendingApprovals.length > 0 ? '#111' : '' }}>
             <h3>Aprovações Pendentes</h3>
             <CalendarCheck size={16} />

@@ -51,22 +51,22 @@ export function TaskCard({ task, onClick, onStatusChange, columns, onDragStart, 
       
       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
         {task.external_source === "clickup" && (
-          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--surface-sunken)", border: "1px solid var(--border-color)", color: "var(--text-dim)" }}>
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bg-inset)", border: "1px solid var(--border)", color: "var(--text-dim)" }}>
             Legado importado · somente leitura
           </span>
         )}
         {task.recurrence && task.recurrence !== "none" && (
-          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--brand-accent)" }} title={`Recorrência: ${task.recurrence}`}>
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border)", color: "var(--brand-accent)" }} title={`Recorrência: ${task.recurrence}`}>
             🔄 {task.recurrence === "weekly" ? "Semanal" : "Mensal"}
           </span>
         )}
         {task.subtasks && task.subtasks.length > 0 && (
-          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--text-normal)" }}>
+          <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border)", color: "var(--text)" }}>
             ☑️ {task.subtasks.filter(s => s.is_completed).length}/{task.subtasks.length}
           </span>
         )}
         {task.custom_fields?.filter(f => ["Área do Projeto", "Esforço", "Missão", "Plataforma"].includes(f.field_name) && f.field_value).map(f => (
-          <span key={f.field_name} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", color: "var(--text-normal)" }}>
+          <span key={f.field_name} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.05)", border: "1px solid var(--border)", color: "var(--text)" }}>
             {f.field_name === "Esforço" ? "⏱️ " : ""}{f.field_value}
           </span>
         ))}
@@ -75,7 +75,7 @@ export function TaskCard({ task, onClick, onStatusChange, columns, onDragStart, 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {task.priority && (
-            <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 4, background: "var(--surface-sunken)", color: "var(--text-dim)" }}>
+            <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 4, background: "var(--bg-inset)", color: "var(--text-dim)" }}>
               {task.priority}
             </span>
           )}
@@ -99,9 +99,9 @@ export function TaskCard({ task, onClick, onStatusChange, columns, onDragStart, 
             fontSize: 11, 
             fontWeight: 500,
             padding: "3px 8px", 
-            background: "var(--surface-color)", 
-            border: "1px solid var(--border-color)", 
-            color: "var(--text-normal)",
+            background: "var(--surface)", 
+            border: "1px solid var(--border)", 
+            color: "var(--text)",
             borderRadius: 6,
             cursor: task.external_source === "clickup" ? "not-allowed" : "pointer",
             outline: "none"

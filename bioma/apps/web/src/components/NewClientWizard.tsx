@@ -249,7 +249,7 @@ export function NewClientWizard({
                   display: "grid",
                   placeItems: "center",
                   fontSize: "0.75rem",
-                  background: index < step ? "#10b981" : index === step ? "var(--brand-accent)" : "var(--surface-sunken)",
+                  background: index < step ? "#10b981" : index === step ? "var(--brand-accent)" : "var(--bg-inset)",
                   color: index <= step ? "#000" : "var(--text-dim)",
                   fontWeight: 700,
                 }}
@@ -313,7 +313,7 @@ export function NewClientWizard({
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "12px 14px",
-                  background: useAiSetup ? "rgba(58, 201, 123, 0.12)" : "var(--surface-sunken)",
+                  background: useAiSetup ? "rgba(58, 201, 123, 0.12)" : "var(--bg-inset)",
                   border: `1px solid ${useAiSetup ? "var(--brand-accent)" : "var(--border)"}`,
                   borderRadius: "8px",
                   cursor: "pointer",
@@ -363,7 +363,7 @@ export function NewClientWizard({
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "12px 16px",
-                    background: "var(--surface-sunken)",
+                    background: "var(--bg-inset)",
                     border: "1px solid var(--border)",
                     borderRadius: "8px",
                   }}
@@ -394,7 +394,7 @@ export function NewClientWizard({
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "12px 16px",
-                        background: on ? "var(--surface)" : "var(--surface-sunken)",
+                        background: on ? "var(--surface)" : "var(--bg-inset)",
                         border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -482,7 +482,7 @@ export function NewClientWizard({
                         alignItems: "center",
                         gap: 10,
                         padding: "12px 14px",
-                        background: on ? "var(--surface)" : "var(--surface-sunken)",
+                        background: on ? "var(--surface)" : "var(--bg-inset)",
                         border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
                         borderRadius: "8px",
                         cursor: "pointer",
@@ -526,7 +526,7 @@ export function NewClientWizard({
                           padding: "10px 12px",
                           borderRadius: 8,
                           textAlign: "left",
-                          background: on ? "var(--surface)" : "var(--surface-sunken)",
+                          background: on ? "var(--surface)" : "var(--bg-inset)",
                           border: `1px solid ${on ? "var(--brand-accent)" : "var(--border)"}`,
                           color: "var(--text)",
                           cursor: "pointer",
@@ -542,7 +542,7 @@ export function NewClientWizard({
               </div>
 
               {/* Resumo do Cadastro */}
-              <div style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.85rem" }}>
+              <div style={{ background: "var(--bg-inset)", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.85rem" }}>
                 <strong style={{ color: "var(--brand-accent)" }}>{name || "—"}</strong> · {organization || "—"}<br />
                 <span style={{ color: "var(--text-dim)" }}>
                   Status: <strong>{statusLabel[status]}</strong> • {1 + modules.size} Módulos • {onboarding.size} Entregas • {projectTracks.size} Frentes
