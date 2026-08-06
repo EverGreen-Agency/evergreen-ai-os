@@ -73,10 +73,17 @@ def main() -> None:
         assert len(client.get("/backoffice/stack").json()["techs"]) == tech_count + 1
 
         # 3) Seeder idempotente e não reverte edição humana.
-        with connect() as conn:
-            doc = conn.execute(
-                "select path from eg_knowledge_docs where seeded = true limit 1"
-            ).fetchone()
+        #
+        # O documento tem que vir de um ARQUIVO que existe em seed_data hoje,
+        # não de um `select ... limit 1` na tabela. Linha marcada como semente
+        # cujo arquivo de origem foi apagado continua no banco (o seeder não
+        # remove órfã), e o reseed jamais a restaura — o teste então falhava ou
+        # passava conforme a linha que o `limit 1` sorteasse. Foi o que
+        # aconteceu quando `company__company.md` saiu de seed_data e a linha
+        # ficou.
+        seed_dir = Path(seed_knowledge.__file__).resolve().parents[1] / "seed_data" / "knowledge"
+        seed_file = next(iter(sorted(seed_dir.glob("*.md"))), None)
+        doc = {"path": seed_file.name} if seed_file else None
         if doc:
             marker = "CONTEUDO EDITADO PELO SMOKE"
             with connect() as conn:

@@ -275,6 +275,70 @@ renomear a pasta local seus chats e copilots perdem o contexto.
 
 ---
 
+## 10. Onde mora o que não é cliente: Notorious, holdings e white label
+
+**Contexto.** Suas perguntas em 2026-08-06: onde ficam as tarefas de uma
+empresa sua que não é a EG (Notorious)? Cliente holding com várias frentes é um
+workspace ou vários? Isso já é a estrutura de multi-tenant do white label?
+
+**O que a estrutura já suporta.** `organizations` tem
+`parent_organization_id` — já é hierárquica. `workspaces` é onde o trabalho
+acontece; `clients` é o registro comercial. Hoje existe **um tenant só** (a
+EG), e todo cliente é organização filha dela. Vários pontos do código assumem
+isso (o `mcp_server.py` documenta a suposição explicitamente).
+
+**Os três casos, e por que dois deles são o mesmo problema:**
+
+| Caso | Resposta | Critério |
+|---|---|---|
+| **Notorious** (fonte de renda sua) | organização **irmã** da EG, não filha | tem P&L próprio? Se você quer faturamento/custo separados, misturar destrói o significado do cockpit e do financeiro |
+| **Cliente holding** | **uma organização, vários workspaces** | onde está o contrato. Um contrato = uma organização. Contratos separados por frente = organizações sob a holding |
+| **White label** | outra agência vira **tenant**, com clientes filhos | é o caso Notorious generalizado |
+
+Notorious e white label são **o mesmo trabalho**: tornar o tenant um eixo real,
+hoje fixado na EG. Resolver um resolve o outro. Spec: `mod-multitenant` (no
+seed de engenharia).
+
+**Recomendação: não forçar agora.** Rodar a Notorious como workspace dentro da
+EG, sabendo que é temporário, e tratar multi-tenant como o projeto que é. O
+erro caro seria construir meia estrutura de tenant e ter que desfazer.
+
+**Consequência para a memória do agente** (não é item separado): a memória
+global hoje é `workspace_id = NULL` = "vale para toda a EG". Se a Notorious
+virar tenant, essa camada precisa passar a ser **por tenant** — senão o tom de
+voz e as diretivas da EG vazariam para a outra empresa. As outras duas camadas
+(workspace e pessoal) já estão corretas e não mudam.
+
+`RESPOSTA (a Notorious tem P&L próprio? isso decide irmã vs. workspace):`
+
+---
+
+## 11. Ocultar módulos que a EG não usa agora
+
+**Contexto.** Você quer esconder Gestão RH, Logística Kits, Freelas, Pesquisa
+de Mercado e Radar Local sem apagar nada, e perguntou se bastava gerenciar
+acesso nas configurações da empresa.
+
+**Não basta** — e o motivo é que existem dois eixos e nenhum atinge o EG admin:
+
+- `enabled_modules` (organização) = "o cliente contratou isso?" — filtra só a
+  visão do `client_user`;
+- `feature_flags` = "isso está pronto para este cliente?"
+  (`hidden`/`coming_soon`/`beta`/`active`) — mesma coisa.
+
+O menu de EG admin renderiza `groupAdmin` **sem filtro** (`Sidebar.tsx`).
+
+**Falta um terceiro eixo: "eu não uso isso agora"** — preferência de navegação
+da EG, ortogonal a contrato e a maturidade. Nada é apagado; a rota continua
+funcionando por URL direta e religar é um clique.
+
+**Recomendação: por usuário, não por organização.** Você esconder o RH não
+deveria escondê-lo de quem for cuidar do RH depois.
+
+`RESPOSTA (por usuário confirma? algum além de RH/Kits/Freelas/Pesquisa/Radar?):`
+
+---
+
 ## 9. GitHub ↔ Tech — fechar o loop
 
 **Contexto.** Sua pergunta em 2026-08-05: "o Tech está integrado
