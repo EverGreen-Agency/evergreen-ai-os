@@ -275,6 +275,65 @@ renomear a pasta local seus chats e copilots perdem o contexto.
 
 ---
 
+## 9. GitHub ↔ Tech — fechar o loop
+
+**Contexto.** Sua pergunta em 2026-08-05: "o Tech está integrado
+bidirecionalmente com o GitHub?". Está, mas as duas pontas são **manuais
+(pull)**, e o ciclo não fecha:
+
+- **Bioma → GitHub**: cria issue a partir de uma entrega, idempotente via
+  marcador `[Bioma:<deliverable_id>]`. Funciona.
+- **GitHub → Bioma**: lê commits/PRs/issues sob demanda e publica como
+  atualização do projeto. Funciona, mas alguém tem que clicar.
+
+**Os três gaps:**
+
+1. **Sem webhook** — nada é tempo real.
+2. **O estado da issue não volta.** Fechar a issue no GitHub **não** conclui a
+   entrega no Bioma. Grava-se `github_issue_number` na criação e acabou. É o
+   que mais dói: as duas pontas divergem em silêncio.
+3. **PR não se liga a entrega** — só issue. PR mergeado não marca nada.
+
+**A decisão que trava o item 2:** issue fechada deve **concluir a entrega
+automaticamente**, ou apenas **sugerir** a conclusão para alguém confirmar?
+Automático é o que o time espera de uma integração; sugerir respeita a regra
+de que concluir entrega tem aceite separado (que hoje existe de propósito).
+Minha recomendação: **sugerir** — vira item em "Precisa de você" no cockpit,
+não conclusão silenciosa, porque "entrega concluída" tem efeito contratual.
+
+`RESPOSTA (issue fechada conclui a entrega ou sugere?):`
+
+---
+
+## 8. Estúdio IA — unificar no copiloto (decidido, não implementado)
+
+**Contexto.** Sua avaliação em 2026-08-05: "a parte de social media tá bem
+ruim, o Estúdio IA não está alinhado com a visão — era um ChatGPT em que eu
+converso e ele vai criando os materiais, e o Bioma serve pra salvar, organizar,
+ter visão limpa, histórico, threads, sessões das criações".
+
+**O diagnóstico é estrutural, não visual.** `AiContentStudio.tsx` é um
+formulário: seções fixas (Brand Book, Retrospectiva, Calendário), dropdown de
+tipo de conteúdo e provedor, botão "gerar". Não tem thread, sessão nem
+histórico de conversa.
+
+E o copiloto **já tem tudo isso** — `copilot_threads`, `copilot_runs`, trilha
+com fontes, custo e anexos. São dois sistemas paralelos que não se falam; é
+por isso que "não parece linkado" e você precisa ficar referenciando documento.
+
+**Decisão (2026-08-05): unificar no copiloto, via artefatos.** A conversa gera
+um artefato (roteiro, post, proposta); o artefato fica salvo, versionado e
+navegável; o Estúdio vira a **vista limpa** desses artefatos em vez de um
+formulário concorrente. Reaproveita thread/trilha/custo/roteamento por cota
+que já existem, em vez de duplicá-los.
+
+**Ainda não implementado.** Ordem combinada: MCP do ChatGPT primeiro, depois
+refino de tarefas, depois isto.
+
+`RESPOSTA (o que é artefato de primeira classe: roteiro, post, proposta, tudo?):`
+
+---
+
 ## 7. Context Engine — por onde começar
 
 **Contexto.** `EG_CONTEXT_ENGINE_FEATURE_HANDOFF.md` define a feature inteira em

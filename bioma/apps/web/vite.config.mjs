@@ -45,6 +45,11 @@ const API_PREFIXES = [
   "/health",
   "/improvement-requests",
   "/integrations",
+  // A tela não chama /mcp (quem chama é o ChatGPT, de servidor para servidor,
+  // contra a API publicada). Fica aqui mesmo assim para manter a invariante do
+  // smoke — todo prefixo da API é proxiado — e para dar pra apontar um cliente
+  // MCP local na porta do Vite ao depurar.
+  "/mcp",
   "/organizations",
   "/platform-studies",
   "/project-phases",

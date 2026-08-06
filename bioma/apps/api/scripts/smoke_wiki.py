@@ -80,19 +80,22 @@ def main() -> None:
     assert_status(admin.delete(f"/backoffice/wiki/documents/{document_id}"), 204, "excluir documento")
     assert_status(admin.get(f"/backoffice/wiki/documents/{document_id}"), 404, "documento removido")
 
-    # Importar manuais core do monorepo (`_opensquad/_memory/knowledge`). Esse
-    # diretório foi apagado em 2026-08-05 — o conteúdo já migrou para
-    # `seed_data/` + `seed_knowledge.py`, que roda no boot. O endpoint fica
-    # vestigial de propósito: degrada para `available=False` em vez de
-    # quebrar, em qualquer ambiente, para sempre.
+    # Importar manuais core. A fonte agora é `seed_data/knowledge` — a mesma
+    # pasta que `seed_knowledge.py` semeia no boot, e que existe DENTRO do
+    # contexto de build do Dockerfile. Antes lia `_opensquad/_memory/knowledge`,
+    # que só existia na máquina de quem desenvolvia: em produção o botão nunca
+    # achava nada. Se `available` voltar a ser False, o import quebrou de novo
+    # para produção. A segunda chamada prova a idempotência por título.
     core = admin.post("/backoffice/wiki/import-core")
     assert_status(core, 200, "importar manuais core")
     core_body = core.json()
-    assert core_body["available"] is False, (
-        "diretório _opensquad/_memory/knowledge não existe mais em lugar nenhum — "
-        f"esperava degradação controlada, recebi {core_body}"
+    assert core_body["available"] is True, (
+        f"import-core precisa achar seed_data/knowledge em qualquer ambiente: {core_body}"
     )
-    assert core_body["imported"] == [] and core_body["skipped"] == [], core_body
+    total = len(core_body["imported"]) + len(core_body["skipped"])
+    assert total >= 3, f"poucos manuais core detectados ({total}): {core_body}"
+    again = admin.post("/backoffice/wiki/import-core").json()
+    assert again["imported"] == [], f"segunda importação deveria ser vazia: {again['imported']}"
 
     # Cliente comum não importa (checagem de escopo continua valendo mesmo com
     # a fonte de dados apagada).

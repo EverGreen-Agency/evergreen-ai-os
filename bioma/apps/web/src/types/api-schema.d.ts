@@ -3427,6 +3427,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mcp Endpoint
+         * @description Streamable HTTP: uma requisição JSON-RPC, uma resposta.
+         */
+        post: operations["mcp_endpoint_mcp_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mcp/sse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mcp Sse
+         * @description Compatibilidade com clientes que ainda abrem SSE antes do POST.
+         *
+         *     A documentação da OpenAI ainda mostra a URL do conector terminando em
+         *     `/sse/`. Mantemos o canal aberto e anunciamos o endpoint de POST acima;
+         *     quem já fala Streamable HTTP usa direto a raiz `/mcp`.
+         */
+        get: operations["mcp_sse_mcp_sse_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organization_id}/feature-flags": {
         parameters: {
             query?: never;
@@ -5391,6 +5435,24 @@ export interface paths {
         put?: never;
         /** Create Task List */
         post: operations["create_task_list_workspaces__workspace_id__task_lists_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workspace Tasks */
+        get: operations["list_workspace_tasks_workspaces__workspace_id__tasks_get"];
+        put?: never;
+        /** Create Workspace Task */
+        post: operations["create_workspace_task_workspaces__workspace_id__tasks_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13967,6 +14029,8 @@ export interface components {
             dependencies?: components["schemas"]["TaskDependency"][];
             /** Description */
             description?: string | null;
+            /** Discipline */
+            discipline?: ("growth" | "tech") | null;
             /** Due Date */
             due_date?: string | null;
             /** External Id */
@@ -13983,11 +14047,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /**
-             * List Id
-             * Format: uuid
-             */
-            list_id: string;
+            /** List Id */
+            list_id?: string | null;
             /** Owner Id */
             owner_id?: string | null;
             /** Parent Task Id */
@@ -14014,6 +14075,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /** Workspace Id */
+            workspace_id?: string | null;
         };
         /** TaskComment */
         TaskComment: {
@@ -14071,6 +14134,8 @@ export interface components {
             dependencies?: components["schemas"]["TaskDependencyBase"][];
             /** Description */
             description?: string | null;
+            /** Discipline */
+            discipline?: ("growth" | "tech") | null;
             /** Due Date */
             due_date?: string | null;
             /**
@@ -14254,6 +14319,8 @@ export interface components {
             dependencies?: components["schemas"]["TaskDependencyBase"][] | null;
             /** Description */
             description?: string | null;
+            /** Discipline */
+            discipline?: ("growth" | "tech") | null;
             /** Due Date */
             due_date?: string | null;
             /** Group Status */
@@ -22599,6 +22666,46 @@ export interface operations {
             };
         };
     };
+    mcp_endpoint_mcp_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    mcp_sse_mcp_sse_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     list_flags_organizations__organization_id__feature_flags_get: {
         parameters: {
             query?: never;
@@ -27489,6 +27596,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_workspace_tasks_workspaces__workspace_id__tasks_get: {
+        parameters: {
+            query?: {
+                /** @description Filtrar por disciplina: growth ou tech */
+                discipline?: string | null;
+                project_id?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_workspace_task_workspaces__workspace_id__tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
                 };
             };
             /** @description Validation Error */

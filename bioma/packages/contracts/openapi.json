@@ -23885,6 +23885,21 @@
             ],
             "title": "Description"
           },
+          "discipline": {
+            "anyOf": [
+              {
+                "enum": [
+                  "growth",
+                  "tech"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discipline"
+          },
           "due_date": {
             "anyOf": [
               {
@@ -23935,9 +23950,16 @@
             "type": "string"
           },
           "list_id": {
-            "format": "uuid",
-            "title": "List Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List Id"
           },
           "owner_id": {
             "anyOf": [
@@ -24039,6 +24061,18 @@
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
           }
         },
         "required": [
@@ -24046,7 +24080,6 @@
           "status",
           "group_status",
           "id",
-          "list_id",
           "created_at",
           "updated_at"
         ],
@@ -24181,6 +24214,21 @@
               }
             ],
             "title": "Description"
+          },
+          "discipline": {
+            "anyOf": [
+              {
+                "enum": [
+                  "growth",
+                  "tech"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discipline"
           },
           "due_date": {
             "anyOf": [
@@ -24614,6 +24662,21 @@
               }
             ],
             "title": "Description"
+          },
+          "discipline": {
+            "anyOf": [
+              {
+                "enum": [
+                  "growth",
+                  "tech"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discipline"
           },
           "due_date": {
             "anyOf": [
@@ -38222,6 +38285,46 @@
         ]
       }
     },
+    "/mcp": {
+      "post": {
+        "description": "Streamable HTTP: uma requisição JSON-RPC, uma resposta.",
+        "operationId": "mcp_endpoint_mcp_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Mcp Endpoint",
+        "tags": [
+          "mcp"
+        ]
+      }
+    },
+    "/mcp/sse": {
+      "get": {
+        "description": "Compatibilidade com clientes que ainda abrem SSE antes do POST.\n\nA documentação da OpenAI ainda mostra a URL do conector terminando em\n`/sse/`. Mantemos o canal aberto e anunciamos o endpoint de POST acima;\nquem já fala Streamable HTTP usa direto a raiz `/mcp`.",
+        "operationId": "mcp_sse_mcp_sse_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Mcp Sse",
+        "tags": [
+          "mcp"
+        ]
+      }
+    },
     "/organizations/{organization_id}/feature-flags": {
       "get": {
         "description": "Estado efetivo de cada feature — inclui o que está 'em breve'.",
@@ -45941,6 +46044,139 @@
           }
         },
         "summary": "Create Task List",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/workspaces/{workspace_id}/tasks": {
+      "get": {
+        "operationId": "list_workspace_tasks_workspaces__workspace_id__tasks_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtrar por disciplina: growth ou tech",
+            "in": "query",
+            "name": "discipline",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por disciplina: growth ou tech",
+              "title": "Discipline"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  },
+                  "title": "Response List Workspace Tasks Workspaces  Workspace Id  Tasks Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Workspace Tasks",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "post": {
+        "operationId": "create_workspace_task_workspaces__workspace_id__tasks_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Workspace Task",
         "tags": [
           "tasks"
         ]
