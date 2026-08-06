@@ -59,6 +59,15 @@ def user_from_session_token(token: str) -> CurrentUserResponse:
                 (token_hash,),
             )
 
+        # Marca uso a cada requisição autenticada. É o que permite a faxina
+        # apagar sessão abandonada por desuso — antes, a renovação rolante
+        # acima garantia que nenhuma sessão em uso expirasse, e a que NÃO
+        # estava em uso também não expirava enquanto o prazo não vencesse.
+        conn.execute(
+            "update sessions set last_seen_at = now() where token_hash = %s",
+            (token_hash,),
+        )
+
         return _build_current_user(
             conn, session["user_id"], session["email"], session["display_name"], session["has_password"],
         )

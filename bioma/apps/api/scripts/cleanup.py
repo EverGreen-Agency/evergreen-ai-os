@@ -27,6 +27,13 @@ def run_cleanup(conn) -> dict[str, int]:
         delete from sessions
         where expires_at < now() - interval '7 days'
            or revoked_at < now() - interval '7 days'
+           -- Abandonada: a renovação rolante estende o prazo de toda sessão em
+           -- uso, então "expirou" nunca alcançava as que ninguém usa mais. Sem
+           -- esta linha elas se acumulavam para sempre e entupiam a tela de
+           -- dispositivos autorizados (chegou a 1006 para um usuário).
+           or (coalesce(last_seen_at, created_at) < now() - interval '30 days')
+           -- Login de smoke não é dispositivo de ninguém.
+           or (user_agent = 'testclient' and created_at < now() - interval '1 day')
         returning id
         """
     ).fetchall()

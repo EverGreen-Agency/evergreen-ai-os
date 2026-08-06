@@ -2558,7 +2558,16 @@ export const api = {
     try { localStorage.removeItem("bioma_user_cache"); } catch {}
     return request<{ status: string }>("/auth/logout", { method: "POST" });
   },
-  sessions: () => request<Array<{ id: string; created_at: string; expires_at: string; is_current: boolean }>>("/auth/sessions"),
+  sessions: () => request<Array<{
+    id: string;
+    created_at: string;
+    expires_at: string;
+    /** Último uso real da sessão. Nulo só em sessão anterior ao registro. */
+    last_seen_at: string | null;
+    /** Rótulo legível derivado do user-agent ("Chrome no Windows"). */
+    device_label: string;
+    is_current: boolean;
+  }>>("/auth/sessions"),
   revokeSession: (sessionId: string) => request<{ status: string }>(`/auth/sessions/${sessionId}`, { method: "DELETE" }),
   revokeOtherSessions: () => request<{ status: string }>("/auth/sessions/other", { method: "DELETE" }),
   personalAccessTokens: () => request<PersonalAccessTokenSummary[]>("/auth/personal-access-tokens"),
