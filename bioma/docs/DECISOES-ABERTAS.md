@@ -438,7 +438,7 @@ virar tenant, essa camada precisa passar a ser **por tenant** — senão o tom d
 voz e as diretivas da EG vazariam para a outra empresa. As outras duas camadas
 (workspace e pessoal) já estão corretas e não mudam.
 
-`RESPOSTA (a Notorious tem P&L próprio? isso decide irmã vs. workspace):`
+`RESPOSTA (a Notorious tem P&L próprio? isso decide irmã vs. workspace):` vai virar workspace no momento.
 
 ---
 
@@ -498,7 +498,7 @@ Duas armadilhas que quero evitar:
    resposta na tela — herdado da equipe, da organização ou escolha sua. Sem
    isso vira suporte eterno.
 
-`RESPOSTA (fazer os 4 níveis de uma vez, ou começar por preferência pessoal + equipe?):`
+`RESPOSTA (fazer os 4 níveis de uma vez, ou começar por preferência pessoal + equipe?):` Fazer os 4 níveis de uma vez
 
 ---
 
@@ -551,7 +551,8 @@ novo, para medir de onde vem a insatisfação.
 **Esforço estimado:** migração de uma linha, executor (~40 linhas, API
 compatível com OpenAI), um `elif`, e a opção no painel de IA. Meio dia.
 
-`RESPOSTA (cadastrar as contas atuais primeiro, ou já implementar OpenRouter junto?):`
+`RESPOSTA (cadastrar as contas atuais primeiro, ou já implementar OpenRouter junto?):` Tipo, tava pensando também, o que poderiamos tornar herness. Tipo, o curador de memória/soul (estilo hermes agent) fica em um modelo, dai tool calling fica em outro, auditar quais issus devem surgir no git e quais correspondem as tarefas é outro modelo... ou acha que isso pioraria a qualidade?
+E não entendi sua pergunta. Mas prefiro implementar novos modelos pois parece que não está funcionando o sistema de uso das cotas/auth do claude e chatgpt. E todo modelo que formos implementar, tem que trazer documentação nova?
 
 ---
 

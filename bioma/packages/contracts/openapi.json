@@ -7862,6 +7862,85 @@
         "title": "GitHubCommitSummary",
         "type": "object"
       },
+      "GitHubCompletionSuggestion": {
+        "description": "Divergência observada: a issue fechou lá, a entrega segue aberta aqui.",
+        "properties": {
+          "deliverable_id": {
+            "format": "uuid",
+            "title": "Deliverable Id",
+            "type": "string"
+          },
+          "deliverable_status": {
+            "title": "Deliverable Status",
+            "type": "string"
+          },
+          "deliverable_title": {
+            "title": "Deliverable Title",
+            "type": "string"
+          },
+          "issue_number": {
+            "title": "Issue Number",
+            "type": "integer"
+          },
+          "issue_title": {
+            "title": "Issue Title",
+            "type": "string"
+          },
+          "issue_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issue Url"
+          }
+        },
+        "required": [
+          "deliverable_id",
+          "deliverable_title",
+          "deliverable_status",
+          "issue_number",
+          "issue_url",
+          "issue_title"
+        ],
+        "title": "GitHubCompletionSuggestion",
+        "type": "object"
+      },
+      "GitHubCompletionSuggestions": {
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubCompletionSuggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "repository",
+          "checked_at"
+        ],
+        "title": "GitHubCompletionSuggestions",
+        "type": "object"
+      },
       "GitHubConnectionInput": {
         "properties": {
           "default_branch": {
@@ -38020,6 +38099,50 @@
           }
         },
         "summary": "Get Github Activity",
+        "tags": [
+          "integrations"
+        ]
+      }
+    },
+    "/integrations/github/projects/{project_id}/completion-suggestions": {
+      "get": {
+        "description": "Entregas cuja issue fechou no GitHub mas que seguem abertas no Bioma.\n\nSugere; não conclui. Concluir entrega tem efeito contratual e continua\nexigindo ação humana (decisão #9).",
+        "operationId": "github_completion_suggestions_integrations_github_projects__project_id__completion_suggestions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCompletionSuggestions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Github Completion Suggestions",
         "tags": [
           "integrations"
         ]

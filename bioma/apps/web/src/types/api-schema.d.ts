@@ -3358,6 +3358,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/github/projects/{project_id}/completion-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Github Completion Suggestions
+         * @description Entregas cuja issue fechou no GitHub mas que seguem abertas no Bioma.
+         *
+         *     Sugere; não conclui. Concluir entrega tem efeito contratual e continua
+         *     exigindo ação humana (decisão #9).
+         */
+        get: operations["github_completion_suggestions_integrations_github_projects__project_id__completion_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/github/projects/{project_id}/publish-update": {
         parameters: {
             query?: never;
@@ -8375,6 +8398,44 @@ export interface components {
             sha: string;
             /** Url */
             url: string;
+        };
+        /**
+         * GitHubCompletionSuggestion
+         * @description Divergência observada: a issue fechou lá, a entrega segue aberta aqui.
+         */
+        GitHubCompletionSuggestion: {
+            /**
+             * Deliverable Id
+             * Format: uuid
+             */
+            deliverable_id: string;
+            /** Deliverable Status */
+            deliverable_status: string;
+            /** Deliverable Title */
+            deliverable_title: string;
+            /** Issue Number */
+            issue_number: number;
+            /** Issue Title */
+            issue_title: string;
+            /** Issue Url */
+            issue_url: string | null;
+        };
+        /** GitHubCompletionSuggestions */
+        GitHubCompletionSuggestions: {
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Repository */
+            repository: string;
+            /** Suggestions */
+            suggestions?: components["schemas"]["GitHubCompletionSuggestion"][];
         };
         /** GitHubConnectionInput */
         GitHubConnectionInput: {
@@ -22495,6 +22556,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GitHubProjectActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    github_completion_suggestions_integrations_github_projects__project_id__completion_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubCompletionSuggestions"];
                 };
             };
             /** @description Validation Error */

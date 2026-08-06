@@ -16,6 +16,8 @@ from bioma_api.schemas.github import (
     GitHubActivitySyncResult,
     GitHubIssueCreateRequest,
     GitHubIssueLinkSummary,
+    GitHubCompletionSuggestion,
+    GitHubCompletionSuggestions,
     GitHubProjectActivity,
 )
 
@@ -271,4 +273,49 @@ def _summary(row) -> GitHubConnectionSummary:
         id=row["id"], project_id=row["project_id"],
         repository=f"{row['repository_owner']}/{row['repository_name']}",
         default_branch=row["default_branch"], status=row["status"], updated_at=row["updated_at"],
+    )
+
+
+def list_completion_suggestions(project_id: UUID, user: CurrentUserResponse) -> GitHubCompletionSuggestions:
+    """Entregas cuja issue já foi fechada no GitHub mas que continuam abertas aqui.
+
+    Decisão do Eduardo (DECISOES-ABERTAS #9): **sugerir, não concluir**.
+    Concluir entrega tem efeito contratual e já tem aceite separado de
+    propósito; um robô fechando entrega porque alguém fechou uma issue
+    inverteria essa regra pela porta dos fundos.
+
+    Sem estado novo e sem webhook: a divergência é CALCULADA na hora,
+    comparando o que o GitHub diz com o que o Bioma tem. Guardar "sugestão
+    pendente" numa tabela criaria uma terceira verdade para manter em dia — e
+    a pergunta "esta issue está fechada?" já tem dono, que é o GitHub.
+    """
+    activity = get_activity(project_id, user, limit=100)
+    closed_issues = {
+        issue.number: issue for issue in activity.issues if issue.state == "closed"
+    }
+    with connect() as conn:
+        rows = github_repo.list_deliverables_with_issues(conn, project_id)
+
+    suggestions = [
+        GitHubCompletionSuggestion(
+            deliverable_id=row["id"],
+            deliverable_title=row["title"],
+            deliverable_status=row["status"],
+            issue_number=row["github_issue_number"],
+            issue_url=row["github_issue_url"],
+            issue_title=closed_issues[row["github_issue_number"]].title,
+        )
+        for row in rows
+        # `done` é o único estado terminal de entrega (o CHECK do banco aceita
+        # planned/in_progress/waiting_approval/done/blocked). `blocked` fica de
+        # fora da exclusão de propósito: entrega travada cuja issue já fechou é
+        # justamente o caso que vale trazer para a mesa.
+        if row["status"] != "done"
+        and row["github_issue_number"] in closed_issues
+    ]
+    return GitHubCompletionSuggestions(
+        project_id=project_id,
+        repository=activity.repository,
+        checked_at=activity.fetched_at,
+        suggestions=suggestions,
     )
