@@ -275,6 +275,135 @@ renomear a pasta local seus chats e copilots perdem o contexto.
 
 ---
 
+## 7. Context Engine — por onde começar
+
+**Contexto.** `EG_CONTEXT_ENGINE_FEATURE_HANDOFF.md` define a feature inteira em
+4 fases. Não comecei porque construir metade dela é pior que não começar: uma
+base de conhecimento que responde sem citar direito, ou que vaza entre
+organizações, destrói a confiança em tudo que ela devolver depois.
+
+**O que o Bioma já tem, e que encurta bastante a Fase 1:**
+
+| Peça do contrato | O que já existe |
+|---|---|
+| object storage | `services/storage.py` (S3, configurado na Railway) |
+| extração de texto | `attachment_text.py` — txt, md, csv, json, PDF via pypdf |
+| índice lexical | Postgres full-text, nativo |
+| ledger de runs | o padrão de `copilot_runs` (etapas, tokens, duração, fontes) |
+| tenancy | `organization_id`/`workspace_id` em todo o esquema |
+| adaptadores de modelo | plano de roteamento com cota de assinatura |
+
+Falta, de verdade: `knowledge_bases` / `documents` / `versions` / `chunks`, o
+chunking que respeita estrutura, a busca com citação que abre na origem, e a
+tela de inspeção de fragmentos.
+
+**O corte vertical que proponho** (Fase 1 do handoff, sem Fase 2-4):
+
+1. criar base → 2. enviar Markdown/PDF → 3. extrair e fragmentar → 4. inspecionar
+e desativar fragmento → 5. buscar por texto → 6. abrir a citação na origem →
+7. run registrado.
+
+Sem embeddings, sem persona, sem reranker — e a API já devolvendo
+`modeActuallyUsed: "lexical"` com `capabilities.dense: "unavailable"`, para a
+Fase 3 entrar sem quebrar contrato e sem ninguém achar que houve busca híbrida.
+
+**A pergunta que trava:** a primeira base é do **cliente** (documentos da Univet,
+consultáveis no hub dela) ou da **EG** (políticas, processos, contratos-modelo)?
+Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
+
+`RESPOSTA (começar pela base da EG ou do cliente?):`
+
+---
+
+## 8. Estúdio IA — unificar no copiloto (decidido, não implementado)
+
+**Contexto.** Sua avaliação em 2026-08-05: "a parte de social media tá bem
+ruim, o Estúdio IA não está alinhado com a visão — era um ChatGPT em que eu
+converso e ele vai criando os materiais, e o Bioma serve pra salvar, organizar,
+ter visão limpa, histórico, threads, sessões das criações".
+
+**O diagnóstico é estrutural, não visual.** `AiContentStudio.tsx` é um
+formulário: seções fixas (Brand Book, Retrospectiva, Calendário), dropdown de
+tipo de conteúdo e provedor, botão "gerar". Não tem thread, sessão nem
+histórico de conversa.
+
+E o copiloto **já tem tudo isso** — `copilot_threads`, `copilot_runs`, trilha
+com fontes, custo e anexos. São dois sistemas paralelos que não se falam; é
+por isso que "não parece linkado" e você precisa ficar referenciando documento.
+
+**Decisão (2026-08-05): unificar no copiloto, via artefatos.** A conversa gera
+um artefato (roteiro, post, proposta); o artefato fica salvo, versionado e
+navegável; o Estúdio vira a **vista limpa** desses artefatos em vez de um
+formulário concorrente. Reaproveita thread/trilha/custo/roteamento por cota
+que já existem, em vez de duplicá-los.
+
+**Ainda não implementado.** Ordem combinada: MCP do ChatGPT primeiro, depois
+refino de tarefas, depois isto.
+
+`RESPOSTA (o que é artefato de primeira classe: roteiro, post, proposta, tudo?):`
+
+---
+
+## 9. GitHub ↔ Tech — fechar o loop
+
+**Contexto.** Sua pergunta em 2026-08-05: "o Tech está integrado
+bidirecionalmente com o GitHub?". Está, mas as duas pontas são **manuais
+(pull)**, e o ciclo não fecha:
+
+- **Bioma → GitHub**: cria issue a partir de uma entrega, idempotente via
+  marcador `[Bioma:<deliverable_id>]`. Funciona.
+- **GitHub → Bioma**: lê commits/PRs/issues sob demanda e publica como
+  atualização do projeto. Funciona, mas alguém tem que clicar.
+
+**Os três gaps:**
+
+1. **Sem webhook** — nada é tempo real.
+2. **O estado da issue não volta.** Fechar a issue no GitHub **não** conclui a
+   entrega no Bioma. Grava-se `github_issue_number` na criação e acabou. É o
+   que mais dói: as duas pontas divergem em silêncio.
+3. **PR não se liga a entrega** — só issue. PR mergeado não marca nada.
+
+**A decisão que trava o item 2:** issue fechada deve **concluir a entrega
+automaticamente**, ou apenas **sugerir** a conclusão para alguém confirmar?
+Automático é o que o time espera de uma integração; sugerir respeita a regra
+de que concluir entrega tem aceite separado (que hoje existe de propósito).
+Minha recomendação: **sugerir** — vira item em "Precisa de você" no cockpit,
+não conclusão silenciosa, porque "entrega concluída" tem efeito contratual.
+
+`RESPOSTA (issue fechada conclui a entrega ou sugere?):` Acho melhor sugerir. Mas tem um ponto, quero saber se, na lista de tarefa, tem algum campo que já link o repositório. Ou o repo fica linkado ao projeto (que este tem campo na lista de tarefas)? E como está essa distinção para a EG? Por exemplo uma tarefa de tech na EG, como vou distinguir projeto e repo? Isso que eu perguntei anteriormente, de como que ficou definido essa distinção de projetos internos e empresas (problema de Notorius)
+
+**Resposta (2026-08-06).** Fica **sugerir** — implemento assim.
+
+Sobre repo × projeto × tarefa, a cadeia hoje é:
+
+```text
+tarefa --(project_id)--> projeto --(1:1)--> repositório
+```
+
+- **A tarefa NÃO tem campo de repositório.** Ela tem `project_id` (em
+  `TaskBase`), e é por aí que chega ao repo.
+- **O repo é ligado ao PROJETO, e é 1:1**: `project_github_connections.project_id`
+  é `unique` (migração 0028). Um projeto tem no máximo um repositório.
+- Só projeto `tech` aceita repositório — o serviço recusa os outros.
+
+**Na prática, para uma tarefa de tech da EG:** crie um projeto interno (ex.:
+"Bioma"), ligue o repositório a ele, e as tarefas apontam para esse projeto.
+O repo vem por herança; você nunca escolhe repo na tarefa.
+
+**A distinção EG × Notorious não é resolvida por este campo** — é a decisão nº
+10. Projeto pertence a um workspace; workspace pertence a uma organização.
+Enquanto a Notorious for um workspace dentro da EG, os projetos dela ficam sob
+a EG e aparecem no mesmo financeiro. É exatamente o que o multi-tenant separa.
+A mecânica de repo funciona igual nos dois casos — o que muda é de quem é o
+projeto.
+
+**Limite conhecido:** 1 repo por projeto. Se um projeto precisar de dois
+repositórios (front e back separados, por exemplo), hoje precisa virar dois
+projetos. Não mudei isso porque não sei se acontece na EG — se acontecer, me
+diga que a alteração é pequena.
+
+---
+
 ## 10. Onde mora o que não é cliente: Notorious, holdings e white label
 
 **Contexto.** Suas perguntas em 2026-08-06: onde ficam as tarefas de uma
@@ -335,106 +464,94 @@ funcionando por URL direta e religar é um clique.
 **Recomendação: por usuário, não por organização.** Você esconder o RH não
 deveria escondê-lo de quem for cuidar do RH depois.
 
-`RESPOSTA (por usuário confirma? algum além de RH/Kits/Freelas/Pesquisa/Radar?):`
+`RESPOSTA (por usuário confirma? algum além de RH/Kits/Freelas/Pesquisa/Radar?):` Tem alguns módulos e features. E concordo que seria por usuário, mas pense que o que temos hoje de gerenciamento de acesso para os clientes, também seria interessante ter gerenciamento a nível de usuários dos clientes, e também de equipes inteiras nossas (EG). Assim não preciso ficar usuário a usuário configurando acessos. Então a nível global (Workspace/EG) e a usuários e equipes.
+
+**Resposta (2026-08-06).** Sua resposta troca o problema: deixou de ser
+"esconder o que não uso" e virou **gerenciamento de acesso em três níveis**.
+São coisas diferentes e vale não misturar — uma é preferência de tela, a outra
+é permissão de verdade.
+
+A boa notícia: **times já existem** (`teams` + `team_memberships`, migração
+0014, com serviço e rotas). Não precisa criar a entidade, só usá-la como
+sujeito de permissão, o que hoje não acontece.
+
+O desenho que proponho, do mais forte para o mais fraco, resolvido nessa ordem:
+
+| Nível | Sujeito | Pergunta que responde | Existe hoje? |
+|---|---|---|---|
+| **Organização** | cliente | contratou o módulo? | sim (`enabled_modules`) |
+| **Equipe** | time da EG ou do cliente | esta equipe trabalha com isso? | ❌ falta |
+| **Usuário** | pessoa | esta pessoa precisa disso? | ❌ falta |
+| **Preferência** | você mesmo | quero ver isso agora? | ❌ falta |
+
+Regra de resolução: **o mais restritivo vence**, e preferência pessoal nunca
+concede o que a permissão nega — só esconde o que ela permitiria. Sem essa
+regra, "ocultei para mim" viraria um jeito acidental de burlar acesso.
+
+Duas armadilhas que quero evitar:
+
+1. **Esconder não é proibir.** Se o módulo some do menu mas a rota responde,
+   isso é organização visual, não segurança. Para cliente, tem que ser
+   proibição no backend (é como `enabled_modules` já funciona). Para você,
+   esconder basta.
+2. **Herança precisa ser visível.** "Por que não vejo o RH?" tem que ter
+   resposta na tela — herdado da equipe, da organização ou escolha sua. Sem
+   isso vira suporte eterno.
+
+`RESPOSTA (fazer os 4 níveis de uma vez, ou começar por preferência pessoal + equipe?):`
 
 ---
 
-## 9. GitHub ↔ Tech — fechar o loop
+## 12. Mais LLMs como motor (OpenRouter e chaves diretas)
 
-**Contexto.** Sua pergunta em 2026-08-05: "o Tech está integrado
-bidirecionalmente com o GitHub?". Está, mas as duas pontas são **manuais
-(pull)**, e o ciclo não fecha:
+**Contexto.** Sua pergunta em 2026-08-06: dá para implementar mais LLMs como
+motor? Traz a qualidade e as features esperadas? Pensando em chave de API
+direta e agregadores tipo OpenRouter.
 
-- **Bioma → GitHub**: cria issue a partir de uma entrega, idempotente via
-  marcador `[Bioma:<deliverable_id>]`. Funciona.
-- **GitHub → Bioma**: lê commits/PRs/issues sob demanda e publica como
-  atualização do projeto. Funciona, mas alguém tem que clicar.
+**O que o Bioma já tem, e por que isso é mais barato do que parece.** O plano
+de roteamento (migração 0064) já separa os eixos certos:
 
-**Os três gaps:**
+- `provider` — hoje restrito a `openai`, `anthropic`, `google` (**único ponto
+  que exige migração**);
+- `channel` — **texto livre**, não precisa de migração;
+- `auth_mode` — já aceita `api_key`;
+- `execution_mode` — já aceita `sdk` e `api`.
 
-1. **Sem webhook** — nada é tempo real.
-2. **O estado da issue não volta.** Fechar a issue no GitHub **não** conclui a
-   entrega no Bioma. Grava-se `github_issue_number` na criação e acabou. É o
-   que mais dói: as duas pontas divergem em silêncio.
-3. **PR não se liga a entrega** — só issue. PR mergeado não marca nada.
+E o despacho em `ai_providers.execute_candidate` é um `if/elif` por canal. Ou
+seja: **um provedor novo é um executor + um `elif` + uma linha de migração.**
 
-**A decisão que trava o item 2:** issue fechada deve **concluir a entrega
-automaticamente**, ou apenas **sugerir** a conclusão para alguém confirmar?
-Automático é o que o time espera de uma integração; sugerir respeita a regra
-de que concluir entrega tem aceite separado (que hoje existe de propósito).
-Minha recomendação: **sugerir** — vira item em "Precisa de você" no cockpit,
-não conclusão silenciosa, porque "entrega concluída" tem efeito contratual.
+**OpenRouter especificamente** ([docs](https://openrouter.ai/docs/faq)): API
+compatível com OpenAI, 300+ modelos, uma chave só, e normaliza *tool calling* e
+*structured outputs* entre provedores — que é justamente onde cada API diverge
+e onde estaria o trabalho chato. Preço é repasse do provedor + margem da
+plataforma.
 
-`RESPOSTA (issue fechada conclui a entrega ou sugere?):`
+**A parte que muda de natureza, e que importa mais que o código:** hoje o
+roteamento é por **cota de assinatura** (Codex, Claude Code — você já pagou o
+mês, o token não custa na margem). OpenRouter é **por token, dinheiro de
+verdade**. Não dá para tratar os dois com a mesma régua:
 
----
+- conta de assinatura → mostra cota restante e reset (o que já existe);
+- conta OpenRouter → mostra custo em dólar (a tabela `model_pricing.py` e o
+  caminho de `cost_cents` já existem, e a correção de 2026-08-04 garante que
+  execução de assinatura nunca ganha preço inventado).
 
-## 8. Estúdio IA — unificar no copiloto (decidido, não implementado)
+O valor real não é "ter mais modelos" — é ter **fallback quando a cota acaba**.
+Estourar a cota do Codex na terça hoje para o copiloto pela metade da semana;
+com OpenRouter cadastrado, o roteamento cai para ele e o trabalho continua, ao
+custo de alguns centavos. Essa é a razão para fazer, e ela deveria guiar a
+política de roteamento: **assinatura primeiro, chave paga como rede**.
 
-**Contexto.** Sua avaliação em 2026-08-05: "a parte de social media tá bem
-ruim, o Estúdio IA não está alinhado com a visão — era um ChatGPT em que eu
-converso e ele vai criando os materiais, e o Bioma serve pra salvar, organizar,
-ter visão limpa, histórico, threads, sessões das criações".
+**Sobre "traz a qualidade esperada":** o gargalo do copiloto hoje não é o
+modelo — é que `ai_provider_accounts` está **vazia**, então nada roteia e tudo
+cai em prévia local ou chave avulsa. Trocar de modelo não resolve isso.
+Recomendo cadastrar as contas que você já paga antes de acrescentar provedor
+novo, para medir de onde vem a insatisfação.
 
-**O diagnóstico é estrutural, não visual.** `AiContentStudio.tsx` é um
-formulário: seções fixas (Brand Book, Retrospectiva, Calendário), dropdown de
-tipo de conteúdo e provedor, botão "gerar". Não tem thread, sessão nem
-histórico de conversa.
+**Esforço estimado:** migração de uma linha, executor (~40 linhas, API
+compatível com OpenAI), um `elif`, e a opção no painel de IA. Meio dia.
 
-E o copiloto **já tem tudo isso** — `copilot_threads`, `copilot_runs`, trilha
-com fontes, custo e anexos. São dois sistemas paralelos que não se falam; é
-por isso que "não parece linkado" e você precisa ficar referenciando documento.
-
-**Decisão (2026-08-05): unificar no copiloto, via artefatos.** A conversa gera
-um artefato (roteiro, post, proposta); o artefato fica salvo, versionado e
-navegável; o Estúdio vira a **vista limpa** desses artefatos em vez de um
-formulário concorrente. Reaproveita thread/trilha/custo/roteamento por cota
-que já existem, em vez de duplicá-los.
-
-**Ainda não implementado.** Ordem combinada: MCP do ChatGPT primeiro, depois
-refino de tarefas, depois isto.
-
-`RESPOSTA (o que é artefato de primeira classe: roteiro, post, proposta, tudo?):`
-
----
-
-## 7. Context Engine — por onde começar
-
-**Contexto.** `EG_CONTEXT_ENGINE_FEATURE_HANDOFF.md` define a feature inteira em
-4 fases. Não comecei porque construir metade dela é pior que não começar: uma
-base de conhecimento que responde sem citar direito, ou que vaza entre
-organizações, destrói a confiança em tudo que ela devolver depois.
-
-**O que o Bioma já tem, e que encurta bastante a Fase 1:**
-
-| Peça do contrato | O que já existe |
-|---|---|
-| object storage | `services/storage.py` (S3, configurado na Railway) |
-| extração de texto | `attachment_text.py` — txt, md, csv, json, PDF via pypdf |
-| índice lexical | Postgres full-text, nativo |
-| ledger de runs | o padrão de `copilot_runs` (etapas, tokens, duração, fontes) |
-| tenancy | `organization_id`/`workspace_id` em todo o esquema |
-| adaptadores de modelo | plano de roteamento com cota de assinatura |
-
-Falta, de verdade: `knowledge_bases` / `documents` / `versions` / `chunks`, o
-chunking que respeita estrutura, a busca com citação que abre na origem, e a
-tela de inspeção de fragmentos.
-
-**O corte vertical que proponho** (Fase 1 do handoff, sem Fase 2-4):
-
-1. criar base → 2. enviar Markdown/PDF → 3. extrair e fragmentar → 4. inspecionar
-e desativar fragmento → 5. buscar por texto → 6. abrir a citação na origem →
-7. run registrado.
-
-Sem embeddings, sem persona, sem reranker — e a API já devolvendo
-`modeActuallyUsed: "lexical"` com `capabilities.dense: "unavailable"`, para a
-Fase 3 entrar sem quebrar contrato e sem ninguém achar que houve busca híbrida.
-
-**A pergunta que trava:** a primeira base é do **cliente** (documentos da Univet,
-consultáveis no hub dela) ou da **EG** (políticas, processos, contratos-modelo)?
-Muda quem enxerga por padrão, e a decisão errada aqui é cara de desfazer.
-
-`RESPOSTA (começar pela base da EG ou do cliente?):`
+`RESPOSTA (cadastrar as contas atuais primeiro, ou já implementar OpenRouter junto?):`
 
 ---
 
