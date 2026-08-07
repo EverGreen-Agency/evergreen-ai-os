@@ -29,7 +29,9 @@ from bioma_api.schemas.performance import (
 def list_connections(client_id: UUID, user: CurrentUserResponse) -> list[PerformanceConnectionSummary]:
     with connect() as conn:
         client = _accessible_client(conn, client_id, user)
-        rows = performance_repo.list_connections(conn, client["id"])
+        # Chaveado por workspace desde a 0087: a Operação EG conecta mídia
+        # sem precisar de um registro em `clients`.
+        rows = performance_repo.list_connections(conn, client["workspace_id"])
     return [PerformanceConnectionSummary(**row) for row in rows]
 
 
@@ -44,7 +46,9 @@ def create_connection(
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user, "manage_config")
-        performance_repo.create_connection(conn, client["id"], client["organization_id"], connection_data)
+        performance_repo.create_connection(
+            conn, client["workspace_id"], client["id"], client["organization_id"], connection_data
+        )
 
     return list_connections(client_id, user)
 
@@ -61,7 +65,7 @@ def update_connection(
 
     with connect() as conn:
         client = _accessible_client(conn, client_id, user, "manage_config")
-        if not performance_repo.update_connection(conn, client["id"], connection_id, updates):
+        if not performance_repo.update_connection(conn, client["workspace_id"], connection_id, updates):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conexão de performance não encontrada.")
 
     return list_connections(client_id, user)

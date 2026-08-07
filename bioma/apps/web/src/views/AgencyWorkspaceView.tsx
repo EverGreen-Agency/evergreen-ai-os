@@ -77,7 +77,8 @@ function useAgencyWorkspace() {
 
 export function AgencyOverviewRoute() {
   const { workspace } = useAgencyWorkspace();
-  const modules = [
+  const { isSurfaceVisible } = useSurfaceVisibility();
+  const allModules = [
     {
       title: "Operações de IA",
       description: "Workflows versionados, aprovações e execução auditável dos squads EG.",
@@ -115,6 +116,15 @@ export function AgencyOverviewRoute() {
       icon: BarChart3,
     },
   ];
+
+  // Esta grade é navegação, igual ao menu lateral — logo obedece à mesma
+  // resolução. Sem isto, ocultar o CRM tirava o item do menu e o deixava no
+  // meio da Visão geral, que é pior que não ocultar: dá a impressão de que a
+  // preferência não funcionou. A chave sai da própria rota (`/operacao/crm`
+  // → `operacao.crm`), que é a convenção do catálogo.
+  const modules = allModules.filter((module) =>
+    isSurfaceVisible(module.to.replace("/operacao/", "operacao.")),
+  );
 
   return (
     <section className="agency-workspace-home">

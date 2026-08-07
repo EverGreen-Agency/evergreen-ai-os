@@ -144,15 +144,24 @@ export function WorkspaceNavigator({
   const fallbackCurrentClient = accessibleClients.find((client) => client.id === currentClientId) ?? null;
   const inAgencyWorkspace = location.pathname.startsWith("/operacao");
 
+  // O rótulo é derivado da URL, não de um workspace "selecionado" — este
+  // controle mostra ONDE VOCÊ ESTÁ e serve de atalho para trocar (Ctrl+K).
+  //
+  // Os dois últimos casos não são workspace nenhum, e antes eles fingiam ser:
+  // a carteira aparecia como "Central da agência" e telas como Configurações
+  // ou Banco de Ideias exibiam "Control plane · Bioma Cockpit" — um workspace
+  // que não existe no banco. Quem lesse aquilo concluiria, corretamente, que
+  // trocar de aba trocava de workspace. Não troca. Agora esses casos dizem que
+  // são navegação da EG, e só os dois primeiros nomeiam um workspace real.
   const currentContext = currentClientEntry
-    ? { eyebrow: "Hub do cliente", label: currentClientEntry.workspace.name, icon: Building2 }
+    ? { eyebrow: "Workspace do cliente", label: currentClientEntry.workspace.name, icon: Building2 }
     : fallbackCurrentClient
-      ? { eyebrow: "Hub do cliente", label: fallbackCurrentClient.name, icon: Building2 }
+      ? { eyebrow: "Workspace do cliente", label: fallbackCurrentClient.name, icon: Building2 }
     : inAgencyWorkspace
       ? { eyebrow: "Workspace da agência", label: persistedAgencyWorkspace?.name ?? "Operação EG", icon: BriefcaseBusiness }
       : location.pathname.startsWith("/clientes")
-        ? { eyebrow: "Central da agência", label: "Carteira de clientes", icon: Building2 }
-        : { eyebrow: "Control plane", label: "Bioma Cockpit", icon: LayoutDashboard };
+        ? { eyebrow: "Fora de workspace", label: "Carteira de clientes", icon: Building2 }
+        : { eyebrow: "Fora de workspace", label: "Navegação EG", icon: LayoutDashboard };
   const CurrentIcon = currentContext.icon;
 
   useEffect(() => {
