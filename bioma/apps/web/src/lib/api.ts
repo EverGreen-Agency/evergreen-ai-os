@@ -951,6 +951,10 @@ export type InviteSummary = {
   expires_at: string;
   used_at: string | null;
   created_at: string;
+  /** Nulos em convite de cliente; preenchidos no convite ao time da EG (0088). */
+  role?: string | null;
+  team_id?: string | null;
+  tenant_role?: TenantRole | null;
 };
 
 export type InvitePublicInfo = {
@@ -958,6 +962,9 @@ export type InvitePublicInfo = {
   organization_name: string;
   email: string | null;
   expires_at: string;
+  /** Preenchido em convite ao time da EG — deixa a tela dizer para qual
+   *  equipe a pessoa foi chamada, em vez de tratar como convite de cliente. */
+  team_name?: string | null;
 };
 
 export type InviteAcceptPayload = {
@@ -2632,6 +2639,19 @@ export const api = {
   revokePersonalAccessToken: (tokenId: string) =>
     request<{ status: string }>(`/auth/personal-access-tokens/${tokenId}`, { method: "DELETE" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
+  /** Convite para o time da EG (0088). Diferente do convite de cliente: entra
+   * na organização da agência e pode já colocar a pessoa numa equipe. */
+  teamInvites: (tenantOrganizationId: string) =>
+    request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites`),
+  createTeamInvite: (
+    tenantOrganizationId: string,
+    payload: { email?: string | null; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
+  ) => request<InviteCreated>(`/tenants/${tenantOrganizationId}/invites`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  revokeTeamInvite: (tenantOrganizationId: string, inviteId: string) =>
+    request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites/${inviteId}`, { method: "DELETE" }),
   teams: (tenantOrganizationId: string) =>
     request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),
   createTeam: (tenantOrganizationId: string, name: string) =>

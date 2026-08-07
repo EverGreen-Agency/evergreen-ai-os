@@ -9150,6 +9150,17 @@
           "organization_name": {
             "title": "Organization Name",
             "type": "string"
+          },
+          "team_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Name"
           }
         },
         "required": [
@@ -9188,6 +9199,40 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "team_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Id"
+          },
+          "tenant_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Role"
           },
           "used_at": {
             "anyOf": [
@@ -25250,6 +25295,61 @@
           "name"
         ],
         "title": "TeamCreateRequest",
+        "type": "object"
+      },
+      "TeamInviteCreateRequest": {
+        "description": "Convite para o time da EG. `team_id` e `tenant_role` são opcionais, mas\npreenchê-los evita o segundo passo manual — que é onde se esquece.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "format": "email",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "expires_in_days": {
+            "default": 7,
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Expires In Days",
+            "type": "integer"
+          },
+          "team_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Id"
+          },
+          "tenant_role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "tenant_admin",
+                  "operator",
+                  "approver",
+                  "viewer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Role"
+          }
+        },
+        "title": "TeamInviteCreateRequest",
         "type": "object"
       },
       "TeamMemberSummary": {
@@ -41503,6 +41603,161 @@
         "summary": "Upsert Tenant Membership",
         "tags": [
           "teams"
+        ]
+      }
+    },
+    "/tenants/{tenant_organization_id}/invites": {
+      "get": {
+        "operationId": "list_team_invites_tenants__tenant_organization_id__invites_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InviteSummary"
+                  },
+                  "title": "Response List Team Invites Tenants  Tenant Organization Id  Invites Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Team Invites",
+        "tags": [
+          "team-invites"
+        ]
+      },
+      "post": {
+        "operationId": "create_team_invite_tenants__tenant_organization_id__invites_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamInviteCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteCreatedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Team Invite",
+        "tags": [
+          "team-invites"
+        ]
+      }
+    },
+    "/tenants/{tenant_organization_id}/invites/{invite_id}": {
+      "delete": {
+        "operationId": "revoke_team_invite_tenants__tenant_organization_id__invites__invite_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Invite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InviteSummary"
+                  },
+                  "title": "Response Revoke Team Invite Tenants  Tenant Organization Id  Invites  Invite Id  Delete",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Team Invite",
+        "tags": [
+          "team-invites"
         ]
       }
     },

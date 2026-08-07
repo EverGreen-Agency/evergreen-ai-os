@@ -16,6 +16,7 @@ import {
 import { SectionHeader, GoogleIcon } from "../components/shared";
 import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
 import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
+import { TeamInviteCard } from "../components/TeamInviteCard";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
 
@@ -48,7 +49,9 @@ export function SettingsView() {
   // `performance_connections` exigia `client_id`. Com a 0087 e o resolvedor
   // por workspace, esse registro deixou de existir — a agência não é cliente
   // de si mesma, e agora o código também não finge que é.
-  const egSubjectId = workspaces.find((workspace) => workspace.kind === "agency_internal")?.id ?? null;
+  const agencyWorkspace = workspaces.find((workspace) => workspace.kind === "agency_internal") ?? null;
+  const egSubjectId = agencyWorkspace?.id ?? null;
+  const tenantOrganizationId = agencyWorkspace?.tenant_organization_id ?? workspaces[0]?.tenant_organization_id ?? null;
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;
@@ -523,18 +526,22 @@ export function SettingsView() {
                   
                   <div className="timeline-list">
                     <div className="timeline-row">
-                      <span>Equipe</span>
+                      <span>Você</span>
                       <strong>{user.display_name}</strong>
                       <small>{user.email}</small>
-                    </div>
-                    <div className="timeline-row" style={{ opacity: 0.5 }}>
-                      <span>+ Convidar</span>
-                      <strong>Adicionar membro</strong>
-                      <small>Funcionalidade em breve</small>
                     </div>
                   </div>
                 </div>
               </article>
+            )}
+
+            {/* Convite ao time (0088). Substitui o "Funcionalidade em breve"
+                que estava aqui: convite só existia por cliente, e colocar
+                alguém no time exigia que a pessoa já tivesse conta. */}
+            {activeSubTab === "general" && (
+              <div style={{ marginTop: 24 }}>
+                <TeamInviteCard tenantOrganizationId={tenantOrganizationId} />
+              </div>
             )}
 
             {activeSubTab === "teams" && (

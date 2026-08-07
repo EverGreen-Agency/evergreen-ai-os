@@ -11,6 +11,7 @@ from bioma_api.schemas.invites import (
     InviteCreateRequest,
     InvitePublicResponse,
     InviteSummary,
+    TeamInviteCreateRequest,
 )
 from bioma_api.services import invites as invites_service
 
@@ -18,6 +19,9 @@ from bioma_api.services import invites as invites_service
 admin_router = APIRouter(prefix="/clients/{client_id}/invites", tags=["invites"])
 workspace_admin_router = APIRouter(prefix="/workspaces/{client_id}/invites", tags=["workspace-invites"])
 public_router = APIRouter(prefix="/auth/invites", tags=["invites"])
+# Convite para o time da EG. Rota separada porque o sujeito é outro: o convite
+# de cliente é por workspace de cliente, este é pelo tenant.
+team_router = APIRouter(prefix="/tenants/{tenant_organization_id}/invites", tags=["team-invites"])
 
 
 @admin_router.post("", response_model=InviteCreatedResponse, status_code=status.HTTP_201_CREATED)
@@ -47,6 +51,32 @@ def revoke_invite(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> list[InviteSummary]:
     return invites_service.revoke_invite(client_id, invite_id, user)
+
+
+@team_router.post("", response_model=InviteCreatedResponse, status_code=status.HTTP_201_CREATED)
+def create_team_invite(
+    tenant_organization_id: UUID,
+    payload: TeamInviteCreateRequest,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> InviteCreatedResponse:
+    return invites_service.create_team_invite(tenant_organization_id, payload, user)
+
+
+@team_router.get("", response_model=list[InviteSummary])
+def list_team_invites(
+    tenant_organization_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[InviteSummary]:
+    return invites_service.list_team_invites(tenant_organization_id, user)
+
+
+@team_router.delete("/{invite_id}", response_model=list[InviteSummary])
+def revoke_team_invite(
+    tenant_organization_id: UUID,
+    invite_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[InviteSummary]:
+    return invites_service.revoke_team_invite(tenant_organization_id, invite_id, user)
 
 
 @public_router.get("/{token}", response_model=InvitePublicResponse)

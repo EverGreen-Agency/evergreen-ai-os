@@ -9,21 +9,27 @@ def create_invite(
     token_hash: str,
     expires_at: datetime,
     created_by: UUID,
+    role: str = "client_user",
+    team_id: UUID | None = None,
+    tenant_role: str | None = None,
 ) -> UUID:
+    """`role`/`team_id`/`tenant_role` (0088) distinguem convite de cliente de
+    convite para o time da EG. Os defaults preservam o convite de cliente."""
     return conn.execute(
         """
-        insert into invites (organization_id, email, token_hash, expires_at, created_by)
-        values (%s, %s, %s, %s, %s)
+        insert into invites (organization_id, email, token_hash, expires_at, created_by,
+                             role, team_id, tenant_role)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
         returning id
         """,
-        (organization_id, email, token_hash, expires_at, created_by),
+        (organization_id, email, token_hash, expires_at, created_by, role, team_id, tenant_role),
     ).fetchone()["id"]
 
 
 def list_invites(conn, organization_id: UUID):
     return conn.execute(
         """
-        select id, email, expires_at, used_at, created_at
+        select id, email, expires_at, used_at, created_at, role, team_id, tenant_role
         from invites
         where organization_id = %s
         order by created_at desc
@@ -49,16 +55,28 @@ def find_valid_invite(conn, token_hash: str):
           i.organization_id,
           i.email,
           i.expires_at,
+          i.role,
+          i.team_id,
+          i.tenant_role,
+          t.name as team_name,
           o.name as organization_name,
-          c.name as client_name
+          coalesce(c.name, o.name) as client_name
         from invites i
         join organizations o on o.id = i.organization_id
-        join clients c on c.organization_id = i.organization_id
-        join workspaces w
-          on w.subject_organization_id = i.organization_id
-         and w.kind = 'client'
-         and w.status = 'active'
-        where i.token_hash = %s
+        -- LEFT JOIN nos dois: convite da EG não tem registro de cliente e cai
+        -- num workspace `agency_internal`. Antes as junções eram obrigatórias
+        -- e travadas em `kind = 'client'`, o que fazia um convite de time
+        -- válido parecer expirado — falha silenciosa e impossível de depurar
+        -- pela mensagem.
+        left join clients c on c.organization_id = i.organization_id
+        left join teams t on t.id = i.team_id
+        where exists (
+          select 1 from workspaces w
+          where w.subject_organization_id = i.organization_id
+            and w.status = 'active'
+            and (w.kind = 'client' or i.role = 'eg_admin')
+        )
+          and i.token_hash = %s
           and i.used_at is null
           and i.expires_at > now()
         """,
@@ -99,6 +117,32 @@ def create_membership(conn, user_id: UUID, organization_id: UUID, role: str) -> 
         on conflict (user_id, organization_id) do nothing
         """,
         (user_id, organization_id, role),
+    )
+
+
+def add_to_team(conn, team_id: UUID, user_id: UUID) -> None:
+    """Coloca a pessoa na equipe já no aceite.
+
+    Sem isto o convite entregaria alguém sem equipe, e o segundo passo manual é
+    justamente onde se esquece — a pessoa entra, não vê nada e vira chamado."""
+    conn.execute(
+        """
+        insert into team_memberships (team_id, user_id, role)
+        values (%s, %s, 'member')
+        on conflict (team_id, user_id) do nothing
+        """,
+        (team_id, user_id),
+    )
+
+
+def add_tenant_membership(conn, tenant_organization_id: UUID, user_id: UUID, role: str) -> None:
+    conn.execute(
+        """
+        insert into tenant_memberships (tenant_organization_id, user_id, role)
+        values (%s, %s, %s)
+        on conflict (tenant_organization_id, user_id) do update set role = excluded.role
+        """,
+        (tenant_organization_id, user_id, role),
     )
 
 

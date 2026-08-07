@@ -4316,6 +4316,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenants/{tenant_organization_id}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Team Invites */
+        get: operations["list_team_invites_tenants__tenant_organization_id__invites_get"];
+        put?: never;
+        /** Create Team Invite */
+        post: operations["create_team_invite_tenants__tenant_organization_id__invites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenants/{tenant_organization_id}/invites/{invite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Team Invite */
+        delete: operations["revoke_team_invite_tenants__tenant_organization_id__invites__invite_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{target_user_id}/surfaces": {
         parameters: {
             query?: never;
@@ -9056,6 +9091,8 @@ export interface components {
             expires_at: string;
             /** Organization Name */
             organization_name: string;
+            /** Team Name */
+            team_name?: string | null;
         };
         /** InviteSummary */
         InviteSummary: {
@@ -9076,6 +9113,12 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Role */
+            role?: string | null;
+            /** Team Id */
+            team_id?: string | null;
+            /** Tenant Role */
+            tenant_role?: string | null;
             /** Used At */
             used_at?: string | null;
         };
@@ -14665,6 +14708,24 @@ export interface components {
              * Format: uuid
              */
             tenant_organization_id: string;
+        };
+        /**
+         * TeamInviteCreateRequest
+         * @description Convite para o time da EG. `team_id` e `tenant_role` são opcionais, mas
+         *     preenchê-los evita o segundo passo manual — que é onde se esquece.
+         */
+        TeamInviteCreateRequest: {
+            /** Email */
+            email?: string | null;
+            /**
+             * Expires In Days
+             * @default 7
+             */
+            expires_in_days: number;
+            /** Team Id */
+            team_id?: string | null;
+            /** Tenant Role */
+            tenant_role?: ("tenant_admin" | "operator" | "approver" | "viewer") | null;
         };
         /** TeamMemberSummary */
         TeamMemberSummary: {
@@ -24885,6 +24946,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenantMembershipSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_team_invites_tenants__tenant_organization_id__invites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_team_invite_tenants__tenant_organization_id__invites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamInviteCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteCreatedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_team_invite_tenants__tenant_organization_id__invites__invite_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+                invite_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"][];
                 };
             };
             /** @description Validation Error */
