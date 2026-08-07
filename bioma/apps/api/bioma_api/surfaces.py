@@ -59,6 +59,16 @@ SURFACE_CATALOG: dict[str, dict] = {
         "group": "Operação EG",
         "scope": "eg",
     },
+    # O copiloto não é uma rota — é um painel lateral que acompanha todas as
+    # telas. Entra no catálogo mesmo assim porque a pergunta que o usuário faz
+    # é a mesma ("não quero ver isso agora"), e deixá-lo de fora obrigaria uma
+    # segunda configuração num segundo lugar para o mesmo tipo de decisão.
+    "copiloto": {
+        "label": "Copiloto",
+        "group": "Assistente",
+        "scope": "eg",
+        "feature_key": "copilot",
+    },
     "eg-wiki": {"label": "Wiki EG", "group": "Operação EG", "scope": "eg"},
     "eg-ideas": {"label": "Banco de Ideias", "group": "Operação EG", "scope": "eg"},
     "eg-tech": {"label": "Banco de Stack", "group": "Operação EG", "scope": "eg"},

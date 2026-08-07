@@ -184,6 +184,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/artifacts/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Artifact */
+        get: operations["get_artifact_artifacts__artifact_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/artifacts/{artifact_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Status */
+        patch: operations["set_status_artifacts__artifact_id__status_patch"];
+        trace?: never;
+    };
+    "/artifacts/{artifact_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Version
+         * @description Nova versão — nunca sobrescreve a anterior.
+         */
+        post: operations["add_version_artifacts__artifact_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/identities": {
         parameters: {
             query?: never;
@@ -5606,6 +5660,48 @@ export interface paths {
         put?: never;
         /** Run Squad */
         post: operations["run_squad_workspaces__workspace_id__squads_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/studio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Artifacts
+         * @description A vista do Estúdio: o que a conversa produziu, organizado.
+         */
+        get: operations["list_artifacts_workspaces__workspace_id__studio_get"];
+        put?: never;
+        /** Create Artifact */
+        post: operations["create_artifact_workspaces__workspace_id__studio_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/studio/kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kinds
+         * @description Tipos que existem neste workspace. O catálogo é aberto, então a tela
+         *     descobre em vez de partir de uma lista fixa.
+         */
+        get: operations["list_kinds_workspaces__workspace_id__studio_kinds_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -14217,6 +14313,215 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** StudioArtifact */
+        StudioArtifact: {
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /** Current Version */
+            current_version: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url?: string | null;
+            /**
+             * Versions Total
+             * @default 1
+             */
+            versions_total: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** StudioArtifactCreate */
+        StudioArtifactCreate: {
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Kind */
+            kind: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /**
+             * Visibility
+             * @default internal
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+        };
+        /** StudioArtifactDetail */
+        StudioArtifactDetail: {
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /** Current Version */
+            current_version: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url?: string | null;
+            /** Versions */
+            versions?: components["schemas"]["StudioArtifactVersion"][];
+            /**
+             * Versions Total
+             * @default 1
+             */
+            versions_total: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** StudioArtifactKindCount */
+        StudioArtifactKindCount: {
+            /** Kind */
+            kind: string;
+            /** Total */
+            total: number;
+        };
+        /** StudioArtifactStatusUpdate */
+        StudioArtifactStatusUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+        };
+        /** StudioArtifactVersion */
+        StudioArtifactVersion: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Version */
+            version: number;
+        };
+        /** StudioArtifactVersionCreate */
+        StudioArtifactVersionCreate: {
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
         /** SubtaskCreatePayload */
         SubtaskCreatePayload: {
             /** Title */
@@ -16164,6 +16469,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KommoMetricsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_artifact_artifacts__artifact_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_status_artifacts__artifact_id__status_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactStatusUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_version_artifacts__artifact_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactVersionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
                 };
             };
             /** @description Validation Error */
@@ -28301,6 +28707,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SquadExecutionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_artifacts_workspaces__workspace_id__studio_get: {
+        parameters: {
+            query?: {
+                kind?: string | null;
+                status?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifact"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_artifact_workspaces__workspace_id__studio_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kinds_workspaces__workspace_id__studio_kinds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactKindCount"][];
                 };
             };
             /** @description Validation Error */

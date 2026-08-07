@@ -36,6 +36,8 @@ const API_TARGET = "http://127.0.0.1:8000";
 const API_PREFIXES = [
   "/agent-memory",
   "/analytics",
+  // Decisão 8: artefatos versionados do copiloto (a vista do Estúdio).
+  "/artifacts",
   "/auth",
   "/backoffice",
   "/benchmark",

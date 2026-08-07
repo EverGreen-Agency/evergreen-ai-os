@@ -431,8 +431,12 @@ export function App() {
 
       {/* Copiloto: só EG. O painel fala com `/copilot`, que responde 403 para
           usuário de cliente — renderizar para eles seria oferecer uma porta
-          fechada. */}
-      {isEgAdmin && <CopilotPanel />}
+          fechada.
+
+          Usa `isSurfaceVisible` (não `isSurfaceAllowed`) porque aqui não existe
+          URL para acessar por fora: o painel é a única porta. Esconder é o
+          mesmo que não ter, e é essa a escolha que a preferência oferece. */}
+      {isEgAdmin && isSurfaceVisible("copiloto") && <CopilotPanel />}
 
       {selectedArtifact && (
         <ArtifactModal
