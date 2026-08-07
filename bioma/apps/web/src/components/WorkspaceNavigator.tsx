@@ -1,18 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Building2,
-  BookmarkPlus,
-  ChevronDown,
-  Clock3,
-  Search,
-  Star,
-  Trash2,
-  UserRound,
-  X,
-} from "lucide-react";
+import { ArrowRight, BookmarkPlus, BriefcaseBusiness, Building2, ChevronDown, Clock3, Pin, Search, Star, Trash2, UserRound, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { api, type ClientSummary, type CurrentUser, type WorkspaceSavedView, type WorkspaceSummary } from "../lib/api";
@@ -389,6 +377,28 @@ export function WorkspaceNavigator({
         {navigationError && <div className="workspace-navigation-error" role="alert">{navigationError}</div>}
 
         <div className="workspace-navigator-results">
+          {/* A Operação EG fica FIXA no topo, fora de "Recentes".
+              É o workspace onde a EG trabalha todo dia; deixá-lo competir por
+              espaço na lista de recentes fazia a casa da agência sumir
+              justamente quando se atende muitos clientes seguidos. */}
+          {!isLoading && !errorMessage && isEgAdmin && agencyMatches && (
+            <div className="workspace-result-section">
+              <div className="workspace-result-label"><Pin size={13} /> Agência</div>
+              <button
+                className={`workspace-result ${inAgencyWorkspace ? "active" : ""}`}
+                type="button"
+                onClick={openAgencyWorkspace}
+              >
+                <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
+                <span>
+                  <strong>{persistedAgencyWorkspace?.name || "Operação EG"}</strong>
+                  <small>CRM, financeiro e métricas da própria agência</small>
+                </span>
+                <span className="workspace-kind-pill">Interno</span>
+              </button>
+            </div>
+          )}
+
           {!isLoading && !errorMessage && !normalizedQuery && recentEntries.length > 0 && (
             <div className="workspace-result-section">
               <div className="workspace-result-label"><Clock3 size={13} /> Recentes</div>
@@ -407,17 +417,6 @@ export function WorkspaceNavigator({
                   key={entry.workspace.id}
                 />
               ))}
-            </div>
-          )}
-
-          {!isLoading && !errorMessage && isEgAdmin && agencyMatches && (normalizedQuery || !persistedAgencyWorkspace || !recentKeys.has(persistedAgencyWorkspace.id)) && (
-            <div className="workspace-result-section">
-              <div className="workspace-result-label">Agência</div>
-              <button className={`workspace-result ${inAgencyWorkspace ? "active" : ""}`} type="button" onClick={openAgencyWorkspace}>
-                <span className="workspace-result-icon agency"><BriefcaseBusiness size={17} /></span>
-                <span><strong>{persistedAgencyWorkspace?.name || "Operação EG"}</strong><small>CRM, financeiro e métricas da própria agência</small></span>
-                <span className="workspace-kind-pill">Interno</span>
-              </button>
             </div>
           )}
 

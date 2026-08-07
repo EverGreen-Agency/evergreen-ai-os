@@ -168,7 +168,9 @@ def run_next_sync() -> dict[str, Any] | None:
     date_from = sync_run["date_from"] or (date_to - timedelta(days=30))
 
     with connect() as conn:
-        connections = storage.list_connections(conn, sync_run["client_id"], sync_run["provider"] or "all")
+        # Por workspace (0087): a Operação EG tem conexão sem `client_id`, e
+        # listar por cliente a deixaria de fora sem gerar erro nenhum.
+        connections = storage.list_connections(conn, sync_run["workspace_id"], sync_run["provider"] or "all")
 
     results: dict[str, dict[str, Any]] = {}
     total_records = 0
