@@ -34,6 +34,7 @@ from bioma_api.routers import (
     platform_studies,
     projects,
     rh,
+    surface_access,
     teams,
     vault,
     wiki,
@@ -115,6 +116,7 @@ app.include_router(briefing.router)
 app.include_router(copilot.router)
 app.include_router(agent_memory.router)
 app.include_router(feature_flags.router)
+app.include_router(surface_access.router)
 app.include_router(improvement_requests.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)

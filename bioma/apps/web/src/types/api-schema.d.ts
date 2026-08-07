@@ -3494,6 +3494,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Surfaces
+         * @description O que esta pessoa enxerga, e por quê.
+         *
+         *     Uma chamada só devolve decisão e explicação juntas — é o que permite a tela
+         *     responder "por que não vejo o RH?" sem uma segunda rota que poderia
+         *     discordar da primeira.
+         */
+        get: operations["my_surfaces_me_surfaces_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/surfaces/preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Preference
+         * @description Preferência pessoal: só esconde o que já era permitido.
+         */
+        put: operations["set_preference_me_surfaces_preference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organization_id}/feature-flags": {
         parameters: {
             query?: never;
@@ -4044,6 +4088,23 @@ export interface paths {
         patch: operations["toggle_subtask_subtasks__subtask_id__toggle_patch"];
         trace?: never;
     };
+    "/surfaces/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catalog */
+        get: operations["catalog_surfaces_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task-comments/{comment_id}": {
         parameters: {
             query?: never;
@@ -4202,6 +4263,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teams/{team_id}/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Team Grants */
+        get: operations["team_grants_teams__team_id__surfaces_get"];
+        /** Upsert Team Grant */
+        put: operations["upsert_team_grant_teams__team_id__surfaces_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/{team_id}/surfaces/{surface_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Clear Team Grant */
+        delete: operations["clear_team_grant_teams__team_id__surfaces__surface_key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenants/{tenant_id}/members": {
         parameters: {
             query?: never;
@@ -4215,6 +4311,41 @@ export interface paths {
         put: operations["upsert_tenant_membership_tenants__tenant_id__members_put"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{target_user_id}/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Grants */
+        get: operations["user_grants_users__target_user_id__surfaces_get"];
+        /** Upsert User Grant */
+        put: operations["upsert_user_grant_users__target_user_id__surfaces_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{target_user_id}/surfaces/{surface_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Clear User Grant */
+        delete: operations["clear_user_grant_users__target_user_id__surfaces__surface_key__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -14044,6 +14175,122 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * SurfaceAccessEntry
+         * @description Decisão sobre uma tela, com o porquê junto.
+         *
+         *     `allowed` e `visible` são coisas diferentes de propósito: a tela some do
+         *     menu por preferência sem deixar de responder pela URL. Quem consome precisa
+         *     escolher qual dos dois olhar — menu usa `visible`, guarda de rota usa
+         *     `allowed`.
+         */
+        SurfaceAccessEntry: {
+            /** Allowed */
+            allowed: boolean;
+            /** Can Prefer */
+            can_prefer: boolean;
+            /** Detail */
+            detail: string;
+            /** Group */
+            group: string;
+            /** Label */
+            label: string;
+            /** Locked */
+            locked: boolean;
+            /** Parent */
+            parent?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "locked" | "platform_admin" | "not_contracted" | "maturity" | "team_denied" | "team_allowed" | "user_denied" | "user_allowed" | "preference" | "default";
+            /** Sources */
+            sources?: string[];
+            /** Surface Key */
+            surface_key: string;
+            /** Visible */
+            visible: boolean;
+        };
+        /**
+         * SurfaceCatalogEntry
+         * @description O catálogo em si — a tela de admin precisa saber o que existe para poder
+         *     conceder ou negar. Sem isto, o admin digitaria chaves na mão.
+         */
+        SurfaceCatalogEntry: {
+            /** Feature Key */
+            feature_key?: string | null;
+            /** Group */
+            group: string;
+            /** Label */
+            label: string;
+            /** Locked */
+            locked: boolean;
+            /** Module */
+            module?: string | null;
+            /** Parent */
+            parent?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "eg" | "client" | "both";
+            /** Surface Key */
+            surface_key: string;
+        };
+        /** SurfaceGrantEntry */
+        SurfaceGrantEntry: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Effect
+             * @enum {string}
+             */
+            effect: "allow" | "deny";
+            /** Group */
+            group: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /** Surface Key */
+            surface_key: string;
+            /** Team Id */
+            team_id?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Id */
+            user_id?: string | null;
+        };
+        /** SurfaceGrantUpsert */
+        SurfaceGrantUpsert: {
+            /**
+             * Effect
+             * @enum {string}
+             */
+            effect: "allow" | "deny";
+            /** Note */
+            note?: string | null;
+            /** Surface Key */
+            surface_key: string;
+        };
+        /** SurfacePreferenceUpdate */
+        SurfacePreferenceUpdate: {
+            /** Hidden */
+            hidden: boolean;
+            /** Surface Key */
+            surface_key: string;
+        };
         /** SyncRunSummary */
         SyncRunSummary: {
             /** Finished At */
@@ -22798,6 +23045,59 @@ export interface operations {
             };
         };
     };
+    my_surfaces_me_surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceAccessEntry"][];
+                };
+            };
+        };
+    };
+    set_preference_me_surfaces_preference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfacePreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceAccessEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_flags_organizations__organization_id__feature_flags_get: {
         parameters: {
             query?: never;
@@ -23968,6 +24268,26 @@ export interface operations {
             };
         };
     };
+    catalog_surfaces_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceCatalogEntry"][];
+                };
+            };
+        };
+    };
     delete_task_comment_task_comments__comment_id__delete: {
         parameters: {
             query?: never;
@@ -24410,6 +24730,104 @@ export interface operations {
             };
         };
     };
+    team_grants_teams__team_id__surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_team_grant_teams__team_id__surfaces_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfaceGrantUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_team_grant_teams__team_id__surfaces__surface_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+                surface_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tenant_memberships_tenants__tenant_id__members_get: {
         parameters: {
             query?: never;
@@ -24463,6 +24881,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenantMembershipSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_grants_users__target_user_id__surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_user_grant_users__target_user_id__surfaces_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfaceGrantUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_user_grant_users__target_user_id__surfaces__surface_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+                surface_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
                 };
             };
             /** @description Validation Error */

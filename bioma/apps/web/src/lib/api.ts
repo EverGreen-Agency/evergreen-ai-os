@@ -1132,6 +1132,55 @@ export type FeatureFlag = {
   updated_at: string | null;
 };
 
+/** Decisão 11: acesso e visibilidade em 4 níveis. */
+export type SurfaceReason =
+  | "locked" | "platform_admin" | "not_contracted" | "maturity"
+  | "team_denied" | "team_allowed" | "user_denied" | "user_allowed"
+  | "preference" | "default";
+
+export type SurfaceAccessEntry = {
+  surface_key: string;
+  label: string;
+  group: string;
+  parent: string | null;
+  locked: boolean;
+  /** Permissão: a rota responde. Use isto em guarda de rota. */
+  allowed: boolean;
+  /** Visibilidade: aparece no menu. Use isto na navegação. */
+  visible: boolean;
+  can_prefer: boolean;
+  reason: SurfaceReason;
+  /** Frase pronta — vem do mesmo cálculo que decidiu. */
+  detail: string;
+  sources: string[];
+};
+
+export type SurfaceGrantEffect = "allow" | "deny";
+
+export type SurfaceGrantEntry = {
+  id: string;
+  surface_key: string;
+  label: string;
+  group: string;
+  team_id: string | null;
+  user_id: string | null;
+  effect: SurfaceGrantEffect;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SurfaceCatalogEntry = {
+  surface_key: string;
+  label: string;
+  group: string;
+  parent: string | null;
+  scope: "eg" | "client" | "both";
+  locked: boolean;
+  module: string | null;
+  feature_key: string | null;
+};
+
 export type CopilotPlanStatus =
   | "pending_approval" | "approved" | "running" | "completed" | "failed" | "rejected" | "cancelled";
 
@@ -3508,6 +3557,25 @@ export const api = {
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags`, { method: "PUT", body: JSON.stringify(payload) }),
   clearFeatureFlag: (organizationId: string, featureKey: string) =>
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags/${featureKey}`, { method: "DELETE" }),
+
+  /** Decisão 11 — o que eu vejo e por quê. Decisão e explicação na mesma resposta. */
+  mySurfaces: () => request<SurfaceAccessEntry[]>("/me/surfaces"),
+  setSurfacePreference: (surfaceKey: string, hidden: boolean) =>
+    request<SurfaceAccessEntry[]>("/me/surfaces/preference", {
+      method: "PUT",
+      body: JSON.stringify({ surface_key: surfaceKey, hidden }),
+    }),
+  surfaceCatalog: () => request<SurfaceCatalogEntry[]>("/surfaces/catalog"),
+  teamSurfaceGrants: (teamId: string) => request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces`),
+  upsertTeamSurfaceGrant: (teamId: string, payload: { surface_key: string; effect: SurfaceGrantEffect; note?: string | null }) =>
+    request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces`, { method: "PUT", body: JSON.stringify(payload) }),
+  clearTeamSurfaceGrant: (teamId: string, surfaceKey: string) =>
+    request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces/${encodeURIComponent(surfaceKey)}`, { method: "DELETE" }),
+  userSurfaceGrants: (userId: string) => request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces`),
+  upsertUserSurfaceGrant: (userId: string, payload: { surface_key: string; effect: SurfaceGrantEffect; note?: string | null }) =>
+    request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces`, { method: "PUT", body: JSON.stringify(payload) }),
+  clearUserSurfaceGrant: (userId: string, surfaceKey: string) =>
+    request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces/${encodeURIComponent(surfaceKey)}`, { method: "DELETE" }),
   createCopilotPlan: (payload: { goal: string; workspace_id?: string | null }) =>
     request<CopilotPlan>("/copilot/plans", { method: "POST", body: JSON.stringify(payload) }),
   listCopilotPlans: (workspaceId?: string | null) => {

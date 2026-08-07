@@ -14,6 +14,8 @@ import {
   useRevokePersonalAccessToken,
 } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
+import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
+import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
 
@@ -454,6 +456,10 @@ export function SettingsView() {
             </form>
           </article>
 
+          {/* Preferência de navegação (decisão 11, nível 4): esconde do menu
+              sem apagar nada, e mostra de onde vem cada bloqueio. */}
+          <SurfacePreferencesCard />
+
           {/* Dispositivos & Sessões Ativas */}
           <SessionsManagerCard />
 
@@ -525,7 +531,12 @@ export function SettingsView() {
 
             {activeSubTab === "teams" && (
               <Suspense fallback={<div className="notice">Carregando equipes e carteiras...</div>}>
-                <TeamPortfolioManager />
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  <TeamPortfolioManager />
+                  {/* Níveis 2 e 3 da decisão 11: acesso por equipe e por
+                      pessoa, no mesmo lugar onde a equipe é montada. */}
+                  <SurfaceAccessManager />
+                </div>
               </Suspense>
             )}
 

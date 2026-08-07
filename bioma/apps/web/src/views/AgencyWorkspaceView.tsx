@@ -4,7 +4,7 @@ import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
 import { WorkspaceShell } from "../components/WorkspaceShell";
-import { useCurrentUser, useWorkspaces } from "../hooks/useBiomaApi";
+import { useCurrentUser, useWorkspaces, useSurfaceVisibility } from "../hooks/useBiomaApi";
 import { agencyWorkspaceNavItems } from "../lib/app-config";
 import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
 
@@ -27,6 +27,7 @@ function ModuleLoading() {
 export function AgencyWorkspaceView() {
   const { data: workspacesData, isLoading, isError } = useWorkspaces();
   const { data: user } = useCurrentUser();
+  const { isSurfaceVisible } = useSurfaceVisibility();
   const resolution = resolveAgencyWorkspace(workspacesData ?? [], user);
 
   if (isLoading) {
@@ -50,13 +51,18 @@ export function AgencyWorkspaceView() {
   }
 
   const { workspace } = resolution;
-  const items = agencyWorkspaceNavItems.map((item) => ({
-    id: item.id,
-    label: item.label,
-    icon: item.icon,
-    to: item.path ? `/operacao/${item.path}` : "/operacao",
-    end: !item.path,
-  }));
+  // Decisão 11: a chave da superfície é a rota, então a sub-navegação se filtra
+  // sozinha a partir do `path`. O índice não tem chave própria — quem o
+  // controla é a superfície `operacao`, que já guarda esta tela inteira.
+  const items = agencyWorkspaceNavItems
+    .filter((item) => !item.path || isSurfaceVisible(`operacao.${item.path}`))
+    .map((item) => ({
+      id: item.id,
+      label: item.label,
+      icon: item.icon,
+      to: item.path ? `/operacao/${item.path}` : "/operacao",
+      end: !item.path,
+    }));
 
   return (
     <WorkspaceShell title={workspace.name} items={items}>

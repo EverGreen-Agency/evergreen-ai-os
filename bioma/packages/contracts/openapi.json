@@ -23860,6 +23860,303 @@
         "title": "SubtaskCreatePayload",
         "type": "object"
       },
+      "SurfaceAccessEntry": {
+        "description": "Decisão sobre uma tela, com o porquê junto.\n\n`allowed` e `visible` são coisas diferentes de propósito: a tela some do\nmenu por preferência sem deixar de responder pela URL. Quem consome precisa\nescolher qual dos dois olhar — menu usa `visible`, guarda de rota usa\n`allowed`.",
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "can_prefer": {
+            "title": "Can Prefer",
+            "type": "boolean"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "reason": {
+            "enum": [
+              "locked",
+              "platform_admin",
+              "not_contracted",
+              "maturity",
+              "team_denied",
+              "team_allowed",
+              "user_denied",
+              "user_allowed",
+              "preference",
+              "default"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "surface_key": {
+            "title": "Surface Key",
+            "type": "string"
+          },
+          "visible": {
+            "title": "Visible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "surface_key",
+          "label",
+          "group",
+          "locked",
+          "allowed",
+          "visible",
+          "can_prefer",
+          "reason",
+          "detail"
+        ],
+        "title": "SurfaceAccessEntry",
+        "type": "object"
+      },
+      "SurfaceCatalogEntry": {
+        "description": "O catálogo em si — a tela de admin precisa saber o que existe para poder\nconceder ou negar. Sem isto, o admin digitaria chaves na mão.",
+        "properties": {
+          "feature_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Key"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "module": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "scope": {
+            "enum": [
+              "eg",
+              "client",
+              "both"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "surface_key": {
+            "title": "Surface Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "surface_key",
+          "label",
+          "group",
+          "scope",
+          "locked"
+        ],
+        "title": "SurfaceCatalogEntry",
+        "type": "object"
+      },
+      "SurfaceGrantEntry": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "effect": {
+            "enum": [
+              "allow",
+              "deny"
+            ],
+            "title": "Effect",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "surface_key": {
+            "title": "Surface Key",
+            "type": "string"
+          },
+          "team_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Id"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "id",
+          "surface_key",
+          "label",
+          "group",
+          "effect",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SurfaceGrantEntry",
+        "type": "object"
+      },
+      "SurfaceGrantUpsert": {
+        "properties": {
+          "effect": {
+            "enum": [
+              "allow",
+              "deny"
+            ],
+            "title": "Effect",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "surface_key": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Surface Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "surface_key",
+          "effect"
+        ],
+        "title": "SurfaceGrantUpsert",
+        "type": "object"
+      },
+      "SurfacePreferenceUpdate": {
+        "properties": {
+          "hidden": {
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "surface_key": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Surface Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "surface_key",
+          "hidden"
+        ],
+        "title": "SurfacePreferenceUpdate",
+        "type": "object"
+      },
       "SyncRunSummary": {
         "properties": {
           "finished_at": {
@@ -38448,6 +38745,78 @@
         ]
       }
     },
+    "/me/surfaces": {
+      "get": {
+        "description": "O que esta pessoa enxerga, e por quê.\n\nUma chamada só devolve decisão e explicação juntas — é o que permite a tela\nresponder \"por que não vejo o RH?\" sem uma segunda rota que poderia\ndiscordar da primeira.",
+        "operationId": "my_surfaces_me_surfaces_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceAccessEntry"
+                  },
+                  "title": "Response My Surfaces Me Surfaces Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Surfaces",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
+    "/me/surfaces/preference": {
+      "put": {
+        "description": "Preferência pessoal: só esconde o que já era permitido.",
+        "operationId": "set_preference_me_surfaces_preference_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurfacePreferenceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceAccessEntry"
+                  },
+                  "title": "Response Set Preference Me Surfaces Preference Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Preference",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
     "/organizations/{organization_id}/feature-flags": {
       "get": {
         "description": "Estado efetivo de cada feature — inclui o que está 'em breve'.",
@@ -40184,6 +40553,31 @@
         ]
       }
     },
+    "/surfaces/catalog": {
+      "get": {
+        "operationId": "catalog_surfaces_catalog_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceCatalogEntry"
+                  },
+                  "title": "Response Catalog Surfaces Catalog Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Catalog",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
     "/task-comments/{comment_id}": {
       "delete": {
         "operationId": "delete_task_comment_task_comments__comment_id__delete",
@@ -40824,6 +41218,164 @@
         ]
       }
     },
+    "/teams/{team_id}/surfaces": {
+      "get": {
+        "operationId": "team_grants_teams__team_id__surfaces_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response Team Grants Teams  Team Id  Surfaces Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Team Grants",
+        "tags": [
+          "surface-access"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_team_grant_teams__team_id__surfaces_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurfaceGrantUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response Upsert Team Grant Teams  Team Id  Surfaces Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Team Grant",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
+    "/teams/{team_id}/surfaces/{surface_key}": {
+      "delete": {
+        "operationId": "clear_team_grant_teams__team_id__surfaces__surface_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "surface_key",
+            "required": true,
+            "schema": {
+              "title": "Surface Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response Clear Team Grant Teams  Team Id  Surfaces  Surface Key  Delete",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear Team Grant",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
     "/tenants/{tenant_id}/members": {
       "get": {
         "operationId": "list_tenant_memberships_tenants__tenant_id__members_get",
@@ -40923,6 +41475,164 @@
         "summary": "Upsert Tenant Membership",
         "tags": [
           "teams"
+        ]
+      }
+    },
+    "/users/{target_user_id}/surfaces": {
+      "get": {
+        "operationId": "user_grants_users__target_user_id__surfaces_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "target_user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Target User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response User Grants Users  Target User Id  Surfaces Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "User Grants",
+        "tags": [
+          "surface-access"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_user_grant_users__target_user_id__surfaces_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "target_user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Target User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurfaceGrantUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response Upsert User Grant Users  Target User Id  Surfaces Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert User Grant",
+        "tags": [
+          "surface-access"
+        ]
+      }
+    },
+    "/users/{target_user_id}/surfaces/{surface_key}": {
+      "delete": {
+        "operationId": "clear_user_grant_users__target_user_id__surfaces__surface_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "target_user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Target User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "surface_key",
+            "required": true,
+            "schema": {
+              "title": "Surface Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceGrantEntry"
+                  },
+                  "title": "Response Clear User Grant Users  Target User Id  Surfaces  Surface Key  Delete",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear User Grant",
+        "tags": [
+          "surface-access"
         ]
       }
     },
