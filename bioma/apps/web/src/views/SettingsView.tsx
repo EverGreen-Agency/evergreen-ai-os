@@ -6,7 +6,6 @@ import { api, apiUrl } from "../lib/api";
 import {
   useCurrentUser,
   useWorkspaces,
-  useClients,
   useSessions,
   useRevokeSession,
   useRevokeOtherSessions,
@@ -15,7 +14,6 @@ import {
   useRevokePersonalAccessToken,
 } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
-import { internalEgClient } from "../lib/client-scope";
 import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
 import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
 import Cropper from 'react-easy-crop';
@@ -44,13 +42,13 @@ export function SettingsView() {
   const clientWorkspaces = workspaces.filter((workspace) => workspace.kind === "client" && workspace.status === "active");
   const selectedVaultWorkspace = clientWorkspaces.find((workspace) => workspace.id === vaultWorkspaceId) ?? clientWorkspaces[0] ?? null;
 
-  // Sujeito a que as contas de mídia da EG se prendem. Hoje é o registro em
-  // `clients` porque `performance_connections` nasceu na migração 0003 exigindo
-  // `client_id` — 18 migrações posteriores já usam `workspace_id`, e este é um
-  // dos dois resquícios. Quando isso for corrigido, esta linha vira o id do
-  // workspace `agency_internal` e o registro-fantasma deixa de ser necessário.
-  const { data: allClients = [] } = useClients();
-  const egSubjectId = internalEgClient(allClients)?.id ?? null;
+  // Sujeito das contas de mídia da EG: o WORKSPACE da agência.
+  //
+  // Era o registro "EverGreen Internal" em `clients`, criado só porque
+  // `performance_connections` exigia `client_id`. Com a 0087 e o resolvedor
+  // por workspace, esse registro deixou de existir — a agência não é cliente
+  // de si mesma, e agora o código também não finge que é.
+  const egSubjectId = workspaces.find((workspace) => workspace.kind === "agency_internal")?.id ?? null;
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;

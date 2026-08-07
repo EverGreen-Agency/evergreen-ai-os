@@ -12949,9 +12949,16 @@
       "PerformanceConnectionSummary": {
         "properties": {
           "client_id": {
-            "format": "uuid",
-            "title": "Client Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
           },
           "created_at": {
             "format": "date-time",
@@ -13077,7 +13084,6 @@
         "required": [
           "id",
           "workspace_id",
-          "client_id",
           "provider",
           "external_account_id",
           "status",
@@ -13477,9 +13483,16 @@
             "$ref": "#/components/schemas/AdsAccountSummary"
           },
           "client_id": {
-            "format": "uuid",
-            "title": "Client Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
           },
           "daily": {
             "items": {
@@ -13520,7 +13533,6 @@
         },
         "required": [
           "workspace_id",
-          "client_id",
           "period_start",
           "period_end",
           "freshness",

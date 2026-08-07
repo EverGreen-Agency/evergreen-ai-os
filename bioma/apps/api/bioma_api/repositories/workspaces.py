@@ -4,36 +4,47 @@ from psycopg.types.json import Jsonb
 
 
 def find_accessible_client(conn, context_id: UUID, is_admin: bool, user_id: UUID):
-    """Resolve o adapter de cliente somente dentro de um workspace ativo.
+    """Resolve o contexto de um workspace ativo, com ou sem registro de cliente.
 
     Platform admin pode operar tanto o workspace interno quanto workspaces
     cliente. Demais usuários precisam de membership `client_user` direta em um
     workspace `client`; membership na organização interna nunca basta.
+
+    **O workspace é a âncora, não o cliente** (mudança de 2026-08-07). Antes
+    esta consulta partia de `clients`, o que tornava o registro comercial
+    OBRIGATÓRIO para qualquer workspace existir na aplicação — e foi isso que
+    obrigou a criar um cliente "EverGreen Internal", a agência fingindo ser
+    cliente de si mesma só para o próprio workspace resolver.
+
+    Agora parte de `workspaces` e o cliente entra por `left join`: quando
+    existe, `id`/`name` continuam sendo os dele e nada muda para os 20+
+    chamadores; quando não existe, `id` vem nulo e o workspace resolve mesmo
+    assim. `organization_id` passa a vir do workspace, que é equivalente
+    quando há cliente (a junção garantia isso) e correto quando não há.
     """
     return conn.execute(
         """
         select
           c.id,
-          c.name,
-          c.organization_id,
+          coalesce(c.name, w.name) as name,
+          w.subject_organization_id as organization_id,
           o.name as organization_name,
           o.enabled_modules,
           w.id as workspace_id,
           w.tenant_organization_id,
           w.kind as workspace_kind,
           access.role as access_role
-        from clients c
-        join organizations o on o.id = c.organization_id
-        join workspaces w
-          on w.subject_organization_id = c.organization_id
-         and w.status = 'active'
+        from workspaces w
+        join organizations o on o.id = w.subject_organization_id
+        left join clients c on c.organization_id = w.subject_organization_id
         cross join lateral (
           select case
             when %s then 'platform_admin'
             else workspace_access_role(w.id, %s)
           end as role
         ) access
-        where (w.id = %s or c.id = %s)
+        where w.status = 'active'
+          and (w.id = %s or c.id = %s)
           and access.role is not null
         order by case when w.id = %s then 0 else 1 end
         limit 1

@@ -7,7 +7,6 @@ import {
   BookmarkPlus,
   ChevronDown,
   Clock3,
-  LayoutDashboard,
   Search,
   Star,
   Trash2,
@@ -144,24 +143,21 @@ export function WorkspaceNavigator({
   const fallbackCurrentClient = accessibleClients.find((client) => client.id === currentClientId) ?? null;
   const inAgencyWorkspace = location.pathname.startsWith("/operacao");
 
-  // O rótulo é derivado da URL, não de um workspace "selecionado" — este
-  // controle mostra ONDE VOCÊ ESTÁ e serve de atalho para trocar (Ctrl+K).
+  // O rótulo é derivado da URL: mostra em QUAL WORKSPACE você está, e o
+  // controle serve de atalho para trocar (Ctrl+K).
   //
-  // Os dois últimos casos não são workspace nenhum, e antes eles fingiam ser:
-  // a carteira aparecia como "Central da agência" e telas como Configurações
-  // ou Banco de Ideias exibiam "Control plane · Bioma Cockpit" — um workspace
-  // que não existe no banco. Quem lesse aquilo concluiria, corretamente, que
-  // trocar de aba trocava de workspace. Não troca. Agora esses casos dizem que
-  // são navegação da EG, e só os dois primeiros nomeiam um workspace real.
+  // Só existem dois contextos possíveis no Bioma, e o rótulo agora reflete
+  // exatamente isso: ou você está no workspace de um cliente, ou está no da
+  // agência. Wiki EG, Banco de Ideias, Cockpit, carteira e Configurações são
+  // todos trabalho interno da EG — chamá-los de "fora de workspace" era tão
+  // errado quanto o "Control plane · Bioma Cockpit" que estava aqui antes
+  // (um workspace que não existe no banco). Quem está no Wiki EG está na
+  // Operação EG; o que muda é a tela, não o workspace.
   const currentContext = currentClientEntry
     ? { eyebrow: "Workspace do cliente", label: currentClientEntry.workspace.name, icon: Building2 }
     : fallbackCurrentClient
       ? { eyebrow: "Workspace do cliente", label: fallbackCurrentClient.name, icon: Building2 }
-    : inAgencyWorkspace
-      ? { eyebrow: "Workspace da agência", label: persistedAgencyWorkspace?.name ?? "Operação EG", icon: BriefcaseBusiness }
-      : location.pathname.startsWith("/clientes")
-        ? { eyebrow: "Fora de workspace", label: "Carteira de clientes", icon: Building2 }
-        : { eyebrow: "Fora de workspace", label: "Navegação EG", icon: LayoutDashboard };
+      : { eyebrow: "Workspace da agência", label: persistedAgencyWorkspace?.name ?? "Operação EG", icon: BriefcaseBusiness };
   const CurrentIcon = currentContext.icon;
 
   useEffect(() => {

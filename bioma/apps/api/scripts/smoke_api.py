@@ -133,15 +133,20 @@ def main() -> None:
     assert internal_workspace["client_id"] is None, "operação EG não pode ser uma conta cliente"
     assert internal_workspace["organization_id"] == internal_workspace["tenant_organization_id"]
     assert internal_workspace["slug"] == internal_workspace["organization_slug"]
-    internal_bridge_client_id = internal_workspace["legacy_client_id"]
-    assert internal_bridge_client_id, "adapter legado da operação EG precisa estar provisionado"
+    # A Operação EG opera pelo PRÓPRIO id. Até 2026-08-07 este smoke exigia um
+    # "adapter legado" — um registro em `clients` chamado "EverGreen Internal",
+    # que existia só porque o resolvedor partia de `clients` e
+    # `performance_connections.client_id` era NOT NULL. As duas restrições
+    # caíram (0087 + resolvedor por workspace), e a agência deixou de precisar
+    # fingir que é cliente de si mesma. Se o registro antigo ainda existir num
+    # banco, ele é tolerado; exigir que exista é que não faz mais sentido.
     assert_status(
-        admin.post(f"/clients/{internal_bridge_client_id}/invites", json={}),
+        admin.post(f"/clients/{internal_workspace['id']}/invites", json={}),
         404,
         "workspace interno não aceita convite de cliente",
     )
-    assert_status(admin.get(f"/clients/{internal_bridge_client_id}/files"), 200, "admin opera files interno")
-    assert_status(admin.get(f"/clients/{internal_bridge_client_id}/performance"), 200, "admin opera performance interno")
+    assert_status(admin.get(f"/clients/{internal_workspace['id']}/files"), 200, "admin opera files interno")
+    assert_status(admin.get(f"/clients/{internal_workspace['id']}/performance"), 200, "admin opera performance interno")
     assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/leads"), 200, "admin opera CRM interno canônico")
     assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/finance"), 200, "admin opera financeiro interno canônico")
     assert_status(admin.get(f"/workspaces/{internal_workspace['id']}/performance"), 200, "admin opera Performance interno canônico")
@@ -204,7 +209,7 @@ def main() -> None:
         assert_status(guarded_workspaces, 200, "membership interna não vaza workspace")
         assert all(row["kind"] != "agency_internal" for row in guarded_workspaces.json())
         assert_status(
-            client_user.get(f"/clients/{internal_bridge_client_id}"),
+            client_user.get(f"/clients/{internal_workspace['id']}"),
             404,
             "membership interna não vaza adapter cliente",
         )
@@ -214,12 +219,12 @@ def main() -> None:
             "membership interna não vaza rota canônica",
         )
         assert_status(
-            client_user.get(f"/clients/{internal_bridge_client_id}/files"),
+            client_user.get(f"/clients/{internal_workspace['id']}/files"),
             404,
             "membership interna não vaza files",
         )
         assert_status(
-            client_user.get(f"/clients/{internal_bridge_client_id}/performance"),
+            client_user.get(f"/clients/{internal_workspace['id']}/performance"),
             404,
             "membership interna não vaza performance",
         )

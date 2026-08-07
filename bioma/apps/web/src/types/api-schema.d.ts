@@ -10443,11 +10443,8 @@ export interface components {
         };
         /** PerformanceConnectionSummary */
         PerformanceConnectionSummary: {
-            /**
-             * Client Id
-             * Format: uuid
-             */
-            client_id: string;
+            /** Client Id */
+            client_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -10640,11 +10637,8 @@ export interface components {
         /** PerformanceOverviewResponse */
         PerformanceOverviewResponse: {
             ads: components["schemas"]["AdsAccountSummary"];
-            /**
-             * Client Id
-             * Format: uuid
-             */
-            client_id: string;
+            /** Client Id */
+            client_id?: string | null;
             /** Daily */
             daily: components["schemas"]["AdsDailyPoint"][];
             /** Freshness */

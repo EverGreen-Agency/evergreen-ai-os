@@ -1,4 +1,22 @@
-"""Cria o cliente interno "EverGreen" (dogfooding: a EG como cliente de si mesma).
+"""Provisiona o workspace interno da EG ("Operação EG").
+
+Antes este script também criava um registro em `clients` chamado "EverGreen
+Internal" — a agência como cliente de si mesma. Aquilo nunca foi um conceito,
+era uma concessão: `performance_connections` exigia `client_id not null` e
+`find_accessible_client` só resolvia workspace via junção com `clients`. Sem o
+registro-fantasma, a Operação EG não conseguia conectar mídia nem resolver o
+próprio contexto.
+
+Com a migração 0087 (conexão pertence ao workspace) e o resolvedor ancorado em
+`workspaces`, a concessão deixou de ser necessária — e o script deixou de
+criá-la. A EG tem workspace; não tem contrato consigo mesma.
+
+Se o registro antigo ainda existir no seu banco, ele é inofensivo, mas some da
+carteira de qualquer jeito (`externalClients` filtra o slug `eg`). Para
+removê-lo:
+
+    delete from clients c using organizations o
+     where o.id = c.organization_id and o.slug = 'eg';
 
 Idempotente. Usa a conexão do projeto (DATABASE_URL), não string hardcoded.
 """
@@ -19,25 +37,19 @@ def main() -> None:
         if not org:
             raise SystemExit("Organização EG não encontrada — rode as migrations/seed antes.")
 
-        existing = conn.execute(
-            "select id from clients where organization_id = %s",
+        workspaces_repo.provision_agency_workspace(conn, org["id"], "Operação EG")
+
+        legacy = conn.execute(
+            "select id, name from clients where organization_id = %s",
             (org["id"],),
         ).fetchone()
-        if existing:
-            client_id = existing["id"]
-            print(f"Cliente EG já existe: {client_id}")
-        else:
-            client_id = conn.execute(
-                """
-                insert into clients (organization_id, name, status, responsible_name)
-                values (%s, 'EverGreen Internal', 'active', 'Eduardo EG')
-                returning id
-                """,
-                (org["id"],),
-            ).fetchone()["id"]
-            print(f"Cliente EG criado: {client_id}")
+        if legacy:
+            print(
+                f"Aviso: registro de cliente legado ainda existe ({legacy['name']}). "
+                "Ele não é mais usado; veja o docstring para removê-lo."
+            )
 
-        workspaces_repo.provision_agency_workspace(conn, org["id"], "Operação EG")
+    print("Workspace interno da EG provisionado.")
 
 
 if __name__ == "__main__":

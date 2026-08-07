@@ -1,19 +1,21 @@
 """Smoke do dogfooding de métricas: a EG mede a própria mídia.
 
-Por que existe: o pipeline de performance é chaveado por `clients.id`, e a EG
-tem um registro próprio ("EverGreen Internal", criado por `create_eg_client.py`)
-que é **escondido da carteira de propósito** (`externalClients` filtra o slug
-`eg`). Essa combinação — existe no banco, some da interface — é exatamente o
-tipo de caminho que quebra sem ninguém perceber, porque nenhuma tela de cliente
-exercita ele.
+Por que existe: a Operação EG é um workspace SEM registro em `clients` — a
+agência não tem contrato consigo mesma. Esse é o único caminho da aplicação em
+que o contexto resolve sem cliente, e nenhuma tela de cliente o exercita, então
+é exatamente o tipo de caminho que quebra sem ninguém perceber.
+
+Até 2026-08-07 existia um cliente "EverGreen Internal" só para preencher
+`performance_connections.client_id` (NOT NULL até a 0087) e para o resolvedor,
+que partia de `clients`. As duas restrições caíram; o registro-fantasma sumiu.
 
 Valida:
-- o registro interno da EG existe e resolve pelo mesmo gate dos clientes;
+- o workspace da EG resolve pelo mesmo gate dos clientes, SEM registro em
+  `clients`, e a conexão criada fica com `client_id` nulo;
 - dá para cadastrar a conta de mídia da EG (o vínculo com o MCC/BM vive em
   `external_parent_id`, separado da credencial, que é do ambiente);
 - a conexão da EG **não vaza** para a listagem de um cliente e vice-versa;
-- a superfície `operacao.integracoes` é permitida para EG e inexistente para
-  usuário de cliente.
+- usuário de cliente não alcança o workspace interno nem o estado do ambiente.
 
 NÃO valida chamada real ao Google/Meta — isso depende de credencial externa e
 está fora do alcance de um smoke.
@@ -45,28 +47,24 @@ def assert_status(response, expected: int, label: str) -> None:
         raise AssertionError(f"{label}: esperado {expected}, recebido {response.status_code}: {response.text}")
 
 
-def find_internal_client(conn):
+def find_agency_workspace(conn):
+    """O sujeito interno da EG e o WORKSPACE, nao um registro em `clients`.
+
+    Ate 2026-08-07 este smoke buscava um cliente "EverGreen Internal". Ele
+    existia so para satisfazer restricoes que a 0087 removeu."""
     return conn.execute(
-        """
-        select c.id
-        from clients c
-        join organizations o on o.id = c.organization_id
-        where o.slug = 'eg'
-        order by c.created_at
-        limit 1
-        """
+        "select id from workspaces where kind = 'agency_internal' and status = 'active' limit 1"
     ).fetchone()
 
 
 def main() -> None:
     with connect() as conn:
-        internal = find_internal_client(conn)
+        internal = find_agency_workspace(conn)
     if not internal:
         raise AssertionError(
-            "Registro interno da EG não existe. Rode scripts/create_eg_client.py "
-            "(idempotente, não cria workspace novo)."
+            "Workspace interno da EG não existe. Rode scripts/create_eg_client.py."
         )
-    internal_client_id = internal["id"]
+    agency_workspace_id = internal["id"]
 
     workspace = create_smoke_workspace("AGENCYINT")
     client_user_id = upsert_smoke_user(CLIENT_EMAIL, "Smoke Cliente Integrações", PASSWORD)
@@ -78,14 +76,14 @@ def main() -> None:
         assert_status(admin.post("/auth/login", json={"email": ADMIN_EMAIL, "password": PASSWORD}), 200, "login admin")
 
         # ---------------------------------------------------------------- 1
-        response = admin.get(f"/clients/{internal_client_id}/performance/connections")
+        response = admin.get(f"/clients/{agency_workspace_id}/performance/connections")
         assert_status(response, 200, "listar conexões da EG")
-        print(f"ok: registro interno da EG resolve pelo gate de clientes ({len(response.json())} conexões)")
+        print(f"ok: workspace da EG resolve sem registro de cliente ({len(response.json())} conexões)")
 
         # ---------------------------------------------------------------- 2
         # Cadastrar a conta da EG, com o MCC no external_parent_id.
         response = admin.post(
-            f"/clients/{internal_client_id}/performance/connections",
+            f"/clients/{agency_workspace_id}/performance/connections",
             json={
                 "provider": "google_ads",
                 "external_account_id": SMOKE_ACCOUNT_ID,
@@ -97,6 +95,10 @@ def main() -> None:
         created = [item for item in response.json() if item["external_account_id"] == SMOKE_ACCOUNT_ID]
         if not created:
             raise AssertionError("conexão criada não voltou na listagem")
+        if created[0]["client_id"] is not None:
+            raise AssertionError(
+                f"conexão da agência nasceu amarrada a um cliente: {created[0]['client_id']}"
+            )
         if created[0]["external_parent_id"] != "smoke-mcc-000000":
             raise AssertionError("o vínculo com o MCC não foi preservado")
         print("ok: conta da EG cadastrada com o MCC em external_parent_id (credencial fica no ambiente)")
@@ -114,10 +116,10 @@ def main() -> None:
         # 403) porque não se confirma a existência do que não é dele.
         cliente = TestClient(app)
         assert_status(cliente.post("/auth/login", json={"email": CLIENT_EMAIL, "password": PASSWORD}), 200, "login cliente")
-        response = cliente.get(f"/clients/{internal_client_id}/performance/connections")
+        response = cliente.get(f"/clients/{agency_workspace_id}/performance/connections")
         if response.status_code not in (403, 404):
-            raise AssertionError(f"cliente alcançou o registro interno da EG: {response.status_code}")
-        print(f"ok: usuário de cliente não alcança o registro interno da EG ({response.status_code})")
+            raise AssertionError(f"cliente alcançou o workspace interno da EG: {response.status_code}")
+        print(f"ok: usuário de cliente não alcança o workspace interno da EG ({response.status_code})")
 
         # ---------------------------------------------------------------- 5
         # A tela mora em Configurações → Empresa → Integrações, que é EG-only
