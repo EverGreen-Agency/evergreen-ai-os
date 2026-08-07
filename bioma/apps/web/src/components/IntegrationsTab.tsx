@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import {
   Activity,
+  Bot,
   Cloud,
   KeyRound,
   PenLine,
