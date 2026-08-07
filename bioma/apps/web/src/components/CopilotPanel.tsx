@@ -9,6 +9,7 @@ import {
 import { api, type CopilotAttachment, type CopilotRunTrace, type CopilotSurface } from "../lib/api";
 import { useDictation } from "../hooks/useDictation";
 import { useUiStore } from "../store/uiStore";
+import { SaveToStudioButton } from "./SaveToStudioButton";
 
 /**
  * Painel fixo do copiloto — a "sala" da conversa.
@@ -454,14 +455,22 @@ export function CopilotPanel() {
                   </div>
                 )}
 
-                <button
-                  className="copilot-trace-toggle"
-                  type="button"
-                  onClick={() => setOpenTrace(openTrace === trace.id ? null : trace.id)}
-                >
-                  {openTrace === trace.id ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                  Como ele chegou nisso
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <button
+                    className="copilot-trace-toggle"
+                    type="button"
+                    onClick={() => setOpenTrace(openTrace === trace.id ? null : trace.id)}
+                  >
+                    {openTrace === trace.id ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    Como ele chegou nisso
+                  </button>
+                  {/* Decisão 8: o que a conversa produziu deixa de morrer nela.
+                      Só aparece quando há resposta — não há o que salvar de uma
+                      execução que falhou. */}
+                  {trace.answer && (
+                    <SaveToStudioButton runId={trace.id} defaultTitle={trace.answer} />
+                  )}
+                </div>
                 {openTrace === trace.id && <StepList trace={trace} />}
               </div>
             )}
