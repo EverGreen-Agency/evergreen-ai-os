@@ -1166,6 +1166,16 @@ export type SurfaceAccessEntry = {
   sources: string[];
 };
 
+export type OrganizationPerson = {
+  user_id: string;
+  email: string;
+  display_name: string;
+  is_active: boolean;
+  role: string;
+  tenant_role: TenantRole | null;
+  teams: string[];
+};
+
 export type SurfaceGrantEffect = "allow" | "deny";
 
 export type SurfaceGrantEntry = {
@@ -2683,6 +2693,10 @@ export const api = {
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   /** Convite para o time da EG (0088). Diferente do convite de cliente: entra
    * na organização da agência e pode já colocar a pessoa numa equipe. */
+  /** Gerenciamento de usuários: quem é da EG, com papel e equipes. Vem de
+   *  `memberships`, então quem foi convidado aparece mesmo sem papel de tenant. */
+  organizationPeople: (tenantOrganizationId: string) =>
+    request<OrganizationPerson[]>(`/tenants/${tenantOrganizationId}/people`),
   teamInvites: (tenantOrganizationId: string) =>
     request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites`),
   createTeamInvite: (

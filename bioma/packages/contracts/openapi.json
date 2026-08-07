@@ -12683,6 +12683,59 @@
         "title": "OpportunitySummary",
         "type": "object"
       },
+      "OrganizationPerson": {
+        "description": "Alguem que pertence a organizacao — a lista de \"gerenciamento de\nusuarios\". Vem de `memberships`, entao quem foi convidado aparece mesmo sem\npapel de tenant.",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "teams": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Teams",
+            "type": "array"
+          },
+          "tenant_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Role"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "display_name",
+          "is_active",
+          "role"
+        ],
+        "title": "OrganizationPerson",
+        "type": "object"
+      },
       "OrganizationSummary": {
         "properties": {
           "enabled_modules": {
@@ -42658,6 +42711,54 @@
         "summary": "Revoke Team Invite",
         "tags": [
           "team-invites"
+        ]
+      }
+    },
+    "/tenants/{tenant_organization_id}/people": {
+      "get": {
+        "description": "Gerenciamento de usuarios: quem pertence a organizacao, com papel e equipes.",
+        "operationId": "list_organization_people_tenants__tenant_organization_id__people_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationPerson"
+                  },
+                  "title": "Response List Organization People Tenants  Tenant Organization Id  People Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Organization People",
+        "tags": [
+          "teams"
         ]
       }
     },

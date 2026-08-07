@@ -42,6 +42,22 @@ class TenantMembershipUpsertRequest(BaseModel):
     role: TenantRole
 
 
+class OrganizationPerson(BaseModel):
+    """Alguem que pertence a organizacao — a lista de "gerenciamento de
+    usuarios". Vem de `memberships`, entao quem foi convidado aparece mesmo sem
+    papel de tenant."""
+
+    user_id: UUID
+    email: str
+    display_name: str
+    is_active: bool
+    # Papel de plataforma. Hoje so `eg_admin` e `client_user` existem — todo
+    # convite ao time cria admin, o que e o limite conhecido do modelo.
+    role: str
+    tenant_role: str | None = None
+    teams: list[str] = Field(default_factory=list)
+
+
 class TenantMembershipSummary(BaseModel):
     tenant_organization_id: UUID
     user_id: UUID

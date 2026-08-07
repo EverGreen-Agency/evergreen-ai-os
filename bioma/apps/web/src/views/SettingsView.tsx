@@ -17,6 +17,7 @@ import { SectionHeader, GoogleIcon } from "../components/shared";
 import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
 import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
 import { TeamInviteCard } from "../components/TeamInviteCard";
+import { OrganizationPeopleList } from "../components/OrganizationPeopleList";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
 
@@ -524,13 +525,10 @@ export function SettingsView() {
                     Configurações da agência. Gerencie usuários internos e preferências globais.
                   </p>
                   
-                  <div className="timeline-list">
-                    <div className="timeline-row">
-                      <span>Você</span>
-                      <strong>{user.display_name}</strong>
-                      <small>{user.email}</small>
-                    </div>
-                  </div>
+                  {/* Antes este bloco mostrava só o usuário logado — quem
+                      convidava alguém não via a pessoa em lugar nenhum. Agora
+                      lista todo mundo da organização, com papel e equipes. */}
+                  <OrganizationPeopleList tenantOrganizationId={tenantOrganizationId} currentUserId={user.id} />
                 </div>
               </article>
             )}

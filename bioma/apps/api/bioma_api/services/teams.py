@@ -9,6 +9,7 @@ from bioma_api.db import connect
 from bioma_api.repositories import teams as teams_repo
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.teams import (
+    OrganizationPerson,
     TeamCreateRequest,
     TeamMemberSummary,
     TeamMemberUpsertRequest,
@@ -62,6 +63,16 @@ def delete_team_member(team_id: UUID, user_id: UUID, user: CurrentUserResponse) 
         teams_repo.delete_team_member(conn, team["id"], user_id)
         rows = teams_repo.list_team_members(conn, team["id"])
     return [TeamMemberSummary(**row) for row in rows]
+
+
+def list_organization_people(tenant_organization_id: UUID, user: CurrentUserResponse) -> list[OrganizationPerson]:
+    """Quem e da EG. Parte de `memberships` e nao de `tenant_memberships`:
+    listar pelo segundo faz alguem recem-convidado sumir da tela."""
+    if not is_platform_admin(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas EG admin pode listar a equipe.")
+    with connect() as conn:
+        rows = teams_repo.list_organization_people(conn, tenant_organization_id)
+    return [OrganizationPerson(**row) for row in rows]
 
 
 def list_tenant_memberships(

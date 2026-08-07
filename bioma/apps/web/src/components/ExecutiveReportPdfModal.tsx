@@ -6,7 +6,9 @@ export type ExecutiveReportData = {
   clientName: string;
   period: string;
   summaryMetrics: Array<{ label: string; value: string; detail?: string }>;
-  highlights: string[];
+  /** Opcional: relatorio sem destaque e melhor que relatorio com
+   *  destaque inventado. */
+  highlights?: string[];
   tables?: Array<{
     title: string;
     headers: string[];
@@ -168,13 +170,13 @@ export function ExecutiveReportPdfModal({
         )}
 
         {/* HIGHLIGHTS & DESTAQUES DA OPERAÇÃO */}
-        {data.highlights.length > 0 && (
+        {data.highlights && data.highlights.length > 0 && (
           <div style={{ marginBottom: "28px", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "20px", borderRadius: "12px" }}>
             <h3 style={{ margin: "0 0 12px", fontSize: "0.95rem", color: "#166534", display: "flex", alignItems: "center", gap: "8px" }}>
               <ShieldCheck size={18} color="#166534" /> Destaques & Entregas Consolidadas
             </h3>
             <ul style={{ margin: 0, paddingLeft: "20px", color: "#15803d", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              {data.highlights.map((item, idx) => (
+              {data.highlights!.map((item, idx) => (
                 <li key={idx}>{item}</li>
               ))}
             </ul>

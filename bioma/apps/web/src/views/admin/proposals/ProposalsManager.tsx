@@ -1232,11 +1232,11 @@ export function ProposalsManager() {
               { label: "Taxa de Vitória (Win-Rate)", value: `${(analytics?.win_rate_percentage || 0).toFixed(1)}%` },
               { label: "Faturamento Ganho", value: `R$ ${((analytics?.total_won_value_cents || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
             ],
-            highlights: [
-              "Sistema de varredura ativa conectado a 4+ plataformas remote/freelancer.",
-              "Gerador autônomo de escopos comerciais e cronogramas de entrega em segundos com IA.",
-              "Auditor de perfil integrado para correção de posicionamento e bio estratégica.",
-            ],
+            // Havia três frases fixas aqui, entre elas "conectado a 4+
+            // plataformas" — afirmação factual que ninguém verifica e que sai
+            // num relatório com o nome da EG. Destaque só entra se for derivado
+            // do dado; até lá, o relatório vive sem ele.
+            highlights: undefined,
             tables: proposals.length > 0 ? [
               {
                 title: "Propostas Comerciais Recentes",
