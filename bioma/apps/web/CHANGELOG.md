@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.5.0](https://github.com/EverGreen-Agency/evergreen-ai-os/compare/bioma-web-v0.4.0...bioma-web-v0.5.0) (2026-08-07)
+
+
+### Features
+
+* **acesso:** visibilidade em 4 niveis — organizacao, equipe, usuario, preferencia ([7e8c585](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/7e8c5857eef50d04e846640288168f27b6da8db5))
+* **convites:** convidar pessoa para o time da EG, ja dentro da equipe ([04a9e85](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/04a9e85a522fad908eae2aa2ed3f5322bfcfff71))
+* **estudio:** a vista dos artefatos substitui o formulario como porta de entrada ([85fc566](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/85fc566428ec2f478bc64fca7bcd00880495aedc))
+* **estudio:** artefatos com procedencia e versionamento (decisao 8) ([847be73](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/847be73a4f86409f6bcfa4017bdc46d18359e369))
+* **estudio:** botao "Salvar no Estudio" fecha o item 1; worker roda como cron ([e3ee838](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/e3ee838b45fe43be2d5b3baa6bc01f19bfe8c164))
+* **estudio:** resposta do copiloto vira artefato, com procedencia deduzida ([b0509e7](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/b0509e7c45a7bfe4cb3c55e6ea74256c6fa87f56))
+* **github:** issue fechada SUGERE conclusao da entrega (decisao [#9](https://github.com/EverGreen-Agency/evergreen-ai-os/issues/9)) ([f53fd3d](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/f53fd3d9c30aa5eeb250a3e921437ef0fe9f7b41))
+* **integracoes:** tudo em Configuracoes -&gt; Empresa; env diz QUAL variavel falta ([413500d](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/413500dd848df1f614f6a57d24903e1f1a001768))
+* **integrations:** adicionar suporte ao ChatGPT Ads (OpenAI) no worker e painel de integracoes ([b3fa25a](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/b3fa25a2ef0aa1ec83a48c4f14bfe60fc50d7581))
+* **mcp:** servidor MCP remoto para conectar o Bioma ao ChatGPT Web ([f4c8790](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/f4c87905fc19ebb1e460e12988594966105abf42))
+* **operacao:** integracoes da propria EG em /operacao/integracoes ([f0a41df](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/f0a41dfe1ec1c60d57b431293165584e055142c9))
+* **performance:** conexao pertence ao workspace; visao geral respeita preferencia ([0235ed6](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/0235ed6a594db4d3f526bc5dc98fb7bf3e0375b8))
+* **tasks:** criacao inline, agrupamento por status, navegacao e drag and drop ([384af49](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/384af49c96310b09058911e3ba4c691317b97965))
+* **workspace:** EverGreen Internal removido; workspace vira a ancora ([6c84a8a](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/6c84a8aa3346c80bd34ecdc2967e7ac1bf2fb443))
+
+
+### Bug Fixes
+
+* **auth:** sessoes duplicadas na tela de dispositivos autorizados ([e61fa47](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/e61fa47606e2a9ac94a75d478cb15847fb480225))
+* **integrations:** adicionar icone de marca OpenAiAdsIcon para alinhar tipagem ([acb0b52](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/acb0b52cb19b34a92a8ae19346a625dc1a47673f))
+* **integrations:** importar icone Bot para o card do ChatGPT Ads ([282dcec](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/282dcec6ef76a734aee6fa6bb48fcef879f8f9ca))
+* **sync:** agendador enxerga a midia da propria EG; Operacao EG fixa no seletor ([30fcaa0](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/30fcaa0ff907af14c2c47e3fb110ceebac38e2eb))
+* **ui:** substitui 27 tokens CSS inexistentes pelos reais (268 ocorrencias) ([ad0f1ff](https://github.com/EverGreen-Agency/evergreen-ai-os/commit/ad0f1ffcb0a2d100fff9c549c7854c5c09bff270))
+
 ## [0.4.0](https://github.com/EverGreen-Agency/evergreen-ai-os/compare/bioma-web-v0.3.0...bioma-web-v0.4.0) (2026-08-05)
 
 
