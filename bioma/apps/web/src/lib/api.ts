@@ -286,6 +286,7 @@ export type PerformanceProvider =
   | "gtm"
   | "meta_ads"
   | "linkedin_ads"
+  | "openai_ads"
   | "instagram_organic"
   | "google_business_profile"
   | "google_adsense"

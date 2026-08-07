@@ -96,6 +96,12 @@ const PROVIDER_META: Record<PerformanceProvider, {
     accountLabel: "Sponsored Account ID",
     accountPlaceholder: "123456789",
   },
+  openai_ads: {
+    label: "ChatGPT Ads (OpenAI)",
+    icon: Bot,
+    accountLabel: "Account ID",
+    accountPlaceholder: "act_openai_12345",
+  },
   instagram_organic: {
     label: "Instagram (orgânico)",
     icon: InstagramIcon,
