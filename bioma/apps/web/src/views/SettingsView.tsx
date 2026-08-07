@@ -14,6 +14,9 @@ import {
   useRevokePersonalAccessToken,
 } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
+import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
+import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
+import { TeamInviteCard } from "../components/TeamInviteCard";
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../lib/cropImage';
 
@@ -39,6 +42,16 @@ export function SettingsView() {
   const [vaultWorkspaceId, setVaultWorkspaceId] = useState("");
   const clientWorkspaces = workspaces.filter((workspace) => workspace.kind === "client" && workspace.status === "active");
   const selectedVaultWorkspace = clientWorkspaces.find((workspace) => workspace.id === vaultWorkspaceId) ?? clientWorkspaces[0] ?? null;
+
+  // Sujeito das contas de mídia da EG: o WORKSPACE da agência.
+  //
+  // Era o registro "EverGreen Internal" em `clients`, criado só porque
+  // `performance_connections` exigia `client_id`. Com a 0087 e o resolvedor
+  // por workspace, esse registro deixou de existir — a agência não é cliente
+  // de si mesma, e agora o código também não finge que é.
+  const agencyWorkspace = workspaces.find((workspace) => workspace.kind === "agency_internal") ?? null;
+  const egSubjectId = agencyWorkspace?.id ?? null;
+  const tenantOrganizationId = agencyWorkspace?.tenant_organization_id ?? workspaces[0]?.tenant_organization_id ?? null;
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;
@@ -454,6 +467,10 @@ export function SettingsView() {
             </form>
           </article>
 
+          {/* Preferência de navegação (decisão 11, nível 4): esconde do menu
+              sem apagar nada, e mostra de onde vem cada bloqueio. */}
+          <SurfacePreferencesCard />
+
           {/* Dispositivos & Sessões Ativas */}
           <SessionsManagerCard />
 
@@ -509,29 +526,44 @@ export function SettingsView() {
                   
                   <div className="timeline-list">
                     <div className="timeline-row">
-                      <span>Equipe</span>
+                      <span>Você</span>
                       <strong>{user.display_name}</strong>
                       <small>{user.email}</small>
-                    </div>
-                    <div className="timeline-row" style={{ opacity: 0.5 }}>
-                      <span>+ Convidar</span>
-                      <strong>Adicionar membro</strong>
-                      <small>Funcionalidade em breve</small>
                     </div>
                   </div>
                 </div>
               </article>
             )}
 
+            {/* Convite ao time (0088). Substitui o "Funcionalidade em breve"
+                que estava aqui: convite só existia por cliente, e colocar
+                alguém no time exigia que a pessoa já tivesse conta. */}
+            {activeSubTab === "general" && (
+              <div style={{ marginTop: 24 }}>
+                <TeamInviteCard tenantOrganizationId={tenantOrganizationId} />
+              </div>
+            )}
+
             {activeSubTab === "teams" && (
               <Suspense fallback={<div className="notice">Carregando equipes e carteiras...</div>}>
-                <TeamPortfolioManager />
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  <TeamPortfolioManager />
+                  {/* Níveis 2 e 3 da decisão 11: acesso por equipe e por
+                      pessoa, no mesmo lugar onde a equipe é montada. */}
+                  <SurfaceAccessManager />
+                </div>
               </Suspense>
             )}
 
             {activeSubTab === "integrations" && (
               <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
-                <IntegrationsTab scope="environment" />
+                {/* `all` (e não `environment`): além das credenciais do ambiente
+                    e das plataformas de freelancer, esta aba passa a mostrar as
+                    contas de mídia da própria EG — Google Ads via MCC, Meta via
+                    BM, GA4, Search Console. Ficam juntas de propósito: são a
+                    mesma pergunta ("o que a EG tem conectado?") e separá-las em
+                    duas telas era o que obrigava a procurar em dois lugares. */}
+                <IntegrationsTab scope="all" clientId={egSubjectId} />
               </Suspense>
             )}
 

@@ -729,25 +729,40 @@ def fail_ai_content(conn, request: dict, message: str) -> None:
 
 
 def enqueue_scheduled_syncs(conn, date_from: date, date_to: date) -> int:
+    """Enfileira um sync por WORKSPACE que tenha conexão viva.
+
+    Antes varria `clients`. Depois da migração 0087 a conexão pertence ao
+    workspace e `client_id` é opcional — a Operação EG tem conexão com
+    `client_id` nulo. Uma varredura por cliente simplesmente NÃO ENCONTRARIA a
+    mídia da própria agência, e o sintoma seria o pior possível: nada de erro,
+    só um painel que nunca atualiza.
+
+    `distinct on (workspace_id)` porque o sync é do workspace inteiro
+    (`provider = 'all'`), não de cada conexão; sem isso, um workspace com
+    quatro contas geraria quatro runs concorrentes disputando o mesmo lease.
+    """
     rows = conn.execute(
         """
         insert into sync_runs (
-          source, organization_id, client_id, provider, status, summary, date_from, date_to
+          source, organization_id, client_id, workspace_id, provider, status, summary, date_from, date_to
         )
         select
-          'performance', c.organization_id, c.id, 'all', 'queued',
+          'performance', pc.organization_id, pc.client_id, pc.workspace_id, 'all', 'queued',
           jsonb_build_object('mode', 'scheduled', 'external_sync', 'queued'),
           %s, %s
-        from clients c
-        where exists (
-          select 1 from performance_connections pc
-          where pc.client_id = c.id and pc.status in ('active', 'error')
+        from (
+          select distinct on (workspace_id)
+                 workspace_id, organization_id, client_id
+          from performance_connections
+          where status in ('active', 'error')
+          order by workspace_id, created_at
+        ) pc
+        where not exists (
+          select 1 from sync_runs sr
+          where sr.workspace_id = pc.workspace_id
+            and sr.source = 'performance'
+            and sr.status in ('queued', 'running')
         )
-          and not exists (
-            select 1 from sync_runs sr
-            where sr.client_id = c.id and sr.source = 'performance'
-              and sr.status in ('queued', 'running')
-          )
         returning id
         """,
         (date_from, date_to),
@@ -772,27 +787,29 @@ def resolve_workspace_id(conn, client_id: UUID) -> UUID:
     return row["id"]
 
 
-def list_connections(conn, client_id: UUID, provider: str):
+def list_connections(conn, workspace_id: UUID, provider: str):
+    """Conexões do WORKSPACE (0087). Chavear por cliente aqui deixaria a
+    Operação EG — que não tem registro comercial — sem nenhuma conexão."""
     if provider == "all":
         return conn.execute(
             """
             select id, provider, external_account_id, external_parent_id,
                    credentials_ref, metadata
             from performance_connections
-            where client_id = %s and status in ('active', 'error')
+            where workspace_id = %s and status in ('active', 'error')
             order by provider asc
             """,
-            (client_id,),
+            (workspace_id,),
         ).fetchall()
     return conn.execute(
         """
         select id, provider, external_account_id, external_parent_id,
                credentials_ref, metadata
         from performance_connections
-        where client_id = %s and provider = %s and status in ('active', 'error')
+        where workspace_id = %s and provider = %s and status in ('active', 'error')
         order by created_at asc
         """,
-        (client_id, provider),
+        (workspace_id, provider),
     ).fetchall()
 
 

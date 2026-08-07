@@ -161,16 +161,20 @@ def run_next_sync() -> dict[str, Any] | None:
     if not sync_run:
         return None
 
+
     settings = get_settings()
     google_client = GoogleApiClient(settings)
     date_to = sync_run["date_to"] or date.today()
     date_from = sync_run["date_from"] or (date_to - timedelta(days=30))
 
     with connect() as conn:
-        connections = storage.list_connections(conn, sync_run["client_id"], sync_run["provider"] or "all")
+        # Por workspace (0087): a Operação EG tem conexão sem `client_id`, e
+        # listar por cliente a deixaria de fora sem gerar erro nenhum.
+        connections = storage.list_connections(conn, sync_run["workspace_id"], sync_run["provider"] or "all")
 
     results: dict[str, dict[str, Any]] = {}
     total_records = 0
+
     with httpx.Client(timeout=settings.google_request_timeout_seconds) as generic_client:
         for connection in connections:
             provider = connection["provider"]
@@ -253,10 +257,12 @@ def _sync_provider(
 ) -> int:
     from bioma_worker.providers import (
         adsense, ga4, google_ads, google_business_profile, gtm, hubspot, instagram_organic,
-        linkedin_ads, linkedin_organic, meta_ads, rd_station_crm, search_console, tiktok_ads,
+        linkedin_ads, linkedin_organic, meta_ads, openai_ads, rd_station_crm, search_console, tiktok_ads,
         tiktok_organic, youtube_organic,
     )
     provider = connection["provider"]
+    if provider == "openai_ads":
+        return openai_ads.sync(conn, generic_client, settings, client_id, connection, date_from, date_to)
     if provider == "google_ads":
         return google_ads.sync(conn, google_client, settings, client_id, connection, date_from, date_to)
     if provider == "ga4":
@@ -296,6 +302,7 @@ _SUPPORTED_CREDENTIALS_REFS = (
     "env:LINKEDIN_ADS_ACCESS_TOKEN",
     "env:INSTAGRAM_ACCESS_TOKEN",
     "env:YOUTUBE_API_KEY",
+    "env:OPENAI_ADS_API_KEY",
 )
 
 

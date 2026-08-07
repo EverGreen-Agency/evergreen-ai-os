@@ -286,6 +286,7 @@ export type PerformanceProvider =
   | "gtm"
   | "meta_ads"
   | "linkedin_ads"
+  | "openai_ads"
   | "instagram_organic"
   | "google_business_profile"
   | "google_adsense"
@@ -950,6 +951,10 @@ export type InviteSummary = {
   expires_at: string;
   used_at: string | null;
   created_at: string;
+  /** Nulos em convite de cliente; preenchidos no convite ao time da EG (0088). */
+  role?: string | null;
+  team_id?: string | null;
+  tenant_role?: TenantRole | null;
 };
 
 export type InvitePublicInfo = {
@@ -957,6 +962,9 @@ export type InvitePublicInfo = {
   organization_name: string;
   email: string | null;
   expires_at: string;
+  /** Preenchido em convite ao time da EG — deixa a tela dizer para qual
+   *  equipe a pessoa foi chamada, em vez de tratar como convite de cliente. */
+  team_name?: string | null;
 };
 
 export type InviteAcceptPayload = {
@@ -1033,6 +1041,9 @@ export type IntegrationsStatus = {
   storage_configured: boolean;
   google_oauth_configured: boolean;
   app_env: string;
+  /** Nomes (nunca valores) das variáveis ausentes NESTE serviço. */
+  storage_missing_vars: string[];
+  google_oauth_missing_vars: string[];
 };
 
 export type PersonalAccessTokenSummary = {
@@ -1131,6 +1142,97 @@ export type FeatureFlag = {
   note: string | null;
   updated_at: string | null;
 };
+
+/** Decisão 11: acesso e visibilidade em 4 níveis. */
+export type SurfaceReason =
+  | "locked" | "platform_admin" | "not_contracted" | "maturity"
+  | "team_denied" | "team_allowed" | "user_denied" | "user_allowed"
+  | "preference" | "default";
+
+export type SurfaceAccessEntry = {
+  surface_key: string;
+  label: string;
+  group: string;
+  parent: string | null;
+  locked: boolean;
+  /** Permissão: a rota responde. Use isto em guarda de rota. */
+  allowed: boolean;
+  /** Visibilidade: aparece no menu. Use isto na navegação. */
+  visible: boolean;
+  can_prefer: boolean;
+  reason: SurfaceReason;
+  /** Frase pronta — vem do mesmo cálculo que decidiu. */
+  detail: string;
+  sources: string[];
+};
+
+export type SurfaceGrantEffect = "allow" | "deny";
+
+export type SurfaceGrantEntry = {
+  id: string;
+  surface_key: string;
+  label: string;
+  group: string;
+  team_id: string | null;
+  user_id: string | null;
+  effect: SurfaceGrantEffect;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SurfaceCatalogEntry = {
+  surface_key: string;
+  label: string;
+  group: string;
+  parent: string | null;
+  scope: "eg" | "client" | "both";
+  locked: boolean;
+  module: string | null;
+  feature_key: string | null;
+};
+
+/** Decisão 8: artefatos do Estúdio — o que a conversa produziu. */
+export type StudioArtifactStatus = "draft" | "approved" | "published" | "archived";
+
+export type StudioArtifactVersion = {
+  id: string;
+  artifact_id: string;
+  version: number;
+  title: string;
+  content: string | null;
+  url: string | null;
+  /** Preenchido quando ESTA versão saiu de uma execução; nulo se foi editada à mão. */
+  run_id: string | null;
+  change_note: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+};
+
+export type StudioArtifact = {
+  id: string;
+  organization_id: string;
+  workspace_id: string | null;
+  title: string;
+  kind: string;
+  visibility: "internal" | "client";
+  status: StudioArtifactStatus;
+  url: string | null;
+  content: string | null;
+  current_version: number;
+  versions_total: number;
+  thread_id: string | null;
+  run_id: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StudioArtifactDetail = StudioArtifact & { versions: StudioArtifactVersion[] };
+
+export type StudioArtifactKindCount = { kind: string; total: number };
 
 export type CopilotPlanStatus =
   | "pending_approval" | "approved" | "running" | "completed" | "failed" | "rejected" | "cancelled";
@@ -2579,6 +2681,19 @@ export const api = {
   revokePersonalAccessToken: (tokenId: string) =>
     request<{ status: string }>(`/auth/personal-access-tokens/${tokenId}`, { method: "DELETE" }),
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
+  /** Convite para o time da EG (0088). Diferente do convite de cliente: entra
+   * na organização da agência e pode já colocar a pessoa numa equipe. */
+  teamInvites: (tenantOrganizationId: string) =>
+    request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites`),
+  createTeamInvite: (
+    tenantOrganizationId: string,
+    payload: { email?: string | null; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
+  ) => request<InviteCreated>(`/tenants/${tenantOrganizationId}/invites`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  revokeTeamInvite: (tenantOrganizationId: string, inviteId: string) =>
+    request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites/${inviteId}`, { method: "DELETE" }),
   teams: (tenantOrganizationId: string) =>
     request<TeamSummary[]>(`/teams?tenant_organization_id=${encodeURIComponent(tenantOrganizationId)}`),
   createTeam: (tenantOrganizationId: string, name: string) =>
@@ -2644,6 +2759,26 @@ export const api = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
+  studioArtifacts: (workspaceId: string, filters?: { kind?: string | null; status?: string | null }) => {
+    const params = new URLSearchParams();
+    if (filters?.kind) params.set("kind", filters.kind);
+    if (filters?.status) params.set("status", filters.status);
+    const qs = params.toString();
+    return request<StudioArtifact[]>(`/workspaces/${workspaceId}/studio${qs ? `?${qs}` : ""}`);
+  },
+  studioArtifactKinds: (workspaceId: string) =>
+    request<StudioArtifactKindCount[]>(`/workspaces/${workspaceId}/studio/kinds`),
+  studioArtifact: (artifactId: string) => request<StudioArtifactDetail>(`/artifacts/${artifactId}`),
+  createStudioArtifact: (workspaceId: string, payload: { title: string; kind: string; content?: string | null; visibility?: "internal" | "client"; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/workspaces/${workspaceId}/studio`, { method: "POST", body: JSON.stringify(payload) }),
+  addStudioArtifactVersion: (artifactId: string, payload: { title: string; content?: string | null; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/artifacts/${artifactId}/versions`, { method: "POST", body: JSON.stringify(payload) }),
+  setStudioArtifactStatus: (artifactId: string, status: StudioArtifactStatus) =>
+    request<StudioArtifactDetail>(`/artifacts/${artifactId}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  /** Salva a resposta de uma execução do copiloto. A procedência é deduzida no
+   *  servidor — por isso não há thread_id/run_id no payload. */
+  saveArtifactFromRun: (runId: string, payload: { title: string; kind?: string; content?: string | null; workspace_id?: string | null; artifact_id?: string | null; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/artifacts/from-run/${runId}`, { method: "POST", body: JSON.stringify(payload) }),
   vaultCredentials: (workspaceId: string) =>
     request<VaultCredentialSummary[]>(`/workspaces/${workspaceId}/vault`),
   createVaultCredential: (workspaceId: string, payload: VaultCredentialPayload) =>
@@ -3508,6 +3643,25 @@ export const api = {
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags`, { method: "PUT", body: JSON.stringify(payload) }),
   clearFeatureFlag: (organizationId: string, featureKey: string) =>
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags/${featureKey}`, { method: "DELETE" }),
+
+  /** Decisão 11 — o que eu vejo e por quê. Decisão e explicação na mesma resposta. */
+  mySurfaces: () => request<SurfaceAccessEntry[]>("/me/surfaces"),
+  setSurfacePreference: (surfaceKey: string, hidden: boolean) =>
+    request<SurfaceAccessEntry[]>("/me/surfaces/preference", {
+      method: "PUT",
+      body: JSON.stringify({ surface_key: surfaceKey, hidden }),
+    }),
+  surfaceCatalog: () => request<SurfaceCatalogEntry[]>("/surfaces/catalog"),
+  teamSurfaceGrants: (teamId: string) => request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces`),
+  upsertTeamSurfaceGrant: (teamId: string, payload: { surface_key: string; effect: SurfaceGrantEffect; note?: string | null }) =>
+    request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces`, { method: "PUT", body: JSON.stringify(payload) }),
+  clearTeamSurfaceGrant: (teamId: string, surfaceKey: string) =>
+    request<SurfaceGrantEntry[]>(`/teams/${teamId}/surfaces/${encodeURIComponent(surfaceKey)}`, { method: "DELETE" }),
+  userSurfaceGrants: (userId: string) => request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces`),
+  upsertUserSurfaceGrant: (userId: string, payload: { surface_key: string; effect: SurfaceGrantEffect; note?: string | null }) =>
+    request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces`, { method: "PUT", body: JSON.stringify(payload) }),
+  clearUserSurfaceGrant: (userId: string, surfaceKey: string) =>
+    request<SurfaceGrantEntry[]>(`/users/${userId}/surfaces/${encodeURIComponent(surfaceKey)}`, { method: "DELETE" }),
   createCopilotPlan: (payload: { goal: string; workspace_id?: string | null }) =>
     request<CopilotPlan>("/copilot/plans", { method: "POST", body: JSON.stringify(payload) }),
   listCopilotPlans: (workspaceId?: string | null) => {

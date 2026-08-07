@@ -15,7 +15,7 @@ import { CopilotPanel } from "./components/CopilotPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { useUiStore } from "./store/uiStore";
-import { useApiHealth, useCurrentUser, useClients, useWorkspaces, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact } from "./hooks/useBiomaApi";
+import { useApiHealth, useCurrentUser, useClients, useWorkspaces, useLogin, useLogout, useUpdateArtifact, useDeleteArtifact, useSurfaceVisibility } from "./hooks/useBiomaApi";
 import { normalizeArtifactPayload } from "./lib/format";
 import { emptyArtifactDraft } from "./lib/app-config";
 import {
@@ -45,6 +45,7 @@ const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").th
 const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
 const AgencyMarketResearchRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyMarketResearchRoute })));
 const AgencyLocalRadarRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyLocalRadarRoute })));
+
 
 // Views administrativas EG
 const IdeaBankView = lazy(() => import("./views/admin/idea-bank/IdeaBank").then((module) => ({ default: module.IdeaBank })));
@@ -210,9 +211,16 @@ export function App() {
   }
 
   const enabledModules = enabledModulesFor(user, isEgAdmin);
+
+  // Decisão 11: a resolução dos 4 níveis (organização → equipe → usuário →
+  // preferência) vem pronta do backend, com o motivo junto. A regra de fallback
+  // (enquanto carrega, mostra) mora no hook, não aqui.
+  const { isSurfaceVisible, isSurfaceAllowed } = useSurfaceVisibility();
+
   const visibleNavItems = navItems
     .filter((item) => enabledModules.has(viewModule[item.id]))
     .filter((item) => isEgAdmin || item.id === "clientes")
+    .filter((item) => isSurfaceVisible(item.id))
     .map((item) => !isEgAdmin && item.id === "clientes" ? { ...item, label: "Meu Hub" } : item);
   const clientHomePath = !isEgAdmin && clients.length === 1 ? `/clientes/${clients[0].id}` : "/clientes";
 
@@ -222,6 +230,16 @@ export function App() {
 
   function guardAdmin(element: ReactNode) {
     return isEgAdmin ? element : <Navigate to="/" replace />;
+  }
+
+  /** Guarda por superfície: usa `allowed`, nunca `visible`.
+   *
+   * A diferença é o ponto inteiro da decisão 11 — o que a pessoa escondeu do
+   * menu continua acessível pela URL. Trocar por `visible` aqui transformaria
+   * preferência em bloqueio e deixaria links salvos quebrados. */
+  function guardSurface(surfaceKey: string, element: ReactNode) {
+    if (!isEgAdmin) return <Navigate to="/" replace />;
+    return isSurfaceAllowed(surfaceKey) ? element : <Navigate to="/" replace />;
   }
 
   if (!user) {
@@ -292,19 +310,23 @@ export function App() {
           />
           <Route path="/configuracoes" element={<SettingsView />} />
 
-          <Route path="/operacao" element={guardAdmin(
+          <Route path="/operacao" element={guardSurface("operacao",
             <Suspense fallback={<ViewLoadingFallback />}>
               <AgencyWorkspaceView />
             </Suspense>,
           )}>
             <Route index element={<AgencyOverviewRoute />} />
-            <Route path="tarefas" element={<AgencyTasksRoute />} />
-            <Route path="crm" element={<AgencyCrmRoute />} />
-            <Route path="financeiro" element={<AgencyFinanceRoute />} />
-            <Route path="metricas" element={<AgencyAnalyticsRoute />} />
-            <Route path="ia" element={<AgencyAiOperationsRoute />} />
-            <Route path="pesquisa-mercado" element={<AgencyMarketResearchRoute />} />
-            <Route path="radar-local" element={<AgencyLocalRadarRoute />} />
+            <Route path="tarefas" element={guardSurface("operacao.tarefas", <AgencyTasksRoute />)} />
+            <Route path="crm" element={guardSurface("operacao.crm", <AgencyCrmRoute />)} />
+            <Route path="financeiro" element={guardSurface("operacao.financeiro", <AgencyFinanceRoute />)} />
+            <Route path="metricas" element={guardSurface("operacao.metricas", <AgencyAnalyticsRoute />)} />
+            <Route path="ia" element={guardSurface("operacao.ia", <AgencyAiOperationsRoute />)} />
+            <Route path="pesquisa-mercado" element={guardSurface("operacao.pesquisa-mercado", <AgencyMarketResearchRoute />)} />
+            <Route path="radar-local" element={guardSurface("operacao.radar-local", <AgencyLocalRadarRoute />)} />
+            {/* As integrações da EG moram em Configurações → Empresa →
+                Integrações, junto das credenciais do ambiente. Esta rota fica
+                como atalho para quem já tinha o link. */}
+            <Route path="integracoes" element={<Navigate to="/configuracoes" replace />} />
           </Route>
 
           <Route path="/clientes" element={guard("clientes",
@@ -336,64 +358,64 @@ export function App() {
           <Route path="/finance" element={<Navigate to={isEgAdmin ? "/operacao/financeiro" : clientHomePath} replace />} />
           <Route path="/analytics" element={<Navigate to={isEgAdmin ? "/operacao/metricas" : clientHomePath} replace />} />
 
-          <Route path="/engenharia" element={guardAdmin(
+          <Route path="/engenharia" element={guardSurface("engenharia",
             <Suspense fallback={<ViewLoadingFallback />}>
               <EngineeringView />
             </Suspense>,
           )} />
 
           {/* Rotas Administrativas EG */}
-          <Route path="/eg-wiki" element={guardAdmin(
+          <Route path="/eg-wiki" element={guardSurface("eg-wiki",
             <Suspense fallback={<ViewLoadingFallback />}>
               <WikiEgView />
             </Suspense>,
           )} />
-          <Route path="/eg-ideas" element={guardAdmin(
+          <Route path="/eg-ideas" element={guardSurface("eg-ideas",
             <Suspense fallback={<ViewLoadingFallback />}>
               <IdeaBankView />
             </Suspense>,
           )} />
-          <Route path="/eg-tech" element={guardAdmin(
+          <Route path="/eg-tech" element={guardSurface("eg-tech",
             <Suspense fallback={<ViewLoadingFallback />}>
               <TechRadarView />
             </Suspense>,
           )} />
-          <Route path="/eg-architecture" element={guardAdmin(
+          <Route path="/eg-architecture" element={guardSurface("eg-architecture",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ArchitectureView />
             </Suspense>,
           )} />
-          <Route path="/eg-rh" element={guardAdmin(
+          <Route path="/eg-rh" element={guardSurface("eg-rh",
             <Suspense fallback={<ViewLoadingFallback />}>
               <RhManagerView />
             </Suspense>,
           )} />
-          <Route path="/eg-kits" element={guardAdmin(
+          <Route path="/eg-kits" element={guardSurface("eg-kits",
             <Suspense fallback={<ViewLoadingFallback />}>
               <KitsManagerView />
             </Suspense>,
           )} />
-          <Route path="/eg-propostas" element={guardAdmin(
+          <Route path="/eg-propostas" element={guardSurface("eg-propostas",
             <Suspense fallback={<ViewLoadingFallback />}>
               <ProposalsManagerView />
             </Suspense>,
           )} />
-          <Route path="/sales_copilot" element={guardAdmin(
+          <Route path="/sales_copilot" element={guardSurface("sales_copilot",
             <Suspense fallback={<ViewLoadingFallback />}>
               <SalesCopilotView />
             </Suspense>,
           )} />
-          <Route path="/eg-planning" element={guardAdmin(
+          <Route path="/eg-planning" element={guardSurface("eg-planning",
             <Suspense fallback={<ViewLoadingFallback />}>
               <PlanningPortfolioView />
             </Suspense>,
           )} />
-          <Route path="/eg-vitorias" element={guardAdmin(
+          <Route path="/eg-vitorias" element={guardSurface("eg-vitorias",
             <Suspense fallback={<ViewLoadingFallback />}>
               <WinsView />
             </Suspense>,
           )} />
-          <Route path="/eg-plataformas" element={guardAdmin(
+          <Route path="/eg-plataformas" element={guardSurface("eg-plataformas",
             <Suspense fallback={<ViewLoadingFallback />}>
               <PlatformStudiesView />
             </Suspense>,
@@ -409,8 +431,12 @@ export function App() {
 
       {/* Copiloto: só EG. O painel fala com `/copilot`, que responde 403 para
           usuário de cliente — renderizar para eles seria oferecer uma porta
-          fechada. */}
-      {isEgAdmin && <CopilotPanel />}
+          fechada.
+
+          Usa `isSurfaceVisible` (não `isSurfaceAllowed`) porque aqui não existe
+          URL para acessar por fora: o painel é a única porta. Esconder é o
+          mesmo que não ter, e é essa a escolha que a preferência oferece. */}
+      {isEgAdmin && isSurfaceVisible("copiloto") && <CopilotPanel />}
 
       {selectedArtifact && (
         <ArtifactModal

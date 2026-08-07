@@ -342,6 +342,48 @@ refino de tarefas, depois isto.
 
 `RESPOSTA (o que é artefato de primeira classe: roteiro, post, proposta, tudo?):`
 
+**Recomendação (2026-08-06).** O corte certo **não é por gênero de conteúdo**
+(roteiro/post/proposta). Essa lista não acaba nunca, e cada gênero novo viraria
+uma tabela ou um valor de enum — é assim que se constrói o formulário de novo,
+só que distribuído.
+
+O corte é por **o que a coisa faz na operação**. É artefato de primeira classe o
+que passa nos três testes:
+
+1. **é revisado** — existe versão 2, e comparar com a 1 tem valor;
+2. **é referenciado** — uma tarefa, um cliente ou um link apontam para ele;
+3. **sai do Bioma** — vai para o cliente, para uma plataforma ou para um link
+   público.
+
+Por esse teste: **roteiro, post, legenda, prompt de arte, planejamento e
+mensagem de prospecção são artefatos.** A resposta analítica do copiloto
+("quantos leads esse mês?") **não é** — vira ruído e cemitério.
+
+**A descoberta que muda a resposta: `artifacts` já existe** (migração 0001) —
+`organization_id`, `title`, `kind` (texto livre, não enum), `visibility`
+(`internal`/`client`), `url`, `content`. Ou seja, a taxonomia aberta que eu ia
+recomendar já está no banco, e criar uma tabela nova de artefatos seria
+exatamente a fragmentação que o projeto proíbe.
+
+O que falta em `artifacts` é o que a decisão 8 pede, e só isso:
+
+| Falta | Para quê |
+|---|---|
+| `thread_id` / `run_id` | procedência: qual conversa e qual execução geraram isto |
+| `artifact_versions` | versionar de verdade, em vez de sobrescrever `content` |
+| `workspace_id` | hoje é só por organização; roteiro é de um workspace |
+| `status` | rascunho × aprovado × publicado |
+
+**E proposta NÃO entra.** Ela já tem casa própria (`proposals`, com link
+público, ciclo de vida e tradução em cache da decisão 2). Transformá-la em
+artefato genérico seria rebaixar o que já é mais completo. O mesmo vale para
+briefing. O desenho certo aí é **promover**: a conversa gera o artefato, e um
+botão o entrega para a casa especializada quando ela existe.
+
+Resumindo a recomendação: **artefato é um só conceito, com `kind` aberto,
+estendendo a tabela que já existe** — e quem já tem casa própria continua na
+sua.
+
 ---
 
 ## 9. GitHub ↔ Tech — fechar o loop
@@ -499,6 +541,39 @@ Duas armadilhas que quero evitar:
    isso vira suporte eterno.
 
 `RESPOSTA (fazer os 4 níveis de uma vez, ou começar por preferência pessoal + equipe?):` Fazer os 4 níveis de uma vez
+
+**Implementado em 2026-08-06** (migração 0086). Catálogo de superfícies em
+código (`surfaces.py`), resolução em função pura (`surface_access.py`),
+`/me/surfaces` devolvendo decisão **e** explicação na mesma resposta.
+
+Quatro coisas que vale registrar porque mudam o que dá para fazer depois:
+
+- **A chave da superfície é a rota.** `eg-rh` é `/eg-rh`; `operacao.radar-local`
+  é `/operacao/radar-local`. É o que permite partir de uma URL e chegar ao
+  motivo de ela ter sumido do menu.
+- **"Preferência nunca concede" virou garantia estrutural**, não promessa de
+  código: `surface_preferences.hidden` tem `check (hidden)`. O Postgres recusa
+  gravar uma preferência que libere — um bug futuro falha na escrita, não em
+  produção com a porta aberta.
+- **`allowed` e `visible` são campos separados.** Guarda de rota usa `allowed`,
+  menu usa `visible`. É isso que faz "escondi para mim" não quebrar link salvo.
+- **O frontend falha ABERTO de propósito.** Se `/me/surfaces` não responder,
+  vale o comportamento anterior. Falhar fechado faria um soluço de rede parecer
+  "sumiu tudo", e o cliente-side nunca foi a fronteira de segurança.
+
+**Uma interpretação que eu fiz e você pode querer desfazer.** Você disse "o mais
+restritivo vence". Entre **equipes** apliquei isso ao pé da letra (basta uma
+negar). Entre **equipe e usuário** apliquei **especificidade**: o usuário vence
+a equipe nos dois sentidos. O motivo é que a regra literal tornaria o nível de
+usuário inútil justamente no caso que o motivou — negar o RH para a equipe
+inteira e liberar para quem cuida do RH. A propriedade que você queria proteger
+("esconder não vira jeito de burlar acesso") continua inteira: ela mora no teto
+da organização e na preferência, e tem teste provando que `allow` de usuário
+não fura módulo não contratado.
+
+**Onde mexer:** Configurações → Telas e módulos (preferência pessoal, com a
+herança visível) e Configurações → empresa → Equipes & carteiras → Acesso a
+telas (equipe e pessoa).
 
 ---
 

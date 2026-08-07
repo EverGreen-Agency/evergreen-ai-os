@@ -13,6 +13,28 @@ Worker assíncrono e agendável do Bioma. O primeiro uso real é a sincronizaç�
 
 O MVP usa o próprio Postgres como fila durável. Redis/RQ só deve entrar se volume, concorrência ou retry distribuído justificarem uma fila dedicada.
 
+## Agendamento (Railway)
+
+Este serviço roda como **cron job**, não como processo contínuo. O agendamento
+fica em **Settings → Cron Schedule** no painel do Railway — não existe no
+`railway.json`, então clonar o repositório não reproduz o agendamento.
+
+O comando é `python -m bioma_worker.cli --enqueue-all --drain`, e **as duas
+flags são obrigatórias**:
+
+| Flag | Sem ela |
+|---|---|
+| `--enqueue-all` | o worker nunca enfileira os syncs agendados |
+| `--drain` | processa um job só e para |
+
+Até 2026-08-07 o `startCommand` não tinha nenhuma das duas. Com cron
+configurado e sem as flags, **nada sincronizaria — e sem erro nenhum**, que é o
+pior tipo de falha: um painel que simplesmente não atualiza.
+
+O CLI termina quando esvazia a fila, que é o que o Railway exige de um cron. Se
+uma execução ainda estiver rodando na hora da próxima, o Railway pula a rodada
+em vez de rodar duas em paralelo.
+
 ## Configuração
 
 Copie `../../infra/env/worker.example.env` para `.env` e configure:

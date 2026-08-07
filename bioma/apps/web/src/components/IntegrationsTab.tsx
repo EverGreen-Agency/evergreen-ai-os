@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import {
   Activity,
+  Bot,
   Cloud,
   KeyRound,
   PenLine,
@@ -39,6 +40,7 @@ import {
   KommoIcon,
   LinkedInAdsIcon,
   MetaAdsIcon,
+  OpenAiAdsIcon,
   RdStationIcon,
   SearchConsoleIcon,
   TikTokIcon,
@@ -95,6 +97,12 @@ const PROVIDER_META: Record<PerformanceProvider, {
     icon: LinkedInAdsIcon,
     accountLabel: "Sponsored Account ID",
     accountPlaceholder: "123456789",
+  },
+  openai_ads: {
+    label: "ChatGPT Ads (OpenAI)",
+    icon: OpenAiAdsIcon,
+    accountLabel: "Account ID",
+    accountPlaceholder: "act_openai_12345",
   },
   instagram_organic: {
     label: "Instagram (orgânico)",
@@ -164,6 +172,21 @@ function EnvStatusPill({ configured }: { configured: boolean }) {
     <StatusPill variant={configured ? "connected" : "not_configured"}>
       {configured ? "Configurado" : "Não configurado"}
     </StatusPill>
+  );
+}
+
+/** Lista as variáveis de ambiente ausentes, pelo nome exato.
+ *
+ * "Não configurado" sozinho manda conferir três variáveis sem dizer qual
+ * falta. Como no Railway a API e o worker têm conjuntos separados, o erro
+ * frequente é a variável existir num serviço e faltar no outro — e o nome
+ * exato é o que encurta a busca. Nunca mostra valor, só nome. */
+function MissingVars({ names }: { names?: string[] | null }) {
+  if (!names || names.length === 0) return null;
+  return (
+    <div style={{ fontSize: 11.5, color: "var(--danger)", marginTop: 4 }}>
+      Falta neste serviço: {names.join(", ")}
+    </div>
   );
 }
 
@@ -391,12 +414,21 @@ export function IntegrationsTab({
           <div className="health-list">
             <div className="health-row">
               <Cloud size={18} />
-              <span>Storage de arquivos (S3) <small style={{ color: "var(--text-faint, #64748B)" }}>· STORAGE_S3_*</small></span>
+              <span>
+                Storage de arquivos (S3) <small style={{ color: "var(--text-faint, #64748B)" }}>· STORAGE_S3_*</small>
+                {/* Nomear a variável ausente: no Railway, API e worker são
+                    serviços com variáveis separadas, e o caso comum é ela
+                    existir num e faltar no outro. */}
+                <MissingVars names={envStatus?.storage_missing_vars} />
+              </span>
               {envStatus ? <EnvStatusPill configured={envStatus.storage_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
             <div className="health-row">
               <KeyRound size={18} />
-              <span>Login com Google (OAuth) <small style={{ color: "var(--text-faint, #64748B)" }}>· GOOGLE_OAUTH_*</small></span>
+              <span>
+                Login com Google (OAuth) <small style={{ color: "var(--text-faint, #64748B)" }}>· GOOGLE_OAUTH_*</small>
+                <MissingVars names={envStatus?.google_oauth_missing_vars} />
+              </span>
               {envStatus ? <EnvStatusPill configured={envStatus.google_oauth_configured} /> : <StatusPill variant="paused">...</StatusPill>}
             </div>
           </div>

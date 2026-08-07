@@ -184,6 +184,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/artifacts/from-run/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save From Run
+         * @description Salva a resposta de uma execução do copiloto como artefato.
+         *
+         *     O elo entre os dois sistemas: `thread_id` e `run_id` são deduzidos da
+         *     execução, nunca aceitos do cliente — procedência que mente é pior que
+         *     procedência ausente. Passando `artifact_id`, vira a próxima versão.
+         */
+        post: operations["save_from_run_artifacts_from_run__run_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/artifacts/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Artifact */
+        get: operations["get_artifact_artifacts__artifact_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/artifacts/{artifact_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Status */
+        patch: operations["set_status_artifacts__artifact_id__status_patch"];
+        trace?: never;
+    };
+    "/artifacts/{artifact_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Version
+         * @description Nova versão — nunca sobrescreve a anterior.
+         */
+        post: operations["add_version_artifacts__artifact_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/identities": {
         parameters: {
             query?: never;
@@ -3494,6 +3572,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Surfaces
+         * @description O que esta pessoa enxerga, e por quê.
+         *
+         *     Uma chamada só devolve decisão e explicação juntas — é o que permite a tela
+         *     responder "por que não vejo o RH?" sem uma segunda rota que poderia
+         *     discordar da primeira.
+         */
+        get: operations["my_surfaces_me_surfaces_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/surfaces/preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Preference
+         * @description Preferência pessoal: só esconde o que já era permitido.
+         */
+        put: operations["set_preference_me_surfaces_preference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organization_id}/feature-flags": {
         parameters: {
             query?: never;
@@ -4044,6 +4166,23 @@ export interface paths {
         patch: operations["toggle_subtask_subtasks__subtask_id__toggle_patch"];
         trace?: never;
     };
+    "/surfaces/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catalog */
+        get: operations["catalog_surfaces_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task-comments/{comment_id}": {
         parameters: {
             query?: never;
@@ -4202,6 +4341,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teams/{team_id}/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Team Grants */
+        get: operations["team_grants_teams__team_id__surfaces_get"];
+        /** Upsert Team Grant */
+        put: operations["upsert_team_grant_teams__team_id__surfaces_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/{team_id}/surfaces/{surface_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Clear Team Grant */
+        delete: operations["clear_team_grant_teams__team_id__surfaces__surface_key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tenants/{tenant_id}/members": {
         parameters: {
             query?: never;
@@ -4215,6 +4389,76 @@ export interface paths {
         put: operations["upsert_tenant_membership_tenants__tenant_id__members_put"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenants/{tenant_organization_id}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Team Invites */
+        get: operations["list_team_invites_tenants__tenant_organization_id__invites_get"];
+        put?: never;
+        /** Create Team Invite */
+        post: operations["create_team_invite_tenants__tenant_organization_id__invites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tenants/{tenant_organization_id}/invites/{invite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Team Invite */
+        delete: operations["revoke_team_invite_tenants__tenant_organization_id__invites__invite_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{target_user_id}/surfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Grants */
+        get: operations["user_grants_users__target_user_id__surfaces_get"];
+        /** Upsert User Grant */
+        put: operations["upsert_user_grant_users__target_user_id__surfaces_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{target_user_id}/surfaces/{surface_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Clear User Grant */
+        delete: operations["clear_user_grant_users__target_user_id__surfaces__surface_key__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5440,6 +5684,48 @@ export interface paths {
         put?: never;
         /** Run Squad */
         post: operations["run_squad_workspaces__workspace_id__squads_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/studio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Artifacts
+         * @description A vista do Estúdio: o que a conversa produziu, organizado.
+         */
+        get: operations["list_artifacts_workspaces__workspace_id__studio_get"];
+        put?: never;
+        /** Create Artifact */
+        post: operations["create_artifact_workspaces__workspace_id__studio_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workspaces/{workspace_id}/studio/kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kinds
+         * @description Tipos que existem neste workspace. O catálogo é aberto, então a tela
+         *     descobre em vez de partir de uma lista fixa.
+         */
+        get: operations["list_kinds_workspaces__workspace_id__studio_kinds_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -8849,8 +9135,18 @@ export interface components {
             github_token_configured: boolean;
             /** Google Oauth Configured */
             google_oauth_configured: boolean;
+            /**
+             * Google Oauth Missing Vars
+             * @default []
+             */
+            google_oauth_missing_vars: string[];
             /** Storage Configured */
             storage_configured: boolean;
+            /**
+             * Storage Missing Vars
+             * @default []
+             */
+            storage_missing_vars: string[];
         };
         /** InviteAcceptRequest */
         InviteAcceptRequest: {
@@ -8915,6 +9211,8 @@ export interface components {
             expires_at: string;
             /** Organization Name */
             organization_name: string;
+            /** Team Name */
+            team_name?: string | null;
         };
         /** InviteSummary */
         InviteSummary: {
@@ -8935,6 +9233,12 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Role */
+            role?: string | null;
+            /** Team Id */
+            team_id?: string | null;
+            /** Tenant Role */
+            tenant_role?: string | null;
             /** Used At */
             used_at?: string | null;
         };
@@ -10302,11 +10606,8 @@ export interface components {
         };
         /** PerformanceConnectionSummary */
         PerformanceConnectionSummary: {
-            /**
-             * Client Id
-             * Format: uuid
-             */
-            client_id: string;
+            /** Client Id */
+            client_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -10499,11 +10800,8 @@ export interface components {
         /** PerformanceOverviewResponse */
         PerformanceOverviewResponse: {
             ads: components["schemas"]["AdsAccountSummary"];
-            /**
-             * Client Id
-             * Format: uuid
-             */
-            client_id: string;
+            /** Client Id */
+            client_id?: string | null;
             /** Daily */
             daily: components["schemas"]["AdsDailyPoint"][];
             /** Freshness */
@@ -14039,10 +14337,367 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** StudioArtifact */
+        StudioArtifact: {
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /** Current Version */
+            current_version: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url?: string | null;
+            /**
+             * Versions Total
+             * @default 1
+             */
+            versions_total: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** StudioArtifactCreate */
+        StudioArtifactCreate: {
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Kind */
+            kind: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /**
+             * Visibility
+             * @default internal
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+        };
+        /** StudioArtifactDetail */
+        StudioArtifactDetail: {
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /** Current Version */
+            current_version: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url?: string | null;
+            /** Versions */
+            versions?: components["schemas"]["StudioArtifactVersion"][];
+            /**
+             * Versions Total
+             * @default 1
+             */
+            versions_total: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /**
+         * StudioArtifactFromRun
+         * @description Salvar a resposta de uma execução do copiloto como artefato.
+         *
+         *     `thread_id` e `run_id` NÃO estão aqui de propósito: o servidor os deduz da
+         *     execução. Aceitá-los do cliente permitiria salvar um material apontando
+         *     para uma conversa que não o gerou — procedência que mente é pior que
+         *     procedência ausente.
+         */
+        StudioArtifactFromRun: {
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /**
+             * Kind
+             * @default roteiro
+             */
+            kind: string;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default internal
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** StudioArtifactKindCount */
+        StudioArtifactKindCount: {
+            /** Kind */
+            kind: string;
+            /** Total */
+            total: number;
+        };
+        /** StudioArtifactStatusUpdate */
+        StudioArtifactStatusUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "approved" | "published" | "archived";
+        };
+        /** StudioArtifactVersion */
+        StudioArtifactVersion: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by?: string | null;
+            /** Created By Name */
+            created_by_name?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Run Id */
+            run_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Version */
+            version: number;
+        };
+        /** StudioArtifactVersionCreate */
+        StudioArtifactVersionCreate: {
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
         /** SubtaskCreatePayload */
         SubtaskCreatePayload: {
             /** Title */
             title: string;
+        };
+        /**
+         * SurfaceAccessEntry
+         * @description Decisão sobre uma tela, com o porquê junto.
+         *
+         *     `allowed` e `visible` são coisas diferentes de propósito: a tela some do
+         *     menu por preferência sem deixar de responder pela URL. Quem consome precisa
+         *     escolher qual dos dois olhar — menu usa `visible`, guarda de rota usa
+         *     `allowed`.
+         */
+        SurfaceAccessEntry: {
+            /** Allowed */
+            allowed: boolean;
+            /** Can Prefer */
+            can_prefer: boolean;
+            /** Detail */
+            detail: string;
+            /** Group */
+            group: string;
+            /** Label */
+            label: string;
+            /** Locked */
+            locked: boolean;
+            /** Parent */
+            parent?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "locked" | "platform_admin" | "not_contracted" | "maturity" | "team_denied" | "team_allowed" | "user_denied" | "user_allowed" | "preference" | "default";
+            /** Sources */
+            sources?: string[];
+            /** Surface Key */
+            surface_key: string;
+            /** Visible */
+            visible: boolean;
+        };
+        /**
+         * SurfaceCatalogEntry
+         * @description O catálogo em si — a tela de admin precisa saber o que existe para poder
+         *     conceder ou negar. Sem isto, o admin digitaria chaves na mão.
+         */
+        SurfaceCatalogEntry: {
+            /** Feature Key */
+            feature_key?: string | null;
+            /** Group */
+            group: string;
+            /** Label */
+            label: string;
+            /** Locked */
+            locked: boolean;
+            /** Module */
+            module?: string | null;
+            /** Parent */
+            parent?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "eg" | "client" | "both";
+            /** Surface Key */
+            surface_key: string;
+        };
+        /** SurfaceGrantEntry */
+        SurfaceGrantEntry: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Effect
+             * @enum {string}
+             */
+            effect: "allow" | "deny";
+            /** Group */
+            group: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /** Surface Key */
+            surface_key: string;
+            /** Team Id */
+            team_id?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Id */
+            user_id?: string | null;
+        };
+        /** SurfaceGrantUpsert */
+        SurfaceGrantUpsert: {
+            /**
+             * Effect
+             * @enum {string}
+             */
+            effect: "allow" | "deny";
+            /** Note */
+            note?: string | null;
+            /** Surface Key */
+            surface_key: string;
+        };
+        /** SurfacePreferenceUpdate */
+        SurfacePreferenceUpdate: {
+            /** Hidden */
+            hidden: boolean;
+            /** Surface Key */
+            surface_key: string;
         };
         /** SyncRunSummary */
         SyncRunSummary: {
@@ -14414,6 +15069,24 @@ export interface components {
              * Format: uuid
              */
             tenant_organization_id: string;
+        };
+        /**
+         * TeamInviteCreateRequest
+         * @description Convite para o time da EG. `team_id` e `tenant_role` são opcionais, mas
+         *     preenchê-los evita o segundo passo manual — que é onde se esquece.
+         */
+        TeamInviteCreateRequest: {
+            /** Email */
+            email?: string | null;
+            /**
+             * Expires In Days
+             * @default 7
+             */
+            expires_in_days: number;
+            /** Team Id */
+            team_id?: string | null;
+            /** Tenant Role */
+            tenant_role?: ("tenant_admin" | "operator" | "approver" | "viewer") | null;
         };
         /** TeamMemberSummary */
         TeamMemberSummary: {
@@ -15852,6 +16525,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KommoMetricsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_from_run_artifacts_from_run__run_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactFromRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_artifact_artifacts__artifact_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_status_artifacts__artifact_id__status_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactStatusUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_version_artifacts__artifact_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactVersionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
                 };
             };
             /** @description Validation Error */
@@ -22798,6 +23607,59 @@ export interface operations {
             };
         };
     };
+    my_surfaces_me_surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceAccessEntry"][];
+                };
+            };
+        };
+    };
+    set_preference_me_surfaces_preference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfacePreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceAccessEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_flags_organizations__organization_id__feature_flags_get: {
         parameters: {
             query?: never;
@@ -23968,6 +24830,26 @@ export interface operations {
             };
         };
     };
+    catalog_surfaces_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceCatalogEntry"][];
+                };
+            };
+        };
+    };
     delete_task_comment_task_comments__comment_id__delete: {
         parameters: {
             query?: never;
@@ -24410,6 +25292,104 @@ export interface operations {
             };
         };
     };
+    team_grants_teams__team_id__surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_team_grant_teams__team_id__surfaces_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfaceGrantUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_team_grant_teams__team_id__surfaces__surface_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+                surface_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tenant_memberships_tenants__tenant_id__members_get: {
         parameters: {
             query?: never;
@@ -24463,6 +25443,202 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TenantMembershipSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_team_invites_tenants__tenant_organization_id__invites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_team_invite_tenants__tenant_organization_id__invites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamInviteCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteCreatedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_team_invite_tenants__tenant_organization_id__invites__invite_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+                invite_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_grants_users__target_user_id__surfaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_user_grant_users__target_user_id__surfaces_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfaceGrantUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_user_grant_users__target_user_id__surfaces__surface_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                target_user_id: string;
+                surface_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurfaceGrantEntry"][];
                 };
             };
             /** @description Validation Error */
@@ -27622,6 +28798,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SquadExecutionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_artifacts_workspaces__workspace_id__studio_get: {
+        parameters: {
+            query?: {
+                kind?: string | null;
+                status?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifact"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_artifact_workspaces__workspace_id__studio_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kinds_workspaces__workspace_id__studio_kinds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactKindCount"][];
                 };
             };
             /** @description Validation Error */

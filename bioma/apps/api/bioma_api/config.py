@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,11 +19,32 @@ class Settings(BaseSettings):
     login_rate_limit_window_seconds: int = 300
     github_api_token: str | None = None
     github_api_base_url: str = "https://api.github.com"
-    storage_s3_bucket: str | None = None
-    storage_s3_region: str = "auto"
-    storage_s3_endpoint_url: str | None = None
-    storage_s3_access_key_id: str | None = None
-    storage_s3_secret_access_key: str | None = None
+    # Aceitam DOIS nomes cada. O nosso (`STORAGE_S3_*`) e o que os serviços de
+    # bucket injetam por conta própria (`BUCKET`, `ACCESS_KEY_ID`, ...).
+    #
+    # Motivo: quando a conexão entre serviços já existe no provedor, exigir
+    # que alguém duplique a variável só para renomeá-la é trabalho manual que
+    # existe por teimosia do nosso lado. O alias remove a etapa.
+    #
+    # O nome explícito vem PRIMEIRO de propósito: se os dois estiverem
+    # presentes, ganha o nosso, que é inequívoco. O genérico é fallback —
+    # `BUCKET` sozinho no ambiente é ambíguo se um dia houver dois buckets, e
+    # nesse dia o jeito de desempatar é setar o nome explícito.
+    storage_s3_bucket: str | None = Field(
+        default=None, validation_alias=AliasChoices("STORAGE_S3_BUCKET", "BUCKET")
+    )
+    storage_s3_region: str = Field(
+        default="auto", validation_alias=AliasChoices("STORAGE_S3_REGION", "REGION")
+    )
+    storage_s3_endpoint_url: str | None = Field(
+        default=None, validation_alias=AliasChoices("STORAGE_S3_ENDPOINT_URL", "ENDPOINT_URL", "ENDPOINT")
+    )
+    storage_s3_access_key_id: str | None = Field(
+        default=None, validation_alias=AliasChoices("STORAGE_S3_ACCESS_KEY_ID", "ACCESS_KEY_ID")
+    )
+    storage_s3_secret_access_key: str | None = Field(
+        default=None, validation_alias=AliasChoices("STORAGE_S3_SECRET_ACCESS_KEY", "SECRET_ACCESS_KEY")
+    )
     storage_s3_force_path_style: bool = True
     storage_max_upload_mb: int = 20
     google_oauth_client_id: str | None = None

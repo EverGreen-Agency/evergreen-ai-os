@@ -36,6 +36,8 @@ const API_TARGET = "http://127.0.0.1:8000";
 const API_PREFIXES = [
   "/agent-memory",
   "/analytics",
+  // Decisão 8: artefatos versionados do copiloto (a vista do Estúdio).
+  "/artifacts",
   "/auth",
   "/backoffice",
   "/benchmark",
@@ -50,6 +52,9 @@ const API_PREFIXES = [
   // smoke — todo prefixo da API é proxiado — e para dar pra apontar um cliente
   // MCP local na porta do Vite ao depurar.
   "/mcp",
+  // Decisão 11: resolução de acesso do próprio usuário (`/me/surfaces`) e
+  // administração por sujeito (`/surfaces/catalog`, `/users/{id}/surfaces`).
+  "/me",
   "/organizations",
   "/platform-studies",
   "/project-phases",
@@ -61,11 +66,13 @@ const API_PREFIXES = [
   "/public",
   "/scope-items",
   "/subtasks",
+  "/surfaces",
   "/task-comments",
   "/task-lists",
   "/tasks",
   "/teams",
   "/tenants",
+  "/users",
   "/wins",
   "/workspaces",
   // Documentação do FastAPI, útil para inspecionar o contrato em dev.

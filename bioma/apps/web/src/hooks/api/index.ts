@@ -7,3 +7,5 @@ export * from "./finance";
 export * from "./ai";
 export * from "./integrations";
 export * from "./copilot-agent";
+export * from "./surfaces";
+export * from "./studio";

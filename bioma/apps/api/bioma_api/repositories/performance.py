@@ -5,7 +5,12 @@ from uuid import UUID
 from psycopg.types.json import Jsonb
 
 
-def list_connections(conn, client_id: UUID):
+# Conexão pertence ao WORKSPACE desde a migração 0087. `client_id` continua
+# gravado (as métricas diárias agrupam por cliente), mas não é mais a chave —
+# o que permite a Operação EG conectar mídia sem um registro em `clients`.
+
+
+def list_connections(conn, workspace_id: UUID):
     return conn.execute(
         """
         select id, workspace_id, client_id, provider, external_account_id, external_parent_id, display_name,
@@ -13,23 +18,26 @@ def list_connections(conn, client_id: UUID):
                last_synced_at, last_error_at, last_error_message,
                metadata, created_at, updated_at
         from performance_connections
-        where client_id = %s
+        where workspace_id = %s
         order by provider asc, created_at asc
         """,
-        (client_id,),
+        (workspace_id,),
     ).fetchall()
 
 
-def create_connection(conn, client_id: UUID, organization_id: UUID, payload: dict[str, Any]) -> UUID:
+def create_connection(
+    conn, workspace_id: UUID, client_id: UUID | None, organization_id: UUID, payload: dict[str, Any]
+) -> UUID:
     return conn.execute(
         """
         insert into performance_connections (
-          client_id, organization_id, provider, external_account_id, external_parent_id,
+          workspace_id, client_id, organization_id, provider, external_account_id, external_parent_id,
           display_name, status, credentials_ref, metadata
         )
-        values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        on conflict (client_id, provider, external_account_id)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (workspace_id, provider, external_account_id)
         do update set
+          client_id = excluded.client_id,
           organization_id = excluded.organization_id,
           external_parent_id = excluded.external_parent_id,
           display_name = excluded.display_name,
@@ -40,6 +48,7 @@ def create_connection(conn, client_id: UUID, organization_id: UUID, payload: dic
         returning id
         """,
         (
+            workspace_id,
             client_id,
             organization_id,
             payload["provider"],
@@ -53,7 +62,7 @@ def create_connection(conn, client_id: UUID, organization_id: UUID, payload: dic
     ).fetchone()["id"]
 
 
-def update_connection(conn, client_id: UUID, connection_id: UUID, updates: dict[str, Any]) -> bool:
+def update_connection(conn, workspace_id: UUID, connection_id: UUID, updates: dict[str, Any]) -> bool:
     if not updates:
         return True
 
@@ -62,12 +71,12 @@ def update_connection(conn, client_id: UUID, connection_id: UUID, updates: dict[
         values["metadata"] = Jsonb(values["metadata"])
 
     set_clause = ", ".join([f"{column} = %s" for column in values])
-    params = list(values.values()) + [connection_id, client_id]
+    params = list(values.values()) + [connection_id, workspace_id]
     updated = conn.execute(
         f"""
         update performance_connections
         set {set_clause}, updated_at = now()
-        where id = %s and client_id = %s
+        where id = %s and workspace_id = %s
         returning id
         """,
         params,

@@ -9,6 +9,7 @@ from bioma_api.routers import (
     ai_operations,
     ai_routing,
     analytics,
+    artifacts,
     auth,
     benchmark,
     briefing,
@@ -34,6 +35,7 @@ from bioma_api.routers import (
     platform_studies,
     projects,
     rh,
+    surface_access,
     teams,
     vault,
     wiki,
@@ -94,6 +96,7 @@ app.include_router(ai_operations.router)
 app.include_router(ai_routing.router)
 app.include_router(client_hub.workspace_router)
 app.include_router(invites.admin_router)
+app.include_router(invites.team_router)
 app.include_router(invites.workspace_admin_router)
 app.include_router(performance.router)
 app.include_router(performance.workspace_router)
@@ -101,6 +104,8 @@ app.include_router(social_connect.router)
 app.include_router(projects.router)
 app.include_router(projects.workspace_router)
 app.include_router(analytics.router)
+app.include_router(artifacts.router)
+app.include_router(artifacts.workspace_router)
 app.include_router(files.router)
 app.include_router(files.workspace_router)
 app.include_router(integrations.router)
@@ -115,6 +120,7 @@ app.include_router(briefing.router)
 app.include_router(copilot.router)
 app.include_router(agent_memory.router)
 app.include_router(feature_flags.router)
+app.include_router(surface_access.router)
 app.include_router(improvement_requests.router)
 app.include_router(rh.router)
 app.include_router(certifications.router)

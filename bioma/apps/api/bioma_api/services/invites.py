@@ -16,6 +16,7 @@ from bioma_api.schemas.invites import (
     InviteCreateRequest,
     InvitePublicResponse,
     InviteSummary,
+    TeamInviteCreateRequest,
 )
 from bioma_api.security import hash_password, hash_session_token, new_session_token
 
@@ -56,6 +57,103 @@ def create_invite(
     )
 
 
+def create_team_invite(
+    tenant_organization_id: UUID,
+    payload: TeamInviteCreateRequest,
+    user: CurrentUserResponse,
+) -> InviteCreatedResponse:
+    """Convite para o time da EG, opcionalmente já dentro de uma equipe.
+
+    Diferente do convite de cliente em dois pontos: entra na organização da EG
+    (papel `eg_admin`, não `client_user`) e pode carregar equipe e papel de
+    tenant, para a pessoa não chegar sem lugar nenhum.
+
+    Reusa o mesmo fluxo público de aceite — token com hash, expiração, uso
+    único, criação de conta e sessão. O que muda é só o que o aceite concede.
+    """
+    require_platform_admin(user)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=payload.expires_in_days)
+    token = secrets.token_urlsafe(32)
+
+    with connect() as conn:
+        organization = conn.execute(
+            "select id, slug from organizations where id = %s",
+            (tenant_organization_id,),
+        ).fetchone()
+        if not organization or organization["slug"] != "eg":
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organização da agência não encontrada.",
+            )
+
+        if payload.team_id:
+            team = conn.execute(
+                "select id from teams where id = %s and tenant_organization_id = %s and status = 'active'",
+                (payload.team_id, tenant_organization_id),
+            ).fetchone()
+            if not team:
+                # 422 e não 404: o convite é válido, a equipe é que não bate —
+                # e quem está convidando precisa saber qual dos dois corrigir.
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Equipe não encontrada nesta organização.",
+                )
+
+        if payload.email and invites_repo.find_user_by_email(conn, payload.email):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Este e-mail já tem conta. Adicione a pessoa à equipe em vez de convidar.",
+            )
+
+        invite_id = invites_repo.create_invite(
+            conn,
+            tenant_organization_id,
+            payload.email,
+            hash_session_token(token),
+            expires_at,
+            user.id,
+            role="eg_admin",
+            team_id=payload.team_id,
+            tenant_role=payload.tenant_role,
+        )
+        client_hub_repo.write_audit(
+            conn,
+            user.id,
+            tenant_organization_id,
+            "invite.created",
+            {
+                "invite_id": str(invite_id),
+                "email": payload.email,
+                "scope": "team",
+                "team_id": str(payload.team_id) if payload.team_id else None,
+            },
+        )
+
+    return InviteCreatedResponse(
+        id=invite_id,
+        token=token,
+        path=f"/convite/{token}",
+        email=payload.email,
+        expires_at=expires_at,
+    )
+
+
+def list_team_invites(tenant_organization_id: UUID, user: CurrentUserResponse) -> list[InviteSummary]:
+    require_platform_admin(user)
+    with connect() as conn:
+        rows = invites_repo.list_invites(conn, tenant_organization_id)
+    return [InviteSummary(**row) for row in rows if row.get("role") == "eg_admin"]
+
+
+def revoke_team_invite(
+    tenant_organization_id: UUID, invite_id: UUID, user: CurrentUserResponse
+) -> list[InviteSummary]:
+    require_platform_admin(user)
+    with connect() as conn:
+        invites_repo.delete_invite(conn, tenant_organization_id, invite_id)
+    return list_team_invites(tenant_organization_id, user)
+
+
 def list_invites(client_id: UUID, user: CurrentUserResponse) -> list[InviteSummary]:
     require_platform_admin(user)
     with connect() as conn:
@@ -90,6 +188,7 @@ def get_invite_public(token: str) -> InvitePublicResponse:
         organization_name=invite["organization_name"],
         email=invite["email"],
         expires_at=invite["expires_at"],
+        team_name=invite.get("team_name"),
     )
 
 
@@ -116,7 +215,18 @@ def accept_invite(token: str, payload: InviteAcceptRequest) -> tuple[str, dateti
             payload.display_name.strip(),
             hash_password(payload.password),
         )
-        invites_repo.create_membership(conn, user_id, invite["organization_id"], "client_user")
+        # O convite carrega o que concede. Convite de cliente segue idêntico
+        # (`role` nasce 'client_user'); convite de time entra na organização da
+        # EG e já cai na equipe, para a pessoa não chegar sem lugar nenhum.
+        role = invite.get("role") or "client_user"
+        invites_repo.create_membership(conn, user_id, invite["organization_id"], role)
+        if role == "eg_admin":
+            if invite.get("tenant_role"):
+                invites_repo.add_tenant_membership(
+                    conn, invite["organization_id"], user_id, invite["tenant_role"]
+                )
+            if invite.get("team_id"):
+                invites_repo.add_to_team(conn, invite["team_id"], user_id)
         invites_repo.mark_invite_used(conn, invite["id"], user_id)
 
         session_token = new_session_token()

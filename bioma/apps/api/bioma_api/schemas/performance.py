@@ -24,7 +24,9 @@ PerformanceSeverity = Literal["info", "low", "medium", "high", "critical", "warn
 class PerformanceConnectionSummary(BaseModel):
     id: UUID
     workspace_id: UUID
-    client_id: UUID
+    # Nulo quando o workspace não tem registro comercial — é o caso da própria
+    # Operação EG. O sujeito da conexão é o workspace (migração 0087).
+    client_id: UUID | None = None
     provider: PerformanceProvider
     external_account_id: str
     external_parent_id: str | None = None
@@ -170,7 +172,9 @@ class PerformanceInsightSummary(BaseModel):
 
 class PerformanceOverviewResponse(BaseModel):
     workspace_id: UUID
-    client_id: UUID
+    # Nulo no workspace da agência, que não tem registro comercial. Quem
+    # identifica a visão é `workspace_id`.
+    client_id: UUID | None = None
     period_start: date
     period_end: date
     freshness: list[SourceFreshnessSummary]

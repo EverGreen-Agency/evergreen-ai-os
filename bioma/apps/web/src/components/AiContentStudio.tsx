@@ -25,6 +25,7 @@ import {
   type AiContentVideoScript,
   type ContentScriptSummary,
 } from "../lib/api";
+import { StudioArtifactList } from "./StudioArtifactList";
 import {
   useBrandBook,
   useSaveBrandBook,
@@ -44,7 +45,7 @@ import {
 import { EmptyState, SectionHeader } from "./shared";
 import { StatusPill } from "./StatusPill";
 
-type MainTab = "studio" | "brand_book" | "calendar" | "retrospective";
+type MainTab = "artifacts" | "studio" | "brand_book" | "calendar" | "retrospective";
 type ContentType = "social_posts" | "image_generation" | "video_scripts";
 type ImageProvider = "dalle_3" | "flux" | "higgsfield" | "custom";
 
@@ -639,7 +640,7 @@ function CalendarSection({ workspaceId }: { workspaceId: string }) {
 
 export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
   const queryClient = useQueryClient();
-  const [mainTab, setMainTab] = useState<MainTab>("studio");
+  const [mainTab, setMainTab] = useState<MainTab>("artifacts");
   const [contentType, setContentType] = useState<ContentType>("social_posts");
   const [imageProvider, setImageProvider] = useState<ImageProvider>("dalle_3");
   const [brief, setBrief] = useState("");
@@ -693,12 +694,23 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 24, gridColumn: "1 / -1" }}>
       {/* Abas Principais: Estúdio, Brand Book, Calendário */}
       <div className="performance-tabs" role="tablist">
+        {/* Decisão 8: a vista dos artefatos vem PRIMEIRO. O formulário continua
+            ao lado enquanto o fluxo pela conversa não cobre tudo (imagem e
+            calendário ainda passam por ele) — mas deixou de ser a porta de
+            entrada, que era o que fazia o material morrer na conversa. */}
+        <button
+          className={mainTab === "artifacts" ? "performance-tab active" : "performance-tab"}
+          type="button"
+          onClick={() => setMainTab("artifacts")}
+        >
+          <Sparkles size={15} /> Estúdio
+        </button>
         <button
           className={mainTab === "studio" ? "performance-tab active" : "performance-tab"}
           type="button"
           onClick={() => setMainTab("studio")}
         >
-          <Sparkles size={15} /> Estúdio IA Multi-modal
+          <WandSparkles size={15} /> Geração direta
         </button>
         <button
           className={mainTab === "brand_book" ? "performance-tab active" : "performance-tab"}
@@ -723,6 +735,7 @@ export function AiContentStudio({ workspaceId }: { workspaceId: string }) {
         </button>
       </div>
 
+      {mainTab === "artifacts" && <StudioArtifactList workspaceId={workspaceId} />}
       {mainTab === "brand_book" && <BrandBookSection workspaceId={workspaceId} />}
       {mainTab === "calendar" && <CalendarSection workspaceId={workspaceId} />}
       {mainTab === "retrospective" && <RetrospectiveSection workspaceId={workspaceId} />}
