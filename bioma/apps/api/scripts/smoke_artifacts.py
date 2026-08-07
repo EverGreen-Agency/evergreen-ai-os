@@ -141,6 +141,57 @@ def main() -> None:
         print("ok: vista filtra por tipo e descobre os tipos existentes")
 
         # ---------------------------------------------------------------- 7
+        # O elo: salvar a resposta de uma execucao como artefato, com a
+        # procedencia deduzida pelo servidor.
+        with connect() as conn:
+            second_thread = conn.execute(
+                """
+                insert into copilot_threads (user_id, surface, workspace_id, title)
+                values (%s, 'smoke', %s, 'Conversa que gera material')
+                returning id
+                """,
+                (user_row["id"], workspace.workspace_id),
+            ).fetchone()["id"]
+            run_id = conn.execute(
+                """
+                insert into copilot_runs (thread_id, user_id, surface, workspace_id, message, answer, status)
+                values (%s, %s, 'smoke', %s, 'faz um roteiro', 'ROTEIRO GERADO PELO COPILOTO', 'completed')
+                returning id
+                """,
+                (second_thread, user_row["id"], workspace.workspace_id),
+            ).fetchone()["id"]
+
+        response = admin.post(
+            f"/artifacts/from-run/{run_id}",
+            json={"title": "Roteiro vindo da conversa", "kind": "roteiro"},
+        )
+        assert_status(response, 201, "salvar execucao como artefato")
+        from_run = response.json()
+        if from_run["content"] != "ROTEIRO GERADO PELO COPILOTO":
+            raise AssertionError("a resposta da execucao nao virou o conteudo do artefato")
+        if from_run["run_id"] != str(run_id) or from_run["thread_id"] != str(second_thread):
+            raise AssertionError(f"procedencia nao foi deduzida da execucao: {from_run}")
+        print("ok: resposta do copiloto vira artefato com procedencia deduzida")
+
+        # Salvar de novo apontando o artefato existente vira v2, nao duplicata.
+        response = admin.post(
+            f"/artifacts/from-run/{run_id}",
+            json={
+                "title": "Roteiro vindo da conversa",
+                "kind": "roteiro",
+                "artifact_id": from_run["id"],
+                "content": "VERSAO REVISADA",
+                "change_note": "regerado",
+            },
+        )
+        assert_status(response, 201, "salvar como nova versao")
+        if response.json()["current_version"] != 2:
+            raise AssertionError("salvar de novo criou duplicata em vez de versao")
+        if response.json()["versions"][-1]["run_id"] != str(run_id):
+            raise AssertionError("a v1 perdeu o elo com a execucao")
+        print("ok: regerar vira v2 do mesmo artefato, sem perder a v1")
+
+        # ---------------------------------------------------------------- 8
         outsider = TestClient(app)
         assert_status(outsider.post("/auth/login", json={"email": OUTSIDER_EMAIL, "password": PASSWORD}), 200, "login outsider")
         response = outsider.get(f"/artifacts/{artifact_id}")
@@ -153,6 +204,7 @@ def main() -> None:
         with connect() as conn:
             if thread_id:
                 conn.execute("delete from copilot_threads where id = %s", (thread_id,))
+            conn.execute("delete from copilot_threads where title = 'Conversa que gera material'")
         cleanup_smoke_data([workspace.organization_id, other.organization_id], [OUTSIDER_EMAIL])
 
 

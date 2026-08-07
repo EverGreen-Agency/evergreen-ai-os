@@ -184,6 +184,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/artifacts/from-run/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save From Run
+         * @description Salva a resposta de uma execução do copiloto como artefato.
+         *
+         *     O elo entre os dois sistemas: `thread_id` e `run_id` são deduzidos da
+         *     execução, nunca aceitos do cliente — procedência que mente é pior que
+         *     procedência ausente. Passando `artifact_id`, vira a próxima versão.
+         */
+        post: operations["save_from_run_artifacts_from_run__run_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
@@ -14460,6 +14484,38 @@ export interface components {
             /** Workspace Id */
             workspace_id?: string | null;
         };
+        /**
+         * StudioArtifactFromRun
+         * @description Salvar a resposta de uma execução do copiloto como artefato.
+         *
+         *     `thread_id` e `run_id` NÃO estão aqui de propósito: o servidor os deduz da
+         *     execução. Aceitá-los do cliente permitiria salvar um material apontando
+         *     para uma conversa que não o gerou — procedência que mente é pior que
+         *     procedência ausente.
+         */
+        StudioArtifactFromRun: {
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Change Note */
+            change_note?: string | null;
+            /** Content */
+            content?: string | null;
+            /**
+             * Kind
+             * @default roteiro
+             */
+            kind: string;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default internal
+             * @enum {string}
+             */
+            visibility: "internal" | "client";
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
         /** StudioArtifactKindCount */
         StudioArtifactKindCount: {
             /** Kind */
@@ -16469,6 +16525,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KommoMetricsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_from_run_artifacts_from_run__run_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudioArtifactFromRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudioArtifactDetail"];
                 };
             };
             /** @description Validation Error */

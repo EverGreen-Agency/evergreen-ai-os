@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.artifacts import (
     StudioArtifactCreate,
+    StudioArtifactFromRun,
     StudioArtifactDetail,
     StudioArtifactKindCount,
     StudioArtifactStatusUpdate,
@@ -51,6 +52,21 @@ def create_artifact(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> StudioArtifactDetail:
     return service.create_artifact(workspace_id, payload, user)
+
+
+@router.post("/from-run/{run_id}", response_model=StudioArtifactDetail, status_code=201)
+def save_from_run(
+    run_id: UUID,
+    payload: StudioArtifactFromRun,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> StudioArtifactDetail:
+    """Salva a resposta de uma execução do copiloto como artefato.
+
+    O elo entre os dois sistemas: `thread_id` e `run_id` são deduzidos da
+    execução, nunca aceitos do cliente — procedência que mente é pior que
+    procedência ausente. Passando `artifact_id`, vira a próxima versão.
+    """
+    return service.save_from_run(run_id, payload, user)
 
 
 @router.get("/{artifact_id}", response_model=StudioArtifactDetail)

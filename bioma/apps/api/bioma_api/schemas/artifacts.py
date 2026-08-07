@@ -72,6 +72,29 @@ class StudioArtifactVersionCreate(BaseModel):
     change_note: str | None = Field(default=None, max_length=500)
 
 
+class StudioArtifactFromRun(BaseModel):
+    """Salvar a resposta de uma execução do copiloto como artefato.
+
+    `thread_id` e `run_id` NÃO estão aqui de propósito: o servidor os deduz da
+    execução. Aceitá-los do cliente permitiria salvar um material apontando
+    para uma conversa que não o gerou — procedência que mente é pior que
+    procedência ausente.
+    """
+
+    title: str = Field(min_length=2, max_length=240)
+    kind: str = Field(default="roteiro", min_length=2, max_length=60)
+    # Nulo = usa a resposta da execução como está. Preenchido = a pessoa editou
+    # antes de salvar, e é o texto dela que vale.
+    content: str | None = None
+    visibility: ArtifactVisibility = "internal"
+    # Preenchido quando a conversa nasceu fora de um workspace (ex.: cockpit).
+    workspace_id: UUID | None = None
+    # Preenchido para salvar como PRÓXIMA VERSÃO de um artefato existente, em
+    # vez de criar outro. É assim que "regerar" deixa de perder o anterior.
+    artifact_id: UUID | None = None
+    change_note: str | None = Field(default=None, max_length=500)
+
+
 class StudioArtifactStatusUpdate(BaseModel):
     status: ArtifactStatus
 

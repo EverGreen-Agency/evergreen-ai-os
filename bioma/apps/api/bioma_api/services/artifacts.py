@@ -12,12 +12,14 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from bioma_api.access import resolve_accessible_client
+from bioma_api.access import require_platform_admin, resolve_accessible_client
 from bioma_api.db import connect
 from bioma_api.repositories import artifacts as repo
 from bioma_api.repositories import client_hub as client_hub_repo
+from bioma_api.repositories import copilot_traces as copilot_repo
 from bioma_api.schemas.artifacts import (
     StudioArtifactCreate,
+    StudioArtifactFromRun,
     StudioArtifactDetail,
     StudioArtifactKindCount,
     StudioArtifactStatusUpdate,
@@ -92,6 +94,85 @@ def create_artifact(
             },
         )
     return get_artifact(artifact_id, user)
+
+
+def save_from_run(
+    run_id: UUID, payload: StudioArtifactFromRun, user: CurrentUserResponse
+) -> StudioArtifactDetail:
+    """Salva a resposta de uma execução do copiloto como artefato.
+
+    É o elo que faltava entre os dois sistemas: a conversa produz, e a peça
+    passa a existir fora dela — com thread e run preenchidos SEM o usuário
+    digitar nada. Deixar essa amarração a cargo de quem salva seria garantir
+    que metade dos artefatos nascesse sem procedência.
+
+    Quando `artifact_id` vem preenchido, isto vira a próxima VERSÃO daquele
+    artefato em vez de um novo. É como "regerar" deixa de perder o anterior.
+    """
+    require_platform_admin(user)
+    with connect() as conn:
+        run = copilot_repo.get_run(conn, run_id)
+        if not run:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Execução não encontrada.")
+        if not run.get("answer"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Esta execução ainda não tem resposta para salvar.",
+            )
+
+        workspace_id = payload.workspace_id or run.get("workspace_id")
+        if not workspace_id:
+            # A conversa pode ter nascido fora de um workspace (ex.: cockpit).
+            # Exigir o destino é melhor que escolher um por conta própria.
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Esta conversa não está ligada a um workspace — escolha onde salvar.",
+            )
+        context = resolve_accessible_client(conn, workspace_id, user, capability="generate_content")
+
+        content = payload.content if payload.content is not None else run["answer"]
+
+        if payload.artifact_id:
+            artifact = _accessible_artifact(conn, payload.artifact_id, user, capability="generate_content")
+            version = repo.add_version(
+                conn,
+                artifact["id"],
+                {
+                    "title": payload.title,
+                    "content": content,
+                    "url": None,
+                    "run_id": run_id,
+                    "change_note": payload.change_note,
+                },
+                user.id,
+            )
+            client_hub_repo.write_audit(
+                conn, user.id, artifact["organization_id"], "artifact.version_created",
+                {"artifact_id": str(artifact["id"]), "version": version, "run_id": str(run_id)},
+            )
+            target_id = artifact["id"]
+        else:
+            target_id = repo.create(
+                conn,
+                {
+                    "organization_id": context["organization_id"],
+                    "workspace_id": context["workspace_id"],
+                    "title": payload.title,
+                    "kind": payload.kind,
+                    "content": content,
+                    "visibility": payload.visibility,
+                    "status": "draft",
+                    "thread_id": run.get("thread_id"),
+                    "run_id": run_id,
+                    "change_note": payload.change_note,
+                },
+                user.id,
+            )
+            client_hub_repo.write_audit(
+                conn, user.id, context["organization_id"], "artifact.created",
+                {"artifact_id": str(target_id), "kind": payload.kind, "run_id": str(run_id)},
+            )
+    return get_artifact(target_id, user)
 
 
 def add_version(

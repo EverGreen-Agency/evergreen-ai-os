@@ -24334,6 +24334,85 @@
         "title": "StudioArtifactDetail",
         "type": "object"
       },
+      "StudioArtifactFromRun": {
+        "description": "Salvar a resposta de uma execução do copiloto como artefato.\n\n`thread_id` e `run_id` NÃO estão aqui de propósito: o servidor os deduz da\nexecução. Aceitá-los do cliente permitiria salvar um material apontando\npara uma conversa que não o gerou — procedência que mente é pior que\nprocedência ausente.",
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "change_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Note"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "kind": {
+            "default": "roteiro",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 2,
+            "title": "Title",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "internal",
+            "enum": [
+              "internal",
+              "client"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "StudioArtifactFromRun",
+        "type": "object"
+      },
       "StudioArtifactKindCount": {
         "properties": {
           "kind": {
@@ -29460,6 +29539,60 @@
         "summary": "Get Kommo Analytics",
         "tags": [
           "analytics"
+        ]
+      }
+    },
+    "/artifacts/from-run/{run_id}": {
+      "post": {
+        "description": "Salva a resposta de uma execução do copiloto como artefato.\n\nO elo entre os dois sistemas: `thread_id` e `run_id` são deduzidos da\nexecução, nunca aceitos do cliente — procedência que mente é pior que\nprocedência ausente. Passando `artifact_id`, vira a próxima versão.",
+        "operationId": "save_from_run_artifacts_from_run__run_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioArtifactFromRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioArtifactDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save From Run",
+        "tags": [
+          "artifacts"
         ]
       }
     },
