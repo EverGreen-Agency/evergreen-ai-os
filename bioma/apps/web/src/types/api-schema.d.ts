@@ -8980,8 +8980,18 @@ export interface components {
             github_token_configured: boolean;
             /** Google Oauth Configured */
             google_oauth_configured: boolean;
+            /**
+             * Google Oauth Missing Vars
+             * @default []
+             */
+            google_oauth_missing_vars: string[];
             /** Storage Configured */
             storage_configured: boolean;
+            /**
+             * Storage Missing Vars
+             * @default []
+             */
+            storage_missing_vars: string[];
         };
         /** InviteAcceptRequest */
         InviteAcceptRequest: {

@@ -8981,9 +8981,25 @@
             "title": "Google Oauth Configured",
             "type": "boolean"
           },
+          "google_oauth_missing_vars": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Google Oauth Missing Vars",
+            "type": "array"
+          },
           "storage_configured": {
             "title": "Storage Configured",
             "type": "boolean"
+          },
+          "storage_missing_vars": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Storage Missing Vars",
+            "type": "array"
           }
         },
         "required": [

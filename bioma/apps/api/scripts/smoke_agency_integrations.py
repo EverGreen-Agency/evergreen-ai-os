@@ -120,15 +120,13 @@ def main() -> None:
         print(f"ok: usuário de cliente não alcança o registro interno da EG ({response.status_code})")
 
         # ---------------------------------------------------------------- 5
-        surfaces = admin.get("/me/surfaces").json()
-        entry = next((item for item in surfaces if item["surface_key"] == "operacao.integracoes"), None)
-        if not entry or not entry["allowed"]:
-            raise AssertionError(f"superfície operacao.integracoes indisponível para EG: {entry}")
-
-        client_surfaces = cliente.get("/me/surfaces").json()
-        if any(item["surface_key"] == "operacao.integracoes" for item in client_surfaces):
-            raise AssertionError("superfície interna da EG apareceu para usuário de cliente")
-        print("ok: superfície operacao.integracoes é da EG e não existe para cliente")
+        # A tela mora em Configurações → Empresa → Integrações, que é EG-only
+        # pelo próprio `isEgAdmin`. O que precisa continuar valendo é o gate da
+        # API: cliente não lê o estado de credenciais do ambiente.
+        response = cliente.get("/integrations/status")
+        if response.status_code not in (403, 404):
+            raise AssertionError(f"cliente leu o estado do ambiente: {response.status_code}")
+        print(f"ok: estado do ambiente é EG-only ({response.status_code})")
 
         print("\nSMOKE AGENCY INTEGRATIONS: OK")
     finally:

@@ -6,6 +6,7 @@ import { api, apiUrl } from "../lib/api";
 import {
   useCurrentUser,
   useWorkspaces,
+  useClients,
   useSessions,
   useRevokeSession,
   useRevokeOtherSessions,
@@ -14,6 +15,7 @@ import {
   useRevokePersonalAccessToken,
 } from "../hooks/useBiomaApi";
 import { SectionHeader, GoogleIcon } from "../components/shared";
+import { internalEgClient } from "../lib/client-scope";
 import { SurfacePreferencesCard } from "../components/SurfacePreferencesCard";
 import { SurfaceAccessManager } from "../components/SurfaceAccessManager";
 import Cropper from 'react-easy-crop';
@@ -41,6 +43,14 @@ export function SettingsView() {
   const [vaultWorkspaceId, setVaultWorkspaceId] = useState("");
   const clientWorkspaces = workspaces.filter((workspace) => workspace.kind === "client" && workspace.status === "active");
   const selectedVaultWorkspace = clientWorkspaces.find((workspace) => workspace.id === vaultWorkspaceId) ?? clientWorkspaces[0] ?? null;
+
+  // Sujeito a que as contas de mídia da EG se prendem. Hoje é o registro em
+  // `clients` porque `performance_connections` nasceu na migração 0003 exigindo
+  // `client_id` — 18 migrações posteriores já usam `workspace_id`, e este é um
+  // dos dois resquícios. Quando isso for corrigido, esta linha vira o id do
+  // workspace `agency_internal` e o registro-fantasma deixa de ser necessário.
+  const { data: allClients = [] } = useClients();
+  const egSubjectId = internalEgClient(allClients)?.id ?? null;
 
   // Avatar local (base64 em localStorage até endpoint de upload existir no backend)
   const avatarKey = user ? `bioma_avatar_${user.id}` : null;
@@ -542,7 +552,13 @@ export function SettingsView() {
 
             {activeSubTab === "integrations" && (
               <Suspense fallback={<div className="notice">Carregando estado do ambiente...</div>}>
-                <IntegrationsTab scope="environment" />
+                {/* `all` (e não `environment`): além das credenciais do ambiente
+                    e das plataformas de freelancer, esta aba passa a mostrar as
+                    contas de mídia da própria EG — Google Ads via MCC, Meta via
+                    BM, GA4, Search Console. Ficam juntas de propósito: são a
+                    mesma pergunta ("o que a EG tem conectado?") e separá-las em
+                    duas telas era o que obrigava a procurar em dois lugares. */}
+                <IntegrationsTab scope="all" clientId={egSubjectId} />
               </Suspense>
             )}
 

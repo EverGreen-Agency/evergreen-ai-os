@@ -1034,6 +1034,9 @@ export type IntegrationsStatus = {
   storage_configured: boolean;
   google_oauth_configured: boolean;
   app_env: string;
+  /** Nomes (nunca valores) das variáveis ausentes NESTE serviço. */
+  storage_missing_vars: string[];
+  google_oauth_missing_vars: string[];
 };
 
 export type PersonalAccessTokenSummary = {

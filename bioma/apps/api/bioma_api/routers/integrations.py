@@ -34,17 +34,50 @@ class IntegrationsStatusResponse(BaseModel):
     storage_configured: bool
     google_oauth_configured: bool
     app_env: str
+    # QUAIS variáveis faltam, não só "faltou alguma".
+    #
+    # Motivo: "Não Configurado" manda a pessoa conferir três variáveis numa
+    # aba de deploy sem dizer qual está ausente — e no Railway, onde API e
+    # worker são serviços com conjuntos de variáveis SEPARADOS, o caso comum é
+    # a variável existir (no worker) e faltar exatamente aqui. Nomear a que
+    # falta transforma uma caça de meia hora em cinco segundos.
+    #
+    # Só nome de variável, nunca valor: isto responde para EG admin, mas
+    # devolver segredo por engano é o tipo de vazamento que não se desfaz.
+    storage_missing_vars: list[str] = []
+    google_oauth_missing_vars: list[str] = []
 
 
 @router.get("/status", response_model=IntegrationsStatusResponse)
 def get_status(user: CurrentUserResponse = Depends(current_user_from_request)) -> IntegrationsStatusResponse:
     require_platform_admin(user)
     settings = get_settings()
+
+    storage_missing = [
+        name
+        for name, value in (
+            ("STORAGE_S3_BUCKET", settings.storage_s3_bucket),
+            ("STORAGE_S3_ACCESS_KEY_ID", settings.storage_s3_access_key_id),
+            ("STORAGE_S3_SECRET_ACCESS_KEY", settings.storage_s3_secret_access_key),
+        )
+        if not value
+    ]
+    oauth_missing = [
+        name
+        for name, value in (
+            ("GOOGLE_OAUTH_CLIENT_ID", settings.google_oauth_client_id),
+            ("GOOGLE_OAUTH_CLIENT_SECRET", settings.google_oauth_client_secret),
+        )
+        if not value
+    ]
+
     return IntegrationsStatusResponse(
         github_token_configured=bool(settings.github_api_token),
         storage_configured=settings.storage_configured,
         google_oauth_configured=settings.google_oauth_configured,
         app_env=settings.app_env,
+        storage_missing_vars=storage_missing,
+        google_oauth_missing_vars=oauth_missing,
     )
 
 

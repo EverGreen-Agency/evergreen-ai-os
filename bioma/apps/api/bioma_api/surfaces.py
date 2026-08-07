@@ -116,14 +116,6 @@ SURFACE_CATALOG: dict[str, dict] = {
         "scope": "eg",
         "parent": "operacao",
     },
-    "operacao.integracoes": {
-        "label": "Integrações da EG",
-        "group": "Operação EG",
-        "scope": "eg",
-        "parent": "operacao",
-        # Sem `module`: o gate de módulo é contrato de cliente, e a EG não
-        # contrata de si mesma. Quem protege esta tela é o escopo `eg`.
-    },
     "operacao.radar-local": {
         "label": "Radar Local",
         "group": "Operação EG",
