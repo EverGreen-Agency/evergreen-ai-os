@@ -45,6 +45,7 @@ const AgencyAnalyticsRoute = lazy(() => import("./views/AgencyWorkspaceView").th
 const AgencyAiOperationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyAiOperationsRoute })));
 const AgencyMarketResearchRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyMarketResearchRoute })));
 const AgencyLocalRadarRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyLocalRadarRoute })));
+const AgencyIntegrationsRoute = lazy(() => import("./views/AgencyWorkspaceView").then((module) => ({ default: module.AgencyIntegrationsRoute })));
 
 // Views administrativas EG
 const IdeaBankView = lazy(() => import("./views/admin/idea-bank/IdeaBank").then((module) => ({ default: module.IdeaBank })));
@@ -322,6 +323,7 @@ export function App() {
             <Route path="ia" element={guardSurface("operacao.ia", <AgencyAiOperationsRoute />)} />
             <Route path="pesquisa-mercado" element={guardSurface("operacao.pesquisa-mercado", <AgencyMarketResearchRoute />)} />
             <Route path="radar-local" element={guardSurface("operacao.radar-local", <AgencyLocalRadarRoute />)} />
+            <Route path="integracoes" element={guardSurface("operacao.integracoes", <AgencyIntegrationsRoute />)} />
           </Route>
 
           <Route path="/clientes" element={guard("clientes",

@@ -4,8 +4,9 @@ import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { EmptyState } from "../components/shared";
 import { WorkspaceShell } from "../components/WorkspaceShell";
-import { useCurrentUser, useWorkspaces, useSurfaceVisibility } from "../hooks/useBiomaApi";
+import { useClients, useCurrentUser, useWorkspaces, useSurfaceVisibility } from "../hooks/useBiomaApi";
 import { agencyWorkspaceNavItems } from "../lib/app-config";
+import { internalEgClient } from "../lib/client-scope";
 import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
 
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
@@ -15,6 +16,7 @@ const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: 
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
 const LocalRadarStudio = lazy(() => import("../components/LocalRadarStudio").then((module) => ({ default: module.LocalRadarStudio })));
+const IntegrationsTab = lazy(() => import("../components/IntegrationsTab").then((module) => ({ default: module.IntegrationsTab })));
 
 type AgencyWorkspaceOutletContext = {
   workspace: AgencyWorkspaceContext;
@@ -189,5 +191,39 @@ export function AgencyMarketResearchRoute() {
     <Suspense fallback={<ModuleLoading />}>
       <MarketResearchStudio workspaceId={workspace.workspaceId} accessRole={workspace.accessRole} />
     </Suspense>
+  );
+}
+
+/** Contas de mídia da própria EG (dogfooding).
+ *
+ * Reusa exatamente a tela dos clientes, apontada para o registro interno da EG.
+ * O pipeline de performance é chaveado por `clients.id`, e a EG tem o seu
+ * ("EverGreen Internal") desde `create_eg_client.py` — o que faltava era
+ * caminho até ele, porque a carteira esconde o registro interno de propósito.
+ *
+ * As credenciais (developer token do Google Ads, access token da Meta) são do
+ * ambiente e valem para a agência inteira; o que se cadastra aqui é o VÍNCULO
+ * por conta — `external_account_id` com o `external_parent_id` do MCC ou da BM.
+ * Uma credencial, muitas contas. */
+export function AgencyIntegrationsRoute() {
+  const { data: clients = [], isLoading } = useClients();
+  const internal = internalEgClient(clients);
+
+  if (isLoading) return <ModuleLoading />;
+  if (!internal) {
+    // Estado real, não tela quebrada: o registro interno é criado por script e
+    // pode não existir num ambiente novo. Dizer qual é o comando poupa a
+    // investigação inteira.
+    return (
+      <EmptyState text="Registro interno da EG não encontrado. Rode `python bioma/apps/api/scripts/create_eg_client.py` para criá-lo — ele é idempotente e não cria workspace novo." />
+    );
+  }
+
+  return (
+    <div className="workspace-module-panel">
+      <Suspense fallback={<ModuleLoading />}>
+        <IntegrationsTab clientId={internal.id} scope="client" />
+      </Suspense>
+    </div>
   );
 }

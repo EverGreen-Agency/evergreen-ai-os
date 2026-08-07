@@ -96,6 +96,17 @@ export const agencyWorkspaceNavItems: Array<{
     module: "hub",
     icon: MapPin,
   },
+  {
+    // As contas de mídia da própria EG (Google Ads via MCC, Meta via BM, GA4,
+    // Search Console). O pipeline sempre suportou isso — faltava caminho: a
+    // tela de integrações só existia em `/clientes/:id`, e o registro interno
+    // da EG é filtrado da carteira de propósito.
+    id: "integrations",
+    label: "Integrações",
+    path: "integracoes",
+    module: "hub",
+    icon: Link2,
+  },
 ];
 
 // Feature-gating por organização (decisão 2026-07-14): cada view exige um
