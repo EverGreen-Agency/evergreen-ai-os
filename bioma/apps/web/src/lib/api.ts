@@ -1192,6 +1192,48 @@ export type SurfaceCatalogEntry = {
   feature_key: string | null;
 };
 
+/** Decisão 8: artefatos do Estúdio — o que a conversa produziu. */
+export type StudioArtifactStatus = "draft" | "approved" | "published" | "archived";
+
+export type StudioArtifactVersion = {
+  id: string;
+  artifact_id: string;
+  version: number;
+  title: string;
+  content: string | null;
+  url: string | null;
+  /** Preenchido quando ESTA versão saiu de uma execução; nulo se foi editada à mão. */
+  run_id: string | null;
+  change_note: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+};
+
+export type StudioArtifact = {
+  id: string;
+  organization_id: string;
+  workspace_id: string | null;
+  title: string;
+  kind: string;
+  visibility: "internal" | "client";
+  status: StudioArtifactStatus;
+  url: string | null;
+  content: string | null;
+  current_version: number;
+  versions_total: number;
+  thread_id: string | null;
+  run_id: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StudioArtifactDetail = StudioArtifact & { versions: StudioArtifactVersion[] };
+
+export type StudioArtifactKindCount = { kind: string; total: number };
+
 export type CopilotPlanStatus =
   | "pending_approval" | "approved" | "running" | "completed" | "failed" | "rejected" | "cancelled";
 
@@ -2717,6 +2759,26 @@ export const api = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
+  studioArtifacts: (workspaceId: string, filters?: { kind?: string | null; status?: string | null }) => {
+    const params = new URLSearchParams();
+    if (filters?.kind) params.set("kind", filters.kind);
+    if (filters?.status) params.set("status", filters.status);
+    const qs = params.toString();
+    return request<StudioArtifact[]>(`/workspaces/${workspaceId}/studio${qs ? `?${qs}` : ""}`);
+  },
+  studioArtifactKinds: (workspaceId: string) =>
+    request<StudioArtifactKindCount[]>(`/workspaces/${workspaceId}/studio/kinds`),
+  studioArtifact: (artifactId: string) => request<StudioArtifactDetail>(`/artifacts/${artifactId}`),
+  createStudioArtifact: (workspaceId: string, payload: { title: string; kind: string; content?: string | null; visibility?: "internal" | "client"; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/workspaces/${workspaceId}/studio`, { method: "POST", body: JSON.stringify(payload) }),
+  addStudioArtifactVersion: (artifactId: string, payload: { title: string; content?: string | null; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/artifacts/${artifactId}/versions`, { method: "POST", body: JSON.stringify(payload) }),
+  setStudioArtifactStatus: (artifactId: string, status: StudioArtifactStatus) =>
+    request<StudioArtifactDetail>(`/artifacts/${artifactId}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  /** Salva a resposta de uma execução do copiloto. A procedência é deduzida no
+   *  servidor — por isso não há thread_id/run_id no payload. */
+  saveArtifactFromRun: (runId: string, payload: { title: string; kind?: string; content?: string | null; workspace_id?: string | null; artifact_id?: string | null; change_note?: string | null }) =>
+    request<StudioArtifactDetail>(`/artifacts/from-run/${runId}`, { method: "POST", body: JSON.stringify(payload) }),
   vaultCredentials: (workspaceId: string) =>
     request<VaultCredentialSummary[]>(`/workspaces/${workspaceId}/vault`),
   createVaultCredential: (workspaceId: string, payload: VaultCredentialPayload) =>
