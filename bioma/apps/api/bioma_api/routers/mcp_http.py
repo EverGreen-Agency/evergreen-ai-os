@@ -1,9 +1,25 @@
-"""MCP remoto (HTTP) — conecta o Bioma ao ChatGPT Web como conector.
+"""MCP remoto (HTTP) — conecta o Bioma ao ChatGPT.
 
 Existe separado de `bioma_api/mcp_server.py` porque os dois resolvem problemas
 diferentes e NÃO dá para reaproveitar um no outro: aquele é stdio (subprocesso
 local, para Fóton/Antigravity, autorizado por segredo compartilhado + workspace
-fixo); este é HTTP, e o ChatGPT Web só aceita servidor MCP remoto por HTTPS.
+fixo); este é HTTP, que é o que qualquer cliente MCP remoto exige.
+
+**Superfície: app desktop do ChatGPT**, não a Web — ver `docs/MCP-CHATGPT.md`,
+que corrigiu isso em 2026-08-06 contra a documentação oficial. Este docstring
+dizia "ChatGPT Web" e ficou para trás; quem lesse só o código concluiria o
+contrário do que o doc diz.
+
+Contrato conferido contra `developers.openai.com/plugins/build/mcp-server`
+(2026-08-07): transporte **Streamable HTTP** em HTTPS estável no caminho
+`/mcp`, que é o que este router serve. `search` e `fetch` seguem o schema
+padrão — a OpenAI só os exige para o plugin valer como fonte de conhecimento
+da empresa, mas implementá-los é barato e destrava esse caso.
+
+Limite conhecido: a autenticação aqui é **Bearer com token pessoal**. Serve
+para uso interno e para o app desktop. Publicar como plugin no diretório
+exigiria **OAuth 2.1** (ou mTLS gerenciado pela OpenAI), que é outro trabalho —
+não uma correção deste.
 
 ## Autorização
 
