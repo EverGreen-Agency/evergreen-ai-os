@@ -40,6 +40,7 @@ import {
   KommoIcon,
   LinkedInAdsIcon,
   MetaAdsIcon,
+  OpenAiAdsIcon,
   RdStationIcon,
   SearchConsoleIcon,
   TikTokIcon,
@@ -99,7 +100,7 @@ const PROVIDER_META: Record<PerformanceProvider, {
   },
   openai_ads: {
     label: "ChatGPT Ads (OpenAI)",
-    icon: Bot,
+    icon: OpenAiAdsIcon,
     accountLabel: "Account ID",
     accountPlaceholder: "act_openai_12345",
   },
