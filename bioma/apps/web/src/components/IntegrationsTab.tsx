@@ -200,9 +200,12 @@ function ConnectionStatusPill({ connection }: { connection: PerformanceConnectio
 export function IntegrationsTab({
   clientId = null,
   scope = "all",
+  subjectName = null,
 }: {
   clientId?: string | null;
   scope?: "all" | "environment" | "client";
+  /** Nome a exibir quando o sujeito não está na carteira (ex.: a própria EG). */
+  subjectName?: string | null;
 } = {}) {
   const { selectedClientId: storedClientId, setSelectedClientId } = useUiStore();
   const selectedClientId = clientId ?? storedClientId;
@@ -264,7 +267,14 @@ export function IntegrationsTab({
   const [displayName, setDisplayName] = useState("");
   const [syncFeedback, setSyncFeedback] = useState<string>("");
 
-  const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null;
+  // O sujeito pode NÃO estar na carteira: a Operação EG é um workspace sem
+  // registro comercial (nada de "EverGreen Internal" desde a 0087), e a
+  // carteira só lista clientes externos. Sem este fallback, apontar esta tela
+  // para a EG mostrava "Selecione um cliente" e nenhum campo para preencher —
+  // que foi exatamente o que aconteceu ao mover as integrações para cá.
+  const selectedClient =
+    clients.find((client) => client.id === selectedClientId) ??
+    (clientId && subjectName ? { id: clientId, name: subjectName, organization_id: null } : null);
   const organizationId = selectedClient?.organization_id ?? null;
 
   const { data: kommoConfig, isLoading: loadingKommo } = useKommoConfig(organizationId);

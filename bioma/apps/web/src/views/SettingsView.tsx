@@ -563,7 +563,7 @@ export function SettingsView() {
                     BM, GA4, Search Console. Ficam juntas de propósito: são a
                     mesma pergunta ("o que a EG tem conectado?") e separá-las em
                     duas telas era o que obrigava a procurar em dois lugares. */}
-                <IntegrationsTab scope="all" clientId={egSubjectId} />
+                <IntegrationsTab scope="all" clientId={egSubjectId} subjectName="EverGreen (Operação EG)" />
               </Suspense>
             )}
 
