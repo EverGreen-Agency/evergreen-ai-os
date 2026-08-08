@@ -221,6 +221,17 @@ def generate_briefing_draft_safe(dossier: dict[str, Any]) -> dict[str, Any]:
     return generate_briefing_draft(dossier, get_settings())
 
 
+def generate_multichannel_insight_safe(totals: dict[str, Any]) -> dict[str, Any]:
+    """Insight de midia paga. Sem chave, o worker devolve previa determinística
+    rotulada — nunca recomendacao inventada."""
+    if not _ensure_worker_in_path():
+        raise RuntimeError("Worker do Bioma nao encontrado no runtime da API.")
+    from bioma_worker.config import get_settings
+    from bioma_worker.multichannel_insight import generate_multichannel_insight
+
+    return generate_multichannel_insight(totals, get_settings())
+
+
 def normalize_imported_prospects_safe(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if not _ensure_worker_in_path():
         raise RuntimeError("Worker do Bioma não encontrado no runtime da API.")

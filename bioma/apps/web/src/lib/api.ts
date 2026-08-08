@@ -383,6 +383,9 @@ export type PerformanceAiSummaryResponse = {
   total_spend_cents: number;
   total_leads: number;
   overall_cpa_cents: number;
+  /** `live` = o modelo leu os números; `preview` = sem chave de IA, só
+   *  organização; `unavailable` = a chamada falhou. A tela mostra qual foi. */
+  generation_mode?: "live" | "preview" | "unavailable";
   insights: PerformanceAiSummaryInsight[];
 };
 

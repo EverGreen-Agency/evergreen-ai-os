@@ -12920,6 +12920,11 @@
             "title": "Generated At",
             "type": "string"
           },
+          "generation_mode": {
+            "default": "preview",
+            "title": "Generation Mode",
+            "type": "string"
+          },
           "insights": {
             "items": {
               "$ref": "#/components/schemas/PerformanceAiSummaryInsight"

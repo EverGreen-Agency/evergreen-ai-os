@@ -1294,20 +1294,34 @@
    espremia o conteúdo e obrigava a rolar muito, que foi a reclamação. Ocupa
    quase a tela toda, com teto para não esticar demais em monitor grande. */
 .modal-card.guide-modal {
-  max-width: min(1120px, 94vw) !important;
-  width: min(1120px, 94vw) !important;
-  max-height: 92vh !important;
+  max-width: 96vw !important;
+  width: 96vw !important;
+  height: 94vh !important;
+  max-height: 94vh !important;
 }
 
 /* Duas colunas quando há espaço: os passos ficam ao lado da captura em vez de
-   empilhados, que é o que fazia o guia parecer interminável. */
+   empilhados, que é o que fazia o guia parecer interminável.
+
+   `column-count` (e não grid) porque o corpo é uma sequência de blocos de
+   altura irregular — grid alinharia linhas e deixaria buraco embaixo dos
+   passos curtos. `break-inside: avoid` impede um passo de ser cortado no meio
+   entre as colunas, que é o que tornaria a leitura confusa. */
 @media (min-width: 900px) {
   .guide-modal-body {
     column-count: 2;
-    column-gap: 28px;
+    column-gap: 32px;
   }
   .guide-modal-body > * {
     break-inside: avoid;
+  }
+}
+
+/* Em tela larga, três colunas — a 96vw de um monitor grande, duas colunas
+   produziriam linhas longas demais para leitura confortável. */
+@media (min-width: 1500px) {
+  .guide-modal-body {
+    column-count: 3;
   }
 }
 

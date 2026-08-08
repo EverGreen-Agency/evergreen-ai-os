@@ -10630,6 +10630,11 @@ export interface components {
              * Format: date-time
              */
             generated_at: string;
+            /**
+             * Generation Mode
+             * @default preview
+             */
+            generation_mode: string;
             /** Insights */
             insights: components["schemas"]["PerformanceAiSummaryInsight"][];
             /** Overall Cpa Cents */
