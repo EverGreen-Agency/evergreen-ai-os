@@ -1177,6 +1177,28 @@ export type OrganizationPerson = {
   teams: string[];
 };
 
+export type ProofUptime = {
+  monitor_id: string;
+  monitor_name: string;
+  kind: string;
+  window_days: number;
+  availability: number;
+  number_of_incidents: number;
+  total_downtime_seconds: number;
+  /** Desde quando existe medição — distingue "100%" de "sem histórico". */
+  measured_since: string | null;
+  collected_at: string;
+};
+
+export type ProofPanel = {
+  generated_at: string;
+  uptime: ProofUptime[];
+  daily_uptime: Array<{ date: string; availability: number }>;
+  deliveries: Array<{ id: string; title: string; completed_at: string; workspace_name: string | null }>;
+  open_issues: number;
+  fixes: Array<{ id: string; title: string; resolved_at: string; minutes_to_resolve: number }>;
+};
+
 export type SurfaceGrantEffect = "allow" | "deny";
 
 export type SurfaceGrantEntry = {
@@ -3660,6 +3682,7 @@ export const api = {
     request<FeatureFlag[]>(`/organizations/${organizationId}/feature-flags/${featureKey}`, { method: "DELETE" }),
 
   /** Decisão 11 — o que eu vejo e por quê. Decisão e explicação na mesma resposta. */
+  proofPanel: () => request<ProofPanel>("/eg/proof"),
   mySurfaces: () => request<SurfaceAccessEntry[]>("/me/surfaces"),
   setSurfacePreference: (surfaceKey: string, hidden: boolean) =>
     request<SurfaceAccessEntry[]>("/me/surfaces/preference", {

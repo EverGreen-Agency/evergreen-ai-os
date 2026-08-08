@@ -3295,6 +3295,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/eg/proof": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Panel
+         * @description Painel de prova: disponibilidade medida por fora, entregas e correções.
+         *
+         *     Interno por enquanto (EG-only). Se um dia virar público, o que muda é o
+         *     gate — os números já nascem com origem verificável.
+         */
+        get: operations["get_panel_eg_proof_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -11925,6 +11948,95 @@ export interface components {
             project_id: string;
             /** Summary */
             summary: string;
+        };
+        /** ProofDailyPoint */
+        ProofDailyPoint: {
+            /** Availability */
+            availability: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+        };
+        /** ProofDelivery */
+        ProofDelivery: {
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Workspace Name */
+            workspace_name?: string | null;
+        };
+        /** ProofFix */
+        ProofFix: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Minutes To Resolve */
+            minutes_to_resolve: number;
+            /**
+             * Resolved At
+             * Format: date-time
+             */
+            resolved_at: string;
+            /** Title */
+            title: string;
+        };
+        /** ProofPanel */
+        ProofPanel: {
+            /** Daily Uptime */
+            daily_uptime?: components["schemas"]["ProofDailyPoint"][];
+            /** Deliveries */
+            deliveries?: components["schemas"]["ProofDelivery"][];
+            /** Fixes */
+            fixes?: components["schemas"]["ProofFix"][];
+            /**
+             * Generated At
+             * Format: date
+             */
+            generated_at: string;
+            /**
+             * Open Issues
+             * @default 0
+             */
+            open_issues: number;
+            /** Uptime */
+            uptime?: components["schemas"]["ProofUptime"][];
+        };
+        /** ProofUptime */
+        ProofUptime: {
+            /** Availability */
+            availability: number;
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Kind */
+            kind: string;
+            /** Measured Since */
+            measured_since?: string | null;
+            /** Monitor Id */
+            monitor_id: string;
+            /** Monitor Name */
+            monitor_name: string;
+            /** Number Of Incidents */
+            number_of_incidents: number;
+            /** Total Downtime Seconds */
+            total_downtime_seconds: number;
+            /** Window Days */
+            window_days: number;
         };
         /** ProposalAcceptanceCreate */
         ProposalAcceptanceCreate: {
@@ -23103,6 +23215,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CopilotUsageSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_panel_eg_proof_get: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProofPanel"];
                 };
             };
             /** @description Validation Error */

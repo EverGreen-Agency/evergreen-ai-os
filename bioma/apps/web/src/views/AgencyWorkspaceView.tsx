@@ -14,6 +14,7 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
+const ProofView = lazy(() => import("./ProofView").then((module) => ({ default: module.ProofView })));
 const LocalRadarStudio = lazy(() => import("../components/LocalRadarStudio").then((module) => ({ default: module.LocalRadarStudio })));
 
 type AgencyWorkspaceOutletContext = {
@@ -202,3 +203,14 @@ export function AgencyMarketResearchRoute() {
   );
 }
 
+
+
+/** Painel de prova (decisão de 2026-08-08). Fica na Operação EG porque é
+ *  registro da própria agência, não de um cliente. */
+export function AgencyProofRoute() {
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <ProofView />
+    </Suspense>
+  );
+}

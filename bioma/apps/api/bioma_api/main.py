@@ -34,6 +34,7 @@ from bioma_api.routers import (
     performance,
     platform_studies,
     projects,
+    proof,
     rh,
     surface_access,
     teams,
@@ -101,6 +102,7 @@ app.include_router(invites.workspace_admin_router)
 app.include_router(performance.router)
 app.include_router(performance.workspace_router)
 app.include_router(social_connect.router)
+app.include_router(proof.router)
 app.include_router(projects.router)
 app.include_router(projects.workspace_router)
 app.include_router(analytics.router)

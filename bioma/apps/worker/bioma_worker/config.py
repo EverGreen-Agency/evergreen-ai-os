@@ -28,6 +28,13 @@ class WorkerSettings(BaseSettings):
     linkedin_client_id: str | None = None
     linkedin_client_secret: str | None = None
     openai_api_key: str | None = None
+    # Prober EXTERNO de disponibilidade. Fica em variável de ambiente (e não no
+    # cofre) porque é credencial da agência, como o token do Google Ads — o
+    # cofre guarda credencial de CLIENTE.
+    betterstack_api_token: str | None = None
+    # URL de heartbeat: o worker bate nela ao terminar. Sem isso, o cron parar
+    # de disparar não gera erro nenhum — só silêncio.
+    betterstack_heartbeat_url: str | None = None
     openai_model: str = "gpt-5.6-sol"
     openai_research_model: str = "gpt-5.6-terra"
     openai_transcription_model: str = "whisper-1"

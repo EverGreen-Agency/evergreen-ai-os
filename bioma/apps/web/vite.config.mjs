@@ -75,6 +75,8 @@ const API_PREFIXES = [
   "/users",
   "/wins",
   "/workspaces",
+  // Painel de prova (/eg/proof): disponibilidade, entregas e correções.
+  "/eg",
   // Documentação do FastAPI, útil para inspecionar o contrato em dev.
   "/docs",
   "/redoc",

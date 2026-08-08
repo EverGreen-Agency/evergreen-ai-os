@@ -126,6 +126,12 @@ SURFACE_CATALOG: dict[str, dict] = {
         "scope": "eg",
         "parent": "operacao",
     },
+    "operacao.prova": {
+        "label": "Prova",
+        "group": "Operação EG",
+        "scope": "eg",
+        "parent": "operacao",
+    },
     "operacao.radar-local": {
         "label": "Radar Local",
         "group": "Operação EG",
