@@ -62,17 +62,14 @@ export function OrganizationPeopleList({
             }}
           >
             {person.role === "eg_admin" ? <ShieldCheck size={12} /> : <UserRound size={12} />}
-            {person.role === "eg_admin" ? "Administrador" : person.role}
+            {person.role === "eg_admin" ? "Administrador" : person.role === "eg_member" ? "Membro" : person.role}
           </span>
         </div>
       ))}
 
-      {/* Limite conhecido, dito na tela em vez de escondido: todo convite ao
-          time cria administrador, porque `memberships.role` só tem `eg_admin` e
-          `client_user`. Não existe "pessoa da EG que não é admin" ainda. */}
       <p style={{ fontSize: 11.5, color: "var(--text-faint)", margin: "4px 0 0", lineHeight: 1.5 }}>
-        Todo convite ao time cria um <strong>administrador</strong> — o modelo
-        ainda não tem um papel intermediário para a EG. Convide com isso em mente.
+        <strong>Membro</strong> usa a plataforma; <strong>administrador</strong>{" "}
+        também convida gente e mexe em acessos e integrações.
       </p>
     </div>
   );

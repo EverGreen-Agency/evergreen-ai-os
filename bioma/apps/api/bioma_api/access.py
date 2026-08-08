@@ -38,7 +38,25 @@ MODULE_LABELS = {
 
 
 def is_platform_admin(user: CurrentUserResponse) -> bool:
+    """Pode ADMINISTRAR a EG: convidar, conceder acesso, mexer em integração.
+
+    Continua exigindo `eg_admin` — `eg_member` (0090) pertence à EG mas não a
+    administra. Os dois predicados existem separados porque antes eram a mesma
+    pergunta, e é por isso que todo convite ao time criava um administrador.
+    """
     return any(org.slug == "eg" and org.role == Role.eg_admin for org in user.organizations)
+
+
+def is_platform_member(user: CurrentUserResponse) -> bool:
+    """Pertence à EG — decide o que a pessoa ENXERGA, não o que ela muda.
+
+    Admin também é membro. Usar isto para visibilidade e `is_platform_admin`
+    para escrita é o que permite alguém da equipe existir sem poder de admin.
+    """
+    return any(
+        org.slug == "eg" and org.role in (Role.eg_admin, Role.eg_member)
+        for org in user.organizations
+    )
 
 
 def require_platform_admin(user: CurrentUserResponse) -> None:

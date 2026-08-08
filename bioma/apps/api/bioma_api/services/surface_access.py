@@ -14,7 +14,7 @@ from fastapi import HTTPException, status
 
 from bioma_api import surface_access as resolver
 from bioma_api import surfaces
-from bioma_api.access import is_platform_admin, require_platform_admin
+from bioma_api.access import is_platform_admin, is_platform_member, require_platform_admin
 from bioma_api.db import connect
 from bioma_api.feature_flags import FEATURE_CATALOG, default_state, is_accessible
 from bioma_api.repositories import feature_flags as flags_repo
@@ -44,7 +44,7 @@ def _inaccessible_features(conn, user: CurrentUserResponse) -> set[str]:
     liberada numa delas continua vendo a tela. Bloquear pelo denominador mais
     restritivo faria uma organização nova e vazia derrubar acessos existentes.
     """
-    if is_platform_admin(user):
+    if is_platform_member(user):
         return set()
 
     accessible: set[str] = set()
@@ -64,7 +64,10 @@ def _enabled_modules(user: CurrentUserResponse) -> set[str]:
 
 
 def _resolve(conn, user: CurrentUserResponse) -> list[resolver.SurfaceAccess]:
-    is_eg = is_platform_admin(user)
+    # Visibilidade usa "pertence à EG", não "administra a EG" (0090): quem é
+    # `eg_member` enxerga as telas internas. O que ele NÃO pode é escrever —
+    # e isso continua guardado por `require_platform_admin` em cada serviço.
+    is_eg = is_platform_member(user)
 
     team_rows: dict[str, list[tuple[str, str, str | None]]] = {}
     user_rows: dict[str, resolver.SurfaceGrant] = {}

@@ -65,8 +65,12 @@ def create_team_invite(
     """Convite para o time da EG, opcionalmente já dentro de uma equipe.
 
     Diferente do convite de cliente em dois pontos: entra na organização da EG
-    (papel `eg_admin`, não `client_user`) e pode carregar equipe e papel de
-    tenant, para a pessoa não chegar sem lugar nenhum.
+    (`eg_member` por padrão, `eg_admin` só se escolhido) e pode carregar equipe
+    e papel de tenant, para a pessoa não chegar sem lugar nenhum.
+
+    O default ser `eg_member` (0090) é deliberado: até então não havia
+    alternativa e todo convite criava administrador. Promover alguém tem que
+    ser um ato explícito, não o caminho de menor resistência.
 
     Reusa o mesmo fluxo público de aceite — token com hash, expiração, uso
     único, criação de conta e sessão. O que muda é só o que o aceite concede.
@@ -112,7 +116,7 @@ def create_team_invite(
             hash_session_token(token),
             expires_at,
             user.id,
-            role="eg_admin",
+            role=payload.role,
             team_id=payload.team_id,
             tenant_role=payload.tenant_role,
         )
@@ -142,7 +146,7 @@ def list_team_invites(tenant_organization_id: UUID, user: CurrentUserResponse) -
     require_platform_admin(user)
     with connect() as conn:
         rows = invites_repo.list_invites(conn, tenant_organization_id)
-    return [InviteSummary(**row) for row in rows if row.get("role") == "eg_admin"]
+    return [InviteSummary(**row) for row in rows if row.get("role") in ("eg_admin", "eg_member")]
 
 
 def revoke_team_invite(
@@ -220,7 +224,7 @@ def accept_invite(token: str, payload: InviteAcceptRequest) -> tuple[str, dateti
         # EG e já cai na equipe, para a pessoa não chegar sem lugar nenhum.
         role = invite.get("role") or "client_user"
         invites_repo.create_membership(conn, user_id, invite["organization_id"], role)
-        if role == "eg_admin":
+        if role in ("eg_admin", "eg_member"):
             if invite.get("tenant_role"):
                 invites_repo.add_tenant_membership(
                     conn, invite["organization_id"], user_id, invite["tenant_role"]

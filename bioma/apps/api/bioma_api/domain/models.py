@@ -6,6 +6,9 @@ from pydantic import BaseModel, EmailStr
 
 class Role(StrEnum):
     eg_admin = "eg_admin"
+    # Pertence à EG sem administrá-la (0090). Enxerga as telas internas;
+    # não convida, não concede acesso, não mexe em integração.
+    eg_member = "eg_member"
     client_user = "client_user"
 
 

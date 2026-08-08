@@ -13,7 +13,8 @@ export type UserOrganization = {
   id: string;
   name: string;
   slug: string;
-  role: "eg_admin" | "client_user";
+  /** `eg_member` (0090): pertence à EG sem administrá-la. */
+  role: "eg_admin" | "eg_member" | "client_user";
   enabled_modules: ClientModule[];
 };
 
@@ -2701,7 +2702,7 @@ export const api = {
     request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites`),
   createTeamInvite: (
     tenantOrganizationId: string,
-    payload: { email?: string | null; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
+    payload: { email?: string | null; role?: "eg_member" | "eg_admin"; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
   ) => request<InviteCreated>(`/tenants/${tenantOrganizationId}/invites`, {
     method: "POST",
     body: JSON.stringify(payload),

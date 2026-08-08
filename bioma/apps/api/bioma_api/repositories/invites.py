@@ -74,7 +74,7 @@ def find_valid_invite(conn, token_hash: str):
           select 1 from workspaces w
           where w.subject_organization_id = i.organization_id
             and w.status = 'active'
-            and (w.kind = 'client' or i.role = 'eg_admin')
+            and (w.kind = 'client' or i.role in ('eg_admin', 'eg_member'))
         )
           and i.token_hash = %s
           and i.used_at is null

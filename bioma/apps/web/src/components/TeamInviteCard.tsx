@@ -28,6 +28,8 @@ export function TeamInviteCard({ tenantOrganizationId }: { tenantOrganizationId:
   const [email, setEmail] = useState("");
   const [teamId, setTeamId] = useState("");
   const [tenantRole, setTenantRole] = useState<TenantRole | "">("");
+  // Default `eg_member`: administrador tem que ser escolha explicita (0090).
+  const [orgRole, setOrgRole] = useState<"eg_member" | "eg_admin">("eg_member");
   const [created, setCreated] = useState<InviteCreated | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
@@ -46,6 +48,7 @@ export function TeamInviteCard({ tenantOrganizationId }: { tenantOrganizationId:
   const createInvite = useMutation({
     mutationFn: () => api.createTeamInvite(tenantOrganizationId as string, {
       email: email.trim() || null,
+      role: orgRole,
       team_id: teamId || null,
       tenant_role: tenantRole || null,
     }),
@@ -93,6 +96,10 @@ export function TeamInviteCard({ tenantOrganizationId }: { tenantOrganizationId:
       <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 16px", lineHeight: 1.5 }}>
         A pessoa recebe um link, cria a própria senha e já entra na equipe
         escolhida. Diferente do convite de cliente: aqui ela entra na EverGreen.
+        <br />
+        <strong>Membro</strong> usa a plataforma; <strong>administrador</strong>{" "}
+        também convida gente e mexe em acessos e integrações. Na dúvida, membro —
+        promover depois é um clique, tirar poder já concedido é conversa.
       </p>
 
       <form className="form-grid" onSubmit={handleSubmit}>
@@ -102,7 +109,7 @@ export function TeamInviteCard({ tenantOrganizationId }: { tenantOrganizationId:
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="pessoa@evergreengrowth.com.br"
+            placeholder="pessoa@evergreenmkt.com.br"
           />
         </label>
         <label>
@@ -113,7 +120,18 @@ export function TeamInviteCard({ tenantOrganizationId }: { tenantOrganizationId:
           </select>
         </label>
         <label>
-          Papel
+          Acesso na EverGreen
+          <select
+            className="status-select"
+            value={orgRole}
+            onChange={(event) => setOrgRole(event.target.value as "eg_member" | "eg_admin")}
+          >
+            <option value="eg_member">Membro — usa a plataforma</option>
+            <option value="eg_admin">Administrador — convida e gerencia acessos</option>
+          </select>
+        </label>
+        <label>
+          Papel no workspace
           <select
             className="status-select"
             value={tenantRole}

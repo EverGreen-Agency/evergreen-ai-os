@@ -13182,7 +13182,7 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "eg_admin" | "client_user";
+        Role: "eg_admin" | "eg_member" | "client_user";
         /** RouteCandidate */
         RouteCandidate: {
             /**
@@ -15128,6 +15128,12 @@ export interface components {
              * @default 7
              */
             expires_in_days: number;
+            /**
+             * Role
+             * @default eg_member
+             * @enum {string}
+             */
+            role: "eg_member" | "eg_admin";
             /** Team Id */
             team_id?: string | null;
             /** Tenant Role */

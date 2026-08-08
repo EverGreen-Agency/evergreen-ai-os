@@ -20801,6 +20801,7 @@
       "Role": {
         "enum": [
           "eg_admin",
+          "eg_member",
           "client_user"
         ],
         "title": "Role",
@@ -26067,6 +26068,15 @@
             "minimum": 1.0,
             "title": "Expires In Days",
             "type": "integer"
+          },
+          "role": {
+            "default": "eg_member",
+            "enum": [
+              "eg_member",
+              "eg_admin"
+            ],
+            "title": "Role",
+            "type": "string"
           },
           "team_id": {
             "anyOf": [
