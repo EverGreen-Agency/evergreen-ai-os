@@ -40,6 +40,7 @@ PASSWORD = "senha-dev-123"
 INVITED_EMAIL = "smoke-team-invite-novo@bioma.example.com"
 EXISTING_EMAIL = "smoke-team-invite-existente@bioma.example.com"
 OUTSIDER_EMAIL = "smoke-team-invite-cliente@bioma.example.com"
+ADMIN_INVITE_EMAIL = "smoke-team-invite-socio@bioma.example.com"
 
 
 def assert_status(response, expected: int, label: str) -> None:
@@ -54,7 +55,7 @@ def main() -> None:
     upsert_smoke_user(EXISTING_EMAIL, "Smoke Já Existe", PASSWORD)
 
     team_id = None
-    atexit.register(cleanup_smoke_data, [workspace.organization_id], [OUTSIDER_EMAIL, EXISTING_EMAIL, INVITED_EMAIL])
+    atexit.register(cleanup_smoke_data, [workspace.organization_id], [OUTSIDER_EMAIL, EXISTING_EMAIL, INVITED_EMAIL, ADMIN_INVITE_EMAIL])
 
     try:
         with connect() as conn:
@@ -73,7 +74,7 @@ def main() -> None:
         # ---------------------------------------------------------------- 1
         response = admin.post(
             f"/tenants/{eg_id}/invites",
-            json={"email": INVITED_EMAIL, "team_id": str(team_id), "tenant_role": "operator"},
+            json={"email": INVITED_EMAIL, "team_id": str(team_id), "tenant_role": "operator"},  # sem `role`: default
         )
         assert_status(response, 201, "criar convite de time")
         token = response.json()["token"]
@@ -102,8 +103,10 @@ def main() -> None:
                 "select role from memberships where user_id = %s and organization_id = %s",
                 (new_user["id"], eg_id),
             ).fetchone()
-            if not membership or membership["role"] != "eg_admin":
-                raise AssertionError(f"papel errado na organização da EG: {membership}")
+            # Default é `eg_member` (0090). Se isto voltar a ser `eg_admin`,
+            # convidar estagiário volta a criar administrador — que foi o bug.
+            if not membership or membership["role"] != "eg_member":
+                raise AssertionError(f"convite sem papel explícito deveria criar eg_member: {membership}")
             in_team = conn.execute(
                 "select 1 from team_memberships where team_id = %s and user_id = %s",
                 (team_id, new_user["id"]),
@@ -116,7 +119,32 @@ def main() -> None:
             ).fetchone()
             if not tenant or tenant["role"] != "operator":
                 raise AssertionError(f"papel de tenant não aplicado: {tenant}")
-        print("ok: convidado entrou como eg_admin, na equipe e com papel de tenant")
+        print("ok: convidado entrou como eg_member (default), na equipe e com papel de tenant")
+
+        # Admin continua possível — mas só quando pedido.
+        response = admin.post(
+            f"/tenants/{eg_id}/invites",
+            json={"email": ADMIN_INVITE_EMAIL, "role": "eg_admin"},
+        )
+        assert_status(response, 201, "convite explicito de admin")
+        admin_token = response.json()["token"]
+        assert_status(
+            TestClient(app).post(
+                f"/auth/invites/{admin_token}/accept",
+                json={"display_name": "Smoke Socio", "email": ADMIN_INVITE_EMAIL, "password": PASSWORD},
+            ),
+            200,
+            "aceitar convite de admin",
+        )
+        with connect() as conn:
+            socio = conn.execute("select id from users where lower(email) = %s", (ADMIN_INVITE_EMAIL,)).fetchone()
+            role = conn.execute(
+                "select role from memberships where user_id = %s and organization_id = %s",
+                (socio["id"], eg_id),
+            ).fetchone()
+        if not role or role["role"] != "eg_admin":
+            raise AssertionError(f"convite explicito de admin nao criou admin: {role}")
+        print("ok: administrador continua possivel, mas so quando pedido")
 
         # ---------------------------------------------------------------- 3
         # Convite não é reutilizável.
@@ -150,6 +178,28 @@ def main() -> None:
         )
         print("ok: equipe de outra organização é recusada (422)")
 
+        # Guarda-corpo de dominio: so vale quando configurado, e a mensagem diz
+        # quais dominios sao aceitos.
+        import bioma_api.config as config_module
+        original = config_module.get_settings
+        try:
+            base = original()
+            config_module.get_settings = lambda: base.model_copy(
+                update={"eg_invite_allowed_domains": "evergreenmkt.com.br"}
+            )
+            import bioma_api.services.invites as invites_module
+            invites_module.get_settings = config_module.get_settings
+            response = admin.post(
+                f"/tenants/{eg_id}/invites",
+                json={"email": "estranho@gmail.com"},
+            )
+            if response.status_code != 422 or "evergreenmkt.com.br" not in response.text:
+                raise AssertionError(f"dominio fora da lista deveria ser recusado com a lista: {response.text}")
+            print("ok: dominio fora da lista e recusado, e a mensagem diz quais valem")
+        finally:
+            config_module.get_settings = original
+            invites_module.get_settings = original
+
         # ---------------------------------------------------------------- 6
         cliente = TestClient(app)
         assert_status(cliente.post("/auth/login", json={"email": OUTSIDER_EMAIL, "password": PASSWORD}), 200, "login cliente")
@@ -172,7 +222,7 @@ def main() -> None:
             if team_id:
                 conn.execute("delete from teams where id = %s", (team_id,))
         cleanup_smoke_data(
-            [workspace.organization_id], [OUTSIDER_EMAIL, EXISTING_EMAIL, INVITED_EMAIL]
+            [workspace.organization_id], [OUTSIDER_EMAIL, EXISTING_EMAIL, INVITED_EMAIL, ADMIN_INVITE_EMAIL]
         )
 
 

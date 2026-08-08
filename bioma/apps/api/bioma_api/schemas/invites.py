@@ -19,6 +19,9 @@ class TeamInviteCreateRequest(BaseModel):
 
     email: EmailStr | None = None
     expires_in_days: int = Field(default=7, ge=1, le=30)
+    # `eg_member` e o default DE PROPOSITO: administrador tem que ser escolha
+    # explicita. Ate a 0090 nao havia alternativa e todo convite criava admin.
+    role: Literal["eg_member", "eg_admin"] = "eg_member"
     team_id: UUID | None = None
     tenant_role: Literal["tenant_admin", "operator", "approver", "viewer"] | None = None
 

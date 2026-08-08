@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from bioma_api.auth import current_user_from_request
 from bioma_api.schemas.auth import CurrentUserResponse
 from bioma_api.schemas.teams import (
+    OrganizationPerson,
     TeamCreateRequest,
     TeamMemberSummary,
     TeamMemberUpsertRequest,
@@ -105,3 +106,12 @@ def delete_workspace_assignment(
     user: CurrentUserResponse = Depends(current_user_from_request),
 ) -> list[WorkspaceAssignmentSummary]:
     return teams_service.delete_workspace_assignment(workspace_id, assignment_id, user)
+
+
+@router.get("/tenants/{tenant_organization_id}/people", response_model=list[OrganizationPerson])
+def list_organization_people(
+    tenant_organization_id: UUID,
+    user: CurrentUserResponse = Depends(current_user_from_request),
+) -> list[OrganizationPerson]:
+    """Gerenciamento de usuarios: quem pertence a organizacao, com papel e equipes."""
+    return teams_service.list_organization_people(tenant_organization_id, user)

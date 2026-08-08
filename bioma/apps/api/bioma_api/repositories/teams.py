@@ -105,6 +105,44 @@ def list_tenant_memberships(conn, tenant_organization_id: UUID):
     ).fetchall()
 
 
+def list_organization_people(conn, organization_id: UUID):
+    """Todo mundo que pertence a esta organizacao, com papel e equipes.
+
+    Parte de `memberships` (que e o que o convite cria) e nao de
+    `tenant_memberships`, que so tem quem recebeu papel de tenant explicito.
+    Listar pelo segundo faria alguem recem-convidado sumir da tela — foi
+    exatamente o que aconteceu.
+    """
+    return conn.execute(
+        """
+        select
+          u.id as user_id,
+          u.email,
+          u.display_name,
+          u.is_active,
+          m.role,
+          tm.role as tenant_role,
+          coalesce(
+            array_agg(t.name order by t.name) filter (where t.name is not null),
+            '{}'
+          ) as teams
+        from memberships m
+        join users u on u.id = m.user_id
+        left join tenant_memberships tm
+          on tm.user_id = u.id and tm.tenant_organization_id = m.organization_id
+        left join team_memberships tmem on tmem.user_id = u.id
+        left join teams t
+          on t.id = tmem.team_id
+         and t.tenant_organization_id = m.organization_id
+         and t.status = 'active'
+        where m.organization_id = %s
+        group by u.id, u.email, u.display_name, u.is_active, m.role, tm.role
+        order by lower(u.display_name), u.id
+        """,
+        (organization_id,),
+    ).fetchall()
+
+
 def upsert_tenant_membership(conn, tenant_organization_id: UUID, user_id: UUID, role: str) -> None:
     conn.execute(
         """

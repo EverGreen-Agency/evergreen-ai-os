@@ -125,9 +125,20 @@ export function App() {
   const deleteArtifact = useDeleteArtifact();
 
   const apiOnline = healthData?.status === "ok";
+  // Pertencer à EG decide o que a pessoa ENXERGA. `eg_member` (0090) entra
+  // aqui; quem ADMINISTRA é outra pergunta, respondida pelo backend em cada
+  // escrita (`require_platform_admin`).
+  //
+  // Saiu daqui um `user.email.endsWith("@evergreengrowth.com.br")` que
+  // concedia visão de admin por domínio de e-mail, hardcoded — e no domínio
+  // ERRADO (o resto do sistema usa evergreenmkt.com.br). Não vazava dado,
+  // porque o backend decide por papel, mas mostrava a interface de admin para
+  // quem levaria 403 em tudo. Privilégio nunca deve vir do e-mail.
   const isEgAdmin = user
-    ? user.organizations.some((org: UserOrganization) => org.role === "eg_admin" || org.slug === "eg") ||
-      user.email.endsWith("@evergreengrowth.com.br")
+    ? user.organizations.some(
+        (org: UserOrganization) =>
+          org.slug === "eg" && (org.role === "eg_admin" || org.role === "eg_member"),
+      )
     : false;
 
   useEffect(() => {

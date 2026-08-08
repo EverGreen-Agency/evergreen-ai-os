@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     session_cookie_domain: str | None = None
     login_rate_limit_attempts: int = 5
     login_rate_limit_window_seconds: int = 300
+    # Domínios de e-mail aceitos ao convidar alguém para o time da EG.
+    # Vazio (default) = sem restrição, que é o comportamento anterior — a lista
+    # é guarda-corpo, não autenticação: privilégio vem de papel, nunca de
+    # e-mail (foi por isso que o `endsWith` hardcoded saiu do App.tsx).
+    #
+    # Em configuração e não em código porque a EG tem mais de um domínio vivo
+    # (evergreenmkt.com.br, evergreengrowth.com.br) e isso muda sem deploy.
+    eg_invite_allowed_domains: str = ""
     github_api_token: str | None = None
     github_api_base_url: str = "https://api.github.com"
     # Aceitam DOIS nomes cada. O nosso (`STORAGE_S3_*`) e o que os serviços de
@@ -73,6 +81,14 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip().rstrip("/") for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def invite_allowed_domain_list(self) -> list[str]:
+        return [
+            domain.strip().lower().lstrip("@")
+            for domain in self.eg_invite_allowed_domains.split(",")
+            if domain.strip()
+        ]
 
     @property
     def storage_configured(self) -> bool:

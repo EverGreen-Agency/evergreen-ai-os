@@ -13,7 +13,8 @@ export type UserOrganization = {
   id: string;
   name: string;
   slug: string;
-  role: "eg_admin" | "client_user";
+  /** `eg_member` (0090): pertence à EG sem administrá-la. */
+  role: "eg_admin" | "eg_member" | "client_user";
   enabled_modules: ClientModule[];
 };
 
@@ -1164,6 +1165,16 @@ export type SurfaceAccessEntry = {
   /** Frase pronta — vem do mesmo cálculo que decidiu. */
   detail: string;
   sources: string[];
+};
+
+export type OrganizationPerson = {
+  user_id: string;
+  email: string;
+  display_name: string;
+  is_active: boolean;
+  role: string;
+  tenant_role: TenantRole | null;
+  teams: string[];
 };
 
 export type SurfaceGrantEffect = "allow" | "deny";
@@ -2683,11 +2694,15 @@ export const api = {
   workspaces: () => request<WorkspaceSummary[]>("/workspaces"),
   /** Convite para o time da EG (0088). Diferente do convite de cliente: entra
    * na organização da agência e pode já colocar a pessoa numa equipe. */
+  /** Gerenciamento de usuários: quem é da EG, com papel e equipes. Vem de
+   *  `memberships`, então quem foi convidado aparece mesmo sem papel de tenant. */
+  organizationPeople: (tenantOrganizationId: string) =>
+    request<OrganizationPerson[]>(`/tenants/${tenantOrganizationId}/people`),
   teamInvites: (tenantOrganizationId: string) =>
     request<InviteSummary[]>(`/tenants/${tenantOrganizationId}/invites`),
   createTeamInvite: (
     tenantOrganizationId: string,
-    payload: { email?: string | null; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
+    payload: { email?: string | null; role?: "eg_member" | "eg_admin"; team_id?: string | null; tenant_role?: TenantRole | null; expires_in_days?: number },
   ) => request<InviteCreated>(`/tenants/${tenantOrganizationId}/invites`, {
     method: "POST",
     body: JSON.stringify(payload),

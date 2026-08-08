@@ -4429,6 +4429,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenants/{tenant_organization_id}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Organization People
+         * @description Gerenciamento de usuarios: quem pertence a organizacao, com papel e equipes.
+         */
+        get: operations["list_organization_people_tenants__tenant_organization_id__people_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{target_user_id}/surfaces": {
         parameters: {
             query?: never;
@@ -10473,6 +10493,31 @@ export interface components {
             /** Url */
             url?: string | null;
         };
+        /**
+         * OrganizationPerson
+         * @description Alguem que pertence a organizacao — a lista de "gerenciamento de
+         *     usuarios". Vem de `memberships`, entao quem foi convidado aparece mesmo sem
+         *     papel de tenant.
+         */
+        OrganizationPerson: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Role */
+            role: string;
+            /** Teams */
+            teams?: string[];
+            /** Tenant Role */
+            tenant_role?: string | null;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
         /** OrganizationSummary */
         OrganizationSummary: {
             /** Enabled Modules */
@@ -13137,7 +13182,7 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "eg_admin" | "client_user";
+        Role: "eg_admin" | "eg_member" | "client_user";
         /** RouteCandidate */
         RouteCandidate: {
             /**
@@ -15083,6 +15128,12 @@ export interface components {
              * @default 7
              */
             expires_in_days: number;
+            /**
+             * Role
+             * @default eg_member
+             * @enum {string}
+             */
+            role: "eg_member" | "eg_admin";
             /** Team Id */
             team_id?: string | null;
             /** Tenant Role */
@@ -25541,6 +25592,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InviteSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_organization_people_tenants__tenant_organization_id__people_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationPerson"][];
                 };
             };
             /** @description Validation Error */

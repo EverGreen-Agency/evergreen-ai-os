@@ -611,7 +611,16 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
             <RefreshCw size={16} className={syncingMedia ? "spin" : ""} />
             {syncingMedia ? "Sincronizando..." : "Varredura de Mídia em Tempo Real"}
           </button>
-          <button className="primary-button" type="button" onClick={() => setIsPdfModalOpen(true)}>
+          {/* Desabilitado sem dados: o modal só renderiza com `overview`, então
+              antes o clique nao fazia NADA — botao habilitado que ignora o
+              clique e pior que botao desabilitado, porque parece quebrado. */}
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => setIsPdfModalOpen(true)}
+            disabled={!overview}
+            title={overview ? undefined : "Sem dados de performance no período — nada para relatar."}
+          >
             <Printer size={16} /> Exportar Relatório Executivo PDF
           </button>
         </div>
@@ -630,11 +639,13 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
               { label: "Investimento em Mídia", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + d.cost_micros, 0)) },
               { label: "Receita & Conversões", value: formatMoneyMicros(overview.daily.reduce((acc, d) => acc + (d.conversion_value || 0), 0)) },
             ],
-            highlights: [
-              "Campanhas ativas de Meta Ads e Google Ads operando com ROI positivo.",
-              "Rastreamento de métricas unificado com integração direta de pixels e tags via GTM.",
-              "Otimização automatizada de lances e audiências sugerida pela IA EverGreen.",
-            ],
+            // Sem destaques inventados. Aqui havia três frases FIXAS no código
+            // — entre elas "campanhas operando com ROI positivo" — que iam para
+            // um PDF entregue ao cliente independentemente dos números reais.
+            // Num relatório assinado pela EG, isso é afirmação falsa sobre
+            // resultado, não texto de apoio. Quando existir destaque derivado
+            // do dado, ele entra aqui calculado; até lá, não entra nada.
+            highlights: undefined,
             tables: campaigns.length > 0 ? [
               {
                 title: "Desempenho por Campanha",
@@ -649,11 +660,9 @@ export function AnalyticsView({ clientId, workspaceName }: { clientId: string; w
                 ]),
               },
             ] : undefined,
-            nextSteps: [
-              "Realizar reescalonamento de orçamento nas campanhas de maior conversão.",
-              "Ajustar criativos e copys no Estúdio IA para os formatos de Stories e Reels.",
-              "Acompanhar reuniões de alinhamento com a equipe de performance da EG.",
-            ],
+            // Mesmo motivo dos destaques: "próximos passos" fixos sugerem um
+            // plano que ninguém definiu para este cliente.
+            nextSteps: undefined,
           }}
           onClose={() => setIsPdfModalOpen(false)}
         />
