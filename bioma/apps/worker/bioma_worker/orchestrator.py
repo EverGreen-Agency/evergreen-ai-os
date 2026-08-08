@@ -162,6 +162,42 @@ def run_next_sync() -> dict[str, Any] | None:
         return None
 
 
+    # LIMITE CONHECIDO, declarado em vez de descoberto em producao.
+    #
+    # A conexao ja pertence ao workspace (0087), mas o caminho de ESCRITA nao:
+    # os 16 provedores montam linhas com `client_id`, e as tabelas diarias do
+    # Google exigem `workspace_id NOT NULL` preenchido por um trigger que
+    # resolve workspace A PARTIR do cliente. Com `client_id` nulo — que e o
+    # caso da Operacao EG — o trigger desiste e o insert morre com um erro cru
+    # de constraint no meio da rodada, depois de ja ter chamado a API externa.
+    #
+    # Recusar aqui troca esse erro incompreensivel por um motivo legivel na
+    # trilha do sync. Nao conserta o caminho de escrita; torna a falha
+    # diagnosticavel e deixa registrado o que falta fazer.
+    if not sync_run.get("client_id"):
+        reason = (
+            "Sync de performance ainda exige um registro de cliente. A escrita das "
+            "tabelas diarias e chaveada por client_id (16 provedores + trigger de "
+            "workspace), e migra-la e um trabalho separado. Workspace sem cliente "
+            "— como a Operacao EG — nao sincroniza ainda."
+        )
+        with connect() as conn:
+            storage.complete_sync(
+                conn,
+                sync_run["id"],
+                "error",
+                {"skipped": reason},
+                0,
+                error_code="WORKSPACE_WITHOUT_CLIENT",
+                error_message=reason,
+            )
+        return {
+            "job": "performance",
+            "id": str(sync_run["id"]),
+            "status": "error",
+            "reason": reason,
+        }
+
     settings = get_settings()
     google_client = GoogleApiClient(settings)
     date_to = sync_run["date_to"] or date.today()
@@ -170,7 +206,16 @@ def run_next_sync() -> dict[str, Any] | None:
     with connect() as conn:
         # Por workspace (0087): a Operação EG tem conexão sem `client_id`, e
         # listar por cliente a deixaria de fora sem gerar erro nenhum.
-        connections = storage.list_connections(conn, sync_run["workspace_id"], sync_run["provider"] or "all")
+        #
+        # O fallback existe para linhas LEGADAS: `sync_runs` criados antes da
+        # 0087 têm `workspace_id` nulo, e listar por nulo devolveria zero
+        # conexões — o sync "terminaria com sucesso" sem sincronizar nada, que
+        # é o pior desfecho possível. Resolver pelo cliente mantém essas linhas
+        # funcionando em vez de falharem caladas.
+        workspace_id = sync_run.get("workspace_id")
+        if not workspace_id and sync_run.get("client_id"):
+            workspace_id = storage.resolve_workspace_id(conn, sync_run["client_id"])
+        connections = storage.list_connections(conn, workspace_id, sync_run["provider"] or "all")
 
     results: dict[str, dict[str, Any]] = {}
     total_records = 0

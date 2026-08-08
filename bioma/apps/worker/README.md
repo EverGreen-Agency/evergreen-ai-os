@@ -19,17 +19,23 @@ Este serviço roda como **cron job**, não como processo contínuo. O agendament
 fica em **Settings → Cron Schedule** no painel do Railway — não existe no
 `railway.json`, então clonar o repositório não reproduz o agendamento.
 
-O comando é `python -m bioma_worker.cli --enqueue-all --drain`, e **as duas
-flags são obrigatórias**:
+O comando é `python -m bioma_worker.cli --collect-uptime --enqueue-all --drain`,
+e **as flags não são opcionais**:
 
 | Flag | Sem ela |
 |---|---|
 | `--enqueue-all` | o worker nunca enfileira os syncs agendados |
 | `--drain` | processa um job só e para |
+| `--collect-uptime` | a disponibilidade medida pelo prober externo nunca é arquivada |
 
-Até 2026-08-07 o `startCommand` não tinha nenhuma das duas. Com cron
-configurado e sem as flags, **nada sincronizaria — e sem erro nenhum**, que é o
-pior tipo de falha: um painel que simplesmente não atualiza.
+Até 2026-08-07 o `startCommand` não tinha flag nenhuma. Com cron configurado e
+sem elas, **nada sincronizaria — e sem erro nenhum**, que é o pior tipo de
+falha: um painel que simplesmente não atualiza.
+
+O cron em uso é **de hora em hora**, e é esse número que o heartbeat do Better
+Stack precisa espelhar (`BETTERSTACK_HEARTBEAT_URL`). Heartbeat configurado
+para um intervalo maior que o cron só reclamaria muito depois do worker ter
+parado.
 
 O CLI termina quando esvazia a fila, que é o que o Railway exige de um cron. Se
 uma execução ainda estiver rodando na hora da próxima, o Railway pula a rodada

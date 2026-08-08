@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 
 import { api } from "../lib/api";
+import { surfaceKeyForPath } from "../lib/app-config";
 import { useUiStore } from "../store/uiStore";
-import { useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance, useSetMonthlyTarget } from "../hooks/useBiomaApi";
+import { useSurfaceVisibility, useCockpitSummary, useCurrentUser, useClients, useClientPortal, useMyDeliverables, useMyTasks, usePortfolioPerformance, useSetMonthlyTarget } from "../hooks/useBiomaApi";
 import { externalClients } from "../lib/client-scope";
 import { SquadsView } from "./SquadsView";
 
@@ -28,6 +29,15 @@ function formatCents(cents: number) {
 
 export function CockpitView() {
   const navigate = useNavigate();
+  // Terceira tela a precisar disto: menu lateral, Visão geral da Operação e
+  // agora o Cockpit. Ocultar um módulo tem que valer em TODOS os atalhos —
+  // senão a tela some do menu, continua no Cockpit, e parece que a
+  // preferência não funcionou.
+  const { isSurfaceVisible } = useSurfaceVisibility();
+  const showsSurface = (path: string) => {
+    const key = surfaceKeyForPath(path);
+    return !key || isSurfaceVisible(key);
+  };
   const { selectedClientId } = useUiStore();
   const { data: user } = useCurrentUser();
   const { data: clientsData } = useClients();
@@ -175,10 +185,12 @@ export function CockpitView() {
                     </h4>
                     <ul className="cockpit-attention-list">
                       <li>
+                        {showsSurface("/operacao/radar-local") && (
                         <button type="button" onClick={() => navigate("/operacao/radar-local")}>
                           <strong>{radarAwaiting} prospect(s) auditado(s) esperando sua aprovação</strong>
                           <span>Nenhuma mensagem sai sem você aprovar</span>
                         </button>
+                        )}
                       </li>
                     </ul>
                   </div>
@@ -233,9 +245,11 @@ export function CockpitView() {
               </ul>
             )}
 
+            {showsSurface("/eg-vitorias") && (
             <button type="button" className="bento-action ghost" onClick={() => navigate("/eg-vitorias")} style={{ marginTop: "auto" }}>
               Ver mural <ArrowRight size={13} />
             </button>
+            )}
           </article>
 
           <article className="bento-card">
@@ -387,15 +401,21 @@ export function CockpitView() {
               <button className="bento-action" onClick={() => navigate("/clientes")}>
                 Carteira de Clientes <ArrowRight size={16} />
               </button>
+              {showsSurface("/eg-propostas") && (
               <button className="bento-action ghost" onClick={() => navigate("/eg-propostas")}>
                 Propostas <ArrowRight size={16} />
               </button>
+              )}
+              {showsSurface("/operacao") && (
               <button className="bento-action ghost" onClick={() => navigate("/operacao")}>
                 Operação EG <ArrowRight size={16} />
               </button>
+              )}
+              {showsSurface("/eg-ideas") && (
               <button className="bento-action ghost" onClick={() => navigate("/eg-ideas")}>
                 Banco de Ideias <ArrowRight size={16} />
               </button>
+              )}
             </div>
           </article>
 

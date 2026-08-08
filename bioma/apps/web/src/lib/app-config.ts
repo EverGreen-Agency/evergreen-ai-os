@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, MapPin, Package, Radar, Sparkles, Target, Trophy, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ClipboardList, FileSearch, FileText, FolderOpen, GitBranch, Headphones, KeyRound, LayoutDashboard, Link2, MapPin, Package, Radar, ShieldCheck, Sparkles, Target, Trophy, UserCheck, Users, WalletCards, type LucideIcon } from "lucide-react";
 
 import type { ArtifactPayload, ClientModule, ClientPayload, ClientStatus, CurrentUser, DeliverablePayload, DeliverableStatus } from "./api";
 
@@ -88,6 +88,14 @@ export const agencyWorkspaceNavItems: Array<{
     path: "pesquisa-mercado",
     module: "hub",
     icon: FileSearch,
+  },
+  {
+    // Painel de prova: disponibilidade medida por fora, entregas e correções.
+    id: "proof",
+    label: "Prova",
+    path: "prova",
+    module: "hub",
+    icon: ShieldCheck,
   },
   {
     id: "local-radar",
@@ -196,6 +204,22 @@ export const emptyDeliverableDraft: DeliverablePayload = {
   status: "planned",
   due_at: "",
 };
+
+/** Converte um caminho de rota na chave de superfície correspondente.
+ *
+ * A convenção do catálogo é "a chave é a rota": `/eg-rh` → `eg-rh`,
+ * `/operacao/radar-local` → `operacao.radar-local`. Esta função existe porque
+ * a mesma conversão já foi escrita à mão em três telas — e nas três o
+ * esquecimento produziu o MESMO bug: ocultar um módulo tirava do menu e
+ * deixava o atalho vivo noutro lugar, o que parece defeito de quem ocultou.
+ *
+ * Devolve `null` para caminhos que não são superfície (ex.: `/configuracoes`),
+ * e quem consome trata `null` como "sempre visível". */
+export function surfaceKeyForPath(path: string): string | null {
+  const clean = path.split("?")[0].replace(/^\/+|\/+$/g, "");
+  if (!clean) return "cockpit";
+  return clean.replace(/\//g, ".");
+}
 
 export function currentViewFromHash(): ViewId {
   const id = window.location.hash.replace("#", "") as ViewId;

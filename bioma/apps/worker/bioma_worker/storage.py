@@ -54,7 +54,11 @@ def claim_next_sync(conn):
             heartbeat_at = now(), attempts = run.attempts + 1
         from candidate
         where run.id = candidate.id
-        returning run.id, run.client_id, run.organization_id, run.provider,
+        -- `workspace_id` e obrigatorio aqui desde a 0087: a conexao pertence
+        -- ao workspace, e o orquestrador lista por ele. Sem esta coluna no
+        -- returning, `run_next_sync` estoura com KeyError — que foi
+        -- exatamente o que aconteceu e so o smoke com banco isolado pegou.
+        returning run.id, run.client_id, run.workspace_id, run.organization_id, run.provider,
                   run.date_from, run.date_to, run.started_at, run.attempts
         """
     ).fetchone()

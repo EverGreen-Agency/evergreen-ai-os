@@ -12920,6 +12920,11 @@
             "title": "Generated At",
             "type": "string"
           },
+          "generation_mode": {
+            "default": "preview",
+            "title": "Generation Mode",
+            "type": "string"
+          },
           "insights": {
             "items": {
               "$ref": "#/components/schemas/PerformanceAiSummaryInsight"
@@ -16872,6 +16877,199 @@
           "created_at"
         ],
         "title": "ProjectUpdateSummary",
+        "type": "object"
+      },
+      "ProofDailyPoint": {
+        "properties": {
+          "availability": {
+            "title": "Availability",
+            "type": "number"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "availability"
+        ],
+        "title": "ProofDailyPoint",
+        "type": "object"
+      },
+      "ProofDelivery": {
+        "properties": {
+          "completed_at": {
+            "format": "date-time",
+            "title": "Completed At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "workspace_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Name"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "completed_at"
+        ],
+        "title": "ProofDelivery",
+        "type": "object"
+      },
+      "ProofFix": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "minutes_to_resolve": {
+            "title": "Minutes To Resolve",
+            "type": "integer"
+          },
+          "resolved_at": {
+            "format": "date-time",
+            "title": "Resolved At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "resolved_at",
+          "minutes_to_resolve"
+        ],
+        "title": "ProofFix",
+        "type": "object"
+      },
+      "ProofPanel": {
+        "properties": {
+          "daily_uptime": {
+            "items": {
+              "$ref": "#/components/schemas/ProofDailyPoint"
+            },
+            "title": "Daily Uptime",
+            "type": "array"
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/ProofDelivery"
+            },
+            "title": "Deliveries",
+            "type": "array"
+          },
+          "fixes": {
+            "items": {
+              "$ref": "#/components/schemas/ProofFix"
+            },
+            "title": "Fixes",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "open_issues": {
+            "default": 0,
+            "title": "Open Issues",
+            "type": "integer"
+          },
+          "uptime": {
+            "items": {
+              "$ref": "#/components/schemas/ProofUptime"
+            },
+            "title": "Uptime",
+            "type": "array"
+          }
+        },
+        "required": [
+          "generated_at"
+        ],
+        "title": "ProofPanel",
+        "type": "object"
+      },
+      "ProofUptime": {
+        "properties": {
+          "availability": {
+            "title": "Availability",
+            "type": "number"
+          },
+          "collected_at": {
+            "format": "date-time",
+            "title": "Collected At",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "measured_since": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measured Since"
+          },
+          "monitor_id": {
+            "title": "Monitor Id",
+            "type": "string"
+          },
+          "monitor_name": {
+            "title": "Monitor Name",
+            "type": "string"
+          },
+          "number_of_incidents": {
+            "title": "Number Of Incidents",
+            "type": "integer"
+          },
+          "total_downtime_seconds": {
+            "title": "Total Downtime Seconds",
+            "type": "integer"
+          },
+          "window_days": {
+            "title": "Window Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "monitor_id",
+          "monitor_name",
+          "kind",
+          "window_days",
+          "availability",
+          "number_of_incidents",
+          "total_downtime_seconds",
+          "collected_at"
+        ],
+        "title": "ProofUptime",
         "type": "object"
       },
       "ProposalAcceptanceCreate": {
@@ -39021,6 +39219,52 @@
         "summary": "Usage",
         "tags": [
           "copilot"
+        ]
+      }
+    },
+    "/eg/proof": {
+      "get": {
+        "description": "Painel de prova: disponibilidade medida por fora, entregas e correções.\n\nInterno por enquanto (EG-only). Se um dia virar público, o que muda é o\ngate — os números já nascem com origem verificável.",
+        "operationId": "get_panel_eg_proof_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "weeks",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "maximum": 52,
+              "minimum": 1,
+              "title": "Weeks",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProofPanel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Panel",
+        "tags": [
+          "proof"
         ]
       }
     },

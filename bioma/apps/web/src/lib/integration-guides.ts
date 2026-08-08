@@ -72,11 +72,19 @@ export const INTEGRATION_GUIDES: Record<string, IntegrationGuideContent> = {
         screenshot: "conceder-acesso",
       },
       {
+        title: "Conta já sob o MCC da EG? Pule o passo anterior",
+        description:
+          "Se a conta já está vinculada ao MCC (Gerente) da EverGreen — o caso das contas da própria EG e dos clientes que a gente administra —, o acesso da service account CASCATEIA pelo MCC. Não é preciso convidar o e-mail conta a conta: basta o Customer ID da conta e o Customer ID do MCC no campo de gerente. Conceder acesso individual aí não quebra nada, só é trabalho repetido.",
+        link: { label: "Google Ads — Contas do gerente", url: "https://ads.google.com/aw/accountaccess/managers" },
+      },
+      {
         title: "Preencha aqui e sincronize",
         description:
-          'Cole o Customer ID no card, salve e clique em Sincronizar. Se a conta estiver sob um MCC, informe também o MCC (login customer id) no campo opcional.',
+          'Cole o Customer ID no card. Se a conta estiver sob um MCC, preencha TAMBÉM o campo "MCC (login customer id)" com o ID da conta gerente — sem ele a API do Google recusa a leitura de conta gerenciada, com erro de permissão que parece falta de acesso. Salve e clique em Sincronizar.',
       },
     ],
+    caveat:
+      "Há dois caminhos e eles não são intercambiáveis: conta AVULSA (cliente que não está sob o nosso MCC) exige convidar a service account nela; conta SOB O MCC dispensa esse convite mas exige preencher o campo de gerente. Escolher o caminho errado dá o mesmo sintoma — erro de permissão na sincronização.",
     envVars: ["GOOGLE_SERVICE_ACCOUNT_JSON", "GOOGLE_ADS_DEVELOPER_TOKEN"],
   },
 
@@ -170,9 +178,15 @@ export const INTEGRATION_GUIDES: Record<string, IntegrationGuideContent> = {
     ],
     steps: [
       {
-        title: "Peça acesso à conta de anúncios do cliente",
+        title: "Conta já dentro da BM da EG? Pule o próximo passo",
         description:
-          "No Gerenciador de Negócios da EG, vá em Configurações do negócio › Contas › Contas de anúncios › Adicionar › Solicitar acesso a uma conta de anúncios, e informe o ID da conta do cliente. O cliente aprova pelo Gerenciador dele.",
+          "Se a conta de anúncios já pertence ao Gerenciador de Negócios da EverGreen — o caso das contas da própria EG —, não há acesso a solicitar: o token da BM já enxerga a conta. Vá direto para copiar o Ad Account ID.",
+        link: { label: "Meta Business Suite — Contas de anúncios", url: "https://business.facebook.com/settings/ad-accounts" },
+      },
+      {
+        title: "Conta do cliente: peça acesso à BM dele",
+        description:
+          "No Gerenciador de Negócios da EG, vá em Configurações do negócio › Contas › Contas de anúncios › Adicionar › Solicitar acesso a uma conta de anúncios, e informe o ID da conta do cliente. O cliente aprova pelo Gerenciador dele. Este passo NÃO se aplica a conta que já é da EG.",
         link: { label: "Meta Business Suite", url: "https://business.facebook.com/settings" },
         screenshot: "solicitar-acesso",
       },

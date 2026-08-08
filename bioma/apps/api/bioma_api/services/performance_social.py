@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 
 from bioma_api.access import is_platform_admin, require_client_module, require_workspace_capability
 from bioma_api.db import connect
+from bioma_api.worker_bridge import generate_multichannel_insight_safe
 from bioma_api.repositories import performance_social as perf_social_repo
 from bioma_api.repositories import workspaces as workspaces_repo
 from bioma_api.schemas.auth import CurrentUserResponse
@@ -30,72 +31,87 @@ def list_linkedin_ads(workspace_id: UUID, user: CurrentUserResponse) -> list[Soc
 
 
 def generate_ai_summary(workspace_id: UUID, user: CurrentUserResponse) -> PerformanceAiSummaryResponse:
+    """Insight multicanal a partir dos números reais de mídia paga.
+
+    Até 2026-08-08 esta função montava um texto com métricas reais e
+    **recomendações fixas no código** — "escalar criativos de maior retenção nos
+    primeiros 3s", "concentrar orçamento em C-Level" — que não mudavam com dado
+    nenhum. A tela chamava aquilo de "IA Insight". Métrica certa com conselho
+    inventado é pior que só a métrica: dá autoridade a um palpite.
+
+    Agora os números continuam vindo do banco (essa parte sempre esteve certa) e
+    a LEITURA deles vai para o mesmo caminho do briefing: com `OPENAI_API_KEY`,
+    o modelo sintetiza sob instrução de não afirmar nada fora dos números; sem
+    chave, volta uma prévia que RELATA em vez de recomendar, rotulada como tal.
+
+    `generation_mode` sobe para a tela justamente para ela poder dizer qual dos
+    dois aconteceu — o usuário precisa saber se leu análise ou organização.
+    """
     with connect() as conn:
         client = _accessible_workspace(conn, workspace_id, user)
         totals = perf_social_repo.get_multichannel_totals(conn, client["workspace_id"])
 
-    meta_totals = totals["meta"]
-    linkedin_totals = totals["linkedin"]
-
-    meta_spend = meta_totals["spend_cents"] or 0
-    meta_leads = meta_totals["leads"] or 0
-    linkedin_spend = linkedin_totals["spend_cents"] or 0
-    linkedin_leads = linkedin_totals["leads"] or 0
-
-    total_spend = meta_spend + linkedin_spend
-    total_leads = meta_leads + linkedin_leads
-    overall_cpa = int(total_spend / total_leads) if total_leads > 0 else 0
-
-    insights = []
-    if meta_spend > 0:
-        meta_cpa = int(meta_spend / meta_leads) if meta_leads > 0 else 0
-        insights.append(
-            PerformanceAiSummaryInsight(
-                channel="meta_ads",
-                title="Desempenho Meta Ads (Instagram/Facebook)",
-                finding=f"Investimento total de R$ {meta_spend / 100:,.2f} com {meta_leads} leads capturados (CPA médio de R$ {meta_cpa / 100:,.2f}).",
-                action_recommendation="Escalar criativos de maior retenção nos primeiros 3s e otimizar públicos semelhantes.",
-                impact_level="high",
-            )
+    channels = []
+    for key, label in (("meta", "Meta Ads (Instagram/Facebook)"), ("linkedin", "LinkedIn Ads B2B")):
+        data = totals.get(key) or {}
+        spend = data.get("spend_cents") or 0
+        leads = data.get("leads") or 0
+        if not spend:
+            # Canal sem investimento não entra: o modelo não deve ter a chance
+            # de escrever sobre um canal que não rodou.
+            continue
+        channels.append(
+            {
+                "channel": f"{key}_ads",
+                "label": label,
+                "spend_cents": spend,
+                "leads": leads,
+                "clicks": data.get("clicks") or 0,
+                "impressions": data.get("impressions") or 0,
+                "conversions": data.get("conversions") or 0,
+                "cpa_cents": int(spend / leads) if leads else 0,
+            }
         )
 
-    if linkedin_spend > 0:
-        linkedin_cpa = int(linkedin_spend / linkedin_leads) if linkedin_leads > 0 else 0
-        insights.append(
-            PerformanceAiSummaryInsight(
-                channel="linkedin_ads",
-                title="Desempenho LinkedIn Ads B2B",
-                finding=f"Investimento de R$ {linkedin_spend / 100:,.2f} com {linkedin_leads} leads qualificados (CPA médio de R$ {linkedin_cpa / 100:,.2f}).",
-                action_recommendation="Concentrar orçamento nos cargos de decisão (C-Level/Diretoria) com ofertas de diagnóstico Raio-X.",
-                impact_level="high",
-            )
-        )
+    total_spend = sum(channel["spend_cents"] for channel in channels)
+    total_leads = sum(channel["leads"] for channel in channels)
+    overall_cpa = int(total_spend / total_leads) if total_leads else 0
 
-    if not insights:
-        insights.append(
-            PerformanceAiSummaryInsight(
-                channel="multichannel",
-                title="Início de Monitoramento Multicanal",
-                finding="As campanhas de Meta e LinkedIn Ads estão prontas para sincronização inicial.",
-                action_recommendation="Conectar as contas de anúncios no painel de Integrações.",
-                impact_level="medium",
-            )
-        )
+    dossier = {
+        "channels": channels,
+        "total_spend_cents": total_spend,
+        "total_leads": total_leads,
+        "overall_cpa_cents": overall_cpa,
+        "currency": "BRL",
+        "note": "Valores em centavos. Nenhum benchmark externo disponível.",
+    }
 
-    summary_text = (
-        f"Análise Multicanal EverGreen: O workspace acumula R$ {total_spend / 100:,.2f} em mídia paga, "
-        f"gerando {total_leads} leads qualificados. O custo por aquisição consolidado é R$ {overall_cpa / 100:,.2f}. "
-        "A recomendação prioritária é rebalancear os orçamentos atacando o pilar gargalo apontado pelo Raio-X Comercial."
-    )
+    try:
+        result = generate_multichannel_insight_safe(dossier)
+        insight = result["insight"]
+        generation_mode = result["generation_mode"]
+    except Exception:
+        # Falha de IA não pode derrubar a tela de métricas: os números reais
+        # continuam valendo. Cai na prévia e diz que caiu.
+        insight = {
+            "summary": (
+                f"Não foi possível gerar a análise agora. Números do período: "
+                f"R$ {total_spend / 100:,.2f} investidos, {total_leads} leads, "
+                f"CPA de R$ {overall_cpa / 100:,.2f}."
+            ),
+            "insights": [],
+        }
+        generation_mode = "unavailable"
 
     return PerformanceAiSummaryResponse(
         workspace_id=workspace_id,
         generated_at=datetime.now(timezone.utc),
-        summary_text=summary_text,
+        summary_text=insight["summary"],
         total_spend_cents=total_spend,
         total_leads=total_leads,
         overall_cpa_cents=overall_cpa,
-        insights=insights,
+        generation_mode=generation_mode,
+        insights=[PerformanceAiSummaryInsight(**item) for item in insight["insights"]],
     )
 
 

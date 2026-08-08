@@ -110,7 +110,27 @@ function AiSummaryTab({ clientId }: { clientId: string }) {
   return (
     <div className="performance-tab-panel">
       <article className="surface" style={{ background: "linear-gradient(135deg, var(--surface) 0%, rgba(58, 201, 123, 0.08) 100%)" }}>
-        <SectionHeader eyebrow="Visão Estratégica EG" title="Resumo Consolidado de IA" icon={Bot} />
+        <SectionHeader
+          eyebrow="Visão Estratégica EG"
+          title={summary.generation_mode === "live" ? "Análise Multicanal por IA" : "Resumo Multicanal"}
+          icon={Bot}
+        />
+        {/* O rótulo tem que dizer a verdade sobre o que a pessoa está lendo.
+            Antes a tela dizia "IA" sempre — inclusive quando não havia IA
+            nenhuma e as recomendações eram fixas no código. */}
+        {summary.generation_mode !== "live" && (
+          <div
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8,
+              fontSize: 11.5, padding: "4px 10px", borderRadius: 999,
+              border: "1px solid var(--amber)", color: "var(--amber)",
+            }}
+          >
+            {summary.generation_mode === "unavailable"
+              ? "Análise indisponível agora — os números abaixo são reais"
+              : "Sem síntese de IA — números reais, organizados. Cadastre a conta em Operação EG → IA"}
+          </div>
+        )}
         <p style={{ fontSize: "15px", lineHeight: "1.6", color: "var(--text-main)", margin: "16px 0" }}>
           {summary.summary_text}
         </p>

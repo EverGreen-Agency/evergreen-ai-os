@@ -265,7 +265,7 @@ export function WikiEgView() {
         {!loading && grouped.map((group) => (
           <article className="surface" key={group.id}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <SectionHeader eyebrow="Categoria" title={group.label} icon={FileText} />
+              <SectionHeader eyebrow="Categoria" title={group.label} />
               <button className="ghost-button" type="button" onClick={() => startNew(group.id)}>
                 <Plus size={14} /> Adicionar
               </button>

@@ -1,5 +1,13 @@
 # Bioma MVP v0 & Mega-Plataforma
 
+[![Disponibilidade da API](https://uptime.betterstack.com/status-badges/v3/monitor/2uma8.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
+<!-- O selo reflete o monitor EXTERNO de `api.bioma.evergreenmkt.com.br/health/ready`.
+     Ele diz `up`/`down` agora — o histórico e a janela de 90 dias ficam em
+     /operacao/prova, que lê `uptime_snapshots`. Selo é imagem servida pelo
+     provedor: se ele cair, vira ícone quebrado. Por isso não é a fonte do
+     número, só um atalho visual. -->
+
 Bioma é a plataforma operacional e motor comercial da EverGreen. O sistema reúne cockpit interno EG, Client Hub, motor nativo de projetos/tarefas, contratos e escopo, cofre de acessos, radar de oportunidades por captura manual e feeds RSS verificáveis, auditoria assistida de perfis por URL, inventário de gaps tecnológicos, métricas comerciais, auth, Postgres e adapters externos.
 
 ## Modelo de produto

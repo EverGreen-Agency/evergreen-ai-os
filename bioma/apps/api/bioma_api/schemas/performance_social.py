@@ -41,4 +41,9 @@ class PerformanceAiSummaryResponse(BaseModel):
     total_spend_cents: int
     total_leads: int
     overall_cpa_cents: int
+    # `live` = o modelo leu os números. `preview` = sem chave de IA, a resposta
+    # organiza os números sem sintetizar. `unavailable` = a chamada falhou e os
+    # números continuam valendo. A tela precisa dizer qual foi — chamar prévia
+    # de análise foi exatamente o problema que esta feature corrigiu.
+    generation_mode: str = "preview"
     insights: list[PerformanceAiSummaryInsight]

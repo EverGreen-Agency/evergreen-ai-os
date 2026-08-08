@@ -13,14 +13,14 @@ export function ProofItem({ icon: Icon, title, detail }: { icon: LucideIcon; tit
   );
 }
 
-export function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon: IconLike }) {
+export function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon?: IconLike }) {
   return (
     <div className="panel-heading compact">
       <div>
         <p className="eyebrow">{eyebrow}</p>
         <h2>{title}</h2>
       </div>
-      <Icon size={22} />
+      {Icon && <Icon size={22} />}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Link, Outlet, useOutletContext } from "react-router-dom";
 import { EmptyState } from "../components/shared";
 import { WorkspaceShell } from "../components/WorkspaceShell";
 import { useCurrentUser, useWorkspaces, useSurfaceVisibility } from "../hooks/useBiomaApi";
-import { agencyWorkspaceNavItems } from "../lib/app-config";
+import { agencyWorkspaceNavItems, surfaceKeyForPath } from "../lib/app-config";
 import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
 
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
@@ -14,6 +14,7 @@ const FinanceView = lazy(() => import("./FinanceView").then((module) => ({ defau
 const TasksView = lazy(() => import("./TasksView").then((module) => ({ default: module.TasksView })));
 const AiOperationsView = lazy(() => import("./AiOperationsView").then((module) => ({ default: module.AiOperationsView })));
 const MarketResearchStudio = lazy(() => import("../components/MarketResearchStudio").then((module) => ({ default: module.MarketResearchStudio })));
+const ProofView = lazy(() => import("./ProofView").then((module) => ({ default: module.ProofView })));
 const LocalRadarStudio = lazy(() => import("../components/LocalRadarStudio").then((module) => ({ default: module.LocalRadarStudio })));
 
 type AgencyWorkspaceOutletContext = {
@@ -122,9 +123,10 @@ export function AgencyOverviewRoute() {
   // meio da Visão geral, que é pior que não ocultar: dá a impressão de que a
   // preferência não funcionou. A chave sai da própria rota (`/operacao/crm`
   // → `operacao.crm`), que é a convenção do catálogo.
-  const modules = allModules.filter((module) =>
-    isSurfaceVisible(module.to.replace("/operacao/", "operacao.")),
-  );
+  const modules = allModules.filter((module) => {
+    const key = surfaceKeyForPath(module.to);
+    return !key || isSurfaceVisible(key);
+  });
 
   return (
     <section className="agency-workspace-home">
@@ -202,3 +204,14 @@ export function AgencyMarketResearchRoute() {
   );
 }
 
+
+
+/** Painel de prova (decisão de 2026-08-08). Fica na Operação EG porque é
+ *  registro da própria agência, não de um cliente. */
+export function AgencyProofRoute() {
+  return (
+    <Suspense fallback={<ModuleLoading />}>
+      <ProofView />
+    </Suspense>
+  );
+}

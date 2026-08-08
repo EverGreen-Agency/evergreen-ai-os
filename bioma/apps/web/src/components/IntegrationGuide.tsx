@@ -1,22 +1,8 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { BookOpen, ExternalLink, ImageOff, X } from "lucide-react";
 
 import { guideFor, screenshotPath, type IntegrationGuideContent } from "../lib/integration-guides";
-
-/**
- * Guia de "como conectar" de cada integração.
- *
- * Era um acordeão que abria DENTRO do card da integração: o card crescia
- * empurrando a lista inteira, e um guia de oito passos com prints deixava a
- * página impossível de navegar. Agora é botão → modal, que é o que a mão espera
- * de "abrir a documentação".
- *
- * Tinha também um botão "PDF" que chamava `window.print()`. Sem CSS de
- * impressão configurado, aquilo imprimia a aplicação inteira — sidebar, menu e
- * tudo. Removido: exportar guia em PDF é uma feature de verdade (branding,
- * paginação, prints embutidos) e vale ser feita direito quando alguém precisar,
- * não meio-feita atrapalhando quem só quer ler.
- */
 
 const RESPONSIBLE_LABEL: Record<IntegrationGuideContent["responsible"], string> = {
   eg: "Só a EG executa",
@@ -24,12 +10,6 @@ const RESPONSIBLE_LABEL: Record<IntegrationGuideContent["responsible"], string> 
   both: "EG + cliente, em etapas",
 };
 
-/**
- * Slot de print. Enquanto o arquivo não existir em
- * public/assets/integration-guides/<provider>/<slug>.png, mostra um espaço
- * tracejado com o caminho exato esperado — o próprio placeholder documenta
- * onde salvar a imagem.
- */
 function ScreenshotSlot({ provider, slug }: { provider: string; slug: string }) {
   const [failed, setFailed] = useState(false);
   const path = screenshotPath(provider, slug);
@@ -67,19 +47,23 @@ function GuideModal({
   guide: IntegrationGuideContent;
   onClose: () => void;
 }) {
-  // Esc fecha: modal que só fecha no X obriga a mão a sair do teclado.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [onClose]);
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
+  return createPortal(
+    <div className="guide-modal-backdrop" onClick={onClose}>
       <div
-        className="modal-card guide-modal"
+        className="guide-modal-card"
         role="dialog"
         aria-modal="true"
         aria-label={`Como conectar ${label}`}
@@ -92,7 +76,7 @@ function GuideModal({
             <span className="guide-modal-responsible">{RESPONSIBLE_LABEL[guide.responsible]}</span>
           </div>
           <button type="button" className="guide-modal-close" onClick={onClose} aria-label="Fechar">
-            <X size={16} />
+            <X size={18} />
           </button>
         </header>
 
@@ -106,7 +90,7 @@ function GuideModal({
           )}
 
           {guide.prerequisites.length > 0 && (
-            <section>
+            <section className="guide-section">
               <h3>Antes de começar</h3>
               <ul className="guide-list">
                 {guide.prerequisites.map((item, index) => (
@@ -116,26 +100,29 @@ function GuideModal({
             </section>
           )}
 
-          <ol className="guide-steps">
-            {guide.steps.map((step, index) => (
-              <li key={index}>
-                <span className="guide-step-number">{index + 1}</span>
-                <div>
-                  <strong>{step.title}</strong>
-                  <p>{step.description}</p>
-                  {step.link && (
-                    <a href={step.link.url} target="_blank" rel="noreferrer" className="guide-step-link">
-                      {step.link.label} <ExternalLink size={12} />
-                    </a>
-                  )}
-                  {step.screenshot && <ScreenshotSlot provider={provider} slug={step.screenshot} />}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <section className="guide-section">
+            <h3>Passo a passo</h3>
+            <ol className="guide-steps">
+              {guide.steps.map((step, index) => (
+                <li key={index}>
+                  <span className="guide-step-number">{index + 1}</span>
+                  <div className="guide-step-content">
+                    <strong>{step.title}</strong>
+                    <p>{step.description}</p>
+                    {step.link && (
+                      <a href={step.link.url} target="_blank" rel="noreferrer" className="guide-step-link">
+                        {step.link.label} <ExternalLink size={12} />
+                      </a>
+                    )}
+                    {step.screenshot && <ScreenshotSlot provider={provider} slug={step.screenshot} />}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
 
           {guide.envVars && guide.envVars.length > 0 && (
-            <section>
+            <section className="guide-section">
               <h3>Configuração do ambiente EG (uma vez, não por cliente)</h3>
               <div className="guide-envvars">
                 {guide.envVars.map((envVar) => (
@@ -152,7 +139,8 @@ function GuideModal({
           qualquer momento.
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
