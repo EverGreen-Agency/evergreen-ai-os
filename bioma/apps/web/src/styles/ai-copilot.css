@@ -1288,9 +1288,27 @@
 }
 
 /* `!important` acompanha a base de `.modal-card`, que já usa — sem isso a
-   largura maior deste modal perde para o `max-width: 560px` de lá. */
+   largura maior deste modal perde para o `max-width: 560px` de lá.
+
+   Guia de integração é leitura passo a passo com captura de tela: 720px
+   espremia o conteúdo e obrigava a rolar muito, que foi a reclamação. Ocupa
+   quase a tela toda, com teto para não esticar demais em monitor grande. */
 .modal-card.guide-modal {
-  max-width: 720px !important;
+  max-width: min(1120px, 94vw) !important;
+  width: min(1120px, 94vw) !important;
+  max-height: 92vh !important;
+}
+
+/* Duas colunas quando há espaço: os passos ficam ao lado da captura em vez de
+   empilhados, que é o que fazia o guia parecer interminável. */
+@media (min-width: 900px) {
+  .guide-modal-body {
+    column-count: 2;
+    column-gap: 28px;
+  }
+  .guide-modal-body > * {
+    break-inside: avoid;
+  }
 }
 
 .guide-modal-header {
