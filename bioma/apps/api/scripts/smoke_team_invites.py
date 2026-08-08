@@ -178,6 +178,28 @@ def main() -> None:
         )
         print("ok: equipe de outra organização é recusada (422)")
 
+        # Guarda-corpo de dominio: so vale quando configurado, e a mensagem diz
+        # quais dominios sao aceitos.
+        import bioma_api.config as config_module
+        original = config_module.get_settings
+        try:
+            base = original()
+            config_module.get_settings = lambda: base.model_copy(
+                update={"eg_invite_allowed_domains": "evergreenmkt.com.br"}
+            )
+            import bioma_api.services.invites as invites_module
+            invites_module.get_settings = config_module.get_settings
+            response = admin.post(
+                f"/tenants/{eg_id}/invites",
+                json={"email": "estranho@gmail.com"},
+            )
+            if response.status_code != 422 or "evergreenmkt.com.br" not in response.text:
+                raise AssertionError(f"dominio fora da lista deveria ser recusado com a lista: {response.text}")
+            print("ok: dominio fora da lista e recusado, e a mensagem diz quais valem")
+        finally:
+            config_module.get_settings = original
+            invites_module.get_settings = original
+
         # ---------------------------------------------------------------- 6
         cliente = TestClient(app)
         assert_status(cliente.post("/auth/login", json={"email": OUTSIDER_EMAIL, "password": PASSWORD}), 200, "login cliente")

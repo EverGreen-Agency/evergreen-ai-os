@@ -103,6 +103,21 @@ def create_team_invite(
                     detail="Equipe não encontrada nesta organização.",
                 )
 
+        allowed_domains = get_settings().invite_allowed_domain_list
+        if payload.email and allowed_domains:
+            domain = payload.email.rsplit("@", 1)[-1].lower()
+            if domain not in allowed_domains:
+                # 422 com a lista: quem digitou errado corrige na hora, e quem
+                # quis convidar alguem de fora descobre que a regra existe em
+                # vez de so ver "erro".
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=(
+                        f"Convite ao time só para os domínios da EG: "
+                        f"{', '.join(allowed_domains)}. Recebido: @{domain}."
+                    ),
+                )
+
         if payload.email and invites_repo.find_user_by_email(conn, payload.email):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
