@@ -205,6 +205,22 @@ export const emptyDeliverableDraft: DeliverablePayload = {
   due_at: "",
 };
 
+/** Converte um caminho de rota na chave de superfície correspondente.
+ *
+ * A convenção do catálogo é "a chave é a rota": `/eg-rh` → `eg-rh`,
+ * `/operacao/radar-local` → `operacao.radar-local`. Esta função existe porque
+ * a mesma conversão já foi escrita à mão em três telas — e nas três o
+ * esquecimento produziu o MESMO bug: ocultar um módulo tirava do menu e
+ * deixava o atalho vivo noutro lugar, o que parece defeito de quem ocultou.
+ *
+ * Devolve `null` para caminhos que não são superfície (ex.: `/configuracoes`),
+ * e quem consome trata `null` como "sempre visível". */
+export function surfaceKeyForPath(path: string): string | null {
+  const clean = path.split("?")[0].replace(/^\/+|\/+$/g, "");
+  if (!clean) return "cockpit";
+  return clean.replace(/\//g, ".");
+}
+
 export function currentViewFromHash(): ViewId {
   const id = window.location.hash.replace("#", "") as ViewId;
   return navItems.some((item) => item.id === id) ? id : "cockpit";

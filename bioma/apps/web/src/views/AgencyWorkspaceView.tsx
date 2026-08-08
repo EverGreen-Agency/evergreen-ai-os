@@ -5,7 +5,7 @@ import { Link, Outlet, useOutletContext } from "react-router-dom";
 import { EmptyState } from "../components/shared";
 import { WorkspaceShell } from "../components/WorkspaceShell";
 import { useCurrentUser, useWorkspaces, useSurfaceVisibility } from "../hooks/useBiomaApi";
-import { agencyWorkspaceNavItems } from "../lib/app-config";
+import { agencyWorkspaceNavItems, surfaceKeyForPath } from "../lib/app-config";
 import { resolveAgencyWorkspace, type AgencyWorkspaceContext } from "../lib/workspace-context";
 
 const AnalyticsView = lazy(() => import("./AnalyticsView").then((module) => ({ default: module.AnalyticsView })));
@@ -123,9 +123,10 @@ export function AgencyOverviewRoute() {
   // meio da Visão geral, que é pior que não ocultar: dá a impressão de que a
   // preferência não funcionou. A chave sai da própria rota (`/operacao/crm`
   // → `operacao.crm`), que é a convenção do catálogo.
-  const modules = allModules.filter((module) =>
-    isSurfaceVisible(module.to.replace("/operacao/", "operacao.")),
-  );
+  const modules = allModules.filter((module) => {
+    const key = surfaceKeyForPath(module.to);
+    return !key || isSurfaceVisible(key);
+  });
 
   return (
     <section className="agency-workspace-home">
